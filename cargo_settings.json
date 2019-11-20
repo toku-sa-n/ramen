@@ -1,0 +1,20 @@
+{
+    "arch": "x86",
+    "":"See http://llvm.org/docs/LangRef.html#data-layout3 to know what data-layout represents.",
+    "data-layout": "e-m:e-p:32:32-f64:32:64-f80:32-n8:16:32-S128",
+    "llvm-target": "i686-unknown-none",
+    "features": "",
+    "target-endian": "little",
+    "target-pointer-width": "32",
+    "target-c-int-width": "32",
+    "os": "none",
+    "code-model": "kernel",
+    "relocation-model": "static",
+    "archive-format": "gnu",
+    "target-env": "gnu",
+    "no-compiler-rt": false,
+    "linker-flavor": "ld",
+    "linker-is-gnu": true,
+    "disable-redzone": true,
+    "eliminate-frame-pointer": false
+}
