@@ -10,9 +10,9 @@ addons:
             - nasm
             - mtools
 
-before_install:
+install:
     - cargo install cargo-xbuild
     - rustup component add rust-src
 
-install:
+script:
     - make
