@@ -9,5 +9,8 @@ addons:
         packages:
             - nasm
 
+before_install:
+    - cargo install cargo-xbuild
+
 install:
     - make
