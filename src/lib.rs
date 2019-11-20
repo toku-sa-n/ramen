@@ -12,6 +12,11 @@ fn hlt() -> () {
 #[no_mangle]
 #[start]
 pub extern "C" fn os_main() -> ! {
+    for i in 0xa0000..0xb0000 {
+        let ptr = unsafe { &mut *(i as *mut u8) };
+        *ptr = 15;
+    }
+
     loop {
         hlt()
     }
