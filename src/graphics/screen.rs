@@ -12,7 +12,7 @@ impl Coord {
 }
 
 #[rustfmt::skip]
-pub fn draw_desktop(vram: Vram) -> () {
+pub fn draw_desktop(vram: &Vram) -> () {
     let x_len:isize  = vram.x_len as isize;
     let y_len:isize  = vram.y_len as isize;
     let vram:*mut u8 = vram.ptr as *mut u8;
@@ -50,6 +50,20 @@ fn draw_rectangle(
         for x in top_left.x..=bottom_right.x {
             unsafe {
                 *(&mut *(vram.offset(y * x_len + x))) = color as u8;
+            }
+        }
+    }
+}
+
+pub fn put_font(vram: Vram, x: usize, y: usize, color: ColorIndex, font: [u8; 16]) -> () {
+    for i in 0..16 {
+        for j in 0..8 {
+            if font[i] & (1 << j) != 0 {
+                unsafe {
+                    *(&mut *(vram
+                        .ptr
+                        .offset(((y + i) * vram.x_len as usize + x + j) as isize))) = color as u8;
+                }
             }
         }
     }

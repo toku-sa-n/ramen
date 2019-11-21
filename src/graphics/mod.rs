@@ -1,11 +1,12 @@
 use crate::asm;
 
+pub mod font;
 pub mod screen;
 
 pub struct Vram {
     pub x_len: i16,
     pub y_len: i16,
-    pub ptr: *const u8,
+    pub ptr: *mut u8,
 }
 
 impl Vram {
