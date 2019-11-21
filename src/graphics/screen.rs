@@ -58,7 +58,7 @@ fn draw_rectangle(
 pub fn put_font(vram: Vram, x: usize, y: usize, color: ColorIndex, font: [u8; 16]) -> () {
     for i in 0..16 {
         for j in 0..8 {
-            if font[i] & (1 << j) != 0 {
+            if font[i] & (1 << (7 - j)) != 0 {
                 unsafe {
                     *(&mut *(vram
                         .ptr
