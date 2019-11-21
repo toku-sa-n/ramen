@@ -5,7 +5,7 @@ ASM_DIR		:= asm
 IPL_SRC		:= $(ASM_DIR)/ipl.asm
 HEAD_SRC	:= $(ASM_DIR)/head.asm
 CARGO_JSON	:= cargo_settings
-RUST_SRC	:= lib.rs asm.rs
+RUST_SRC	:= $(shell cd $(RUST_SRC_DIR) && ls)
 
 LD_SRC		:= os.ld
 
