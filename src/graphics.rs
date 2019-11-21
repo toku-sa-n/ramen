@@ -66,6 +66,85 @@ fn set_palette(start: i32, end: i32, rgb: [[u8; 3]; 16]) -> () {
     asm::store_eflags(eflags);
 }
 
+pub fn draw_desktop(vram: *mut u8, x_len: isize, y_len: isize) -> () {
+    let draw_desktop_part = |color, top_left, bottom_right| {
+        draw_rectangle(vram, x_len, color, top_left, bottom_right);
+    };
+
+    draw_desktop_part(
+        ColorIndex::Rgb008484,
+        Coord::new(0, 0),
+        Coord::new(x_len - 1, y_len - 29),
+    );
+    draw_desktop_part(
+        ColorIndex::RgbC6C6C6,
+        Coord::new(0, y_len - 28),
+        Coord::new(x_len - 1, y_len - 28),
+    );
+    draw_desktop_part(
+        ColorIndex::RgbFFFFFF,
+        Coord::new(0, y_len - 27),
+        Coord::new(x_len - 1, y_len - 27),
+    );
+    draw_desktop_part(
+        ColorIndex::RgbC6C6C6,
+        Coord::new(0, y_len - 26),
+        Coord::new(x_len - 1, y_len - 1),
+    );
+
+    draw_desktop_part(
+        ColorIndex::RgbFFFFFF,
+        Coord::new(3, y_len - 24),
+        Coord::new(59, y_len - 24),
+    );
+    draw_desktop_part(
+        ColorIndex::RgbFFFFFF,
+        Coord::new(2, y_len - 24),
+        Coord::new(2, y_len - 4),
+    );
+    draw_desktop_part(
+        ColorIndex::Rgb848484,
+        Coord::new(3, y_len - 4),
+        Coord::new(59, y_len - 4),
+    );
+    draw_desktop_part(
+        ColorIndex::Rgb848484,
+        Coord::new(59, y_len - 23),
+        Coord::new(59, y_len - 5),
+    );
+    draw_desktop_part(
+        ColorIndex::Rgb000000,
+        Coord::new(2, y_len - 3),
+        Coord::new(59, y_len - 3),
+    );
+    draw_desktop_part(
+        ColorIndex::Rgb000000,
+        Coord::new(60, y_len - 24),
+        Coord::new(60, y_len - 3),
+    );
+
+    draw_desktop_part(
+        ColorIndex::Rgb848484,
+        Coord::new(x_len - 47, y_len - 24),
+        Coord::new(x_len - 4, y_len - 24),
+    );
+    draw_desktop_part(
+        ColorIndex::Rgb848484,
+        Coord::new(x_len - 47, y_len - 23),
+        Coord::new(x_len - 47, y_len - 4),
+    );
+    draw_desktop_part(
+        ColorIndex::RgbFFFFFF,
+        Coord::new(x_len - 47, y_len - 3),
+        Coord::new(x_len - 4, y_len - 3),
+    );
+    draw_desktop_part(
+        ColorIndex::RgbFFFFFF,
+        Coord::new(x_len - 3, y_len - 24),
+        Coord::new(x_len - 3, y_len - 3),
+    );
+}
+
 pub fn draw_rectangle(
     vram: *mut u8,
     x_len: isize,
