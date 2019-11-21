@@ -20,6 +20,17 @@ pub enum ColorIndex {
     Rgb848484 = 15,
 }
 
+pub struct Coord {
+    x: isize,
+    y: isize,
+}
+
+impl Coord {
+    pub fn new(x: isize, y: isize) -> Coord {
+        Coord { x: x, y: y }
+    }
+}
+
 pub fn init_palette() -> () {
     const RGB_TABLE: [[u8; 3]; 16] = [
         [0x00, 0x00, 0x00],
@@ -59,13 +70,11 @@ pub fn draw_rectangle(
     vram: *mut u8,
     x_len: isize,
     color: ColorIndex,
-    x0: isize,
-    y0: isize,
-    x1: isize,
-    y1: isize,
+    top_left: Coord,
+    bottom_right: Coord,
 ) -> () {
-    for y in y0..(y1 + 1) {
-        for x in x0..(x1 + 1) {
+    for y in top_left.y..(bottom_right.y + 1) {
+        for x in top_left.x..(bottom_right.x + 1) {
             unsafe {
                 *(&mut *(vram.offset(y * x_len + x))) = color as u8;
             }

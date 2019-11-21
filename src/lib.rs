@@ -12,9 +12,27 @@ pub fn os_main() -> isize {
 
     let p = 0xa0000 as *mut u8;
 
-    graphics::draw_rectangle(p, 320, graphics::ColorIndex::RgbFF0000, 20, 20, 120, 120);
-    graphics::draw_rectangle(p, 320, graphics::ColorIndex::Rgb00FF00, 70, 50, 170, 150);
-    graphics::draw_rectangle(p, 320, graphics::ColorIndex::Rgb0000FF, 120, 80, 220, 180);
+    graphics::draw_rectangle(
+        p,
+        320,
+        graphics::ColorIndex::RgbFF0000,
+        graphics::Coord::new(20, 20),
+        graphics::Coord::new(120, 120),
+    );
+    graphics::draw_rectangle(
+        p,
+        320,
+        graphics::ColorIndex::Rgb00FF00,
+        graphics::Coord::new(70, 50),
+        graphics::Coord::new(170, 150),
+    );
+    graphics::draw_rectangle(
+        p,
+        320,
+        graphics::ColorIndex::Rgb0000FF,
+        graphics::Coord::new(120, 80),
+        graphics::Coord::new(220, 180),
+    );
 
     loop {
         asm::hlt()
