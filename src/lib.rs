@@ -9,11 +9,12 @@ mod graphics;
 #[start]
 pub fn os_main() -> isize {
     graphics::init_palette();
-    for i in 0xa0000..0xb0000 {
-        unsafe {
-            *(&mut *(i as *mut u8)) = (i & 0x0f) as u8;
-        }
-    }
+
+    let p = 0xa0000 as *mut u8;
+
+    graphics::draw_rectangle(p, 320, graphics::COLOR_FF0000, 20, 20, 120, 120);
+    graphics::draw_rectangle(p, 320, graphics::COLOR_00FF00, 70, 50, 170, 150);
+    graphics::draw_rectangle(p, 320, graphics::COLOR_0000FF, 120, 80, 220, 180);
 
     loop {
         asm::hlt()
