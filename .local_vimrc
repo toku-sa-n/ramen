@@ -1,0 +1,3 @@
+let g:ysntastic_rust_checkers=['cargo']
+let g:syntastic_rust_cargo_args='xbuild'
+set makeprg=make
