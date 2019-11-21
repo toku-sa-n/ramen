@@ -14,7 +14,7 @@ fn hlt() -> () {
 pub fn os_main() -> isize {
     for i in 0xa0000..0xb0000 {
         unsafe {
-            *(&mut *(i as *mut u8)) = 15;
+            *(&mut *(i as *mut u8)) = (i & 0x0f) as u8;
         }
     }
 
