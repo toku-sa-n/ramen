@@ -73,8 +73,8 @@ pub fn draw_rectangle(
     top_left: Coord,
     bottom_right: Coord,
 ) -> () {
-    for y in top_left.y..(bottom_right.y + 1) {
-        for x in top_left.x..(bottom_right.x + 1) {
+    for y in top_left.y..=bottom_right.y {
+        for x in top_left.x..=bottom_right.x {
             unsafe {
                 *(&mut *(vram.offset(y * x_len + x))) = color as u8;
             }
