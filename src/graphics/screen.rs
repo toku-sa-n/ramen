@@ -12,7 +12,11 @@ impl Coord {
 }
 
 #[rustfmt::skip]
-pub fn draw_desktop(vram: *mut u8, x_len: isize, y_len: isize) -> () {
+pub fn draw_desktop(vram: Vram) -> () {
+    let x_len:isize  = vram.x_len as isize;
+    let y_len:isize  = vram.y_len as isize;
+    let vram:*mut u8 = vram.ptr as *mut u8;
+
     let draw_desktop_part = |color, x0, y0, x1, y1| {
         draw_rectangle(vram, x_len, color, Coord::new(x0, y0), Coord::new(x1, y1));
     };
