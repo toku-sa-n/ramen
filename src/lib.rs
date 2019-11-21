@@ -14,7 +14,7 @@ pub fn os_main() -> isize {
     let x_len: isize = 320;
     let y_len: isize = 200;
 
-    graphics::draw_desktop(vram, x_len, y_len);
+    graphics::screen::draw_desktop(vram, x_len, y_len);
 
     loop {
         asm::hlt()
