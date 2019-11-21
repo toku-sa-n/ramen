@@ -13,13 +13,7 @@ pub fn os_main() -> isize {
 
     graphics::screen::draw_desktop(&vram);
 
-    graphics::screen::put_font(
-        vram,
-        8,
-        8,
-        graphics::ColorIndex::RgbFFFFFF,
-        graphics::font::fonts['A' as usize],
-    );
+    graphics::screen::print_fonts(&vram, 8, 8, graphics::ColorIndex::RgbFFFFFF, "ABC 123");
 
     loop {
         asm::hlt()

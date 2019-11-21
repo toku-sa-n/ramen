@@ -55,7 +55,7 @@ fn draw_rectangle(
     }
 }
 
-pub fn put_font(vram: Vram, x: usize, y: usize, color: ColorIndex, font: [u8; 16]) -> () {
+fn put_font(vram: &Vram, x: usize, y: usize, color: ColorIndex, font: [u8; 16]) -> () {
     for i in 0..16 {
         for j in 0..8 {
             if font[i] & (1 << (7 - j)) != 0 {
@@ -66,5 +66,13 @@ pub fn put_font(vram: Vram, x: usize, y: usize, color: ColorIndex, font: [u8; 16
                 }
             }
         }
+    }
+}
+
+pub fn print_fonts(vram: &Vram, x: usize, y: usize, color: ColorIndex, str: &str) -> () {
+    let mut char_x_pos = x;
+    for c in str.chars() {
+        put_font(vram, char_x_pos, y, color, font::fonts[c as usize]);
+        char_x_pos += 8;
     }
 }
