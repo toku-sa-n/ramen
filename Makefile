@@ -5,7 +5,7 @@ ASM_DIR		:= asm
 IPL_SRC		:= $(ASM_DIR)/ipl.asm
 HEAD_SRC	:= $(ASM_DIR)/head.asm
 CARGO_JSON	:= cargo_settings
-RUST_SRC	:= lib.rs
+RUST_SRC	:= lib.rs asm.rs
 
 LD_SRC		:= os.ld
 
@@ -40,7 +40,7 @@ $(SYS_FILE):$(HEAD_FILE) $(KERNEL_FILE)|$(BUILD_DIR)
 $(KERNEL_FILE):$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $<
 
-$(LIB_FILE): $(RUST_SRC_DIR)/$(RUST_SRC)|$(BUILD_DIR)
+$(LIB_FILE): $(addprefix $(RUST_SRC_DIR)/, $(RUST_SRC))|$(BUILD_DIR)
 	$(RUSTCC) xbuild --target-dir $(BUILD_DIR)
 	cp $(BUILD_DIR)/$(CARGO_JSON)/debug/$(shell basename $(LIB_FILE)) $@
 
