@@ -1,21 +1,24 @@
 use crate::asm;
 
-pub const COLOR_000000: u8 = 0;
-pub const COLOR_FF0000: u8 = 1;
-pub const COLOR_00FF00: u8 = 2;
-pub const COLOR_FFFF00: u8 = 3;
-pub const COLOR_0000FF: u8 = 4;
-pub const COLOR_FF00FF: u8 = 5;
-pub const COLOR_00FFFF: u8 = 6;
-pub const COLOR_FFFFFF: u8 = 7;
-pub const COLOR_C6C6C6: u8 = 8;
-pub const COLOR_840000: u8 = 9;
-pub const COLOR_008400: u8 = 10;
-pub const COLOR_848400: u8 = 11;
-pub const COLOR_000084: u8 = 12;
-pub const COLOR_840084: u8 = 13;
-pub const COLOR_008484: u8 = 14;
-pub const COLOR_848484: u8 = 15;
+#[derive(Clone, Copy)]
+pub enum ColorIndex {
+    Rgb000000 = 0,
+    RgbFF0000 = 1,
+    Rgb00FF00 = 2,
+    RgbFFFF00 = 3,
+    Rgb0000FF = 4,
+    RgbFF00FF = 5,
+    Rgb00FFFF = 6,
+    RgbFFFFFF = 7,
+    RgbC6C6C6 = 8,
+    Rgb840000 = 9,
+    Rgb008400 = 10,
+    Rgb848400 = 11,
+    Rgb000084 = 12,
+    Rgb840084 = 13,
+    Rgb008484 = 14,
+    Rgb848484 = 15,
+}
 
 pub fn init_palette() -> () {
     const RGB_TABLE: [[u8; 3]; 16] = [
@@ -55,7 +58,7 @@ fn set_palette(start: i32, end: i32, rgb: [[u8; 3]; 16]) -> () {
 pub fn draw_rectangle(
     vram: *mut u8,
     x_len: isize,
-    color: u8,
+    color: ColorIndex,
     x0: isize,
     y0: isize,
     x1: isize,
