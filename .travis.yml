@@ -16,3 +16,4 @@ install:
 
 script:
     - make
+    - make release
