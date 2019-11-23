@@ -20,14 +20,22 @@ pub fn os_main() -> isize {
         "ABC 123",
     );
 
-    let mut screen_write = graphics::screen::ScreenWrite::new(
-        graphics::Vram::new(),
+    macro_rules! print_with_pos {
+        ($coord:expr,$color:expr,$text:expr,$($args:expr),*) => {
+            let mut screen_write =
+                graphics::screen::ScreenWrite::new(graphics::Vram::new(), $coord, $color);
+
+            use core::fmt::Write;
+            write!(screen_write, $text, $($args,)*).unwrap();
+        };
+    }
+
+    print_with_pos!(
         graphics::screen::Coord::new(16, 64),
         graphics::ColorIndex::RgbFFFFFF,
+        "x_len = {}",
+        vram.x_len
     );
-
-    use core::fmt::Write;
-    write!(screen_write, "x_len = {}", vram.x_len).unwrap();
 
     loop {
         asm::hlt()
