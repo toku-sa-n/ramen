@@ -45,6 +45,55 @@ impl core::fmt::Write for ScreenWrite {
     }
 }
 
+pub const MOUSE_CURSOR_WIDTH: usize = 16;
+pub const MOUSE_CURSOR_HEIGHT: usize = 16;
+pub struct MouseCursor {
+    x: isize,
+    y: isize,
+    dots: [[u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
+}
+
+impl MouseCursor {
+    pub fn new(
+        x: isize,
+        y: isize,
+        background_color: ColorIndex,
+        dots: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
+    ) -> MouseCursor {
+        let mut colored_dots: [[u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] =
+            [[background_color as u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_WIDTH];
+
+        for y in 0..MOUSE_CURSOR_HEIGHT {
+            for x in 0..MOUSE_CURSOR_WIDTH {
+                colored_dots[y][x] = match dots[y][x] {
+                    '*' => ColorIndex::Rgb000000 as u8,
+                    '0' => ColorIndex::RgbFFFFFF as u8,
+                    _ => background_color as u8,
+                }
+            }
+        }
+
+        MouseCursor {
+            x,
+            y,
+            dots: colored_dots,
+        }
+    }
+
+    pub fn draw(&self) {
+        for y in 0..MOUSE_CURSOR_HEIGHT {
+            for x in 0..MOUSE_CURSOR_WIDTH {
+                let vram: Vram = Vram::new();
+                unsafe {
+                    *(vram.ptr.offset(
+                        (self.y + y as isize) * vram.x_len as isize + (self.x + x as isize),
+                    )) = self.dots[y][x];
+                }
+            }
+        }
+    }
+}
+
 #[rustfmt::skip]
 pub fn draw_desktop(vram: &Vram) -> () {
     let x_len:isize  = vram.x_len as isize;
