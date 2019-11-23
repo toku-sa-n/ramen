@@ -26,13 +26,19 @@ RM			:= rm -rf
 
 LDFLAGS := -nostdlib -m elf_i386 -Tdata=0x00310000 -T $(LD_SRC)
 
-.PHONY:run clean
+.PHONY:run release clean
 
 .SUFFIXES:
 
 $(IMG_FILE):$(IPL_FILE) $(SYS_FILE)|$(BUILD_DIR)
 	mformat -f 1440 -C -B $(IPL_FILE) -i $@ ::
 	mcopy $(SYS_FILE) -i $@ ::
+
+release:$(IPL_FILE) $(HEAD_FILE) $(LD_SRC)|$(BUILD_DIR)
+	make clean
+	$(RUSTCC) xbuild --target-dir $(BUILD_DIR) --release
+	cp $(BUILD_DIR)/$(CARGO_JSON)/$@/$(shell basename $(LIB_FILE))  $(LIB_FILE)
+	make $(IMG_FILE)
 
 $(SYS_FILE):$(HEAD_FILE) $(KERNEL_FILE)|$(BUILD_DIR)
 	$(CAT) $^ > $@
