@@ -1,5 +1,16 @@
 use super::*;
 
+#[macro_use]
+macro_rules! print_with_pos {
+        ($coord:expr,$color:expr,$text:expr,$($args:expr),*) => {
+            let mut screen_write =
+                crate::graphics::screen::ScreenWrite::new(crate::graphics::Vram::new(), $coord, $color);
+
+            use core::fmt::Write;
+            write!(screen_write, $text, $($args,)*).unwrap();
+        };
+    }
+
 pub struct Coord {
     x: isize,
     y: isize,

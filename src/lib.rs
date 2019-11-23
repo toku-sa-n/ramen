@@ -3,6 +3,8 @@
 #![feature(start)]
 
 mod asm;
+
+#[macro_use]
 mod graphics;
 
 #[no_mangle]
@@ -19,16 +21,6 @@ pub fn os_main() -> isize {
         graphics::ColorIndex::RgbFFFFFF,
         "ABC 123",
     );
-
-    macro_rules! print_with_pos {
-        ($coord:expr,$color:expr,$text:expr,$($args:expr),*) => {
-            let mut screen_write =
-                graphics::screen::ScreenWrite::new(graphics::Vram::new(), $coord, $color);
-
-            use core::fmt::Write;
-            write!(screen_write, $text, $($args,)*).unwrap();
-        };
-    }
 
     print_with_pos!(
         graphics::screen::Coord::new(16, 64),

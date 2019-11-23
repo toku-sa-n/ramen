@@ -1,6 +1,8 @@
 use crate::asm;
 
 pub mod font;
+
+#[macro_use]
 pub mod screen;
 
 pub struct Vram {
