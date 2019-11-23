@@ -8,7 +8,9 @@ edition = "2018"
 
 [profile.dev]
 opt-level = 0
-lto = false
+
+# I don't know why lto = false causes some problems like not print the correct words on the screen.
+lto = true
 panic = "abort"
 
 [profile.release]

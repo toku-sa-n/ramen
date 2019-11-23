@@ -1,9 +1,5 @@
 use super::*;
 
-// TODO: Replace magic numbers with const values
-// TODO: Change the order of x and y arguments to be same with the order of these arguments of
-// ncurses.
-
 pub struct Coord {
     x: isize,
     y: isize,
@@ -12,6 +8,26 @@ pub struct Coord {
 impl Coord {
     pub fn new(x: isize, y: isize) -> Coord {
         Coord { x: x, y: y }
+    }
+}
+
+pub struct ScreenWrite {
+    vram: Vram,
+    coord: Coord,
+    color: ColorIndex,
+}
+
+impl ScreenWrite {
+    pub fn new(vram: Vram, coord: Coord, color: ColorIndex) -> ScreenWrite {
+        ScreenWrite { vram, coord, color }
+    }
+}
+
+impl core::fmt::Write for ScreenWrite {
+    fn write_str(&mut self, s: &str) -> core::result::Result<(), core::fmt::Error> {
+        print_str(&self.vram, &self.coord, self.color, s);
+        self.coord.x += (s.len() * font::FONT_WIDTH) as isize;
+        Ok(())
     }
 }
 
@@ -79,7 +95,7 @@ fn print_char(
     }
 }
 
-pub fn print_str(vram: &Vram, coord: Coord, color: ColorIndex, str: &str) -> () {
+pub fn print_str(vram: &Vram, coord: &Coord, color: ColorIndex, str: &str) -> () {
     let mut char_x_pos = coord.x;
     for c in str.chars() {
         print_char(
