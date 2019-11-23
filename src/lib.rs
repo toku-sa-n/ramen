@@ -32,7 +32,7 @@ pub fn os_main() -> isize {
         300,
         300,
         graphics::ColorIndex::Rgb008484,
-        graphics::screen::mouse_graphic,
+        graphics::screen::MOUSE_GRAPHIC,
     );
 
     mouse_cursor.draw();
