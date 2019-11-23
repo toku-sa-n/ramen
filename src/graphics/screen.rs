@@ -2,14 +2,17 @@ use super::*;
 
 #[macro_use]
 macro_rules! print_with_pos {
-        ($coord:expr,$color:expr,$text:expr,$($args:expr),*) => {
-            let mut screen_write =
-                crate::graphics::screen::ScreenWrite::new(crate::graphics::Vram::new(), $coord, $color);
+    ($coord:expr,$color:expr,$text:expr,$($args:expr),*) => {
+        let mut screen_write =
+            crate::graphics::screen::ScreenWrite::new(crate::graphics::Vram::new(), $coord, $color);
 
+        // To make the scope of `use core::fmt::Write;` narrow, enclose sentences by curly braces.
+        {
             use core::fmt::Write;
             write!(screen_write, $text, $($args,)*).unwrap();
-        };
-    }
+        }
+    };
+}
 
 pub struct Coord {
     x: isize,
@@ -106,7 +109,7 @@ fn print_char(
     }
 }
 
-pub fn print_str(vram: &Vram, coord: &Coord, color: ColorIndex, str: &str) -> () {
+fn print_str(vram: &Vram, coord: &Coord, color: ColorIndex, str: &str) -> () {
     let mut char_x_pos = coord.x;
     for c in str.chars() {
         print_char(

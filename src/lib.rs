@@ -15,9 +15,8 @@ pub fn os_main() -> isize {
 
     graphics::screen::draw_desktop(&vram);
 
-    graphics::screen::print_str(
-        &vram,
-        &graphics::screen::Coord::new(8, 8),
+    print_with_pos!(
+        graphics::screen::Coord::new(8, 8),
         graphics::ColorIndex::RgbFFFFFF,
         "ABC 123",
     );
