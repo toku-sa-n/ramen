@@ -1,7 +1,6 @@
 use super::*;
 
 // TODO: Replace magic numbers with const values
-// TODO: Define FONT_HEIGHT and FONT_WIDTH as const values
 // TODO: Change the order of x and y arguments to be same with the order of these arguments of
 // ncurses.
 
@@ -60,9 +59,14 @@ fn draw_rectangle(
     }
 }
 
-fn print_char(vram: &Vram, coord: Coord, color: ColorIndex, font: [[bool; 8]; 16]) -> () {
-    for i in 0..16 {
-        for j in 0..8 {
+fn print_char(
+    vram: &Vram,
+    coord: Coord,
+    color: ColorIndex,
+    font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT],
+) -> () {
+    for i in 0..font::FONT_HEIGHT {
+        for j in 0..font::FONT_WIDTH {
             if font[i][j] {
                 unsafe {
                     *(&mut *(vram.ptr.offset(
@@ -84,6 +88,6 @@ pub fn print_str(vram: &Vram, coord: Coord, color: ColorIndex, str: &str) -> () 
             color,
             font::FONTS[c as usize],
         );
-        char_x_pos += 8;
+        char_x_pos += font::FONT_WIDTH as isize;
     }
 }
