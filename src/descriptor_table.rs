@@ -4,6 +4,15 @@
 
 use crate::asm;
 
+const ADDRESS_INTERRUPT_DESCRIPTOR_TABLE: i32 = 0x0026f800;
+const LIMIT_INTERRUPT_DESCRIPTOR_TABLE: i32 = 0x000007ff;
+const ADDRESS_GATE_DESCRIPTOR_TABLE: i32 = 0x00270000;
+const LIMIT_GATE_DESCRIPTOR_TABLE: i32 = 0x0000ffff;
+const ADDRESS_BOOTPACK: i32 = 0x00280000;
+const LIMIT_BOOTPACK: u32 = 0x0007ffff;
+const ADDRESS_SYSTEM_READ_WRITE: i32 = 0x4092;
+const ADDRESS_SYSTEM_READ_EXECUTE: i32 = 0x409a;
+
 #[repr(C)]
 struct SegmentDescriptor {
     limit_low: i16,
@@ -24,8 +33,8 @@ struct GateDescriptor {
 }
 
 pub fn init_gdt_idt() -> () {
-    let global_descriptor_table: *mut SegmentDescriptor = 0x00270000 as *mut SegmentDescriptor;
-    let interrupt_descriptor_table: *mut GateDescriptor = 0x0026f800 as *mut GateDescriptor;
+    let global_descriptor_table: *mut SegmentDescriptor =
+        ADDRESS_GATE_DESCRIPTOR_TABLE as *mut SegmentDescriptor;
 
     for i in 0..8192 {
         unsafe {
@@ -38,18 +47,24 @@ pub fn init_gdt_idt() -> () {
             global_descriptor_table.offset(1),
             0xffffffff,
             0x00000000,
-            0x4092,
+            ADDRESS_SYSTEM_READ_WRITE,
         );
 
         set_segment_descriptor(
             global_descriptor_table.offset(2),
-            0x0007ffff,
-            0x00280000,
-            0x409a,
+            LIMIT_BOOTPACK,
+            ADDRESS_BOOTPACK,
+            ADDRESS_SYSTEM_READ_EXECUTE,
         );
     }
 
-    asm::load_global_descriptor_table_register(0xffff, 0x00270000);
+    asm::load_global_descriptor_table_register(
+        LIMIT_GATE_DESCRIPTOR_TABLE,
+        ADDRESS_GATE_DESCRIPTOR_TABLE,
+    );
+
+    let interrupt_descriptor_table: *mut GateDescriptor =
+        ADDRESS_INTERRUPT_DESCRIPTOR_TABLE as *mut GateDescriptor;
 
     for i in 0..256 {
         unsafe {
@@ -57,7 +72,10 @@ pub fn init_gdt_idt() -> () {
         }
     }
 
-    asm::load_interrupt_descriptor_table_register(0x7ff, 0x0026f800);
+    asm::load_interrupt_descriptor_table_register(
+        LIMIT_INTERRUPT_DESCRIPTOR_TABLE,
+        ADDRESS_INTERRUPT_DESCRIPTOR_TABLE,
+    );
 }
 
 fn set_segment_descriptor(
