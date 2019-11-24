@@ -1,7 +1,5 @@
 // See P.114
 
-// TODO: Methodificate set_segment_descriptor and set_gate_descriptor
-
 use crate::asm;
 
 const ADDRESS_INTERRUPT_DESCRIPTOR_TABLE: i32 = 0x0026f800;
@@ -23,6 +21,24 @@ struct SegmentDescriptor {
     base_high: i8,
 }
 
+impl SegmentDescriptor {
+    fn set_segment_descriptor(&mut self, limit: u32, base: i32, access_right: i32) -> () {
+        let mut limit = limit;
+        let mut access_right = access_right;
+        if limit > 0xfffff {
+            access_right |= 0x8000;
+            limit /= 0x1000;
+        }
+
+        (*self).limit_low = (limit & 0xffff) as i16;
+        (*self).base_low = (base & 0xffff) as i16;
+        (*self).base_mid = ((base >> 16) & 0xff) as i8;
+        (*self).access_right = (access_right & 0xff) as i8;
+        (*self).limit_high = (((limit >> 16) & 0x0f) as i32 | ((access_right >> 8) & 0xf0)) as i8;
+        (*self).base_high = ((base >> 24) & 0xff) as i8;
+    }
+}
+
 #[repr(C)]
 struct GateDescriptor {
     offset_low: i16,
@@ -32,26 +48,34 @@ struct GateDescriptor {
     offset_high: i16,
 }
 
+impl GateDescriptor {
+    fn set_gate_descriptor(&mut self, offset: i32, selector: i32, access_right: i32) -> () {
+        (*self).offset_low = (offset & 0xffff) as i16;
+        (*self).selector = selector as i16;
+        (*self).dw_count = ((access_right >> 8) & 0xff) as i8;
+        (*self).access_right = (access_right & 0xff) as i8;
+        (*self).offset_high = ((offset >> 16) & 0xffff) as i16;
+    }
+}
+
 pub fn init_gdt_idt() -> () {
     let global_descriptor_table: *mut SegmentDescriptor =
         ADDRESS_GATE_DESCRIPTOR_TABLE as *mut SegmentDescriptor;
 
     for i in 0..8192 {
         unsafe {
-            set_segment_descriptor(global_descriptor_table.offset(i), 0, 0, 0);
+            (*global_descriptor_table.offset(i)).set_segment_descriptor(0, 0, 0);
         }
     }
 
     unsafe {
-        set_segment_descriptor(
-            global_descriptor_table.offset(1),
+        (*global_descriptor_table.offset(1)).set_segment_descriptor(
             0xffffffff,
             0x00000000,
             ADDRESS_SYSTEM_READ_WRITE,
         );
 
-        set_segment_descriptor(
-            global_descriptor_table.offset(2),
+        (*global_descriptor_table.offset(2)).set_segment_descriptor(
             LIMIT_BOOTPACK,
             ADDRESS_BOOTPACK,
             ADDRESS_SYSTEM_READ_EXECUTE,
@@ -68,7 +92,7 @@ pub fn init_gdt_idt() -> () {
 
     for i in 0..256 {
         unsafe {
-            set_gate_descriptor(interrupt_descriptor_table.offset(i), 0, 0, 0);
+            (*interrupt_descriptor_table.offset(i)).set_gate_descriptor(0, 0, 0);
         }
     }
 
@@ -76,43 +100,4 @@ pub fn init_gdt_idt() -> () {
         LIMIT_INTERRUPT_DESCRIPTOR_TABLE,
         ADDRESS_INTERRUPT_DESCRIPTOR_TABLE,
     );
-}
-
-fn set_segment_descriptor(
-    segment_descriptor: *mut SegmentDescriptor,
-    limit: u32,
-    base: i32,
-    access_right: i32,
-) -> () {
-    let mut limit = limit;
-    let mut access_right = access_right;
-    if limit > 0xfffff {
-        access_right |= 0x8000;
-        limit /= 0x1000;
-    }
-
-    unsafe {
-        (*segment_descriptor).limit_low = (limit & 0xffff) as i16;
-        (*segment_descriptor).base_low = (base & 0xffff) as i16;
-        (*segment_descriptor).base_mid = ((base >> 16) & 0xff) as i8;
-        (*segment_descriptor).access_right = (access_right & 0xff) as i8;
-        (*segment_descriptor).limit_high =
-            (((limit >> 16) & 0x0f) as i32 | ((access_right >> 8) & 0xf0)) as i8;
-        (*segment_descriptor).base_high = ((base >> 24) & 0xff) as i8;
-    }
-}
-
-fn set_gate_descriptor(
-    gate_descriptor: *mut GateDescriptor,
-    offset: i32,
-    selector: i32,
-    access_right: i32,
-) -> () {
-    unsafe {
-        (*gate_descriptor).offset_low = (offset & 0xffff) as i16;
-        (*gate_descriptor).selector = selector as i16;
-        (*gate_descriptor).dw_count = ((access_right >> 8) & 0xff) as i8;
-        (*gate_descriptor).access_right = (access_right & 0xff) as i8;
-        (*gate_descriptor).offset_high = ((offset >> 16) & 0xffff) as i16;
-    }
 }
