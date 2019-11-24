@@ -33,13 +33,16 @@ pub fn out8(port: i32, data: i32) -> () {
 }
 
 struct GdtrIdtrData {
-    limit: i16,
-    address: i32,
+    _limit: i16,
+    _address: i32,
 }
 
 impl GdtrIdtrData {
     fn new(limit: i16, address: i32) -> GdtrIdtrData {
-        GdtrIdtrData { limit, address }
+        GdtrIdtrData {
+            _limit: limit,
+            _address: address,
+        }
     }
 }
 
