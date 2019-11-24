@@ -4,6 +4,7 @@
 
 mod asm;
 mod descriptor_table;
+mod interrupt;
 
 #[macro_use]
 mod graphics;
@@ -12,6 +13,7 @@ mod graphics;
 #[start]
 pub fn os_main() -> isize {
     descriptor_table::init_gdt_idt();
+    interrupt::init_pic();
     let vram: graphics::Vram = graphics::Vram::new();
     vram.init_palette();
 
