@@ -58,7 +58,7 @@ impl GateDescriptor {
     }
 }
 
-pub fn init_gdt_idt() -> () {
+pub fn init() -> () {
     init_gdt();
     init_idt();
 }

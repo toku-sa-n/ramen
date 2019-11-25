@@ -12,7 +12,7 @@ mod graphics;
 #[no_mangle]
 #[start]
 pub fn os_main() -> isize {
-    descriptor_table::init_gdt_idt();
+    descriptor_table::init();
     interrupt::init_pic();
     let vram: graphics::Vram = graphics::Vram::new();
     vram.init_palette();
