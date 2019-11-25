@@ -59,6 +59,11 @@ impl GateDescriptor {
 }
 
 pub fn init_gdt_idt() -> () {
+    init_gdt();
+    init_idt();
+}
+
+fn init_gdt() {
     let global_descriptor_table: *mut SegmentDescriptor =
         ADDRESS_GATE_DESCRIPTOR_TABLE as *mut SegmentDescriptor;
 
@@ -86,7 +91,9 @@ pub fn init_gdt_idt() -> () {
         LIMIT_GATE_DESCRIPTOR_TABLE,
         ADDRESS_GATE_DESCRIPTOR_TABLE,
     );
+}
 
+fn init_idt() {
     let interrupt_descriptor_table: *mut GateDescriptor =
         ADDRESS_INTERRUPT_DESCRIPTOR_TABLE as *mut GateDescriptor;
 
