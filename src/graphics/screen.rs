@@ -51,7 +51,7 @@ pub const MOUSE_GRAPHIC: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] = [
     ],
 ];
 
-#[macro_use]
+#[macro_export]
 macro_rules! print_with_pos {
     ($coord:expr,$color:expr,$text:expr,$($args:expr),*) => {
         let mut screen_write =
@@ -149,7 +149,7 @@ impl MouseCursor {
 pub fn draw_desktop(vram: &Vram) -> () {
     let x_len:isize  = vram.x_len as isize;
     let y_len:isize  = vram.y_len as isize;
-    let vram:*mut u8 = vram.ptr as *mut u8;
+    let vram:&Vram = &Vram::new();
 
     let draw_desktop_part = |color, x0, y0, x1, y1| {
         draw_rectangle(vram, x_len, color, Coord::new(x0, y0), Coord::new(x1, y1));
@@ -173,8 +173,8 @@ pub fn draw_desktop(vram: &Vram) -> () {
     draw_desktop_part(ColorIndex::RgbFFFFFF, x_len -  3, y_len - 24, x_len -  3, y_len -  3);
 }
 
-fn draw_rectangle(
-    vram: *mut u8,
+pub fn draw_rectangle(
+    vram: &Vram,
     x_len: isize,
     color: ColorIndex,
     top_left: Coord,
@@ -183,7 +183,7 @@ fn draw_rectangle(
     for y in top_left.y..=bottom_right.y {
         for x in top_left.x..=bottom_right.x {
             unsafe {
-                *(&mut *(vram.offset(y * x_len + x))) = color as u8;
+                *(&mut *(vram.ptr.offset(y * x_len + x))) = color as u8;
             }
         }
     }

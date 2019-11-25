@@ -10,8 +10,9 @@ const ADDRESS_BOOTPACK: i32 = 0x00280000;
 const LIMIT_BOOTPACK: u32 = 0x0007ffff;
 const ADDRESS_SYSTEM_READ_WRITE: i32 = 0x4092;
 const ADDRESS_SYSTEM_READ_EXECUTE: i32 = 0x409a;
+const ADDRESS_INTERRUPT_GATE: i32 = 0x008e;
 
-#[repr(C)]
+#[repr(C, packed)]
 struct SegmentDescriptor {
     limit_low: i16,
     base_low: i16,
@@ -22,9 +23,7 @@ struct SegmentDescriptor {
 }
 
 impl SegmentDescriptor {
-    fn set_segment_descriptor(&mut self, limit: u32, base: i32, access_right: i32) -> () {
-        let mut limit = limit;
-        let mut access_right = access_right;
+    fn set_segment_descriptor(&mut self, mut limit: u32, base: i32, mut access_right: i32) -> () {
         if limit > 0xfffff {
             access_right |= 0x8000;
             limit /= 0x1000;
@@ -39,7 +38,7 @@ impl SegmentDescriptor {
     }
 }
 
-#[repr(C)]
+#[repr(C, packed)]
 struct GateDescriptor {
     offset_low: i16,
     selector: i16,
@@ -61,18 +60,18 @@ impl GateDescriptor {
 pub fn init() -> () {
     init_gdt();
     init_idt();
+    set_interruption();
 }
 
-fn init_gdt() {
+fn init_gdt() -> () {
     let global_descriptor_table: *mut SegmentDescriptor =
         ADDRESS_GATE_DESCRIPTOR_TABLE as *mut SegmentDescriptor;
 
-    for i in 0..8192 {
+    for i in 0..=(LIMIT_GATE_DESCRIPTOR_TABLE / 8) {
         unsafe {
-            (*global_descriptor_table.offset(i)).set_segment_descriptor(0, 0, 0);
+            (*global_descriptor_table.offset(i as isize)).set_segment_descriptor(0, 0, 0);
         }
     }
-
     unsafe {
         (*global_descriptor_table.offset(1)).set_segment_descriptor(
             0xffffffff,
@@ -93,13 +92,13 @@ fn init_gdt() {
     );
 }
 
-fn init_idt() {
+fn init_idt() -> () {
     let interrupt_descriptor_table: *mut GateDescriptor =
         ADDRESS_INTERRUPT_DESCRIPTOR_TABLE as *mut GateDescriptor;
 
-    for i in 0..256 {
+    for i in 0..=(LIMIT_INTERRUPT_DESCRIPTOR_TABLE / 8) {
         unsafe {
-            (*interrupt_descriptor_table.offset(i)).set_gate_descriptor(0, 0, 0);
+            (*interrupt_descriptor_table.offset(i as isize)).set_gate_descriptor(0, 0, 0);
         }
     }
 
@@ -107,4 +106,25 @@ fn init_idt() {
         LIMIT_INTERRUPT_DESCRIPTOR_TABLE,
         ADDRESS_INTERRUPT_DESCRIPTOR_TABLE,
     );
+}
+
+fn set_interruption() {
+    use crate::interrupt::interrupt_handler_21;
+    use crate::interrupt::interrupt_handler_2c;
+    use crate::interrupt_handler;
+
+    let interrupt_descriptor_table: *mut GateDescriptor =
+        ADDRESS_INTERRUPT_DESCRIPTOR_TABLE as *mut GateDescriptor;
+    unsafe {
+        (*interrupt_descriptor_table.offset(0x21)).set_gate_descriptor(
+            interrupt_handler!(interrupt_handler_21) as i32,
+            2 * 8,
+            ADDRESS_INTERRUPT_GATE,
+        );
+        (*interrupt_descriptor_table.offset(0x2c)).set_gate_descriptor(
+            interrupt_handler!(interrupt_handler_2c) as i32,
+            2 * 8,
+            ADDRESS_INTERRUPT_GATE,
+        );
+    }
 }

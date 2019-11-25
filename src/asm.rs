@@ -4,6 +4,12 @@ pub fn hlt() -> () {
     }
 }
 
+pub fn sti() -> () {
+    unsafe {
+        asm!("STI"::::"intel");
+    }
+}
+
 pub fn load_eflags() -> i32 {
     let result: i32;
     unsafe {
@@ -32,6 +38,7 @@ pub fn out8(port: i32, data: i32) -> () {
     }
 }
 
+#[repr(C, packed)]
 struct GdtrIdtrData {
     _limit: i16,
     _address: i32,
@@ -56,4 +63,36 @@ pub fn load_interrupt_descriptor_table_register(limit: i32, address: i32) {
     unsafe {
         asm!("LIDT ($0)"::"r"(&GdtrIdtrData::new(limit as i16, address)));
     }
+}
+
+// Don't put these asm! in one! It doesn't work!
+#[macro_export]
+macro_rules! interrupt_handler{
+    ($function_name:ident)=>{{
+        pub extern "C" fn handler_wrapper() -> () {
+            unsafe{
+                asm!("
+                    PUSH ES
+                    PUSH DS
+                    PUSHAD
+                    MOV EAX,ESP
+                    PUSH EAX
+                    MOV AX,SS
+                    MOV DS,AX
+                    MOV ES,AX"
+                    ::::"intel","volatile"
+                );
+                    asm!("CALL $0"::"r"($function_name as fn()->())::"intel");
+                    asm!("
+                    POP EAX
+                    POPAD
+                    POP DS
+                    POP ES
+                    IRETD"
+                    ::::"intel","volatile"
+                );
+            }
+        }
+        handler_wrapper
+    }}
 }

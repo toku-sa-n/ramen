@@ -1,4 +1,5 @@
 use crate::asm;
+use crate::graphics;
 
 const PIC0_ICW1: i32 = 0x0020;
 const _PIC0_OCW2: i32 = 0x0020;
@@ -30,4 +31,51 @@ pub fn init_pic() -> () {
 
     asm::out8(PIC0_IMR, 0xfb);
     asm::out8(PIC1_IMR, 0xff);
+}
+
+pub fn enable_pic1_keyboard_mouse() -> () {
+    asm::out8(PIC0_IMR, 0xf9);
+    asm::out8(PIC1_IMR, 0xef);
+}
+
+pub fn interrupt_handler_21() -> () {
+    use crate::print_with_pos;
+    graphics::screen::draw_rectangle(
+        &graphics::Vram::new(),
+        graphics::Vram::new().x_len as isize,
+        graphics::ColorIndex::Rgb000000,
+        graphics::screen::Coord::new(0, 0),
+        graphics::screen::Coord::new(32 * 8 - 1, 15),
+    );
+
+    print_with_pos!(
+        graphics::screen::Coord::new(0, 0),
+        graphics::ColorIndex::RgbFFFFFF,
+        "INF 21 (IRQ-1) : PS/2 keyboard",
+    );
+
+    loop {
+        asm::hlt();
+    }
+}
+
+pub fn interrupt_handler_2c() -> () {
+    use crate::print_with_pos;
+    graphics::screen::draw_rectangle(
+        &graphics::Vram::new(),
+        graphics::Vram::new().x_len as isize,
+        graphics::ColorIndex::Rgb000000,
+        graphics::screen::Coord::new(0, 0),
+        graphics::screen::Coord::new(32 * 8 - 1, 15),
+    );
+
+    print_with_pos!(
+        graphics::screen::Coord::new(0, 0),
+        graphics::ColorIndex::RgbFFFFFF,
+        "INT 2C (IRQ-12) : PS/2 mouse",
+    );
+
+    loop {
+        asm::hlt();
+    }
 }

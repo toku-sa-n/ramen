@@ -14,6 +14,7 @@ mod graphics;
 pub fn os_main() -> isize {
     descriptor_table::init();
     interrupt::init_pic();
+    asm::sti();
     let vram: graphics::Vram = graphics::Vram::new();
     vram.init_palette();
 
@@ -40,6 +41,8 @@ pub fn os_main() -> isize {
     );
 
     mouse_cursor.draw();
+
+    interrupt::enable_pic1_keyboard_mouse();
 
     loop {
         asm::hlt()
