@@ -38,6 +38,18 @@ pub fn out8(port: i32, data: i32) -> () {
     }
 }
 
+// It might be true that the first line can be deleted because the lower bits of EDX are DX
+// itself.
+pub fn in8(port: i32) -> i32 {
+    let result: i32;
+    unsafe {
+        asm!("MOV EDX,$0"::"r"(port)::"intel");
+        asm!("MOV EAX,0"::::"intel");
+        asm!("IN AL,DX":"={AL}"(result):::"intel");
+    }
+    result
+}
+
 #[repr(C, packed)]
 struct GdtrIdtrData {
     _limit: i16,
@@ -69,6 +81,7 @@ pub fn load_interrupt_descriptor_table_register(limit: i32, address: i32) {
 #[macro_export]
 macro_rules! interrupt_handler{
     ($function_name:ident)=>{{
+        #[naked]
         pub extern "C" fn handler_wrapper() -> () {
             unsafe{
                 asm!("
@@ -82,8 +95,8 @@ macro_rules! interrupt_handler{
                     MOV ES,AX"
                     ::::"intel","volatile"
                 );
-                    asm!("CALL $0"::"r"($function_name as fn()->())::"intel");
-                    asm!("
+                asm!("CALL $0"::"r"($function_name as extern "C"  fn()->())::"intel");
+                asm!("
                     POP EAX
                     POPAD
                     POP DS

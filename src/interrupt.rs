@@ -40,7 +40,7 @@ pub fn enable_pic1_keyboard_mouse() -> () {
     asm::out8(PIC1_IMR, 0xef);
 }
 
-pub fn interrupt_handler_21() -> () {
+pub extern "C" fn interrupt_handler_21() -> () {
     asm::out8(PIC0_OCW2, 0x61);
 
     use crate::print_with_pos;
@@ -55,16 +55,12 @@ pub fn interrupt_handler_21() -> () {
     print_with_pos!(
         graphics::screen::Coord::new(0, 16),
         graphics::ColorIndex::RgbFFFFFF,
-        "{}",
+        "{:X}",
         asm::in8(PORT_KEYDATA)
     );
-
-    loop {
-        asm::hlt()
-    }
 }
 
-pub fn interrupt_handler_2c() -> () {
+pub extern "C" fn interrupt_handler_2c() -> () {
     use crate::print_with_pos;
     graphics::screen::draw_rectangle(
         &graphics::Vram::new(),

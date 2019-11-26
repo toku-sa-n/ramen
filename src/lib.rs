@@ -1,6 +1,7 @@
 #![no_std]
 #![feature(asm)]
 #![feature(start)]
+#![feature(naked_functions)]
 
 mod asm;
 mod descriptor_table;
