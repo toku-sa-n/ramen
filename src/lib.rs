@@ -21,12 +21,6 @@ pub fn os_main() -> isize {
     graphics::screen::draw_desktop(&vram);
 
     print_with_pos!(
-        graphics::screen::Coord::new(8, 8),
-        graphics::ColorIndex::RgbFFFFFF,
-        "ABC 123",
-    );
-
-    print_with_pos!(
         graphics::screen::Coord::new(16, 64),
         graphics::ColorIndex::RgbFFFFFF,
         "x_len = {}",
