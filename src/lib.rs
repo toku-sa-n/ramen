@@ -1,6 +1,7 @@
 #![no_std]
 #![feature(asm)]
 #![feature(start)]
+#![feature(naked_functions)]
 
 mod asm;
 mod descriptor_table;
@@ -19,12 +20,6 @@ pub fn os_main() -> isize {
     vram.init_palette();
 
     graphics::screen::draw_desktop(&vram);
-
-    print_with_pos!(
-        graphics::screen::Coord::new(8, 8),
-        graphics::ColorIndex::RgbFFFFFF,
-        "ABC 123",
-    );
 
     print_with_pos!(
         graphics::screen::Coord::new(16, 64),
