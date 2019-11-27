@@ -43,9 +43,8 @@ pub fn out8(port: i32, data: i32) -> () {
 pub fn in8(port: i32) -> i32 {
     let result: i32;
     unsafe {
-        asm!("MOV EDX,$0"::"r"(port)::"intel");
         asm!("MOV EAX,0"::::"intel");
-        asm!("IN AL,DX":"={AL}"(result):::"intel");
+        asm!("IN AL,DX":"={AL}"(result):"{DX}"(port)::"intel");
     }
     result
 }
