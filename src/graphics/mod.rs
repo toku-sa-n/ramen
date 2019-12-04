@@ -56,6 +56,7 @@ impl Vram {
     }
 }
 
+// Move this enum to graphics::screen
 #[derive(Clone, Copy)]
 pub enum ColorIndex {
     Rgb000000 = 0,
