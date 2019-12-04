@@ -25,6 +25,7 @@ const KEY_CMD_WRITE_MODE: i32 = 0x60;
 const KEY_CMD_MODE: i32 = 0x47;
 const KEY_CMD_SEND_TO_MOUSE: i32 = 0xd4;
 const MOUSE_CMD_ENABLE: i32 = 0xf4;
+
 lazy_static::lazy_static! {
     pub static ref KEY_QUEUE: spin::Mutex<queue::Queue> = spin::Mutex::new(queue::Queue::new());
     pub static ref MOUSE_QUEUE:spin::Mutex<queue::Queue> = spin::Mutex::new(queue::Queue::new());
@@ -49,12 +50,9 @@ pub fn init_pic() -> () {
     asm::out8(PIC1_IMR, 0xff);
 }
 
-pub fn enable_pic1_keyboard_mouse() -> () {
+pub fn set_init_pic_bits() -> () {
     asm::out8(PIC0_IMR, 0xf9);
     asm::out8(PIC1_IMR, 0xef);
-
-    init_keyboard();
-    enable_mouse();
 }
 
 fn wait_kbc_sendready() -> () {
@@ -65,14 +63,14 @@ fn wait_kbc_sendready() -> () {
     }
 }
 
-fn init_keyboard() -> () {
+pub fn init_keyboard() -> () {
     wait_kbc_sendready();
     asm::out8(PORT_KEY_CMD, KEY_CMD_WRITE_MODE);
     wait_kbc_sendready();
     asm::out8(PORT_KEYDATA, KEY_CMD_MODE);
 }
 
-fn enable_mouse() -> () {
+pub fn enable_mouse() -> () {
     wait_kbc_sendready();
     asm::out8(PORT_KEY_CMD, KEY_CMD_SEND_TO_MOUSE);
     wait_kbc_sendready();

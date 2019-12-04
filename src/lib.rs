@@ -45,7 +45,9 @@ fn initialization() -> () {
 
     mouse_cursor.draw();
 
-    interrupt::enable_pic1_keyboard_mouse();
+    interrupt::set_init_pic_bits();
+    interrupt::init_keyboard();
+    interrupt::enable_mouse();
 }
 
 fn main_loop() -> () {
