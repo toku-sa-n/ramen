@@ -54,8 +54,9 @@ pub extern "C" fn interrupt_handler_21() -> () {
 
 pub extern "C" fn interrupt_handler_2c() -> () {
     use crate::print_with_pos;
-    graphics::screen::draw_rectangle(
-        &graphics::Vram::new(),
+    let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
+
+    screen.draw_rectangle(
         graphics::Vram::new().x_len as isize,
         graphics::screen::ColorIndex::Rgb000000,
         graphics::screen::Coord::new(0, 0),
