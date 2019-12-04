@@ -10,6 +10,15 @@ pub fn sti() -> () {
     }
 }
 
+pub fn stihlt() -> () {
+    unsafe {
+        asm!(
+            "STI
+             HLT"
+             :::: "intel");
+    }
+}
+
 pub fn load_eflags() -> i32 {
     let result: i32;
     unsafe {

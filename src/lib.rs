@@ -6,10 +6,12 @@
 mod asm;
 mod descriptor_table;
 mod interrupt;
+mod queue;
 
 #[macro_use]
 mod graphics;
 
+// TODO: Separate main loop and initialization.
 #[no_mangle]
 #[start]
 pub fn os_main() -> isize {
@@ -40,7 +42,31 @@ pub fn os_main() -> isize {
     interrupt::enable_pic1_keyboard_mouse();
 
     loop {
-        asm::hlt()
+        asm::cli();
+        if interrupt::KEY_QUEUE.lock().size() == 0 {
+            asm::stihlt();
+        } else {
+            let data: Option<i32> = interrupt::KEY_QUEUE.lock().dequeue();
+
+            asm::sti();
+
+            graphics::screen::draw_rectangle(
+                &graphics::Vram::new(),
+                graphics::Vram::new().x_len as isize,
+                graphics::ColorIndex::Rgb008484,
+                graphics::screen::Coord::new(0, 16),
+                graphics::screen::Coord::new(15, 31),
+            );
+
+            if let Some(data) = data {
+                print_with_pos!(
+                    graphics::screen::Coord::new(0, 16),
+                    graphics::ColorIndex::RgbFFFFFF,
+                    "{:X}",
+                    data
+                );
+            }
+        }
     }
 }
 

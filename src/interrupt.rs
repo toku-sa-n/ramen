@@ -1,5 +1,8 @@
 use crate::asm;
 use crate::graphics;
+use crate::queue;
+
+extern crate lazy_static;
 
 const PIC0_ICW1: i32 = 0x0020;
 const PIC0_OCW2: i32 = 0x0020;
@@ -15,6 +18,10 @@ const PIC1_ICW3: i32 = 0x00a1;
 const PIC1_ICW4: i32 = 0x00a1;
 
 const PORT_KEYDATA: i32 = 0x0060;
+
+lazy_static::lazy_static! {
+    pub static ref KEY_QUEUE: spin::Mutex<queue::Queue> = spin::Mutex::new(queue::Queue::new());
+}
 
 // See P.128.
 pub fn init_pic() -> () {
@@ -42,22 +49,7 @@ pub fn enable_pic1_keyboard_mouse() -> () {
 
 pub extern "C" fn interrupt_handler_21() -> () {
     asm::out8(PIC0_OCW2, 0x61);
-
-    use crate::print_with_pos;
-    graphics::screen::draw_rectangle(
-        &graphics::Vram::new(),
-        graphics::Vram::new().x_len as isize,
-        graphics::ColorIndex::Rgb008484,
-        graphics::screen::Coord::new(0, 16),
-        graphics::screen::Coord::new(15, 31),
-    );
-
-    print_with_pos!(
-        graphics::screen::Coord::new(0, 16),
-        graphics::ColorIndex::RgbFFFFFF,
-        "{:X}",
-        asm::in8(PORT_KEYDATA)
-    );
+    KEY_QUEUE.lock().enqueue(asm::in8(PORT_KEYDATA));
 }
 
 pub extern "C" fn interrupt_handler_2c() -> () {
