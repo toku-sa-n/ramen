@@ -57,8 +57,9 @@ fn main_loop() -> () {
 
         asm::sti();
 
-        graphics::screen::draw_rectangle(
-            &graphics::Vram::new(),
+        let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
+
+        screen.draw_rectangle(
             graphics::Vram::new().x_len as isize,
             graphics::screen::ColorIndex::Rgb008484,
             graphics::screen::Coord::new(0, 16),

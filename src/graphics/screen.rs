@@ -77,12 +77,38 @@ macro_rules! print_with_pos {
         let mut screen_write =
             crate::graphics::screen::ScreenWrite::new(crate::graphics::Vram::new(), $coord, $color);
 
-        // To make the scope of `use core::fmt::Write;` narrow, enclose sentences by curly braces.
+        // To narrow the scope of `use core::fmt::Write;`, enclose sentences by curly braces.
         {
             use core::fmt::Write;
             write!(screen_write, $text, $($args,)*).unwrap();
         }
     };
+}
+
+pub struct Screen {
+    vram: Vram,
+}
+
+impl Screen {
+    pub fn new(vram: Vram) -> Screen {
+        Screen { vram }
+    }
+
+    pub fn draw_rectangle(
+        &self,
+        x_len: isize,
+        color: ColorIndex,
+        top_left: Coord,
+        bottom_right: Coord,
+    ) -> () {
+        for y in top_left.y..=bottom_right.y {
+            for x in top_left.x..=bottom_right.x {
+                unsafe {
+                    *(&mut *(self.vram.ptr.offset(y * x_len + x))) = color as u8;
+                }
+            }
+        }
+    }
 }
 
 pub struct Coord {
@@ -169,10 +195,10 @@ impl MouseCursor {
 pub fn draw_desktop(vram: &Vram) -> () {
     let x_len:isize  = vram.x_len as isize;
     let y_len:isize  = vram.y_len as isize;
-    let vram:&Vram = &Vram::new();
 
     let draw_desktop_part = |color, x0, y0, x1, y1| {
-        draw_rectangle(vram, x_len, color, Coord::new(x0, y0), Coord::new(x1, y1));
+        let screen:screen::Screen =screen::Screen::new(Vram::new());
+        screen.draw_rectangle(x_len, color, Coord::new(x0, y0), Coord::new(x1, y1));
     };
 
     draw_desktop_part(ColorIndex::Rgb008484,          0,          0, x_len -  1, y_len - 29);
@@ -191,22 +217,6 @@ pub fn draw_desktop(vram: &Vram) -> () {
     draw_desktop_part(ColorIndex::Rgb848484, x_len - 47, y_len - 23, x_len - 47, y_len -  4);
     draw_desktop_part(ColorIndex::RgbFFFFFF, x_len - 47, y_len -  3, x_len -  4, y_len -  3);
     draw_desktop_part(ColorIndex::RgbFFFFFF, x_len -  3, y_len - 24, x_len -  3, y_len -  3);
-}
-
-pub fn draw_rectangle(
-    vram: &Vram,
-    x_len: isize,
-    color: ColorIndex,
-    top_left: Coord,
-    bottom_right: Coord,
-) -> () {
-    for y in top_left.y..=bottom_right.y {
-        for x in top_left.x..=bottom_right.x {
-            unsafe {
-                *(&mut *(vram.ptr.offset(y * x_len + x))) = color as u8;
-            }
-        }
-    }
 }
 
 fn print_char(
