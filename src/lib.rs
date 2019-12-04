@@ -31,7 +31,7 @@ fn initialization() -> () {
 
     print_with_pos!(
         graphics::screen::Coord::new(16, 64),
-        graphics::ColorIndex::RgbFFFFFF,
+        graphics::screen::ColorIndex::RgbFFFFFF,
         "x_len = {}",
         vram.x_len
     );
@@ -39,7 +39,7 @@ fn initialization() -> () {
     let mouse_cursor: graphics::screen::MouseCursor = graphics::screen::MouseCursor::new(
         300,
         300,
-        graphics::ColorIndex::Rgb008484,
+        graphics::screen::ColorIndex::Rgb008484,
         graphics::screen::MOUSE_GRAPHIC,
     );
 
@@ -60,7 +60,7 @@ fn main_loop() -> () {
         graphics::screen::draw_rectangle(
             &graphics::Vram::new(),
             graphics::Vram::new().x_len as isize,
-            graphics::ColorIndex::Rgb008484,
+            graphics::screen::ColorIndex::Rgb008484,
             graphics::screen::Coord::new(0, 16),
             graphics::screen::Coord::new(15, 31),
         );
@@ -68,7 +68,7 @@ fn main_loop() -> () {
         if let Some(data) = data {
             print_with_pos!(
                 graphics::screen::Coord::new(0, 16),
-                graphics::ColorIndex::RgbFFFFFF,
+                graphics::screen::ColorIndex::RgbFFFFFF,
                 "{:X}",
                 data
             );

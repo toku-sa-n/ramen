@@ -57,14 +57,14 @@ pub extern "C" fn interrupt_handler_2c() -> () {
     graphics::screen::draw_rectangle(
         &graphics::Vram::new(),
         graphics::Vram::new().x_len as isize,
-        graphics::ColorIndex::Rgb000000,
+        graphics::screen::ColorIndex::Rgb000000,
         graphics::screen::Coord::new(0, 0),
         graphics::screen::Coord::new(32 * 8 - 1, 15),
     );
 
     print_with_pos!(
         graphics::screen::Coord::new(0, 0),
-        graphics::ColorIndex::RgbFFFFFF,
+        graphics::screen::ColorIndex::RgbFFFFFF,
         "INT 2C (IRQ-12) : PS/2 mouse",
     );
 

@@ -55,24 +55,3 @@ impl Vram {
         asm::store_eflags(eflags);
     }
 }
-
-// Move this enum to graphics::screen
-#[derive(Clone, Copy)]
-pub enum ColorIndex {
-    Rgb000000 = 0,
-    _RgbFF0000 = 1,
-    _Rgb00FF00 = 2,
-    _RgbFFFF00 = 3,
-    _Rgb0000FF = 4,
-    _RgbFF00FF = 5,
-    _Rgb00FFFF = 6,
-    RgbFFFFFF = 7,
-    RgbC6C6C6 = 8,
-    _Rgb840000 = 9,
-    _Rgb008400 = 10,
-    _Rgb848400 = 11,
-    _Rgb000084 = 12,
-    _Rgb840084 = 13,
-    Rgb008484 = 14,
-    Rgb848484 = 15,
-}
