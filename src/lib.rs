@@ -52,51 +52,59 @@ fn initialization() -> () {
 fn main_loop() -> () {
     asm::cli();
     if interrupt::KEY_QUEUE.lock().size() != 0 {
-        let data: Option<i32> = interrupt::KEY_QUEUE.lock().dequeue();
-
-        asm::sti();
-
-        let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
-
-        screen.draw_rectangle(
-            graphics::Vram::new().x_len as isize,
-            graphics::screen::ColorIndex::Rgb008484,
-            graphics::screen::Coord::new(0, 16),
-            graphics::screen::Coord::new(15, 31),
-        );
-
-        if let Some(data) = data {
-            print_with_pos!(
-                graphics::screen::Coord::new(0, 16),
-                graphics::screen::ColorIndex::RgbFFFFFF,
-                "{:X}",
-                data
-            );
-        }
+        handle_keyboard_data();
     } else if interrupt::MOUSE_QUEUE.lock().size() != 0 {
-        let data: Option<i32> = interrupt::MOUSE_QUEUE.lock().dequeue();
-
-        asm::sti();
-
-        let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
-
-        screen.draw_rectangle(
-            graphics::Vram::new().x_len as isize,
-            graphics::screen::ColorIndex::Rgb008484,
-            graphics::screen::Coord::new(32, 16),
-            graphics::screen::Coord::new(47, 31),
-        );
-
-        if let Some(data) = data {
-            print_with_pos!(
-                graphics::screen::Coord::new(32, 16),
-                graphics::screen::ColorIndex::RgbFFFFFF,
-                "{:X}",
-                data
-            );
-        }
+        handle_mouse_data();
     } else {
         asm::stihlt();
+    }
+}
+
+fn handle_keyboard_data() -> () {
+    let data: Option<i32> = interrupt::KEY_QUEUE.lock().dequeue();
+
+    asm::sti();
+
+    let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
+
+    screen.draw_rectangle(
+        graphics::Vram::new().x_len as isize,
+        graphics::screen::ColorIndex::Rgb008484,
+        graphics::screen::Coord::new(0, 16),
+        graphics::screen::Coord::new(15, 31),
+    );
+
+    if let Some(data) = data {
+        print_with_pos!(
+            graphics::screen::Coord::new(0, 16),
+            graphics::screen::ColorIndex::RgbFFFFFF,
+            "{:X}",
+            data
+        );
+    }
+}
+
+fn handle_mouse_data() -> () {
+    let data: Option<i32> = interrupt::MOUSE_QUEUE.lock().dequeue();
+
+    asm::sti();
+
+    let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
+
+    screen.draw_rectangle(
+        graphics::Vram::new().x_len as isize,
+        graphics::screen::ColorIndex::Rgb008484,
+        graphics::screen::Coord::new(32, 16),
+        graphics::screen::Coord::new(47, 31),
+    );
+
+    if let Some(data) = data {
+        print_with_pos!(
+            graphics::screen::Coord::new(32, 16),
+            graphics::screen::ColorIndex::RgbFFFFFF,
+            "{:X}",
+            data
+        );
     }
 }
 
