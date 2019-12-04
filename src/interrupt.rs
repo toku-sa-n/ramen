@@ -1,5 +1,4 @@
 use crate::asm;
-use crate::graphics;
 use crate::queue;
 
 extern crate lazy_static;
@@ -11,7 +10,7 @@ const PIC0_ICW2: i32 = 0x0021;
 const PIC0_ICW3: i32 = 0x0021;
 const PIC0_ICW4: i32 = 0x0021;
 const PIC1_ICW1: i32 = 0x00a0;
-const _PIC1_OCW2: i32 = 0x00a0;
+const PIC1_OCW2: i32 = 0x00a0;
 const PIC1_IMR: i32 = 0x00a1;
 const PIC1_ICW2: i32 = 0x00a1;
 const PIC1_ICW3: i32 = 0x00a1;
@@ -28,6 +27,7 @@ const KEY_CMD_SEND_TO_MOUSE: i32 = 0xd4;
 const MOUSE_CMD_ENABLE: i32 = 0xf4;
 lazy_static::lazy_static! {
     pub static ref KEY_QUEUE: spin::Mutex<queue::Queue> = spin::Mutex::new(queue::Queue::new());
+    pub static ref MOUSE_QUEUE:spin::Mutex<queue::Queue> = spin::Mutex::new(queue::Queue::new());
 }
 
 // See P.128.
@@ -85,23 +85,7 @@ pub extern "C" fn interrupt_handler_21() -> () {
 }
 
 pub extern "C" fn interrupt_handler_2c() -> () {
-    use crate::print_with_pos;
-    let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
-
-    screen.draw_rectangle(
-        graphics::Vram::new().x_len as isize,
-        graphics::screen::ColorIndex::Rgb000000,
-        graphics::screen::Coord::new(0, 0),
-        graphics::screen::Coord::new(32 * 8 - 1, 15),
-    );
-
-    print_with_pos!(
-        graphics::screen::Coord::new(0, 0),
-        graphics::screen::ColorIndex::RgbFFFFFF,
-        "INT 2C (IRQ-12) : PS/2 mouse",
-    );
-
-    loop {
-        asm::hlt();
-    }
+    asm::out8(PIC1_OCW2, 0x64);
+    asm::out8(PIC0_OCW2, 0x62);
+    MOUSE_QUEUE.lock().enqueue(asm::in8(PORT_KEYDATA));
 }

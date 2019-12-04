@@ -48,11 +48,10 @@ fn initialization() -> () {
     interrupt::enable_pic1_keyboard_mouse();
 }
 
+// TODO: Delete specifying x_len of draw_rectangle
 fn main_loop() -> () {
     asm::cli();
-    if interrupt::KEY_QUEUE.lock().size() == 0 {
-        asm::stihlt();
-    } else {
+    if interrupt::KEY_QUEUE.lock().size() != 0 {
         let data: Option<i32> = interrupt::KEY_QUEUE.lock().dequeue();
 
         asm::sti();
@@ -74,6 +73,30 @@ fn main_loop() -> () {
                 data
             );
         }
+    } else if interrupt::MOUSE_QUEUE.lock().size() != 0 {
+        let data: Option<i32> = interrupt::MOUSE_QUEUE.lock().dequeue();
+
+        asm::sti();
+
+        let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
+
+        screen.draw_rectangle(
+            graphics::Vram::new().x_len as isize,
+            graphics::screen::ColorIndex::Rgb008484,
+            graphics::screen::Coord::new(32, 16),
+            graphics::screen::Coord::new(47, 31),
+        );
+
+        if let Some(data) = data {
+            print_with_pos!(
+                graphics::screen::Coord::new(32, 16),
+                graphics::screen::ColorIndex::RgbFFFFFF,
+                "{:X}",
+                data
+            );
+        }
+    } else {
+        asm::stihlt();
     }
 }
 
