@@ -11,10 +11,16 @@ mod queue;
 #[macro_use]
 mod graphics;
 
-// TODO: Separate main loop and initialization.
 #[no_mangle]
 #[start]
 pub fn os_main() -> isize {
+    initialization();
+    loop {
+        main_loop()
+    }
+}
+
+fn initialization() -> () {
     descriptor_table::init();
     interrupt::init_pic();
     asm::sti();
@@ -40,32 +46,32 @@ pub fn os_main() -> isize {
     mouse_cursor.draw();
 
     interrupt::enable_pic1_keyboard_mouse();
+}
 
-    loop {
-        asm::cli();
-        if interrupt::KEY_QUEUE.lock().size() == 0 {
-            asm::stihlt();
-        } else {
-            let data: Option<i32> = interrupt::KEY_QUEUE.lock().dequeue();
+fn main_loop() -> () {
+    asm::cli();
+    if interrupt::KEY_QUEUE.lock().size() == 0 {
+        asm::stihlt();
+    } else {
+        let data: Option<i32> = interrupt::KEY_QUEUE.lock().dequeue();
 
-            asm::sti();
+        asm::sti();
 
-            graphics::screen::draw_rectangle(
-                &graphics::Vram::new(),
-                graphics::Vram::new().x_len as isize,
-                graphics::ColorIndex::Rgb008484,
+        graphics::screen::draw_rectangle(
+            &graphics::Vram::new(),
+            graphics::Vram::new().x_len as isize,
+            graphics::ColorIndex::Rgb008484,
+            graphics::screen::Coord::new(0, 16),
+            graphics::screen::Coord::new(15, 31),
+        );
+
+        if let Some(data) = data {
+            print_with_pos!(
                 graphics::screen::Coord::new(0, 16),
-                graphics::screen::Coord::new(15, 31),
+                graphics::ColorIndex::RgbFFFFFF,
+                "{:X}",
+                data
             );
-
-            if let Some(data) = data {
-                print_with_pos!(
-                    graphics::screen::Coord::new(0, 16),
-                    graphics::ColorIndex::RgbFFFFFF,
-                    "{:X}",
-                    data
-                );
-            }
         }
     }
 }
