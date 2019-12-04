@@ -94,17 +94,11 @@ impl Screen {
         Screen { vram }
     }
 
-    pub fn draw_rectangle(
-        &self,
-        x_len: isize,
-        color: ColorIndex,
-        top_left: Coord,
-        bottom_right: Coord,
-    ) -> () {
+    pub fn draw_rectangle(&self, color: ColorIndex, top_left: Coord, bottom_right: Coord) -> () {
         for y in top_left.y..=bottom_right.y {
             for x in top_left.x..=bottom_right.x {
                 unsafe {
-                    *(&mut *(self.vram.ptr.offset(y * x_len + x))) = color as u8;
+                    *(&mut *(self.vram.ptr.offset(y * self.vram.x_len as isize + x))) = color as u8;
                 }
             }
         }
@@ -198,7 +192,7 @@ pub fn draw_desktop(vram: &Vram) -> () {
 
     let draw_desktop_part = |color, x0, y0, x1, y1| {
         let screen:screen::Screen =screen::Screen::new(Vram::new());
-        screen.draw_rectangle(x_len, color, Coord::new(x0, y0), Coord::new(x1, y1));
+        screen.draw_rectangle( color, Coord::new(x0, y0), Coord::new(x1, y1));
     };
 
     draw_desktop_part(ColorIndex::Rgb008484,          0,          0, x_len -  1, y_len - 29);

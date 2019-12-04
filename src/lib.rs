@@ -48,7 +48,6 @@ fn initialization() -> () {
     interrupt::enable_pic1_keyboard_mouse();
 }
 
-// TODO: Delete specifying x_len of draw_rectangle
 fn main_loop() -> () {
     asm::cli();
     if interrupt::KEY_QUEUE.lock().size() != 0 {
@@ -68,7 +67,6 @@ fn handle_keyboard_data() -> () {
     let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
 
     screen.draw_rectangle(
-        graphics::Vram::new().x_len as isize,
         graphics::screen::ColorIndex::Rgb008484,
         graphics::screen::Coord::new(0, 16),
         graphics::screen::Coord::new(15, 31),
@@ -92,7 +90,6 @@ fn handle_mouse_data() -> () {
     let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
 
     screen.draw_rectangle(
-        graphics::Vram::new().x_len as isize,
         graphics::screen::ColorIndex::Rgb008484,
         graphics::screen::Coord::new(32, 16),
         graphics::screen::Coord::new(47, 31),
