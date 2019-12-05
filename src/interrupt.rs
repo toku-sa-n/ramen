@@ -46,6 +46,13 @@ impl MouseDevice {
         }
     }
 
+    pub fn enable(&self) -> () {
+        wait_kbc_sendready();
+        asm::out8(PORT_KEY_CMD, KEY_CMD_SEND_TO_MOUSE);
+        wait_kbc_sendready();
+        asm::out8(PORT_KEYDATA, MOUSE_CMD_ENABLE);
+    }
+
     // Return true if three bytes data are sent.
     // Otherwise return false.
     pub fn put_data(&mut self, data: i32) -> bool {
@@ -136,13 +143,6 @@ pub fn init_keyboard() -> () {
     asm::out8(PORT_KEY_CMD, KEY_CMD_WRITE_MODE);
     wait_kbc_sendready();
     asm::out8(PORT_KEYDATA, KEY_CMD_MODE);
-}
-
-pub fn enable_mouse() -> () {
-    wait_kbc_sendready();
-    asm::out8(PORT_KEY_CMD, KEY_CMD_SEND_TO_MOUSE);
-    wait_kbc_sendready();
-    asm::out8(PORT_KEYDATA, MOUSE_CMD_ENABLE);
 }
 
 pub extern "C" fn interrupt_handler_21() -> () {

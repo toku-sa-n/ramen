@@ -13,17 +13,16 @@ mod graphics;
 
 #[no_mangle]
 #[start]
-// TODO: Move mouse device initialization to impl MouseDevice
 pub fn os_main() -> isize {
-    initialization();
-
     let mut mouse_device: interrupt::MouseDevice = interrupt::MouseDevice::new();
+    initialization(&mouse_device);
+
     loop {
         main_loop(&mut mouse_device)
     }
 }
 
-fn initialization() -> () {
+fn initialization(mouse_device: &interrupt::MouseDevice) -> () {
     descriptor_table::init();
     interrupt::init_pic();
     asm::sti();
@@ -50,7 +49,7 @@ fn initialization() -> () {
 
     interrupt::set_init_pic_bits();
     interrupt::init_keyboard();
-    interrupt::enable_mouse();
+    mouse_device.enable();
 }
 
 fn main_loop(mut mouse_device: &mut interrupt::MouseDevice) -> () {
