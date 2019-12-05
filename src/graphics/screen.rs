@@ -136,21 +136,17 @@ impl core::fmt::Write for ScreenWrite {
     }
 }
 
-// TODO: Use coord struct
 pub const MOUSE_CURSOR_WIDTH: usize = 16;
 pub const MOUSE_CURSOR_HEIGHT: usize = 16;
 pub struct MouseCursor {
-    x: isize,
-    y: isize,
+    coord: Coord,
 
     image: [[u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
 }
 
-// TODO: Use coord struct
 impl MouseCursor {
     pub fn new(
-        x: isize,
-        y: isize,
+        coord: Coord,
         background_color: ColorIndex,
         image: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
     ) -> MouseCursor {
@@ -168,8 +164,7 @@ impl MouseCursor {
         }
 
         MouseCursor {
-            x,
-            y,
+            coord,
             image: colored_dots,
         }
     }
@@ -180,7 +175,8 @@ impl MouseCursor {
                 let vram: Vram = Vram::new();
                 unsafe {
                     *(vram.ptr.offset(
-                        (self.y + y as isize) * vram.x_len as isize + (self.x + x as isize),
+                        (self.coord.y + y as isize) * vram.x_len as isize
+                            + (self.coord.x + x as isize),
                     )) = self.image[y][x];
                 }
             }

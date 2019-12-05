@@ -39,8 +39,7 @@ fn initialization(mouse_device: &interrupt::MouseDevice) -> () {
     );
 
     let mouse_cursor: graphics::screen::MouseCursor = graphics::screen::MouseCursor::new(
-        300,
-        300,
+        graphics::screen::Coord::new(300, 300),
         graphics::screen::ColorIndex::Rgb008484,
         graphics::screen::MOUSE_GRAPHIC,
     );
