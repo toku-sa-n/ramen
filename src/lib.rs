@@ -13,10 +13,13 @@ mod graphics;
 
 #[no_mangle]
 #[start]
+// TODO: Move mouse device initialization to impl MouseDevice
 pub fn os_main() -> isize {
     initialization();
+
+    let mut mouse_device: interrupt::MouseDevice = interrupt::MouseDevice::new();
     loop {
-        main_loop()
+        main_loop(&mut mouse_device)
     }
 }
 
@@ -50,12 +53,12 @@ fn initialization() -> () {
     interrupt::enable_mouse();
 }
 
-fn main_loop() -> () {
+fn main_loop(mut mouse_device: &mut interrupt::MouseDevice) -> () {
     asm::cli();
     if interrupt::KEY_QUEUE.lock().size() != 0 {
         handle_keyboard_data();
     } else if interrupt::MOUSE_QUEUE.lock().size() != 0 {
-        handle_mouse_data();
+        handle_mouse_data(&mut mouse_device);
     } else {
         asm::stihlt();
     }
@@ -84,7 +87,7 @@ fn handle_keyboard_data() -> () {
     }
 }
 
-fn handle_mouse_data() -> () {
+fn handle_mouse_data(mouse_device: &mut interrupt::MouseDevice) -> () {
     let data: Option<i32> = interrupt::MOUSE_QUEUE.lock().dequeue();
 
     asm::sti();
@@ -98,12 +101,9 @@ fn handle_mouse_data() -> () {
     );
 
     if let Some(data) = data {
-        print_with_pos!(
-            graphics::screen::Coord::new(32, 16),
-            graphics::screen::ColorIndex::RgbFFFFFF,
-            "{:X}",
-            data
-        );
+        if mouse_device.put_data(data) {
+            mouse_device.print_buf_data();
+        }
     }
 }
 

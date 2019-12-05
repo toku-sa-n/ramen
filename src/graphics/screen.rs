@@ -136,14 +136,18 @@ impl core::fmt::Write for ScreenWrite {
     }
 }
 
+// TODO: change the name `dots' to `image'.
+// TODO: Use coord struct
 pub const MOUSE_CURSOR_WIDTH: usize = 16;
 pub const MOUSE_CURSOR_HEIGHT: usize = 16;
 pub struct MouseCursor {
     x: isize,
     y: isize,
+
     dots: [[u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
 }
 
+// TODO: Use coord struct
 impl MouseCursor {
     pub fn new(
         x: isize,

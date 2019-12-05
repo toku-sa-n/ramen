@@ -31,6 +31,74 @@ lazy_static::lazy_static! {
     pub static ref MOUSE_QUEUE:spin::Mutex<queue::Queue> = spin::Mutex::new(queue::Queue::new());
 }
 
+use crate::graphics;
+
+pub struct MouseDevice {
+    data_from_device: [i32; 3],
+    phase: i32,
+}
+
+impl MouseDevice {
+    pub fn new() -> MouseDevice {
+        MouseDevice {
+            data_from_device: [0; 3],
+            phase: 0,
+        }
+    }
+
+    // Return true if three bytes data are sent.
+    // Otherwise return false.
+    pub fn put_data(&mut self, data: i32) -> bool {
+        match self.phase {
+            0 => {
+                if data == 0xfa {
+                    self.phase = 1;
+                }
+                false
+            }
+            1 => {
+                self.data_from_device[0] = data;
+                self.phase = 2;
+                false
+            }
+            2 => {
+                self.data_from_device[1] = data;
+                self.phase = 3;
+                false
+            }
+            3 => {
+                self.data_from_device[2] = data;
+                self.phase = 1;
+                true
+            }
+            _ => {
+                self.phase = 0;
+                false
+            }
+        }
+    }
+
+    pub fn print_buf_data(&self) -> () {
+        use crate::print_with_pos;
+        let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
+
+        screen.draw_rectangle(
+            graphics::screen::ColorIndex::Rgb008484,
+            graphics::screen::Coord::new(32, 16),
+            graphics::screen::Coord::new(32 + 8 * 8 - 1, 31),
+        );
+
+        print_with_pos!(
+            graphics::screen::Coord::new(32, 16),
+            graphics::screen::ColorIndex::RgbFFFFFF,
+            "{:02X} {:02X} {:02X}",
+            self.data_from_device[0],
+            self.data_from_device[1],
+            self.data_from_device[2]
+        );
+    }
+}
+
 // See P.128.
 pub fn init_pic() -> () {
     asm::out8(PIC0_IMR, 0xff);
