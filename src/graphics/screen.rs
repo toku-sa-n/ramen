@@ -136,7 +136,6 @@ impl core::fmt::Write for ScreenWrite {
     }
 }
 
-// TODO: change the name `dots' to `image'.
 // TODO: Use coord struct
 pub const MOUSE_CURSOR_WIDTH: usize = 16;
 pub const MOUSE_CURSOR_HEIGHT: usize = 16;
@@ -144,7 +143,7 @@ pub struct MouseCursor {
     x: isize,
     y: isize,
 
-    dots: [[u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
+    image: [[u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
 }
 
 // TODO: Use coord struct
@@ -153,14 +152,14 @@ impl MouseCursor {
         x: isize,
         y: isize,
         background_color: ColorIndex,
-        dots: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
+        image: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
     ) -> MouseCursor {
         let mut colored_dots: [[u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] =
             [[background_color as u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_WIDTH];
 
         for y in 0..MOUSE_CURSOR_HEIGHT {
             for x in 0..MOUSE_CURSOR_WIDTH {
-                colored_dots[y][x] = match dots[y][x] {
+                colored_dots[y][x] = match image[y][x] {
                     '*' => ColorIndex::Rgb000000 as u8,
                     '0' => ColorIndex::RgbFFFFFF as u8,
                     _ => background_color as u8,
@@ -171,7 +170,7 @@ impl MouseCursor {
         MouseCursor {
             x,
             y,
-            dots: colored_dots,
+            image: colored_dots,
         }
     }
 
@@ -182,7 +181,7 @@ impl MouseCursor {
                 unsafe {
                     *(vram.ptr.offset(
                         (self.y + y as isize) * vram.x_len as isize + (self.x + x as isize),
-                    )) = self.dots[y][x];
+                    )) = self.image[y][x];
                 }
             }
         }
