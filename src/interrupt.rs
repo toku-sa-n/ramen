@@ -38,7 +38,7 @@ pub struct MouseDevice {
     phase: i32,
 
     x_speed: i32,
-    y_xpeed: i32,
+    y_speed: i32,
     button_left: bool,
     button_center: bool,
     button_right: bool,
@@ -50,7 +50,7 @@ impl MouseDevice {
             data_from_device: [0; 3],
             phase: 0,
             x_speed: 0,
-            y_xpeed: 0,
+            y_speed: 0,
             button_left: false,
             button_center: false,
             button_right: false,
@@ -89,11 +89,31 @@ impl MouseDevice {
             3 => {
                 self.data_from_device[2] = data;
                 self.phase = 1;
+
+                // TODO: move assignment to a function
+                self.button_left = self.data_from_device[0] & 0x01 != 0;
+                self.button_right = self.data_from_device[0] & 0x02 != 0;
+                self.button_center = self.data_from_device[0] & 0x04 != 0;
+
+                self.x_speed = self.data_from_device[1];
+                self.y_speed = self.data_from_device[2];
+
+                if self.data_from_device[0] & 0x10 != 0 {
+                    // -256 = 0xffffff00
+                    self.x_speed |= -256;
+                }
+
+                if self.data_from_device[0] & 0x20 != 0 {
+                    self.y_speed |= -256;
+                }
+
+                self.y_speed = -self.y_speed;
+
                 true
             }
             _ => {
-                self.phase = 0;
-                false
+                self.phase = 1;
+                true
             }
         }
     }
@@ -110,16 +130,18 @@ impl MouseDevice {
         screen.draw_rectangle(
             graphics::screen::ColorIndex::Rgb008484,
             graphics::screen::Coord::new(32, 16),
-            graphics::screen::Coord::new(32 + 8 * 8 - 1, 31),
+            graphics::screen::Coord::new(32 + 15 * 8 - 1, 31),
         );
 
         print_with_pos!(
             graphics::screen::Coord::new(32, 16),
             graphics::screen::ColorIndex::RgbFFFFFF,
-            "{:02X} {:02X} {:02X}",
-            self.data_from_device[0],
-            self.data_from_device[1],
-            self.data_from_device[2]
+            "[{}{}{} {:4}{:4}]",
+            if self.button_left { 'L' } else { 'l' },
+            if self.button_center { 'C' } else { 'c' },
+            if self.button_right { 'R' } else { 'r' },
+            self.x_speed,
+            self.y_speed
         );
     }
 }
