@@ -36,6 +36,12 @@ use crate::graphics;
 pub struct MouseDevice {
     data_from_device: [i32; 3],
     phase: i32,
+
+    x_speed: i32,
+    y_xpeed: i32,
+    button_left: bool,
+    button_center: bool,
+    button_right: bool,
 }
 
 impl MouseDevice {
@@ -43,6 +49,11 @@ impl MouseDevice {
         MouseDevice {
             data_from_device: [0; 3],
             phase: 0,
+            x_speed: 0,
+            y_xpeed: 0,
+            button_left: false,
+            button_center: false,
+            button_right: false,
         }
     }
 
@@ -64,8 +75,10 @@ impl MouseDevice {
                 false
             }
             1 => {
-                self.data_from_device[0] = data;
-                self.phase = 2;
+                if Self::is_correct_first_byte_from_device(data) {
+                    self.data_from_device[0] = data;
+                    self.phase = 2;
+                }
                 false
             }
             2 => {
@@ -83,6 +96,11 @@ impl MouseDevice {
                 false
             }
         }
+    }
+
+    // To sync phase, and data sent from mouse device
+    fn is_correct_first_byte_from_device(data: i32) -> bool {
+        data & 0xc8 == 0x08
     }
 
     pub fn print_buf_data(&self) -> () {
