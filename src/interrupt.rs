@@ -90,25 +90,7 @@ impl MouseDevice {
                 self.data_from_device[2] = data;
                 self.phase = 1;
 
-                // TODO: move assignment to a function
-                self.button_left = self.data_from_device[0] & 0x01 != 0;
-                self.button_right = self.data_from_device[0] & 0x02 != 0;
-                self.button_center = self.data_from_device[0] & 0x04 != 0;
-
-                self.x_speed = self.data_from_device[1];
-                self.y_speed = self.data_from_device[2];
-
-                if self.data_from_device[0] & 0x10 != 0 {
-                    // -256 = 0xffffff00
-                    self.x_speed |= -256;
-                }
-
-                if self.data_from_device[0] & 0x20 != 0 {
-                    self.y_speed |= -256;
-                }
-
-                self.y_speed = -self.y_speed;
-
+                self.purse_data();
                 true
             }
             _ => {
@@ -116,6 +98,26 @@ impl MouseDevice {
                 true
             }
         }
+    }
+
+    fn purse_data(&mut self) -> () {
+        self.button_left = self.data_from_device[0] & 0x01 != 0;
+        self.button_right = self.data_from_device[0] & 0x02 != 0;
+        self.button_center = self.data_from_device[0] & 0x04 != 0;
+
+        self.x_speed = self.data_from_device[1];
+        self.y_speed = self.data_from_device[2];
+
+        if self.data_from_device[0] & 0x10 != 0 {
+            // -256 = 0xffffff00
+            self.x_speed |= -256;
+        }
+
+        if self.data_from_device[0] & 0x20 != 0 {
+            self.y_speed |= -256;
+        }
+
+        self.y_speed = -self.y_speed;
     }
 
     // To sync phase, and data sent from mouse device
