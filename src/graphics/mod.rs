@@ -12,8 +12,8 @@ pub struct Vram {
 }
 
 impl Vram {
-    pub fn new() -> Vram {
-        Vram {
+    pub fn new() -> Self {
+        Self {
             x_len: unsafe { *(0x0ff4 as *const i16) },
             y_len: unsafe { *(0x0ff6 as *const i16) },
             ptr: unsafe { &mut *(*(0x0ff8 as *const i32) as *mut u8) },

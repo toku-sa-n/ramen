@@ -45,8 +45,8 @@ pub struct MouseDevice {
 }
 
 impl MouseDevice {
-    pub fn new() -> MouseDevice {
-        MouseDevice {
+    pub fn new() -> Self {
+        Self {
             data_from_device: [0; 3],
             phase: 0,
             x_speed: 0,

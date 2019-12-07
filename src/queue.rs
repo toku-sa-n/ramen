@@ -7,8 +7,8 @@ pub struct Queue {
 }
 
 impl Queue {
-    pub fn new() -> Queue {
-        Queue {
+    pub fn new() -> Self {
+        Self {
             data: [0; QUEUE_SIZE],
             next_idx_write: 0,
             next_idx_read: 0,
