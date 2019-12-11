@@ -140,6 +140,7 @@ pub const MOUSE_CURSOR_WIDTH: usize = 16;
 pub const MOUSE_CURSOR_HEIGHT: usize = 16;
 pub struct MouseCursor {
     coord: Coord,
+    next_coord: Coord,
 
     image: [[u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
 }
@@ -163,8 +164,9 @@ impl MouseCursor {
             }
         }
 
-        MouseCursor {
-            coord,
+        Self {
+            coord: Coord::new(0, 0),
+            next_coord: coord,
             image: colored_dots,
         }
     }
@@ -175,8 +177,8 @@ impl MouseCursor {
                 let vram: Vram = Vram::new();
                 unsafe {
                     *(vram.ptr.offset(
-                        (self.coord.y + y as isize) * vram.x_len as isize
-                            + (self.coord.x + x as isize),
+                        (self.next_coord.y + y as isize) * vram.x_len as isize
+                            + (self.next_coord.x + x as isize),
                     )) = self.image[y][x];
                 }
             }
