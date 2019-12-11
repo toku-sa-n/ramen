@@ -39,9 +39,30 @@ pub struct MouseDevice {
 
     x_speed: i32,
     y_speed: i32,
-    button_left: bool,
-    button_center: bool,
-    button_right: bool,
+
+    buttons: MouseButtons,
+}
+
+struct MouseButtons {
+    left: bool,
+    center: bool,
+    right: bool,
+}
+
+impl MouseButtons {
+    fn new() -> Self {
+        Self {
+            left: false,
+            center: false,
+            right: false,
+        }
+    }
+
+    fn purse_data(&mut self, data: i32) -> () {
+        self.left = data & 0x01 != 0;
+        self.right = data & 0x02 != 0;
+        self.center = data & 0x04 != 0;
+    }
 }
 
 impl MouseDevice {
@@ -51,9 +72,7 @@ impl MouseDevice {
             phase: 0,
             x_speed: 0,
             y_speed: 0,
-            button_left: false,
-            button_center: false,
-            button_right: false,
+            buttons: MouseButtons::new(),
         }
     }
 
@@ -101,10 +120,7 @@ impl MouseDevice {
     }
 
     fn purse_data(&mut self) -> () {
-        self.button_left = self.data_from_device[0] & 0x01 != 0;
-        self.button_right = self.data_from_device[0] & 0x02 != 0;
-        self.button_center = self.data_from_device[0] & 0x04 != 0;
-
+        self.buttons.purse_data(self.data_from_device[0]);
         self.x_speed = self.data_from_device[1];
         self.y_speed = self.data_from_device[2];
 
@@ -139,9 +155,9 @@ impl MouseDevice {
             graphics::screen::Coord::new(32, 16),
             graphics::screen::ColorIndex::RgbFFFFFF,
             "[{}{}{} {:4}{:4}]",
-            if self.button_left { 'L' } else { 'l' },
-            if self.button_center { 'C' } else { 'c' },
-            if self.button_right { 'R' } else { 'r' },
+            if self.buttons.left { 'L' } else { 'l' },
+            if self.buttons.center { 'C' } else { 'c' },
+            if self.buttons.right { 'R' } else { 'r' },
             self.x_speed,
             self.y_speed
         );
