@@ -53,15 +53,17 @@ impl MouseButtons {
     fn new() -> Self {
         Self {
             left: false,
-            center: false,
             right: false,
+            center: false,
         }
     }
 
-    fn purse_data(&mut self, data: i32) -> () {
-        self.left = data & 0x01 != 0;
-        self.right = data & 0x02 != 0;
-        self.center = data & 0x04 != 0;
+    fn purse_data(data: i32) -> Self {
+        Self {
+            left: data & 0x01 != 0,
+            right: data & 0x02 != 0,
+            center: data & 0x04 != 0,
+        }
     }
 }
 
@@ -123,7 +125,7 @@ impl MouseDevice {
 
     fn purse_data(self) -> Self {
         let mut new_self = self;
-        new_self.buttons.purse_data(new_self.data_from_device[0]);
+        new_self.buttons = MouseButtons::purse_data(new_self.data_from_device[0]);
         new_self.x_speed = new_self.data_from_device[1];
         new_self.y_speed = new_self.data_from_device[2];
 
