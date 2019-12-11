@@ -146,7 +146,6 @@ pub struct MouseCursor {
 
 impl MouseCursor {
     pub fn new(
-        coord: Coord,
         background_color: ColorIndex,
         image: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
     ) -> Self {
@@ -164,23 +163,24 @@ impl MouseCursor {
         }
 
         MouseCursor {
-            coord,
+            coord: Coord::new(0, 0),
             image: colored_dots,
         }
     }
 
-    pub fn draw(&self) {
+    pub fn draw(self, coord: Coord) -> Self {
         for y in 0..MOUSE_CURSOR_HEIGHT {
             for x in 0..MOUSE_CURSOR_WIDTH {
                 let vram: Vram = Vram::new();
                 unsafe {
                     *(vram.ptr.offset(
-                        (self.coord.y + y as isize) * vram.x_len as isize
-                            + (self.coord.x + x as isize),
+                        (coord.y + y as isize) * vram.x_len as isize + (coord.x + x as isize),
                     )) = self.image[y][x];
                 }
             }
         }
+
+        Self { coord, ..self }
     }
 }
 
