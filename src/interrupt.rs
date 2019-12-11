@@ -39,21 +39,42 @@ pub struct MouseDevice {
 
     x_speed: i32,
     y_speed: i32,
-    button_left: bool,
-    button_center: bool,
-    button_right: bool,
+
+    buttons: MouseButtons,
+}
+
+struct MouseButtons {
+    left: bool,
+    center: bool,
+    right: bool,
+}
+
+impl MouseButtons {
+    fn new() -> Self {
+        Self {
+            left: false,
+            right: false,
+            center: false,
+        }
+    }
+
+    fn purse_data(data: i32) -> Self {
+        Self {
+            left: data & 0x01 != 0,
+            right: data & 0x02 != 0,
+            center: data & 0x04 != 0,
+        }
+    }
 }
 
 impl MouseDevice {
-    pub fn new() -> MouseDevice {
-        MouseDevice {
+    pub fn new() -> Self {
+        Self {
             data_from_device: [0; 3],
             phase: 0,
             x_speed: 0,
             y_speed: 0,
-            button_left: false,
-            button_center: false,
-            button_right: false,
+            buttons: MouseButtons::new(),
         }
     }
 
@@ -66,58 +87,60 @@ impl MouseDevice {
 
     // Return true if three bytes data are sent.
     // Otherwise return false.
-    pub fn put_data(&mut self, data: i32) -> bool {
+    pub fn put_data(self, data: i32) -> (bool, Self) {
         match self.phase {
-            0 => {
-                if data == 0xfa {
-                    self.phase = 1;
-                }
-                false
-            }
+            0 => (
+                false,
+                Self {
+                    phase: if data == 0xfa { 1 } else { 0 },
+                    ..self
+                },
+            ),
+
             1 => {
+                let mut new_self = self;
                 if Self::is_correct_first_byte_from_device(data) {
-                    self.data_from_device[0] = data;
-                    self.phase = 2;
+                    new_self.phase = 2;
+                    new_self.data_from_device[0] = data;
                 }
-                false
+                (false, new_self)
             }
             2 => {
-                self.data_from_device[1] = data;
-                self.phase = 3;
-                false
+                let mut new_self = self;
+                new_self.data_from_device[1] = data;
+                new_self.phase = 3;
+                (false, new_self)
             }
             3 => {
-                self.data_from_device[2] = data;
-                self.phase = 1;
+                let mut new_self = self;
 
-                self.purse_data();
-                true
+                new_self.data_from_device[2] = data;
+                new_self.phase = 1;
+
+                (true, new_self.purse_data())
             }
-            _ => {
-                self.phase = 1;
-                true
-            }
+            _ => (true, Self { phase: 1, ..self }),
         }
     }
 
-    fn purse_data(&mut self) -> () {
-        self.button_left = self.data_from_device[0] & 0x01 != 0;
-        self.button_right = self.data_from_device[0] & 0x02 != 0;
-        self.button_center = self.data_from_device[0] & 0x04 != 0;
+    fn purse_data(self) -> Self {
+        let mut new_self = self;
+        new_self.buttons = MouseButtons::purse_data(new_self.data_from_device[0]);
+        new_self.x_speed = new_self.data_from_device[1];
+        new_self.y_speed = new_self.data_from_device[2];
 
-        self.x_speed = self.data_from_device[1];
-        self.y_speed = self.data_from_device[2];
-
-        if self.data_from_device[0] & 0x10 != 0 {
+        if new_self.data_from_device[0] & 0x10 != 0 {
             // -256 = 0xffffff00
-            self.x_speed |= -256;
+            new_self.x_speed |= -256;
         }
 
-        if self.data_from_device[0] & 0x20 != 0 {
-            self.y_speed |= -256;
+        if new_self.data_from_device[0] & 0x20 != 0 {
+            new_self.y_speed |= -256;
         }
 
-        self.y_speed = -self.y_speed;
+        new_self.y_speed = -new_self.y_speed;
+
+        new_self
     }
 
     // To sync phase, and data sent from mouse device
@@ -139,9 +162,9 @@ impl MouseDevice {
             graphics::screen::Coord::new(32, 16),
             graphics::screen::ColorIndex::RgbFFFFFF,
             "[{}{}{} {:4}{:4}]",
-            if self.button_left { 'L' } else { 'l' },
-            if self.button_center { 'C' } else { 'c' },
-            if self.button_right { 'R' } else { 'r' },
+            if self.buttons.left { 'L' } else { 'l' },
+            if self.buttons.center { 'C' } else { 'c' },
+            if self.buttons.right { 'R' } else { 'r' },
             self.x_speed,
             self.y_speed
         );

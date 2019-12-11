@@ -13,13 +13,11 @@ mod graphics;
 
 #[no_mangle]
 #[start]
-pub fn os_main() -> isize {
-    let mut mouse_device: interrupt::MouseDevice = interrupt::MouseDevice::new();
+pub fn os_main() {
+    let mouse_device: interrupt::MouseDevice = interrupt::MouseDevice::new();
     initialization(&mouse_device);
 
-    loop {
-        main_loop(&mut mouse_device)
-    }
+    main_loop(mouse_device)
 }
 
 fn initialization(mouse_device: &interrupt::MouseDevice) -> () {
@@ -51,14 +49,16 @@ fn initialization(mouse_device: &interrupt::MouseDevice) -> () {
     mouse_device.enable();
 }
 
-fn main_loop(mut mouse_device: &mut interrupt::MouseDevice) -> () {
-    asm::cli();
-    if interrupt::KEY_QUEUE.lock().size() != 0 {
-        handle_keyboard_data();
-    } else if interrupt::MOUSE_QUEUE.lock().size() != 0 {
-        handle_mouse_data(&mut mouse_device);
-    } else {
-        asm::stihlt();
+fn main_loop(mut mouse_device: interrupt::MouseDevice) -> () {
+    loop {
+        asm::cli();
+        if interrupt::KEY_QUEUE.lock().size() != 0 {
+            handle_keyboard_data();
+        } else if interrupt::MOUSE_QUEUE.lock().size() != 0 {
+            mouse_device = handle_mouse_data(mouse_device);
+        } else {
+            asm::stihlt();
+        }
     }
 }
 
@@ -85,7 +85,7 @@ fn handle_keyboard_data() -> () {
     }
 }
 
-fn handle_mouse_data(mouse_device: &mut interrupt::MouseDevice) -> () {
+fn handle_mouse_data(mouse_device: interrupt::MouseDevice) -> interrupt::MouseDevice {
     let data: Option<i32> = interrupt::MOUSE_QUEUE.lock().dequeue();
 
     asm::sti();
@@ -98,11 +98,17 @@ fn handle_mouse_data(mouse_device: &mut interrupt::MouseDevice) -> () {
         graphics::screen::Coord::new(47, 31),
     );
 
-    if let Some(data) = data {
-        if mouse_device.put_data(data) {
-            mouse_device.print_buf_data();
-        }
+    if data == None {
+        return mouse_device;
     }
+
+    let (result, new_mouse_device) = mouse_device.put_data(data.unwrap());
+
+    if result {
+        new_mouse_device.print_buf_data();
+    }
+
+    new_mouse_device
 }
 
 #[panic_handler]

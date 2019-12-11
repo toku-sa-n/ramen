@@ -66,8 +66,8 @@ struct GdtrIdtrData {
 }
 
 impl GdtrIdtrData {
-    fn new(limit: i16, address: i32) -> GdtrIdtrData {
-        GdtrIdtrData {
+    fn new(limit: i16, address: i32) -> Self {
+        Self {
             _limit: limit,
             _address: address,
         }

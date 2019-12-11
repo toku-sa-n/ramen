@@ -90,8 +90,8 @@ pub struct Screen {
 }
 
 impl Screen {
-    pub fn new(vram: Vram) -> Screen {
-        Screen { vram }
+    pub fn new(vram: Vram) -> Self {
+        Self { vram }
     }
 
     pub fn draw_rectangle(&self, color: ColorIndex, top_left: Coord, bottom_right: Coord) -> () {
@@ -111,8 +111,8 @@ pub struct Coord {
 }
 
 impl Coord {
-    pub fn new(x: isize, y: isize) -> Coord {
-        Coord { x: x, y: y }
+    pub fn new(x: isize, y: isize) -> Self {
+        Self { x: x, y: y }
     }
 }
 
@@ -123,8 +123,8 @@ pub struct ScreenWrite {
 }
 
 impl ScreenWrite {
-    pub fn new(vram: Vram, coord: Coord, color: ColorIndex) -> ScreenWrite {
-        ScreenWrite { vram, coord, color }
+    pub fn new(vram: Vram, coord: Coord, color: ColorIndex) -> Self {
+        Self { vram, coord, color }
     }
 }
 
@@ -150,7 +150,7 @@ impl MouseCursor {
         coord: Coord,
         background_color: ColorIndex,
         image: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
-    ) -> MouseCursor {
+    ) -> Self {
         let mut colored_dots: [[u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] =
             [[background_color as u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_WIDTH];
 
