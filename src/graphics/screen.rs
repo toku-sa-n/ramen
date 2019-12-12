@@ -194,8 +194,7 @@ impl MouseCursor {
             }
         }
 
-        // TODO: Change to Self.
-        MouseCursor {
+        Self {
             coord: Coord::new(0, 0),
             image: colored_dots,
         }
