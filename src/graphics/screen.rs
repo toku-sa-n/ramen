@@ -114,16 +114,20 @@ pub struct Coord {
 
 type TwoDimensionalVec = Coord;
 
+impl core::ops::Add for Coord {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        Self {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+}
+
 impl Coord {
     pub fn new(x: isize, y: isize) -> Self {
         Self { x: x, y: y }
-    }
-
-    pub fn offset(self, offset: Self) -> Self {
-        Self {
-            x: self.x + offset.x,
-            y: self.y + offset.y,
-        }
     }
 
     pub fn put_in(self, coord_1: Self, coord_2: Self) -> Self {
@@ -204,7 +208,7 @@ impl MouseCursor {
     }
 
     pub fn draw_offset(self, offset: TwoDimensionalVec) -> Self {
-        let new_coord = self.coord.clone().offset(offset);
+        let new_coord = self.coord.clone() + offset;
         self.draw(new_coord)
     }
 
