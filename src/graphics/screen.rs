@@ -106,12 +106,13 @@ impl Screen {
     }
 }
 
-// TODO: Add `type TwoDimensionalVec = Coord`
 #[derive(Clone)]
 pub struct Coord {
     x: isize,
     y: isize,
 }
+
+type TwoDimensionalVec = Coord;
 
 impl Coord {
     pub fn new(x: isize, y: isize) -> Self {
@@ -202,7 +203,7 @@ impl MouseCursor {
         }
     }
 
-    pub fn draw_offset(self, offset: Coord) -> Self {
+    pub fn draw_offset(self, offset: TwoDimensionalVec) -> Self {
         let new_coord = self.coord.clone().offset(offset);
         self.draw(new_coord)
     }
