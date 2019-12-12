@@ -18,6 +18,7 @@ pub fn os_main() {
     let mut mouse_cursor: graphics::screen::MouseCursor = graphics::screen::MouseCursor::new(
         graphics::screen::ColorIndex::Rgb008484,
         graphics::screen::MOUSE_GRAPHIC,
+        graphics::Vram::new(),
     );
 
     mouse_cursor = initialization(&mouse_device, mouse_cursor);

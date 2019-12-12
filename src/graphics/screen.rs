@@ -169,10 +169,10 @@ impl core::fmt::Write for ScreenWrite {
 pub const MOUSE_CURSOR_WIDTH: usize = 16;
 pub const MOUSE_CURSOR_HEIGHT: usize = 16;
 
-// TODO: Make vram member.
 pub struct MouseCursor {
     coord: Coord,
 
+    vram: Vram,
     image: [[u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
 }
 
@@ -180,6 +180,7 @@ impl MouseCursor {
     pub fn new(
         background_color: ColorIndex,
         image: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
+        vram: Vram,
     ) -> Self {
         let mut colored_dots: [[u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] =
             [[background_color as u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_WIDTH];
@@ -197,6 +198,7 @@ impl MouseCursor {
         Self {
             coord: Coord::new(0, 0),
             image: colored_dots,
+            vram,
         }
     }
 
@@ -208,20 +210,19 @@ impl MouseCursor {
     pub fn draw(self, coord: Coord) -> Self {
         self.remove_previous_cursor();
 
-        let vram: Vram = Vram::new();
         let adjusted_coord = coord.put_in(
             Coord::new(0, 0),
             Coord::new(
-                (vram.x_len - MOUSE_CURSOR_WIDTH as i16) as isize,
-                (vram.y_len - MOUSE_CURSOR_HEIGHT as i16) as isize,
+                (self.vram.x_len - MOUSE_CURSOR_WIDTH as i16) as isize,
+                (self.vram.y_len - MOUSE_CURSOR_HEIGHT as i16) as isize,
             ),
         );
 
         for y in 0..MOUSE_CURSOR_HEIGHT {
             for x in 0..MOUSE_CURSOR_WIDTH {
                 unsafe {
-                    *(vram.ptr.offset(
-                        (adjusted_coord.y + y as isize) * vram.x_len as isize
+                    *(self.vram.ptr.offset(
+                        (adjusted_coord.y + y as isize) * self.vram.x_len as isize
                             + (adjusted_coord.x + x as isize),
                     )) = self.image[y][x];
                 }
@@ -235,7 +236,7 @@ impl MouseCursor {
     }
 
     fn remove_previous_cursor(&self) -> () {
-        let screen: Screen = Screen::new(Vram::new());
+        let screen: Screen = Screen::new(self.vram.clone());
 
         screen.draw_rectangle(
             ColorIndex::Rgb008484,

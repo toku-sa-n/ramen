@@ -5,6 +5,7 @@ pub mod font;
 #[macro_use]
 pub mod screen;
 
+#[derive(Clone)]
 pub struct Vram {
     pub x_len: i16,
     pub y_len: i16,
