@@ -15,12 +15,20 @@ mod graphics;
 #[start]
 pub fn os_main() {
     let mouse_device: interrupt::MouseDevice = interrupt::MouseDevice::new();
-    initialization(&mouse_device);
+    let mut mouse_cursor: graphics::screen::MouseCursor = graphics::screen::MouseCursor::new(
+        graphics::screen::ColorIndex::Rgb008484,
+        graphics::screen::MOUSE_GRAPHIC,
+    );
 
-    main_loop(mouse_device)
+    mouse_cursor = initialization(&mouse_device, mouse_cursor);
+
+    main_loop(mouse_device, mouse_cursor)
 }
 
-fn initialization(mouse_device: &interrupt::MouseDevice) -> () {
+fn initialization(
+    mouse_device: &interrupt::MouseDevice,
+    mouse_cursor: graphics::screen::MouseCursor,
+) -> graphics::screen::MouseCursor {
     descriptor_table::init();
     interrupt::init_pic();
     asm::sti();
@@ -36,25 +44,26 @@ fn initialization(mouse_device: &interrupt::MouseDevice) -> () {
         vram.x_len
     );
 
-    let mouse_cursor: graphics::screen::MouseCursor = graphics::screen::MouseCursor::new(
-        graphics::screen::ColorIndex::Rgb008484,
-        graphics::screen::MOUSE_GRAPHIC,
-    );
-
-    mouse_cursor.draw(graphics::screen::Coord::new(300, 300));
-
     interrupt::set_init_pic_bits();
     interrupt::init_keyboard();
     mouse_device.enable();
+
+    mouse_cursor.draw_offset(graphics::screen::Coord::new(300, 300))
 }
 
-fn main_loop(mut mouse_device: interrupt::MouseDevice) -> () {
+fn main_loop(
+    mut mouse_device: interrupt::MouseDevice,
+    mut mouse_cursor: graphics::screen::MouseCursor,
+) -> () {
     loop {
         asm::cli();
         if interrupt::KEY_QUEUE.lock().size() != 0 {
             handle_keyboard_data();
         } else if interrupt::MOUSE_QUEUE.lock().size() != 0 {
-            mouse_device = handle_mouse_data(mouse_device);
+            let (new_mouse_device, new_mouse_cursor) =
+                handle_mouse_data(mouse_device, mouse_cursor);
+            mouse_device = new_mouse_device;
+            mouse_cursor = new_mouse_cursor;
         } else {
             asm::stihlt();
         }
@@ -84,7 +93,10 @@ fn handle_keyboard_data() -> () {
     }
 }
 
-fn handle_mouse_data(mouse_device: interrupt::MouseDevice) -> interrupt::MouseDevice {
+fn handle_mouse_data(
+    mouse_device: interrupt::MouseDevice,
+    mouse_cursor: graphics::screen::MouseCursor,
+) -> (interrupt::MouseDevice, graphics::screen::MouseCursor) {
     let data: Option<i32> = interrupt::MOUSE_QUEUE.lock().dequeue();
 
     asm::sti();
@@ -98,16 +110,19 @@ fn handle_mouse_data(mouse_device: interrupt::MouseDevice) -> interrupt::MouseDe
     );
 
     if data == None {
-        return mouse_device;
+        return (mouse_device, mouse_cursor);
     }
 
     let (result, new_mouse_device) = mouse_device.put_data(data.unwrap());
 
-    if result {
-        new_mouse_device.print_buf_data();
+    if !result {
+        return (new_mouse_device, mouse_cursor);
     }
+    new_mouse_device.print_buf_data();
+    let new_mouse_cursor: graphics::screen::MouseCursor =
+        mouse_cursor.draw_offset(new_mouse_device.get_speed());
 
-    new_mouse_device
+    (new_mouse_device, new_mouse_cursor)
 }
 
 #[panic_handler]

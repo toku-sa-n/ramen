@@ -37,6 +37,7 @@ pub struct MouseDevice {
     data_from_device: [i32; 3],
     phase: i32,
 
+    // TODO: Use Coord struct
     x_speed: i32,
     y_speed: i32,
 
@@ -146,6 +147,10 @@ impl MouseDevice {
     // To sync phase, and data sent from mouse device
     fn is_correct_first_byte_from_device(data: i32) -> bool {
         data & 0xc8 == 0x08
+    }
+
+    pub fn get_speed(&self) -> graphics::screen::Coord {
+        graphics::screen::Coord::new(self.x_speed as isize, self.y_speed as isize)
     }
 
     pub fn print_buf_data(&self) -> () {

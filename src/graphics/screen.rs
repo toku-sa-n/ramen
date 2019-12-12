@@ -94,6 +94,7 @@ impl Screen {
         Self { vram }
     }
 
+    // TODO: Specify top left coordinate and length, rather than two coordinates.
     pub fn draw_rectangle(&self, color: ColorIndex, top_left: Coord, bottom_right: Coord) -> () {
         for y in top_left.y..=bottom_right.y {
             for x in top_left.x..=bottom_right.x {
@@ -105,6 +106,8 @@ impl Screen {
     }
 }
 
+// TODO: Add `type TwoDimensionalVec = Coord`
+#[derive(Clone)]
 pub struct Coord {
     x: isize,
     y: isize,
@@ -113,6 +116,33 @@ pub struct Coord {
 impl Coord {
     pub fn new(x: isize, y: isize) -> Self {
         Self { x: x, y: y }
+    }
+
+    pub fn offset(self, offset: Self) -> Self {
+        Self {
+            x: self.x + offset.x,
+            y: self.y + offset.y,
+        }
+    }
+
+    pub fn put_in(self, coord_1: Self, coord_2: Self) -> Self {
+        let mut new_coord = self;
+
+        if new_coord.x < coord_1.x {
+            new_coord.x = coord_1.x;
+        }
+        if new_coord.x > coord_2.x {
+            new_coord.x = coord_2.x;
+        }
+
+        if new_coord.y < coord_1.y {
+            new_coord.y = coord_1.y;
+        }
+        if new_coord.y > coord_2.y {
+            new_coord.y = coord_2.y;
+        }
+
+        new_coord
     }
 }
 
@@ -138,6 +168,8 @@ impl core::fmt::Write for ScreenWrite {
 
 pub const MOUSE_CURSOR_WIDTH: usize = 16;
 pub const MOUSE_CURSOR_HEIGHT: usize = 16;
+
+// TODO: Make vram member.
 pub struct MouseCursor {
     coord: Coord,
 
@@ -162,25 +194,58 @@ impl MouseCursor {
             }
         }
 
+        // TODO: Change to Self.
         MouseCursor {
             coord: Coord::new(0, 0),
             image: colored_dots,
         }
     }
 
+    pub fn draw_offset(self, offset: Coord) -> Self {
+        let new_coord = self.coord.clone().offset(offset);
+        self.draw(new_coord)
+    }
+
     pub fn draw(self, coord: Coord) -> Self {
+        self.remove_previous_cursor();
+
+        let vram: Vram = Vram::new();
+        let adjusted_coord = coord.put_in(
+            Coord::new(0, 0),
+            Coord::new(
+                (vram.x_len - MOUSE_CURSOR_WIDTH as i16) as isize,
+                (vram.y_len - MOUSE_CURSOR_HEIGHT as i16) as isize,
+            ),
+        );
+
         for y in 0..MOUSE_CURSOR_HEIGHT {
             for x in 0..MOUSE_CURSOR_WIDTH {
-                let vram: Vram = Vram::new();
                 unsafe {
                     *(vram.ptr.offset(
-                        (coord.y + y as isize) * vram.x_len as isize + (coord.x + x as isize),
+                        (adjusted_coord.y + y as isize) * vram.x_len as isize
+                            + (adjusted_coord.x + x as isize),
                     )) = self.image[y][x];
                 }
             }
         }
 
-        Self { coord, ..self }
+        Self {
+            coord: adjusted_coord,
+            ..self
+        }
+    }
+
+    fn remove_previous_cursor(&self) -> () {
+        let screen: Screen = Screen::new(Vram::new());
+
+        screen.draw_rectangle(
+            ColorIndex::Rgb008484,
+            Coord::new(self.coord.x, self.coord.y),
+            Coord::new(
+                self.coord.x + MOUSE_CURSOR_WIDTH as isize,
+                self.coord.y + MOUSE_CURSOR_HEIGHT as isize,
+            ),
+        );
     }
 }
 
