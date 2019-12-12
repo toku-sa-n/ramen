@@ -106,6 +106,7 @@ impl Screen {
     }
 }
 
+// TODO: Implement type generic.
 #[derive(Clone)]
 pub struct Coord {
     x: isize,
@@ -260,6 +261,7 @@ pub fn draw_desktop(vram: &Vram) -> () {
     let y_len:isize  = vram.y_len as isize;
 
     let draw_desktop_part = |color, x0, y0, x1, y1| {
+        // TODO: Use vram of argument.
         let screen:screen::Screen =screen::Screen::new(Vram::new());
         screen.draw_rectangle( color, Coord::new(x0, y0), Coord::new(x1, y1));
     };
