@@ -260,6 +260,8 @@ pub fn draw_desktop(vram: &Vram) -> () {
     let x_len:isize  = vram.x_len as isize;
     let y_len:isize  = vram.y_len as isize;
 
+    // It seems that changing the arguments as `color, coord_1, coord_2` actually make the code
+    // dirty because by doing it lots of `Coord::new(x1, x2)` appear on below.
     let draw_desktop_part = |color, x0, y0, x1, y1| {
         // TODO: Use vram of argument.
         let screen:screen::Screen =screen::Screen::new(Vram::new());
