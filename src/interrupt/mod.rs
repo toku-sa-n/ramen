@@ -1,3 +1,5 @@
+pub mod mouse;
+
 use crate::asm;
 use crate::queue;
 
@@ -28,149 +30,6 @@ const MOUSE_CMD_ENABLE: i32 = 0xf4;
 
 lazy_static::lazy_static! {
     pub static ref KEY_QUEUE: spin::Mutex<queue::Queue> = spin::Mutex::new(queue::Queue::new());
-    pub static ref MOUSE_QUEUE:spin::Mutex<queue::Queue> = spin::Mutex::new(queue::Queue::new());
-}
-
-use crate::graphics;
-
-pub struct MouseDevice {
-    data_from_device: [i32; 3],
-    phase: i32,
-
-    speed: graphics::screen::TwoDimensionalVec,
-
-    buttons: MouseButtons,
-}
-
-struct MouseButtons {
-    left: bool,
-    center: bool,
-    right: bool,
-}
-
-impl MouseButtons {
-    fn new() -> Self {
-        Self {
-            left: false,
-            right: false,
-            center: false,
-        }
-    }
-
-    fn purse_data(data: i32) -> Self {
-        Self {
-            left: data & 0x01 != 0,
-            right: data & 0x02 != 0,
-            center: data & 0x04 != 0,
-        }
-    }
-}
-
-impl MouseDevice {
-    pub fn new() -> Self {
-        Self {
-            data_from_device: [0; 3],
-            phase: 0,
-            speed: graphics::screen::TwoDimensionalVec::new(0, 0),
-            buttons: MouseButtons::new(),
-        }
-    }
-
-    pub fn enable(&self) -> () {
-        wait_kbc_sendready();
-        asm::out8(PORT_KEY_CMD, KEY_CMD_SEND_TO_MOUSE);
-        wait_kbc_sendready();
-        asm::out8(PORT_KEYDATA, MOUSE_CMD_ENABLE);
-    }
-
-    // Return true if three bytes data are sent.
-    // Otherwise return false.
-    pub fn put_data(self, data: i32) -> (bool, Self) {
-        match self.phase {
-            0 => (
-                false,
-                Self {
-                    phase: if data == 0xfa { 1 } else { 0 },
-                    ..self
-                },
-            ),
-
-            1 => {
-                let mut new_self = self;
-                if Self::is_correct_first_byte_from_device(data) {
-                    new_self.phase = 2;
-                    new_self.data_from_device[0] = data;
-                }
-                (false, new_self)
-            }
-            2 => {
-                let mut new_self = self;
-                new_self.data_from_device[1] = data;
-                new_self.phase = 3;
-                (false, new_self)
-            }
-            3 => {
-                let mut new_self = self;
-
-                new_self.data_from_device[2] = data;
-                new_self.phase = 1;
-
-                (true, new_self.purse_data())
-            }
-            _ => (true, Self { phase: 1, ..self }),
-        }
-    }
-
-    fn purse_data(self) -> Self {
-        let mut new_self = self;
-        new_self.buttons = MouseButtons::purse_data(new_self.data_from_device[0]);
-        new_self.speed.x = new_self.data_from_device[1] as isize;
-        new_self.speed.y = new_self.data_from_device[2] as isize;
-
-        if new_self.data_from_device[0] & 0x10 != 0 {
-            // -256 = 0xffffff00
-            new_self.speed.x |= -256;
-        }
-
-        if new_self.data_from_device[0] & 0x20 != 0 {
-            new_self.speed.y |= -256;
-        }
-
-        new_self.speed.y = -new_self.speed.y;
-
-        new_self
-    }
-
-    // To sync phase, and data sent from mouse device
-    fn is_correct_first_byte_from_device(data: i32) -> bool {
-        data & 0xc8 == 0x08
-    }
-
-    pub fn get_speed(&self) -> graphics::screen::Coord {
-        graphics::screen::Coord::new(self.speed.x as isize, self.speed.y as isize)
-    }
-
-    pub fn print_buf_data(&self) -> () {
-        use crate::print_with_pos;
-        let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
-
-        screen.draw_rectangle(
-            graphics::screen::ColorIndex::Rgb008484,
-            graphics::screen::Coord::new(32, 16),
-            graphics::screen::Coord::new(32 + 15 * 8 - 1, 31),
-        );
-
-        print_with_pos!(
-            graphics::screen::Coord::new(32, 16),
-            graphics::screen::ColorIndex::RgbFFFFFF,
-            "[{}{}{} {:4}{:4}]",
-            if self.buttons.left { 'L' } else { 'l' },
-            if self.buttons.center { 'C' } else { 'c' },
-            if self.buttons.right { 'R' } else { 'r' },
-            self.speed.x,
-            self.speed.y
-        );
-    }
 }
 
 // See P.128.
@@ -220,5 +79,5 @@ pub extern "C" fn interrupt_handler_21() -> () {
 pub extern "C" fn interrupt_handler_2c() -> () {
     asm::out8(PIC1_OCW2, 0x64);
     asm::out8(PIC0_OCW2, 0x62);
-    MOUSE_QUEUE.lock().enqueue(asm::in8(PORT_KEYDATA));
+    mouse::QUEUE.lock().enqueue(asm::in8(PORT_KEYDATA));
 }

@@ -14,7 +14,7 @@ mod graphics;
 #[no_mangle]
 #[start]
 pub fn os_main() {
-    let mouse_device: interrupt::MouseDevice = interrupt::MouseDevice::new();
+    let mouse_device: interrupt::mouse::Device = interrupt::mouse::Device::new();
     let mut mouse_cursor: graphics::screen::MouseCursor = graphics::screen::MouseCursor::new(
         graphics::screen::ColorIndex::Rgb008484,
         graphics::screen::MOUSE_GRAPHIC,
@@ -27,7 +27,7 @@ pub fn os_main() {
 }
 
 fn initialization(
-    mouse_device: &interrupt::MouseDevice,
+    mouse_device: &interrupt::mouse::Device,
     mouse_cursor: graphics::screen::MouseCursor,
 ) -> graphics::screen::MouseCursor {
     descriptor_table::init();
@@ -53,14 +53,14 @@ fn initialization(
 }
 
 fn main_loop(
-    mut mouse_device: interrupt::MouseDevice,
+    mut mouse_device: interrupt::mouse::Device,
     mut mouse_cursor: graphics::screen::MouseCursor,
 ) -> () {
     loop {
         asm::cli();
         if interrupt::KEY_QUEUE.lock().size() != 0 {
             handle_keyboard_data();
-        } else if interrupt::MOUSE_QUEUE.lock().size() != 0 {
+        } else if interrupt::mouse::QUEUE.lock().size() != 0 {
             let (new_mouse_device, new_mouse_cursor) =
                 handle_mouse_data(mouse_device, mouse_cursor);
             mouse_device = new_mouse_device;
@@ -95,10 +95,10 @@ fn handle_keyboard_data() -> () {
 }
 
 fn handle_mouse_data(
-    mouse_device: interrupt::MouseDevice,
+    mouse_device: interrupt::mouse::Device,
     mouse_cursor: graphics::screen::MouseCursor,
-) -> (interrupt::MouseDevice, graphics::screen::MouseCursor) {
-    let data: Option<i32> = interrupt::MOUSE_QUEUE.lock().dequeue();
+) -> (interrupt::mouse::Device, graphics::screen::MouseCursor) {
+    let data: Option<i32> = interrupt::mouse::QUEUE.lock().dequeue();
 
     asm::sti();
 
