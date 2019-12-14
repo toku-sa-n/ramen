@@ -106,7 +106,8 @@ impl Screen {
     }
 }
 
-// TODO: Implement type generic.
+// For now there is no need to implement type generic for Coord struct because struct Vram cannot
+// use Coord struct as it handles raw pointers.
 #[derive(Clone)]
 pub struct Coord {
     x: isize,
