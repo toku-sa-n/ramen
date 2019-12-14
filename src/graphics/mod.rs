@@ -5,6 +5,7 @@ pub mod font;
 #[macro_use]
 pub mod screen;
 
+#[derive(Clone)]
 pub struct Vram {
     pub x_len: i16,
     pub y_len: i16,
@@ -12,8 +13,8 @@ pub struct Vram {
 }
 
 impl Vram {
-    pub fn new() -> Vram {
-        Vram {
+    pub fn new() -> Self {
+        Self {
             x_len: unsafe { *(0x0ff4 as *const i16) },
             y_len: unsafe { *(0x0ff6 as *const i16) },
             ptr: unsafe { &mut *(*(0x0ff8 as *const i32) as *mut u8) },
@@ -54,24 +55,4 @@ impl Vram {
         }
         asm::store_eflags(eflags);
     }
-}
-
-#[derive(Clone, Copy)]
-pub enum ColorIndex {
-    Rgb000000 = 0,
-    _RgbFF0000 = 1,
-    _Rgb00FF00 = 2,
-    _RgbFFFF00 = 3,
-    _Rgb0000FF = 4,
-    _RgbFF00FF = 5,
-    _Rgb00FFFF = 6,
-    RgbFFFFFF = 7,
-    RgbC6C6C6 = 8,
-    _Rgb840000 = 9,
-    _Rgb008400 = 10,
-    _Rgb848400 = 11,
-    _Rgb000084 = 12,
-    _Rgb840084 = 13,
-    Rgb008484 = 14,
-    Rgb848484 = 15,
 }

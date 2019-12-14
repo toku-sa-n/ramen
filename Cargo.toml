@@ -23,3 +23,8 @@ name = "ramen_os"
 crate-type = ["staticlib"]
 
 [dependencies]
+spin = "0.5.2"
+
+[dependencies.lazy_static]
+version = "1.4.0"
+features = ["spin_no_std"]
