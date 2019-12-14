@@ -110,11 +110,11 @@ impl Screen {
 // use Coord struct as it handles raw pointers.
 #[derive(Clone)]
 pub struct Coord {
-    x: isize,
-    y: isize,
+    pub x: isize,
+    pub y: isize,
 }
 
-type TwoDimensionalVec = Coord;
+pub type TwoDimensionalVec = Coord;
 
 impl core::ops::Add for Coord {
     type Output = Self;

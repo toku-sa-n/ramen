@@ -37,9 +37,7 @@ pub struct MouseDevice {
     data_from_device: [i32; 3],
     phase: i32,
 
-    // TODO: Use Coord struct
-    x_speed: i32,
-    y_speed: i32,
+    speed: graphics::screen::TwoDimensionalVec,
 
     buttons: MouseButtons,
 }
@@ -73,8 +71,7 @@ impl MouseDevice {
         Self {
             data_from_device: [0; 3],
             phase: 0,
-            x_speed: 0,
-            y_speed: 0,
+            speed: graphics::screen::TwoDimensionalVec::new(0, 0),
             buttons: MouseButtons::new(),
         }
     }
@@ -127,19 +124,19 @@ impl MouseDevice {
     fn purse_data(self) -> Self {
         let mut new_self = self;
         new_self.buttons = MouseButtons::purse_data(new_self.data_from_device[0]);
-        new_self.x_speed = new_self.data_from_device[1];
-        new_self.y_speed = new_self.data_from_device[2];
+        new_self.speed.x = new_self.data_from_device[1] as isize;
+        new_self.speed.y = new_self.data_from_device[2] as isize;
 
         if new_self.data_from_device[0] & 0x10 != 0 {
             // -256 = 0xffffff00
-            new_self.x_speed |= -256;
+            new_self.speed.x |= -256;
         }
 
         if new_self.data_from_device[0] & 0x20 != 0 {
-            new_self.y_speed |= -256;
+            new_self.speed.y |= -256;
         }
 
-        new_self.y_speed = -new_self.y_speed;
+        new_self.speed.y = -new_self.speed.y;
 
         new_self
     }
@@ -150,7 +147,7 @@ impl MouseDevice {
     }
 
     pub fn get_speed(&self) -> graphics::screen::Coord {
-        graphics::screen::Coord::new(self.x_speed as isize, self.y_speed as isize)
+        graphics::screen::Coord::new(self.speed.x as isize, self.speed.y as isize)
     }
 
     pub fn print_buf_data(&self) -> () {
@@ -170,8 +167,8 @@ impl MouseDevice {
             if self.buttons.left { 'L' } else { 'l' },
             if self.buttons.center { 'C' } else { 'c' },
             if self.buttons.right { 'R' } else { 'r' },
-            self.x_speed,
-            self.y_speed
+            self.speed.x,
+            self.speed.y
         );
     }
 }
