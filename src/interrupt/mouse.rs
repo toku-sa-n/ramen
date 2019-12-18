@@ -130,14 +130,14 @@ impl Device {
         let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
 
         screen.draw_rectangle(
-            graphics::screen::ColorIndex::Rgb008484,
+            graphics::ColorIndex::Rgb008484,
             graphics::screen::Coord::new(32, 16),
             graphics::screen::Coord::new(32 + 15 * 8 - 1, 31),
         );
 
         print_with_pos!(
             graphics::screen::Coord::new(32, 16),
-            graphics::screen::ColorIndex::RgbFFFFFF,
+            graphics::ColorIndex::RgbFFFFFF,
             "[{}{}{} {:4}{:4}]",
             if self.buttons.left { 'L' } else { 'l' },
             if self.buttons.center { 'C' } else { 'c' },
