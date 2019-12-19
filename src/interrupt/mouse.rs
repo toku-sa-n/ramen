@@ -127,17 +127,18 @@ impl Device {
 
     pub fn print_buf_data(&self) -> () {
         use crate::print_with_pos;
-        let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
+        let mut screen: graphics::screen::Screen =
+            graphics::screen::Screen::new(graphics::Vram::new());
 
         screen.draw_rectangle(
-            graphics::ColorIndex::Rgb008484,
+            graphics::RGB::new(0x008484),
             graphics::screen::Coord::new(32, 16),
             graphics::screen::Coord::new(32 + 15 * 8 - 1, 31),
         );
 
         print_with_pos!(
             graphics::screen::Coord::new(32, 16),
-            graphics::ColorIndex::RgbFFFFFF,
+            graphics::RGB::new(0xFFFFFF),
             "[{}{}{} {:4}{:4}]",
             if self.buttons.left { 'L' } else { 'l' },
             if self.buttons.center { 'C' } else { 'c' },

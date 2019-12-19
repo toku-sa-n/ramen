@@ -8,15 +8,19 @@ DSKCAC0 EQU     0x00008000      ; ディスクキャッシュの場所（リア�
 ; BOOT_INFO関係
 CYLS    EQU     0x0ff0          ; ブートセクタが設定する
 LEDS    EQU     0x0ff1
+
 VMODE   EQU     0x0ff2          ; 色数に関する情報。何ビットカラーか？
 SCRNX   EQU     0x0ff4          ; 解像度のX
 SCRNY   EQU     0x0ff6          ; 解像度のY
 VRAM    EQU     0x0ff8          ; グラフィックバッファの開始番地
+VBEMODE EQU     0x0ffc          ; VBE mode number. word size
+VBE_INFO_SIZE EQU 0x0200
+
+VBE     EQU     0x9000
 
         ORG     0xc200          ; このプログラムがどこに読み込まれるのか
-
 ; If VBE doesn't exist, the resolution will be 320x200
-        MOV     AX,0x9000
+        MOV     AX,VBE
         MOV     ES,AX
         MOV     DI,0
         MOV     AX,0x4f00
@@ -25,45 +29,114 @@ VRAM    EQU     0x0ff8          ; グラフィックバッファの開始番地
         JNE     screen_320
 
 ; If the version of VBE is less than 2.0, set the resolution as 320x200
-        MOV     AX,[ES:DI+4]
+        MOV     AX,WORD[ES:DI+4]
         CMP     AX,0x0200
         JB      screen_320
 
-VBEMODE EQU 0x107
+; Assign pointer to list of supported video modes to memory
+        MOV     AX,WORD[ES:DI+14]
+        MOV     WORD[ES:VBE_INFO_SIZE],AX
+        MOV     AX,WORD[ES:DI+14+2]
+        MOV     WORD[ES:VBE_INFO_SIZE+2],AX
 
-; If VBE mode $VBEMODE is not available, use 320x200
-        MOV     CX,VBEMODE
+; Loop initialization
+        MOV     BYTE[VMODE],8
+        MOV     WORD[SCRNX],320
+        MOV     WORD[SCRNY],200
+        MOV     DI,VBE_INFO_SIZE+4   ; sizeof(VBE info) + sizeof(pointer to list of video modes)
+select_mode:
+
+; Get VESA mode number
+        MOV     SI,WORD[ES:VBE_INFO_SIZE]
+        MOV     FS,WORD[ES:VBE_INFO_SIZE+2]
+        MOV     CX,WORD[FS:SI]
+
+        CMP     CX,0xffff
+        JE      finish_select_mode
+
+; Get VESA mode information.
         MOV     AX,0x4f01
+
         INT     0x10
+
         CMP     AX,0x004f
-        JNE     screen_320
+        JNE     next_mode
 
-; If the number of color is not 8, use 320x200
-        CMP     BYTE [ES:DI+0x19],8
-        JNE     screen_320
+; Check if this graphics mode supports linear frame buffer support.
+        MOV     AX,WORD[ES:DI]
+        AND     AX,0x80
+        CMP     AX,0x80
+        JNE     next_mode
 
-; If palette mode is not used, use 320x200
-        CMP     BYTE [ES:DI+0x1b],4
-        JNE     screen_320
+; Check if this is a packed pixel
+        MOV     AX,WORD[ES:DI+27]
+        CMP     AX,4
+        JE      valid_mode
 
-; If the 7th bit of mode attribution is 0, use 320x200
-        MOV     AX,[ES:DI+0x00]
-        AND     AX,0x0080
-        JZ      screen_320
+; Check if this is a direct color mode
+        CMP     AX,6
+        JE      valid_mode
 
-; 画面モードを設定
+        JMP     next_mode
 
-        MOV     BX,VBEMODE+0x4000
+valid_mode:
+; Compare dimensions
+        MOV     AX,WORD[ES:DI+18]
+        CMP     AX,WORD[SCRNX]
+        JB      next_mode
+
+        MOV     AX,WORD[ES:DI+20]
+        CMP     AX,WORD[SCRNY]
+        JB      next_mode
+
+        MOV     AX,WORD[ES:DI+25]
+        CMP     AX,WORD[VMODE]
+        JB      next_mode
+
+; Set dimension and bits number
+        MOV     AX,WORD[ES:DI+18]
+        MOV     WORD[SCRNX],AX
+
+        MOV     AX,WORD[ES:DI+20]
+        MOV     WORD[SCRNY],AX
+
+        MOV     AX,WORD[ES:DI+25]
+        MOV     WORD[VMODE],AX
+
+        MOV     AX,WORD[ES:DI+40]
+        MOV     WORD[VRAM],AX
+        MOV     AX,WORD[ES:DI+40+2]
+        MOV     WORD[VRAM+2],AX
+
+        MOV     WORD[VBEMODE],CX
+
+next_mode:
+        MOV     AX,WORD[ES:VBE_INFO_SIZE+2]
+        ADD     AX,2
+        MOV     WORD[ES:VBE_INFO_SIZE+2],AX
+
+        JMP     select_mode
+
+finish_select_mode:
+        CMP     WORD[SCRNX],320
+        JNE     set_vbe_mode
+
+        CMP     WORD[SCRNY],200
+        JNE     set_vbe_mode
+
+        CMP     WORD[VMODE],8
+        JNE     set_vbe_mode
+
+        JMP     screen_320
+
+set_vbe_mode:
         MOV     AX,0x4f02
+        MOV     BX,WORD[VBEMODE]
+        OR      BX,0x4000
         INT     0x10
-        MOV     BYTE [VMODE],8  ; 画面モードをメモする（C言語が参照する）
-        MOV     AX,[ES:DI+0x12]
-        MOV     [SCRNX],AX
-        MOV     AX,[ES:DI+0x14]
-        MOV     [SCRNY],AX
-        MOV     EAX,[ES:DI+0x28]
-        MOV     [VRAM],EAX
-        JMP     keystatus
+
+        CMP     AX,0x004f
+        JE      keystatus
 
 screen_320:
         MOV     AL,0x13
@@ -72,7 +145,6 @@ screen_320:
         MOV     BYTE [VMODE],8
         MOV     WORD [SCRNX],320
         MOV     WORD [SCRNY],200
-        MOV     DWORD   [VRAM],0x000a0000
 
 ; DO NOT FOLLOW THE INSTRUCTIONS WRITTEN IN BOOK!
 ; SEE https://qiita.com/tatsumack/items/491e47c1a7f0d48fc762

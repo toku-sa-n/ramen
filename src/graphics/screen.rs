@@ -75,11 +75,11 @@ impl Screen {
     }
 
     // TODO: Specify top left coordinate and length, rather than two coordinates.
-    pub fn draw_rectangle(&self, color: ColorIndex, top_left: Coord, bottom_right: Coord) -> () {
+    pub fn draw_rectangle(&mut self, color: RGB, top_left: Coord, bottom_right: Coord) -> () {
         for y in top_left.y..=bottom_right.y {
             for x in top_left.x..=bottom_right.x {
                 unsafe {
-                    *(&mut *(self.vram.ptr.offset(y * self.vram.x_len as isize + x))) = color as u8;
+                    self.vram.set_color(Coord::new(x, y), color.clone());
                 }
             }
         }
@@ -136,18 +136,18 @@ impl Coord {
 pub struct ScreenWrite {
     vram: Vram,
     coord: Coord,
-    color: ColorIndex,
+    color: RGB,
 }
 
 impl ScreenWrite {
-    pub fn new(vram: Vram, coord: Coord, color: ColorIndex) -> Self {
+    pub fn new(vram: Vram, coord: Coord, color: RGB) -> Self {
         Self { vram, coord, color }
     }
 }
 
 impl core::fmt::Write for ScreenWrite {
     fn write_str(&mut self, s: &str) -> core::result::Result<(), core::fmt::Error> {
-        print_str(&self.vram, &self.coord, self.color, s);
+        print_str(&mut self.vram, &self.coord, self.color, s);
         self.coord.x += (s.len() * font::FONT_WIDTH) as isize;
         Ok(())
     }
@@ -160,24 +160,24 @@ pub struct MouseCursor {
     coord: Coord,
 
     vram: Vram,
-    image: [[u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
+    image: [[RGB; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
 }
 
 impl MouseCursor {
     pub fn new(
-        background_color: ColorIndex,
+        background_color: RGB,
         image: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
         vram: Vram,
     ) -> Self {
-        let mut colored_dots: [[u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] =
-            [[background_color as u8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_WIDTH];
+        let mut colored_dots: [[RGB; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] =
+            [[background_color; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_WIDTH];
 
         for y in 0..MOUSE_CURSOR_HEIGHT {
             for x in 0..MOUSE_CURSOR_WIDTH {
                 colored_dots[y][x] = match image[y][x] {
-                    '*' => ColorIndex::Rgb000000 as u8,
-                    '0' => ColorIndex::RgbFFFFFF as u8,
-                    _ => background_color as u8,
+                    '*' => RGB::new(0x000000),
+                    '0' => RGB::new(0xFFFFFF),
+                    _ => background_color,
                 }
             }
         }
@@ -194,7 +194,7 @@ impl MouseCursor {
         self.draw(new_coord)
     }
 
-    pub fn draw(self, coord: Coord) -> Self {
+    pub fn draw(mut self, coord: Coord) -> Self {
         self.remove_previous_cursor();
 
         let adjusted_coord = coord.put_in(
@@ -208,10 +208,10 @@ impl MouseCursor {
         for y in 0..MOUSE_CURSOR_HEIGHT {
             for x in 0..MOUSE_CURSOR_WIDTH {
                 unsafe {
-                    *(self.vram.ptr.offset(
-                        (adjusted_coord.y + y as isize) * self.vram.x_len as isize
-                            + (adjusted_coord.x + x as isize),
-                    )) = self.image[y][x];
+                    self.vram.set_color(
+                        adjusted_coord.clone() + Coord::new(x as isize, y as isize),
+                        self.image[y][x],
+                    );
                 }
             }
         }
@@ -223,10 +223,10 @@ impl MouseCursor {
     }
 
     fn remove_previous_cursor(&self) -> () {
-        let screen: Screen = Screen::new(self.vram.clone());
+        let mut screen: Screen = Screen::new(self.vram.clone());
 
         screen.draw_rectangle(
-            ColorIndex::Rgb008484,
+            RGB::new(0x008484),
             Coord::new(self.coord.x, self.coord.y),
             Coord::new(
                 self.coord.x + MOUSE_CURSOR_WIDTH as isize,
@@ -244,49 +244,46 @@ pub fn draw_desktop(vram: &Vram) -> () {
     // It seems that changing the arguments as `color, coord_1, coord_2` actually makes the code
     // dirty because by doing it lots of `Coord::new(x1, x2)` appear on below.
     let draw_desktop_part = |color, x0, y0, x1, y1| {
-        let screen:screen::Screen =screen::Screen::new(vram.clone());
-        screen.draw_rectangle( color, Coord::new(x0, y0), Coord::new(x1, y1));
+        let mut screen:screen::Screen =screen::Screen::new(vram.clone());
+        screen.draw_rectangle(RGB::new(color), Coord::new(x0, y0), Coord::new(x1, y1));
     };
 
-    draw_desktop_part(ColorIndex::Rgb008484,          0,          0, x_len -  1, y_len - 29);
-    draw_desktop_part(ColorIndex::RgbC6C6C6,          0, y_len - 28, x_len -  1, y_len - 28);
-    draw_desktop_part(ColorIndex::RgbFFFFFF,          0, y_len - 27, x_len -  1, y_len - 27);
-    draw_desktop_part(ColorIndex::RgbC6C6C6,          0, y_len - 26, x_len -  1, y_len -  1);
+    draw_desktop_part(0x008484,          0,          0, x_len -  1, y_len - 29);
+    draw_desktop_part(0xC6C6C6,          0, y_len - 28, x_len -  1, y_len - 28);
+    draw_desktop_part(0xFFFFFF,          0, y_len - 27, x_len -  1, y_len - 27);
+    draw_desktop_part(0xC6C6C6,          0, y_len - 26, x_len -  1, y_len -  1);
 
-    draw_desktop_part(ColorIndex::RgbFFFFFF,          3, y_len - 24,         59, y_len - 24);
-    draw_desktop_part(ColorIndex::RgbFFFFFF,          2, y_len - 24,          2, y_len -  4);
-    draw_desktop_part(ColorIndex::Rgb848484,          3, y_len -  4,         59, y_len -  4);
-    draw_desktop_part(ColorIndex::Rgb848484,         59, y_len - 23,         59, y_len -  5);
-    draw_desktop_part(ColorIndex::Rgb000000,          2, y_len -  3,         59, y_len -  3);
-    draw_desktop_part(ColorIndex::Rgb000000,         60, y_len - 24,         60, y_len -  3);
+    draw_desktop_part(0xFFFFFF,          3, y_len - 24,         59, y_len - 24);
+    draw_desktop_part(0xFFFFFF,          2, y_len - 24,          2, y_len -  4);
+    draw_desktop_part(0x848484,          3, y_len -  4,         59, y_len -  4);
+    draw_desktop_part(0x848484,         59, y_len - 23,         59, y_len -  5);
+    draw_desktop_part(0x000000,          2, y_len -  3,         59, y_len -  3);
+    draw_desktop_part(0x000000,         60, y_len - 24,         60, y_len -  3);
 
-    draw_desktop_part(ColorIndex::Rgb848484, x_len - 47, y_len - 24, x_len -  4, y_len - 24);
-    draw_desktop_part(ColorIndex::Rgb848484, x_len - 47, y_len - 23, x_len - 47, y_len -  4);
-    draw_desktop_part(ColorIndex::RgbFFFFFF, x_len - 47, y_len -  3, x_len -  4, y_len -  3);
-    draw_desktop_part(ColorIndex::RgbFFFFFF, x_len -  3, y_len - 24, x_len -  3, y_len -  3);
+    draw_desktop_part(0x848484, x_len - 47, y_len - 24, x_len -  4, y_len - 24);
+    draw_desktop_part(0x848484, x_len - 47, y_len - 23, x_len - 47, y_len -  4);
+    draw_desktop_part(0xFFFFFF, x_len - 47, y_len -  3, x_len -  4, y_len -  3);
+    draw_desktop_part(0xFFFFFF, x_len -  3, y_len - 24, x_len -  3, y_len -  3);
 }
 
 fn print_char(
-    vram: &Vram,
+    vram: &mut Vram,
     coord: Coord,
-    color: ColorIndex,
+    color: RGB,
     font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT],
 ) -> () {
     for i in 0..font::FONT_HEIGHT {
         for j in 0..font::FONT_WIDTH {
             if font[i][j] {
                 unsafe {
-                    *(&mut *(vram.ptr.offset(
-                        ((coord.y as usize + i) * vram.x_len as usize + coord.x as usize + j)
-                            as isize,
-                    ))) = color as u8;
+                    vram.set_color(coord.clone() + Coord::new(j as isize, i as isize), color);
                 }
             }
         }
     }
 }
 
-fn print_str(vram: &Vram, coord: &Coord, color: ColorIndex, str: &str) -> () {
+fn print_str(vram: &mut Vram, coord: &Coord, color: RGB, str: &str) -> () {
     let mut char_x_pos = coord.x;
     for c in str.chars() {
         print_char(
