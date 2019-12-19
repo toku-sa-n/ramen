@@ -170,6 +170,7 @@ impl Vram {
 
         best_idx
     }
+
     fn calculate_rgb_distance(rgb_1: &RGB, rgb_2: &RGB) -> i32 {
         let r_diff: i32 = rgb_1.r as i32 - rgb_2.r as i32;
         let g_diff: i32 = rgb_1.g as i32 - rgb_2.g as i32;
