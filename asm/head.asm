@@ -33,22 +33,17 @@ VBE     EQU     0x9000
         CMP     AX,0x0200
         JB      screen_320
 
-; Assign pointer to list of supported video modes to memory
-        MOV     AX,WORD[ES:DI+14]
-        MOV     WORD[ES:VBE_INFO_SIZE],AX
-        MOV     AX,WORD[ES:DI+14+2]
-        MOV     WORD[ES:VBE_INFO_SIZE+2],AX
-
 ; Loop initialization
         MOV     BYTE[VMODE],8
         MOV     WORD[SCRNX],320
         MOV     WORD[SCRNY],200
-        MOV     DI,VBE_INFO_SIZE+4   ; sizeof(VBE info) + sizeof(pointer to list of video modes)
+        MOV     DI,VBE_INFO_SIZE
 select_mode:
 
+VMODE_PTR EQU 14
 ; Get VESA mode number
-        MOV     SI,WORD[ES:VBE_INFO_SIZE]
-        MOV     FS,WORD[ES:VBE_INFO_SIZE+2]
+        MOV     SI,WORD[ES:VMODE_PTR]
+        MOV     FS,WORD[ES:VMODE_PTR+2]
         MOV     CX,WORD[FS:SI]
 
         CMP     CX,0xffff
@@ -111,9 +106,9 @@ valid_mode:
         MOV     WORD[VBEMODE],CX
 
 next_mode:
-        MOV     AX,WORD[ES:VBE_INFO_SIZE+2]
+        MOV     AX,WORD[ES:VMODE_PTR+2]
         ADD     AX,2
-        MOV     WORD[ES:VBE_INFO_SIZE+2],AX
+        MOV     WORD[ES:VMODE_PTR+2],AX
 
         JMP     select_mode
 
