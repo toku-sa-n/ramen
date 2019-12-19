@@ -25,6 +25,7 @@ RUSTCC		:= cargo
 RM			:= rm -rf
 
 LDFLAGS := -nostdlib -m elf_i386 -Tdata=0x00310000 -T $(LD_SRC)
+ASMFLAGS := -w+all
 
 .PHONY:run release clean
 
@@ -51,7 +52,7 @@ $(LIB_FILE): $(addprefix $(RUST_SRC_DIR)/, $(RUST_SRC))|$(BUILD_DIR)
 	cp $(BUILD_DIR)/$(CARGO_JSON)/debug/$(shell basename $(LIB_FILE)) $@
 
 $(BUILD_DIR)/%.asm.o:$(ASM_DIR)/%.asm|$(BUILD_DIR)
-	$(ASMC) -o $@ $<
+	$(ASMC) $(ASMFLAGS) -o $@ $<
 
 run:$(IMG_FILE)
 	make $^
