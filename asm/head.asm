@@ -9,7 +9,7 @@ DSKCAC0 EQU     0x00008000      ; ディスクキャッシュの場所（リア�
 CYLS    EQU     0x0ff0          ; ブートセクタが設定する
 LEDS    EQU     0x0ff1
 
-VMODE   EQU     0x0ff2          ; 色数に関する情報。何ビットカラーか？
+BPP   EQU     0x0ff2          ; 色数に関する情報。何ビットカラーか？
 SCRNX   EQU     0x0ff4          ; 解像度のX
 SCRNY   EQU     0x0ff6          ; 解像度のY
 VRAM    EQU     0x0ff8          ; グラフィックバッファの開始番地
@@ -34,7 +34,7 @@ VBE     EQU     0x9000
         JB      screen_320
 
 ; Loop initialization
-        MOV     BYTE[VMODE],8
+        MOV     BYTE[BPP],8
         MOV     WORD[SCRNX],320
         MOV     WORD[SCRNY],200
         MOV     DI,VBE_INFO_SIZE
@@ -85,7 +85,7 @@ valid_mode:
         JB      next_mode
 
         MOV     AL,BYTE[ES:DI+25]
-        CMP     AL,BYTE[VMODE]
+        CMP     AL,BYTE[BPP]
         JB      next_mode
 
 ; Set dimension and bits number
@@ -96,7 +96,7 @@ valid_mode:
         MOV     WORD[SCRNY],AX
 
         MOV     AL,BYTE[ES:DI+25]
-        MOV     BYTE[VMODE],AL
+        MOV     BYTE[BPP],AL
 
         MOV     AX,WORD[ES:DI+40]
         MOV     WORD[VRAM],AX
@@ -119,7 +119,7 @@ finish_select_mode:
         CMP     WORD[SCRNY],200
         JNE     set_vbe_mode
 
-        CMP     BYTE[VMODE],8
+        CMP     BYTE[BPP],8
         JNE     set_vbe_mode
 
         JMP     screen_320
@@ -137,7 +137,7 @@ screen_320:
         MOV     AL,0x13
         MOV     AH,0x00
         INT     0x10
-        MOV     BYTE [VMODE],8
+        MOV     BYTE [BPP],8
         MOV     WORD [SCRNX],320
         MOV     WORD [SCRNY],200
 
