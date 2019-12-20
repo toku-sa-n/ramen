@@ -84,8 +84,8 @@ valid_mode:
         CMP     AX,WORD[SCRNY]
         JB      next_mode
 
-        MOV     AL,BYTE[ES:DI+25]
-        CMP     AL,BYTE[BPP]
+; If bpp is not 24 bit or 32 bit, don't use this.
+        CMP     BYTE[ES:DI+25],24
         JB      next_mode
 
 ; Set dimension and bits number
