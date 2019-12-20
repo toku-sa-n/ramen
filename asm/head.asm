@@ -84,8 +84,8 @@ valid_mode:
         CMP     AX,WORD[SCRNY]
         JB      next_mode
 
-        MOV     AX,WORD[ES:DI+25]
-        CMP     AX,WORD[VMODE]
+        MOV     AL,BYTE[ES:DI+25]
+        CMP     AL,BYTE[VMODE]
         JB      next_mode
 
 ; Set dimension and bits number
@@ -95,8 +95,8 @@ valid_mode:
         MOV     AX,WORD[ES:DI+20]
         MOV     WORD[SCRNY],AX
 
-        MOV     AX,WORD[ES:DI+25]
-        MOV     WORD[VMODE],AX
+        MOV     AL,BYTE[ES:DI+25]
+        MOV     BYTE[VMODE],AL
 
         MOV     AX,WORD[ES:DI+40]
         MOV     WORD[VRAM],AX
@@ -119,7 +119,7 @@ finish_select_mode:
         CMP     WORD[SCRNY],200
         JNE     set_vbe_mode
 
-        CMP     WORD[VMODE],8
+        CMP     BYTE[VMODE],8
         JNE     set_vbe_mode
 
         JMP     screen_320
