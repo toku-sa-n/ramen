@@ -16,7 +16,7 @@ mod graphics;
 pub fn os_main() {
     let mouse_device: interrupt::mouse::Device = interrupt::mouse::Device::new();
     let mut mouse_cursor: graphics::screen::MouseCursor = graphics::screen::MouseCursor::new(
-        graphics::screen::ColorIndex::Rgb008484,
+        graphics::RGB::new(0x008484),
         graphics::screen::MOUSE_GRAPHIC,
         graphics::Vram::new(),
     );
@@ -40,7 +40,7 @@ fn initialization(
 
     print_with_pos!(
         graphics::screen::Coord::new(16, 64),
-        graphics::screen::ColorIndex::RgbFFFFFF,
+        graphics::RGB::new(0xFFFFFF),
         "x_len = {}",
         vram.x_len
     );
@@ -76,10 +76,10 @@ fn handle_keyboard_data() -> () {
 
     asm::sti();
 
-    let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
+    let mut screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
 
     screen.draw_rectangle(
-        graphics::screen::ColorIndex::Rgb008484,
+        graphics::RGB::new(0x008484),
         graphics::screen::Coord::new(0, 16),
         graphics::screen::Coord::new(15, 31),
     );
@@ -87,7 +87,7 @@ fn handle_keyboard_data() -> () {
     if let Some(data) = data {
         print_with_pos!(
             graphics::screen::Coord::new(0, 16),
-            graphics::screen::ColorIndex::RgbFFFFFF,
+            graphics::RGB::new(0xFFFFFF),
             "{:X}",
             data
         );
@@ -102,10 +102,10 @@ fn handle_mouse_data(
 
     asm::sti();
 
-    let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
+    let mut screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
 
     screen.draw_rectangle(
-        graphics::screen::ColorIndex::Rgb008484,
+        graphics::RGB::new(0x008484),
         graphics::screen::Coord::new(32, 16),
         graphics::screen::Coord::new(47, 31),
     );
