@@ -141,6 +141,10 @@ screen_320:
         MOV     WORD [SCRNX],320
         MOV     WORD [SCRNY],200
 
+; DO NOT FOLLOW THE INSTRUCTIONS WRITTEN IN THE BOOK!
+; SEE https://qiita.com/tatsumack/items/491e47c1a7f0d48fc762
+        MOV     DWORD [VRAM],0xfd000000
+
 keystatus:
 ; キーボードのLED状態をBIOSに教えてもらう
 
