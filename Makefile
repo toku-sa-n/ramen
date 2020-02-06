@@ -56,7 +56,7 @@ $(BUILD_DIR)/%.asm.o:$(ASM_DIR)/%.asm|$(BUILD_DIR)
 
 run:$(IMG_FILE)
 	make $^
-	$(VIEWER) -drive file=$<,format=raw,if=floppy
+	$(VIEWER) -drive file=$<,format=raw,if=floppy -monitor stdio
 
 $(BUILD_DIR):
 	mkdir $@
