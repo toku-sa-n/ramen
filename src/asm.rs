@@ -19,22 +19,6 @@ pub fn stihlt() -> () {
     }
 }
 
-pub fn load_eflags() -> i32 {
-    let result: i32;
-    unsafe {
-        asm!("PUSHFD
-              POP EAX":"={EAX}"(result):::"intel");
-    }
-    result
-}
-
-pub fn store_eflags(eflags: i32) -> () {
-    unsafe {
-        asm!("PUSH EAX
-              POPFD"::"EAX"(eflags)::"intel");
-    }
-}
-
 pub fn cli() -> () {
     unsafe {
         asm!("cli"::::"intel");
