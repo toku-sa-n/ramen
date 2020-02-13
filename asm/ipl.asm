@@ -1,10 +1,10 @@
-; 定義
-cyls    equ 10
+    ; 定義
+    cyls    equ 10
 
-; このプログラムが読み込まれる場所の指定
+    ; このプログラムが読み込まれる場所の指定
     org     0x7c00
 
-; FAT12のための記述
+    ; FAT12のための記述
     jmp     entry
     db      0x90
     db      "HELLOIPL"  ; ブートセクタの名前
@@ -26,16 +26,16 @@ cyls    equ 10
     db      "FAT12   "
     times 18 db 0
 
-; プログラム本体
+    ; プログラム本体
 entry:
 
-; レジスタ初期化
+    ; レジスタ初期化
     mov     ax,0
     mov     ss,ax
     mov     sp,0x7c00
     mov     ds,ax
 
-; ディスクの読み込み
+    ; ディスクの読み込み
     mov     ax,0x0820
     mov     es,ax
     mov     ch,0        ; シリンダ0
