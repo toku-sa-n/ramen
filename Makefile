@@ -25,7 +25,7 @@ RUSTCC		:= cargo
 RM			:= rm -rf
 
 LDFLAGS := -nostdlib -m elf_i386 -T $(LD_SRC)
-ASMFLAGS := -w+all -i $(ASM_DIR)
+ASMFLAGS := -w+all -i $(ASM_DIR)/
 
 .PHONY:run release clean
 
