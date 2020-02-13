@@ -1,6 +1,3 @@
-; haribote-os boot asm
-; TAB=4
-
 BOTPAK  EQU     0x00280000      ; bootpackのロード先
 DSKCAC  EQU     0x00100000      ; ディスクキャッシュの場所
 DSKCAC0 EQU     0x00008000      ; ディスクキャッシュの場所（リアルモード）
