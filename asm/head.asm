@@ -19,27 +19,21 @@ VBE_INFO_SIZE EQU 0x0200
 VBE     EQU     0x9000
 
         ORG     0xc200          ; このプログラムがどこに読み込まれるのか
-; If VBE doesn't exist, the resolution will be 320x200
+
+; Get VBE Info
         MOV     AX,VBE
         MOV     ES,AX
         MOV     DI,0
         MOV     AX,0x4f00
         INT     0x10
-        CMP     AX,0x004f
-        JNE     screen_320
-
-; If the version of VBE is less than 2.0, set the resolution as 320x200
-        MOV     AX,WORD[ES:DI+4]
-        CMP     AX,0x0200
-        JB      screen_320
 
 ; Loop initialization
         MOV     BYTE[BPP],8
         MOV     WORD[SCRNX],320
         MOV     WORD[SCRNY],200
         MOV     DI,VBE_INFO_SIZE
-select_mode:
 
+select_mode:
 VMODE_PTR EQU 14
 ; Get VESA mode number
         MOV     SI,WORD[ES:VMODE_PTR]
@@ -47,7 +41,7 @@ VMODE_PTR EQU 14
         MOV     CX,WORD[FS:SI]
 
         CMP     CX,0xffff
-        JE      finish_select_mode
+        JE      set_vbe
 
 ; Get VESA mode information.
         MOV     AX,0x4f01
@@ -112,40 +106,12 @@ next_mode:
 
         JMP     select_mode
 
-finish_select_mode:
-        CMP     WORD[SCRNX],320
-        JNE     set_vbe_mode
-
-        CMP     WORD[SCRNY],200
-        JNE     set_vbe_mode
-
-        CMP     BYTE[BPP],8
-        JNE     set_vbe_mode
-
-        JMP     screen_320
-
-set_vbe_mode:
+set_vbe:
         MOV     AX,0x4f02
         MOV     BX,WORD[VBEMODE]
         OR      BX,0x4000
         INT     0x10
 
-        CMP     AX,0x004f
-        JE      keystatus
-
-screen_320:
-        MOV     AL,0x13
-        MOV     AH,0x00
-        INT     0x10
-        MOV     BYTE [BPP],8
-        MOV     WORD [SCRNX],320
-        MOV     WORD [SCRNY],200
-
-; DO NOT FOLLOW THE INSTRUCTIONS WRITTEN IN THE BOOK!
-; SEE https://qiita.com/tatsumack/items/491e47c1a7f0d48fc762
-        MOV     DWORD [VRAM],0xfd000000
-
-keystatus:
 ; キーボードのLED状態をBIOSに教えてもらう
 
         MOV     AH,0x02

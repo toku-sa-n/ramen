@@ -34,7 +34,6 @@ fn initialization(
     interrupt::init_pic();
     asm::sti();
     let vram: graphics::Vram = graphics::Vram::new();
-    vram.init_palette();
 
     graphics::screen::draw_desktop(&vram);
 
