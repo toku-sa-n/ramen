@@ -5,7 +5,7 @@ ENTRY(os_main)
 
 SECTIONS
 {
-    .head 0x0 : {
+    .head 0 : {
         LONG(64 * 1024)
         LONG(0x69726148)
         LONG(0)
