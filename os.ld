@@ -10,7 +10,7 @@ SECTIONS
         LONG(SIZEOF(.data))
         LONG(LOADADDR(.data))
         LONG(0xE9000000)
-        LONG(os_main - 0x14)
+        LONG(os_main - SIZEOF(.head))
     }
 
     .text : { *(.text*) }
