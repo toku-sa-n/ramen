@@ -61,25 +61,6 @@ pipelineflush:
     MOV      ECX,512*1024/4
     CALL     memcpy
 
-    ; ついでにディスクデータも本来の位置へ転送
-
-    ; まずはブートセクタから
-
-    MOV      ESI,0x7c00                  ; 転送元
-    MOV      EDI,DSKCAC                  ; 転送先
-    MOV      ECX,512/4
-    CALL     memcpy
-
-    ; 残り全部
-
-    MOV      ESI,DSKCAC0+512             ; 転送元
-    MOV      EDI,DSKCAC+512              ; 転送先
-    MOV      ECX,0
-    MOV      CL,BYTE [CYLS]
-    IMUL     ECX,512*18*2/4              ; シリンダ数からバイト数/4に変換
-    SUB      ECX,512/4                   ; IPLの分だけ差し引く
-    CALL     memcpy
-
     ; asmheadでしなければいけないことは全部し終わったので、
     ; あとはbootpackに任せる
 
