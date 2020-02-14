@@ -77,6 +77,9 @@ pipelineflush:
     CALL     memcpy
 skip:
     MOV      ESP,[EBX]                ; スタック初期値
+
+    %include "paging.asm"
+
     JMP      DWORD 2*8:0x0000000f
 
 waitkbdout:
