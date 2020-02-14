@@ -12,6 +12,8 @@ LD_SRC		:= os.ld
 IPL_FILE	:= $(BUILD_DIR)/ipl.asm.o
 HEAD_FILE	:= $(BUILD_DIR)/head.asm.o
 
+HEAD_DEPENDS:= $(ASM_DIR)/vbe.asm $(ASM_DIR)/paging.asm
+
 KERNEL_FILE	:= $(BUILD_DIR)/kernel.bin
 IMG_FILE	:= $(BUILD_DIR)/ramen_os.img
 SYS_FILE	:= $(BUILD_DIR)/ramen_os.sys
@@ -50,6 +52,8 @@ $(KERNEL_FILE):$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
 $(LIB_FILE): $(addprefix $(RUST_SRC_DIR)/, $(RUST_SRC))|$(BUILD_DIR)
 	$(RUSTCC) xbuild --target-dir $(BUILD_DIR)
 	cp $(BUILD_DIR)/$(CARGO_JSON)/debug/$(shell basename $(LIB_FILE)) $@
+
+$(HEAD_FILE):$(HEAD_DEPENDS)
 
 $(BUILD_DIR)/%.asm.o:$(ASM_DIR)/%.asm|$(BUILD_DIR)
 	$(ASMC) $(ASMFLAGS) -o $@ $<
