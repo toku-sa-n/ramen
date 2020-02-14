@@ -61,42 +61,23 @@ pipelineflush:
     MOV      ECX,512*1024/4
     CALL     memcpy
 
-    ; ついでにディスクデータも本来の位置へ転送
-
-    ; まずはブートセクタから
-
-    MOV      ESI,0x7c00                  ; 転送元
-    MOV      EDI,DSKCAC                  ; 転送先
-    MOV      ECX,512/4
-    CALL     memcpy
-
-    ; 残り全部
-
-    MOV      ESI,DSKCAC0+512             ; 転送元
-    MOV      EDI,DSKCAC+512              ; 転送先
-    MOV      ECX,0
-    MOV      CL,BYTE [CYLS]
-    IMUL     ECX,512*18*2/4              ; シリンダ数からバイト数/4に変換
-    SUB      ECX,512/4                   ; IPLの分だけ差し引く
-    CALL     memcpy
-
     ; asmheadでしなければいけないことは全部し終わったので、
     ; あとはbootpackに任せる
 
     ; bootpackの起動
 
     MOV      EBX,BOTPAK
-    MOV      ECX,[EBX+16]
+    MOV      ECX,[EBX+4]
     ADD      ECX,3                       ; ECX += 3                                                                       ;
     SHR      ECX,2                       ; ECX /= 4                                                                       ;
     JZ       skip                        ; 転送するべきものがない
-    MOV      ESI,[EBX+20]                ; 転送元
+    MOV      ESI,[EBX+8]                ; 転送元
     ADD      ESI,EBX
-    MOV      EDI,[EBX+12]                ; 転送先
+    MOV      EDI,[EBX]                ; 転送先
     CALL     memcpy
 skip:
-    MOV      ESP,[EBX+12]                ; スタック初期値
-    JMP      DWORD 2*8:0x0000001b
+    MOV      ESP,[EBX]                ; スタック初期値
+    JMP      DWORD 2*8:0x0000000f
 
 waitkbdout:
     IN       AL,0x64
