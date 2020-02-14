@@ -9,7 +9,7 @@ SECTIONS
         LONG(64 * 1024)
         LONG(0x69726148)
         LONG(0)
-        LONG(0x310000)
+        LONG(ADDR(.data))
         LONG(SIZEOF(.data))
         LONG(LOADADDR(.data))
         LONG(0xE9000000)
