@@ -1,6 +1,4 @@
-    BOTPAK   EQU     0x00280000          ; bootpackのロード先
-    DSKCAC   EQU     0x00100000          ; ディスクキャッシュの場所
-    DSKCAC0  EQU     0x00008000          ; ディスクキャッシュの場所（リアルモード）
+    BOTPAK   EQU     0x00501000          ; bootpackのロード先
 
     ; BOOT_INFO関係
     CYLS     EQU     0x0ff0              ; ブートセクタが設定する
@@ -99,7 +97,7 @@ memcpy:
 GDT0:
     TIMES    8 DB 0                      ; ヌルセレクタ
     DW       0xffff,0x0000,0x9200,0x00cf ; 読み書き可能セグメント32bit
-    DW       0xffff,0x0000,0x9a28,0x0047 ; 実行可能セグメント32bit（bootpack用）
+    DW       0xffff,0x1000,0x9a50,0x0047 ; 実行可能セグメント32bit（bootpack用）
 
     DW       0
 GDTR0:
