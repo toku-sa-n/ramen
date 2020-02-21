@@ -74,7 +74,7 @@ pipelineflush:
     MOV      EDI,[EBX]                ; 転送先
     CALL     memcpy
 skip:
-    MOV      ESP,[EBX]                ; スタック初期値
+    MOV      ESP,EBX                ; スタック初期値
     JMP      DWORD 2*8:0x0000000f
 
 waitkbdout:
