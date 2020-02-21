@@ -15,7 +15,7 @@ SECTIONS
 
     .text : { *(.text*) }
 
-    .data 0x310000 : AT ( ADDR(.text) + SIZEOF(.text) ) {
+    .data ADDR(.text) + SIZEOF(.text) + 0x00200000 : AT ( ADDR(.text) + SIZEOF(.text) ) {
         *(.data)
         *(.rodata*)
         *(.bss)
