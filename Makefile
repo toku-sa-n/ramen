@@ -27,7 +27,7 @@ RM			:= rm -rf
 LDFLAGS := -nostdlib -m elf_i386 -T $(LD_SRC)
 ASMFLAGS := -w+all -i $(ASM_DIR)/
 
-.PHONY:run release clean
+.PHONY:show_kernel_map run release clean
 
 .SUFFIXES:
 
@@ -43,6 +43,9 @@ release:$(IPL_FILE) $(HEAD_FILE) $(LD_SRC)|$(BUILD_DIR)
 
 $(SYS_FILE):$(HEAD_FILE) $(KERNEL_FILE)|$(BUILD_DIR)
 	$(CAT) $^ > $@
+
+show_kernel_map:$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
+	$(LD) $(LDFLAGS) -M -o $@ $<|less
 
 $(KERNEL_FILE):$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $<
