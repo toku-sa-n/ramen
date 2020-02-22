@@ -65,7 +65,7 @@ pipelineflush:
     ; bootpackの起動
 
     MOV      ESP,BOTPAK                ; スタック初期値
-    JMP      DWORD 2*8:0x0000000f
+    JMP      DWORD 2*8:0
 
 waitkbdout:
     IN       AL,0x64
