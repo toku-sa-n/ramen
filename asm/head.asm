@@ -1,6 +1,4 @@
-    BOTPAK   EQU     0x00280000          ; bootpackのロード先
-    DSKCAC   EQU     0x00100000          ; ディスクキャッシュの場所
-    DSKCAC0  EQU     0x00008000          ; ディスクキャッシュの場所（リアルモード）
+    BOTPAK   EQU     0x00501000          ; bootpackのロード先
 
     ; BOOT_INFO関係
     CYLS     EQU     0x0ff0              ; ブートセクタが設定する
@@ -66,21 +64,10 @@ pipelineflush:
 
     ; bootpackの起動
 
-    MOV      EBX,BOTPAK
-    MOV      ECX,[EBX+4]
-    ADD      ECX,3                       ; ECX += 3                                                                       ;
-    SHR      ECX,2                       ; ECX /= 4                                                                       ;
-    JZ       skip                        ; 転送するべきものがない
-    MOV      ESI,[EBX+8]                ; 転送元
-    ADD      ESI,EBX
-    MOV      EDI,[EBX]                ; 転送先
-    CALL     memcpy
-skip:
-    MOV      ESP,[EBX]                ; スタック初期値
-
     %include "paging.asm"
 
-    JMP      DWORD 2*8:0x0000000f
+    MOV      ESP,BOTPAK                ; スタック初期値
+    JMP      DWORD 2*8:0
 
 waitkbdout:
     IN       AL,0x64
@@ -102,7 +89,7 @@ memcpy:
 GDT0:
     TIMES    8 DB 0                      ; ヌルセレクタ
     DW       0xffff,0x0000,0x9200,0x00cf ; 読み書き可能セグメント32bit
-    DW       0xffff,0x0000,0x9a28,0x0047 ; 実行可能セグメント32bit（bootpack用）
+    DW       0xffff,0x1000,0x9a50,0x0047 ; 実行可能セグメント32bit（bootpack用）
 
     DW       0
 GDTR0:
