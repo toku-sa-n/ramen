@@ -64,17 +64,7 @@ pipelineflush:
 
     ; bootpackの起動
 
-    MOV      EBX,BOTPAK
-    MOV      ECX,[EBX+4]
-    ADD      ECX,3                       ; ECX += 3                                                                       ;
-    SHR      ECX,2                       ; ECX /= 4                                                                       ;
-    JZ       skip                        ; 転送するべきものがない
-    MOV      ESI,[EBX+8]                ; 転送元
-    ADD      ESI,EBX
-    MOV      EDI,[EBX]                ; 転送先
-    CALL     memcpy
-skip:
-    MOV      ESP,EBX                ; スタック初期値
+    MOV      ESP,BOTPAK                ; スタック初期値
     JMP      DWORD 2*8:0x0000000f
 
 waitkbdout:
