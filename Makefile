@@ -29,7 +29,7 @@ RM			:= rm -rf
 LDFLAGS := -nostdlib -m elf_i386 -T $(LD_SRC)
 ASMFLAGS := -w+all -i $(ASM_DIR)/
 
-.PHONY:show_kernel_map run release clean
+.PHONY:show_kernel_map run release clean test_paging
 
 .SUFFIXES:
 
@@ -49,6 +49,10 @@ $(SYS_FILE):$(HEAD_FILE) $(KERNEL_FILE)|$(BUILD_DIR)
 show_kernel_map:$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -M -o $@ $<|less
 	rm -rf $@
+
+test_paging:|$(BUILD_DIR)
+	$(ASMC) $(ASMFLAGS) -f elf -o build/libramen_os.a asm/hlt_loop_kernel.asm
+	make
 
 $(KERNEL_FILE):$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $<
