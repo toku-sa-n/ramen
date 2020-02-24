@@ -83,9 +83,7 @@ valid_mode:
     MOV           WORD[VBEMODE],CX
 
 next_mode:
-    MOV           AX,WORD[ES:VMODE_PTR]
-    ADD           AX,2
-    MOV           WORD[ES:VMODE_PTR],AX
+    ADD           WORD[ES:VMODE_PTR],2
 
     JMP           select_mode
 
