@@ -77,10 +77,8 @@ valid_mode:
     MOV           AL,BYTE[ES:DI+25]
     MOV           BYTE[BPP],AL
 
-    MOV           AX,WORD[ES:DI+40]
-    MOV           WORD[VRAM],AX
-    MOV           AX,WORD[ES:DI+40+2]
-    MOV           WORD[VRAM+2],AX
+    MOV           EAX,DWORD[ES:DI+40]
+    MOV           DWORD[VRAM],EAX
 
     MOV           WORD[VBEMODE],CX
 
