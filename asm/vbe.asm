@@ -40,6 +40,7 @@ select_mode:
     ; Check if this graphics mode supports linear frame buffer support.
     MOV           AX,WORD[ES:DI]
     AND           AX,0x80
+    CMP           AX,0x80
     JNE           next_mode
 
     ; Check if this is a packed pixel
