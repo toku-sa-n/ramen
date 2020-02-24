@@ -34,6 +34,16 @@
     TABLE_ENTRY_STACK   EQU TABLE_KERNEL + SIZE_KERNEL / 1024
     MOV                 DWORD[DWORD TABLE_ENTRY_STACK], ADDRESS_STACK | PAGE_EXISTS
 
+    ; Add an entry for below 1MB to page directory.
+    TABLE_BELOW_1MB     EQU DIR + SIZE_TABLE * 2
+    MOV                 DWORD[DWORD DIR], TABLE_BELOW_1MB | PAGE_EXISTS
+
+    ; Map below 1MB to page table.
+    MOV                 EAX, 0
+    MOV                 ECX, 1024 * 1024
+    MOV                 EDI, TABLE_BELOW_1MB
+    CALL                map_entries
+
     JMP                 end_page_settings
 
     ; Function
