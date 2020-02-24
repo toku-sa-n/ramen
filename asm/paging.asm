@@ -29,6 +29,11 @@
     MOV                 EDI, TABLE_KERNEL
     CALL                map_entries
 
+    ; Add a page table entry for stack.
+    ADDRESS_STACK       EQU 0x00582000
+    TABLE_ENTRY_STACK   EQU TABLE_KERNEL + SIZE_KERNEL / 1024
+    MOV                 DWORD[DWORD TABLE_ENTRY_STACK], ADDRESS_STACK | PAGE_EXISTS
+
     JMP                 end_page_settings
 
     ; Function
