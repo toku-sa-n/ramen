@@ -40,7 +40,6 @@ select_mode:
     ; Check if this graphics mode supports linear frame buffer support.
     MOV           AX,WORD[ES:DI]
     AND           AX,0x80
-    CMP           AX,0x80
     JNE           next_mode
 
     ; Check if this is a packed pixel
@@ -78,17 +77,13 @@ valid_mode:
     MOV           AL,BYTE[ES:DI+25]
     MOV           BYTE[BPP],AL
 
-    MOV           AX,WORD[ES:DI+40]
-    MOV           WORD[VRAM],AX
-    MOV           AX,WORD[ES:DI+40+2]
-    MOV           WORD[VRAM+2],AX
+    MOV           EAX,DWORD[ES:DI+40]
+    MOV           DWORD[VRAM],EAX
 
     MOV           WORD[VBEMODE],CX
 
 next_mode:
-    MOV           AX,WORD[ES:VMODE_PTR]
-    ADD           AX,2
-    MOV           WORD[ES:VMODE_PTR],AX
+    ADD           WORD[ES:VMODE_PTR],2
 
     JMP           select_mode
 
