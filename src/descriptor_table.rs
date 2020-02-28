@@ -2,8 +2,10 @@
 
 use crate::asm;
 
-const ADDRESS_INTERRUPT_DESCRIPTOR_TABLE: i32 = 0x00581000;
+const PHYSICAL_ADDRESS_IDT: i32 = 0x00581000;
+const VIRTUAL_ADDRESS_IDT: u32 = 0xC0080000;
 const LIMIT_INTERRUPT_DESCRIPTOR_TABLE: i32 = 0x000007ff;
+const ACCESS_RIGHT_IDT: i32 = 0x008e;
 
 #[repr(C, packed)]
 struct GateDescriptor {
@@ -31,7 +33,7 @@ pub fn init() -> () {
 
 fn init_idt() -> () {
     let interrupt_descriptor_table: *mut GateDescriptor =
-        ADDRESS_INTERRUPT_DESCRIPTOR_TABLE as *mut GateDescriptor;
+        VIRTUAL_ADDRESS_IDT as *mut GateDescriptor;
 
     for i in 0..=(LIMIT_INTERRUPT_DESCRIPTOR_TABLE / 8) {
         unsafe {
@@ -39,9 +41,10 @@ fn init_idt() -> () {
         }
     }
 
+    // LDIT instruction takes PHYSICAL address of idt.
     asm::load_interrupt_descriptor_table_register(
         LIMIT_INTERRUPT_DESCRIPTOR_TABLE,
-        ADDRESS_INTERRUPT_DESCRIPTOR_TABLE,
+        PHYSICAL_ADDRESS_IDT,
     );
 }
 
@@ -51,17 +54,17 @@ fn set_interruption() {
     use crate::interrupt_handler;
 
     let interrupt_descriptor_table: *mut GateDescriptor =
-        ADDRESS_INTERRUPT_DESCRIPTOR_TABLE as *mut GateDescriptor;
+        VIRTUAL_ADDRESS_IDT as *mut GateDescriptor;
     unsafe {
         (*interrupt_descriptor_table.offset(0x21)).set_gate_descriptor(
             interrupt_handler!(interrupt_handler_21) as i32,
             2 * 8,
-            ADDRESS_INTERRUPT_GATE,
+            ACCESS_RIGHT_IDT,
         );
         (*interrupt_descriptor_table.offset(0x2c)).set_gate_descriptor(
             interrupt_handler!(interrupt_handler_2c) as i32,
             2 * 8,
-            ADDRESS_INTERRUPT_GATE,
+            ACCESS_RIGHT_IDT,
         );
     }
 }
