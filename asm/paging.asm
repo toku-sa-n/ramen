@@ -31,7 +31,7 @@
 
     ; Add a page table entry for stack.
     ADDRESS_STACK       EQU 0x00582000
-    TABLE_ENTRY_STACK   EQU TABLE_KERNEL + SIZE_KERNEL / 1024
+    TABLE_ENTRY_STACK   EQU TABLE_KERNEL + SIZE_KERNEL / 1024 + SIZE_ENTRY
     MOV                 DWORD[DWORD TABLE_ENTRY_STACK], ADDRESS_STACK | PAGE_EXISTS
 
     ; Add an entry for below 1MB to page directory.
