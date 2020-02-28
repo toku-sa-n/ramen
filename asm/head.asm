@@ -43,7 +43,8 @@
     AND      EAX,0x7fffffff              ; bit31を0にする（ページング禁止のため）
     OR       EAX,0x00000001              ; bit0を1にする（プロテクトモード移行のため）
     MOV      CR0,EAX
-    JMP      pipelineflush
+    JMP      18h:pipelineflush
+    [BITS 32]
 pipelineflush:
     MOV      AX,1*8                      ; 読み書き可能セグメント32bit
     MOV      DS,AX
@@ -94,7 +95,7 @@ GDT0:
 
     DW       0
 GDTR0:
-    DW       8*3-1
+    DW       8*4-1
     DD       GDT0
 
     ALIGNB   16
