@@ -44,6 +44,13 @@
     MOV                 EDI, TABLE_BELOW_1MB
     CALL                map_entries
 
+    MOV                 EAX, DIR
+    MOV                 CR3, EAX
+
+    MOV                 EAX, CR0
+    OR                  EAX, 0x80000000
+    MOV                 CR0, EAX
+
     JMP                 end_page_settings
 
     ; Function

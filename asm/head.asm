@@ -67,8 +67,8 @@ pipelineflush:
 
     %include "paging.asm"
 
-    MOV      ESP,BOTPAK                ; スタック初期値
-    JMP      DWORD 2*8:0
+    MOV      ESP,0xC0080FFF                ; スタック初期値
+    JMP      0xC0000000
 
 waitkbdout:
     IN       AL,0x64
