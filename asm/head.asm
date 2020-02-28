@@ -44,6 +44,7 @@
     OR       EAX,0x00000001              ; bit0を1にする（プロテクトモード移行のため）
     MOV      CR0,EAX
     JMP      CODE_SEGMENT:pipelineflush
+
     [BITS 32]
 pipelineflush:
     MOV      AX,DATA_SEGMENT                      ; 読み書き可能セグメント32bit
