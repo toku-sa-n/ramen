@@ -43,10 +43,10 @@
     AND      EAX,0x7fffffff              ; bit31を0にする（ページング禁止のため）
     OR       EAX,0x00000001              ; bit0を1にする（プロテクトモード移行のため）
     MOV      CR0,EAX
-    JMP      10h:pipelineflush
+    JMP      CODE_SEGMENT:pipelineflush
     [BITS 32]
 pipelineflush:
-    MOV      AX,1*8                      ; 読み書き可能セグメント32bit
+    MOV      AX,DATA_SEGMENT                      ; 読み書き可能セグメント32bit
     MOV      DS,AX
     MOV      ES,AX
     MOV      FS,AX
@@ -89,7 +89,9 @@ memcpy:
     ALIGNB   16, DB 0
 GDT0:
     TIMES    8 DB 0                      ; ヌルセレクタ
+    DATA_SEGMENT    EQU 0x08
     DW       0xffff,0x0000,0x9200,0x00cf ; 読み書き可能セグメント32bit
+    CODE_SEGMENT    EQU 0x10
     DW       0xffff,0x0000,0x9a00,0x00cf ; Executable 32bit
 
     DW       0
