@@ -29,9 +29,14 @@
     MOV                 EDI, TABLE_KERNEL
     CALL                map_entries
 
+    ; Add a page table entry for IDT
+    ADDRESS_IDT         EQU 0x00581000
+    TABLE_ENTRY_IDT     EQU TABLE_KERNEL + SIZE_KERNEL / 1024
+    MOV                 DWORD[DWORD TABLE_ENTRY_IDT], ADDRESS_IDT | PAGE_EXISTS
+
     ; Add a page table entry for stack.
     ADDRESS_STACK       EQU 0x00582000
-    TABLE_ENTRY_STACK   EQU TABLE_KERNEL + SIZE_KERNEL / 1024 + SIZE_ENTRY
+    TABLE_ENTRY_STACK   EQU TABLE_ENTRY_IDT + SIZE_ENTRY
     MOV                 DWORD[DWORD TABLE_ENTRY_STACK], ADDRESS_STACK | PAGE_EXISTS
 
     ; Add an entry for below 1MB to page directory.
