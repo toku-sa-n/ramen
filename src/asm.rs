@@ -58,12 +58,6 @@ impl GdtrIdtrData {
     }
 }
 
-pub fn load_global_descriptor_table_register(limit: i32, address: i32) {
-    unsafe {
-        asm!("LGDT ($0)"::"r"(&GdtrIdtrData::new(limit as i16, address)));
-    }
-}
-
 pub fn load_interrupt_descriptor_table_register(limit: i32, address: i32) {
     unsafe {
         asm!("LIDT ($0)"::"r"(&GdtrIdtrData::new(limit as i16, address)));

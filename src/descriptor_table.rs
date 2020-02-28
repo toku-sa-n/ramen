@@ -4,39 +4,6 @@ use crate::asm;
 
 const ADDRESS_INTERRUPT_DESCRIPTOR_TABLE: i32 = 0x00581000;
 const LIMIT_INTERRUPT_DESCRIPTOR_TABLE: i32 = 0x000007ff;
-const ADDRESS_GATE_DESCRIPTOR_TABLE: i32 = 0x00581800;
-const LIMIT_GATE_DESCRIPTOR_TABLE: i32 = 0x0000ffff;
-const ADDRESS_BOOTPACK: i32 = 0x00501000;
-const LIMIT_BOOTPACK: u32 = 0x0007ffff;
-const ADDRESS_SYSTEM_READ_WRITE: i32 = 0x4092;
-const ADDRESS_SYSTEM_READ_EXECUTE: i32 = 0x409a;
-const ADDRESS_INTERRUPT_GATE: i32 = 0x008e;
-
-#[repr(C, packed)]
-struct SegmentDescriptor {
-    limit_low: i16,
-    base_low: i16,
-    base_mid: i8,
-    access_right: i8,
-    limit_high: i8,
-    base_high: i8,
-}
-
-impl SegmentDescriptor {
-    fn set_segment_descriptor(&mut self, mut limit: u32, base: i32, mut access_right: i32) -> () {
-        if limit > 0xfffff {
-            access_right |= 0x8000;
-            limit /= 0x1000;
-        }
-
-        (*self).limit_low = (limit & 0xffff) as i16;
-        (*self).base_low = (base & 0xffff) as i16;
-        (*self).base_mid = ((base >> 16) & 0xff) as i8;
-        (*self).access_right = (access_right & 0xff) as i8;
-        (*self).limit_high = (((limit >> 16) & 0x0f) as i32 | ((access_right >> 8) & 0xf0)) as i8;
-        (*self).base_high = ((base >> 24) & 0xff) as i8;
-    }
-}
 
 #[repr(C, packed)]
 struct GateDescriptor {
@@ -58,38 +25,8 @@ impl GateDescriptor {
 }
 
 pub fn init() -> () {
-    init_gdt();
     init_idt();
     set_interruption();
-}
-
-fn init_gdt() -> () {
-    let global_descriptor_table: *mut SegmentDescriptor =
-        ADDRESS_GATE_DESCRIPTOR_TABLE as *mut SegmentDescriptor;
-
-    for i in 0..=(LIMIT_GATE_DESCRIPTOR_TABLE / 8) {
-        unsafe {
-            (*global_descriptor_table.offset(i as isize)).set_segment_descriptor(0, 0, 0);
-        }
-    }
-    unsafe {
-        (*global_descriptor_table.offset(1)).set_segment_descriptor(
-            0xffffffff,
-            0x00000000,
-            ADDRESS_SYSTEM_READ_WRITE,
-        );
-
-        (*global_descriptor_table.offset(2)).set_segment_descriptor(
-            LIMIT_BOOTPACK,
-            ADDRESS_BOOTPACK,
-            ADDRESS_SYSTEM_READ_EXECUTE,
-        );
-    }
-
-    asm::load_global_descriptor_table_register(
-        LIMIT_GATE_DESCRIPTOR_TABLE,
-        ADDRESS_GATE_DESCRIPTOR_TABLE,
-    );
 }
 
 fn init_idt() -> () {
