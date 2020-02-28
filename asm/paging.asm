@@ -18,15 +18,15 @@
     SIZE_ENTRY           EQU 4
     DIR_ENTRY_KERNEL     EQU DIR + 0x300 * SIZE_ENTRY
     PAGE_EXISTS          EQU 1
-    MOV                  DWORD[DWORD DIR_ENTRY_KERNEL], TABLE_KERNEL | PAGE_EXISTS
 
     ; Map kernel to page table.
-    ADDRESS_KERNEL      EQU 0x00501000
+    ADDRESS_KERNEL      EQU  0x00501000
     MOV                 EAX, ADDRESS_KERNEL
 
-    SIZE_KERNEL         EQU 512 * 1024
+    SIZE_KERNEL         EQU  512 * 1024
     MOV                 ECX, SIZE_KERNEL
-    MOV                 EDI, TABLE_KERNEL
+    MOV                 EBX, TABLE_KERNEL
+    MOV                 EDI, DIR_ENTRY_KERNEL
     CALL                map_entries
 
     ; Add a page table entry for IDT
@@ -39,14 +39,12 @@
     TABLE_ENTRY_STACK   EQU TABLE_ENTRY_IDT + SIZE_ENTRY
     MOV                 DWORD[DWORD TABLE_ENTRY_STACK], ADDRESS_STACK | PAGE_EXISTS
 
-    ; Add an entry for below 1MB to page directory.
-    TABLE_BELOW_1MB     EQU DIR + SIZE_TABLE * 2
-    MOV                 DWORD[DWORD DIR], TABLE_BELOW_1MB | PAGE_EXISTS
-
     ; Map below 1MB to page table.
+    TABLE_BELOW_1MB     EQU DIR + SIZE_TABLE * 2
     MOV                 EAX, 0
     MOV                 ECX, 1024 * 1024
-    MOV                 EDI, TABLE_BELOW_1MB
+    MOV                 EBX, TABLE_BELOW_1MB
+    MOV                 EDI, DIR
     CALL                map_entries
 
     MOV                 EAX, DIR
@@ -62,8 +60,9 @@
 
 map_entries:
     ; EAX: Starting address of physical memories.
+    ; EBX: Starting address of page table.
+    ; EDI: Starting address of entries of page directory.
     ; ECX: Number of bytes to map.
-    ; EDI: Starting address of entries of page table.
     PUSH                EBP
     MOV                 EBP, ESP
 
@@ -72,8 +71,56 @@ map_entries:
     SHR                 ECX, 12
 
 loop_map_entries:
-    CMP                 ECX, 0
+    NUM_PAGE_ENTRIES    EQU  1024
+    CMP                 ECX, NUM_PAGE_ENTRIES
     JBE                 end_map_entries
+
+    OR                  EBX,   PAGE_EXISTS
+    MOV                 [EDI], EBX
+    AND                 EBX, 0xFFFFF000
+
+    PUSH                ECX
+    MOV                 ECX, NUM_PAGE_ENTRIES
+
+    PUSH                EDI
+    MOV                 EDI, EBX
+    CALL                map_to_single_table
+
+    POP                 EDI
+    POP                 ECX
+
+    SUB                 ECX, NUM_PAGE_ENTRIES
+    ADD                 EBX, SIZE_TABLE
+    ADD                 EDI, SIZE_ENTRY
+
+    JMP                 loop_map_entries
+
+end_map_entries:
+    CMP                 ECX, 0
+    JBE                 return_from_map_entries
+
+    OR                  EBX, PAGE_EXISTS
+    MOV                 [EDI], EBX
+    AND                 EBX, 0xFFFFF000
+
+    MOV                 EDI, EBX
+    CALL                map_to_single_table
+
+return_from_map_entries:
+    MOV                 ESP, EBP
+    POP                 EBP
+    RET
+
+map_to_single_table:
+    ; EAX: Starting address of physical memories.
+    ; ECX: Number of entries to map.
+    ; EDI: Starting address of page table.
+    PUSH                EBP
+    MOV                 EBP, ESP
+
+loop_map_to_single_table:
+    CMP                 ECX, 0
+    JBE                 end_map_to_single_table
 
     OR                  EAX, PAGE_EXISTS
     MOV                 [EDI], EAX
@@ -81,9 +128,9 @@ loop_map_entries:
     ADD                 EDI, SIZE_ENTRY
     DEC                 ECX
 
-    JMP                 loop_map_entries
+    JMP                 loop_map_to_single_table
 
-end_map_entries:
+end_map_to_single_table:
     MOV                 ESP, EBP
     POP                 EBP
     RET
