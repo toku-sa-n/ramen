@@ -43,7 +43,7 @@
     AND      EAX,0x7fffffff              ; bit31を0にする（ページング禁止のため）
     OR       EAX,0x00000001              ; bit0を1にする（プロテクトモード移行のため）
     MOV      CR0,EAX
-    JMP      18h:pipelineflush
+    JMP      10h:pipelineflush
     [BITS 32]
 pipelineflush:
     MOV      AX,1*8                      ; 読み書き可能セグメント32bit
@@ -90,7 +90,6 @@ memcpy:
 GDT0:
     TIMES    8 DB 0                      ; ヌルセレクタ
     DW       0xffff,0x0000,0x9200,0x00cf ; 読み書き可能セグメント32bit
-    DW       0xffff,0x1000,0x9a50,0x0047 ; 実行可能セグメント32bit（bootpack用）
     DW       0xffff,0x0000,0x9a00,0x00cf ; Executable 32bit
 
     DW       0
