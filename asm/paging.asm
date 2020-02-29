@@ -47,6 +47,32 @@
     MOV                 EDI, DIR
     CALL                map_entries
 
+    ; Calculate the number of bytes of VRAM.
+    VRAM_BPP            EQU 0x0ff2
+    XOR                 EAX, EAX
+    MOV                 AL, BYTE[VRAM_BPP]
+    SHR                 EAX, 3
+
+    VRAM_X              EQU 0x0ff4
+    XOR                 EBX, EBX
+    MOV                 BX, WORD[VRAM_X]
+    MUL                 EBX
+
+    VRAM_Y              EQU 0x0ff6
+    XOR                 EBX, EBX
+    MOV                 BX, WORD[VRAM_Y]
+    MUL                 EBX
+
+    MOV                 ECX, EAX
+
+    VRAM_PTR            EQU 0x0ff8
+    MOV                 EAX, [VRAM_PTR]
+
+    TABLE_VRAM          EQU TABLE_BELOW_1MB + SIZE_TABLE
+    MOV                 EBX, TABLE_VRAM
+    MOV                 EDI, DIR_ENTRY_KERNEL + SIZE_ENTRY
+    CALL                map_entries
+
     MOV                 EAX, DIR
     MOV                 CR3, EAX
 
