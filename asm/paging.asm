@@ -36,8 +36,11 @@
 
     ; Add a page table entry for stack.
     ADDRESS_STACK       EQU 0x00582000
+    MOV                 EAX, ADDRESS_STACK
+    MOV                 ECX, 32
     TABLE_ENTRY_STACK   EQU TABLE_ENTRY_IDT + SIZE_ENTRY
-    MOV                 DWORD[DWORD TABLE_ENTRY_STACK], ADDRESS_STACK | PAGE_EXISTS
+    MOV                 EDI, TABLE_ENTRY_STACK
+    CALL                map_to_single_table
 
     ; Map below 1MB to page table.
     TABLE_BELOW_1MB     EQU DIR + SIZE_TABLE * 2
