@@ -2,7 +2,6 @@
 
 use crate::asm;
 
-const PHYSICAL_ADDRESS_IDT: i32 = 0x00581000;
 const VIRTUAL_ADDRESS_IDT: u32 = 0xC0080000;
 const LIMIT_INTERRUPT_DESCRIPTOR_TABLE: i32 = 0x000007ff;
 const ACCESS_RIGHT_IDT: i32 = 0x008e;
@@ -44,7 +43,7 @@ fn init_idt() -> () {
     // LDIT instruction takes PHYSICAL address of idt.
     asm::load_interrupt_descriptor_table_register(
         LIMIT_INTERRUPT_DESCRIPTOR_TABLE,
-        PHYSICAL_ADDRESS_IDT,
+        VIRTUAL_ADDRESS_IDT,
     );
 }
 
