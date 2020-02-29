@@ -73,6 +73,9 @@
     MOV                 EDI, DIR_ENTRY_KERNEL + SIZE_ENTRY
     CALL                map_entries
 
+    ; Replace physical pointer to VRAM to virtual one.
+    MOV                 DWORD[VRAM_PTR], 0xC0400000
+
     MOV                 EAX, DIR
     MOV                 CR3, EAX
 
