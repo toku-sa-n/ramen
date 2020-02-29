@@ -43,9 +43,11 @@
     AND      EAX,0x7fffffff              ; bit31を0にする（ページング禁止のため）
     OR       EAX,0x00000001              ; bit0を1にする（プロテクトモード移行のため）
     MOV      CR0,EAX
-    JMP      pipelineflush
+    JMP      CODE_SEGMENT:pipelineflush
+
+    [BITS 32]
 pipelineflush:
-    MOV      AX,1*8                      ; 読み書き可能セグメント32bit
+    MOV      AX,DATA_SEGMENT                      ; 読み書き可能セグメント32bit
     MOV      DS,AX
     MOV      ES,AX
     MOV      FS,AX
@@ -64,8 +66,11 @@ pipelineflush:
 
     ; bootpackの起動
 
-    MOV      ESP,BOTPAK                ; スタック初期値
-    JMP      DWORD 2*8:0
+    %include "paging.asm"
+
+    MOV      ESP,0xC00a0FFF                ; スタック初期値
+    MOV      EBP, ESP
+    JMP      0xC0000000
 
 waitkbdout:
     IN       AL,0x64
@@ -86,12 +91,14 @@ memcpy:
     ALIGNB   16, DB 0
 GDT0:
     TIMES    8 DB 0                      ; ヌルセレクタ
+    DATA_SEGMENT    EQU 0x08
     DW       0xffff,0x0000,0x9200,0x00cf ; 読み書き可能セグメント32bit
-    DW       0xffff,0x1000,0x9a50,0x0047 ; 実行可能セグメント32bit（bootpack用）
+    CODE_SEGMENT    EQU 0x10
+    DW       0xffff,0x0000,0x9a00,0x00cf ; Executable 32bit
 
     DW       0
 GDTR0:
-    DW       8*3-1
+    DW       8*4-1
     DD       GDT0
 
     ALIGNB   16

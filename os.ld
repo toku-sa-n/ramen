@@ -5,9 +5,9 @@ ENTRY(os_main)
 
 SECTIONS
 {
-    .text : { *(.text*) }
+    .text 0xC0000000 : { *(.text*) }
 
-    .data ADDR(.text) + SIZEOF(.text) + 0x00501000 : AT ( ADDR(.text) + SIZEOF(.text) ) {
+    .data : {
         *(.data)
         *(.rodata*)
         *(.bss)

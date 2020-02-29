@@ -4,7 +4,7 @@
     SCRNY         EQU     0x0ff6          ; 解像度のY
     VRAM          EQU     0x0ff8          ; グラフィックバッファの開始番地
     VBEMODE       EQU     0x0ffc          ; VBE mode number. word size
-    VBE_INFO_SIZE EQU 0x0200
+    VBE_INFO_SIZE EQU     0x0200
 
     ; Get VBE Info
     MOV           AX,VBE
