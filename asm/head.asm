@@ -69,7 +69,6 @@ pipelineflush:
     %include "paging.asm"
 
     MOV      ESP,0xC00a0FFF                ; スタック初期値
-    MOV      EBP, ESP
     JMP      0xC0000000
 
 waitkbdout:
