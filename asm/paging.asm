@@ -3,7 +3,7 @@
     MOV                  EAX, 0
 
     DIR                  EQU 0x00100000
-    MOV                  EDX, DIR
+    MOV                  EDI, DIR
 
     NUM_ALL_ENTRIES      EQU 1024 + 1024 * 1024
     MOV                  ECX, NUM_ALL_ENTRIES
