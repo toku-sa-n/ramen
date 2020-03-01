@@ -11,27 +11,25 @@
     REP                  STOSD
 
     ; Map kernel
-    ; Add an entry for kernel to page directory
-
-    SIZE_TABLE           EQU 0x1000
-    TABLE_KERNEL         EQU DIR + SIZE_TABLE
-    SIZE_ENTRY           EQU 4
-    DIR_ENTRY_KERNEL     EQU DIR + 0x300 * SIZE_ENTRY
-    PAGE_EXISTS          EQU 1
-
-    ; Map kernel to page table.
     ADDRESS_KERNEL      EQU  0x00501000
     MOV                 EAX, ADDRESS_KERNEL
 
     SIZE_KERNEL         EQU  512 * 1024
     MOV                 ECX, SIZE_KERNEL
+
+    SIZE_TABLE          EQU 0x1000
+    TABLE_KERNEL        EQU DIR + SIZE_TABLE
     MOV                 EBX, TABLE_KERNEL
+
+    SIZE_ENTRY          EQU 4
+    DIR_ENTRY_KERNEL    EQU DIR + 0x300 * SIZE_ENTRY
     MOV                 EDI, DIR_ENTRY_KERNEL
     CALL                map_entries
 
     ; Add a page table entry for IDT
     ADDRESS_IDT         EQU 0x00581000
     TABLE_ENTRY_IDT     EQU TABLE_KERNEL + SIZE_KERNEL / 1024
+    PAGE_EXISTS         EQU 1
     MOV                 DWORD[DWORD TABLE_ENTRY_IDT], ADDRESS_IDT | PAGE_EXISTS
 
     ; Add a page table entry for stack.
