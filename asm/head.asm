@@ -97,7 +97,7 @@ GDT0:
 
     DW       0
 GDTR0:
-    DW       8*4-1
+    DW       8*3-1
     DD       GDT0
 
     ALIGNB   16
