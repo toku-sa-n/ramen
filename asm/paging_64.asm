@@ -5,13 +5,17 @@
     MOV                  EDI, PML4
 
     ; 1 PML4, 2 PDPT, 2PD and 2PT
-    NUM_ALL_ENTRIES      EQU 1024 * 7
+    BYTES_PML4           EQU 1024
+    BYTES_PDPT           EQU 1024
+    BYTES_PD             EQU 1024
+    BYTES_PT             EQU 1024
+    NUM_ALL_ENTRIES      EQU BYTES_PML4 + 2 * BYTES_PDPT + 2 * BYTES_PD + 2 * BYTES_PT
     MOV                  ECX, NUM_ALL_ENTRIES
 
     REP                  STOSD
 
     ; Add a PML4 entry for below 1MB
-    PDPT_BELOW_1MB       EQU PML4 + 0x1000
+    PDPT_BELOW_1MB       EQU PML4 + BYTES_PML4
     PAGE_EXISTS          EQU 1
 
     ; MOV [DWORD PML4] will cause an assemble error.
@@ -20,26 +24,26 @@
     MOV                  DWORD[DWORD PML4], PDPT_BELOW_1MB | PAGE_EXISTS
 
     ; Add a PDPT entry for below 1MB
-    PD_BELOW_1MB         EQU PDPT_BELOW_1MB + 0x1000
+    PD_BELOW_1MB         EQU PDPT_BELOW_1MB + BYTES_PDPT
     MOV                  DWORD[DWORD PDPT_BELOW_1MB], PD_BELOW_1MB | PAGE_EXISTS
 
     ; Add a PD entry and PT entries for below 1MB
     MOV                  EAX, PML4
     MOV                  EBX, PT_BELOW_1MB
 
-    PT_BELOW_1MB         EQU PD_BELOW_1MB + 0x1000
+    PT_BELOW_1MB         EQU PD_BELOW_1MB + BYTES_PD
     MOV                  EDI, PD_BELOW_1MB
     MOV                  ECX, 1024 * 1024
     CALL                 map_entries
 
     ; Add a PML4 entry for kernel
     PML4_ENTRY_KERNEL    EQU PML4 + 0x1FF << 3
-    PDPT_KERNEL          EQU PT_BELOW_1MB + 0x1000
+    PDPT_KERNEL          EQU PT_BELOW_1MB + BYTES_PT
     MOV                  DWORD[DWORD PML4_ENTRY_KERNEL], PDPT_KERNEL | PAGE_EXISTS
 
     ; Add a PDPT entry for kernel
     PDPT_ENTRY_KERNEL    EQU PDPT_KERNEL + 0x1FF << 3
-    PD_KERNEL            EQU PDPT_KERNEL + 0x1000
+    PD_KERNEL            EQU PDPT_KERNEL + BYTES_PDPT
     MOV                  DWORD[DWORD PDPT_ENTRY_KERNEL], PD_KERNEL | PAGE_EXISTS
 
     ; Functions
