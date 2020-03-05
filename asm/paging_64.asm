@@ -29,9 +29,9 @@
 
     ; Add a PD entry and PT entries for below 1MB
     MOV                  EAX, 0
-    MOV                  EBX, PT_BELOW_1MB
 
     PT_BELOW_1MB         EQU PD_BELOW_1MB + BYTES_PD
+    MOV                  EBX, PT_BELOW_1MB
     MOV                  EDI, PD_BELOW_1MB
     MOV                  ECX, 1024 * 1024
     CALL                 map_entries
