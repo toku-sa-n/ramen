@@ -28,7 +28,7 @@
     MOV                  DWORD[DWORD PDPT_BELOW_1MB], PD_BELOW_1MB | PAGE_EXISTS
 
     ; Add a PD entry and PT entries for below 1MB
-    MOV                  EAX, PML4
+    MOV                  EAX, 0
     MOV                  EBX, PT_BELOW_1MB
 
     PT_BELOW_1MB         EQU PD_BELOW_1MB + BYTES_PD
