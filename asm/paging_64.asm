@@ -32,6 +32,11 @@
     MOV                  ECX, 1024 * 1024
     CALL                 map_entries
 
+    ; Add a PML4 entry for kernel
+    PML4_ENTRY_KERNEL    EQU PML4 + 0x1FF << 3
+    PDPT_KERNEL          EQU PT_BELOW_1MB + 0x1000
+    MOV                  DWORD[DWORD PML4_ENTRY_KERNEL], PDPT_KERNEL | PAGE_EXISTS
+
     ; Functions
 
 map_entries:
