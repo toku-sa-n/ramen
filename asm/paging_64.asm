@@ -1,5 +1,5 @@
     ; Initialize PML4
-    MOV                  EAX, 0
+    XOR                  EAX, EAX
 
     PML4                 EQU 0x00100000
     MOV                  EDI, PML4
@@ -28,7 +28,7 @@
     MOV                  DWORD[DWORD PDPT_BELOW_1MB], PD_BELOW_1MB | PAGE_EXISTS
 
     ; Add a PD entry and PT entries for below 1MB
-    MOV                  EAX, 0
+    XOR                  EAX, EAX
 
     PT_BELOW_1MB         EQU PD_BELOW_1MB + BYTES_PD
     MOV                  EBX, PT_BELOW_1MB
