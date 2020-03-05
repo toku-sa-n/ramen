@@ -46,6 +46,18 @@
     PD_KERNEL            EQU PDPT_KERNEL + BYTES_PDPT
     MOV                  DWORD[DWORD PDPT_ENTRY_KERNEL], PD_KERNEL | PAGE_EXISTS
 
+    ; Add a PD entry and PT entries for kernel
+    ADDRESS_KERNEL       EQU 0x00501000
+    MOV                  EAX, ADDRESS_KERNEL
+
+    PT_KERNEL            EQU PD_KERNEL + BYTES_PD
+    MOV                  EBX, PT_KERNEL
+    MOV                  EDI, PD_KERNEL
+
+    BYTES_KERNEL         EQU 512
+    MOV                  ECX, BYTES_KERNEL
+    CALL                 map_entries
+
     ; Functions
 
 map_entries:
