@@ -22,3 +22,7 @@
     ; Add a PDPT entry for below 1MB
     PD_BELOW_1MB    EQU PDPT_BELOW_1MB + 0x1000
     MOV             DWORD[DWORD PDPT_BELOW_1MB], PD_BELOW_1MB | PAGE_EXISTS
+
+    ; Add a PD entry for below 1MB
+    PT_BELOW_1MB    EQU PD_BELOW_1MB + 0x1000
+    MOV             DWORD[DWORD PD_BELOW_1MB], PT_BELOW_1MB | PAGE_EXISTS
