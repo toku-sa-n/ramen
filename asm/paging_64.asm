@@ -37,6 +37,11 @@
     PDPT_KERNEL          EQU PT_BELOW_1MB + 0x1000
     MOV                  DWORD[DWORD PML4_ENTRY_KERNEL], PDPT_KERNEL | PAGE_EXISTS
 
+    ; Add a PDPT entry for kernel
+    PDPT_ENTRY_KERNEL    EQU PDPT_KERNEL + 0x1FF << 3
+    PD_KERNEL            EQU PDPT_KERNEL + 0x1000
+    MOV                  DWORD[DWORD PDPT_ENTRY_KERNEL], PD_KERNEL | PAGE_EXISTS
+
     ; Functions
 
 map_entries:
