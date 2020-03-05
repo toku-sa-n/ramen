@@ -46,7 +46,8 @@
     PD_KERNEL            EQU PDPT_KERNEL + BYTES_PDPT
     MOV                  DWORD[DWORD PDPT_ENTRY_KERNEL], PD_KERNEL | PAGE_EXISTS
 
-    ; Add a PD entry and PT entries for kernel
+    ; Add a PD entry and PT entries for kernel, IDT and stack.
+    ; These three elements are located successively.
     ADDRESS_KERNEL       EQU 0x00501000
     MOV                  EAX, ADDRESS_KERNEL
 
@@ -55,7 +56,9 @@
     MOV                  EDI, PD_KERNEL
 
     BYTES_KERNEL         EQU 512
-    MOV                  ECX, BYTES_KERNEL
+    BYTES_IDT            EQU 4
+    BYTES_STACK          EQU 8
+    MOV                  ECX, BYTES_KERNEL + BYTES_IDT + BYTES_STACK
     CALL                 map_entries
 
     ; Functions
