@@ -18,3 +18,7 @@
     ; MOV DWORD[PML4] won't cause any assemble errors, but it won't assign a value
     ; to ES:PML4.
     MOV             DWORD[DWORD PML4], PDPT_BELOW_1MB | PAGE_EXISTS
+
+    ; Add a PDPT entry for below 1MB
+    PD_BELOW_1MB    EQU PDPT_BELOW_1MB + 0x1000
+    MOV             DWORD[DWORD PDPT_BELOW_1MB], PD_BELOW_1MB | PAGE_EXISTS
