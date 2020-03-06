@@ -61,6 +61,38 @@
     MOV                  ECX, BYTES_KERNEL + BYTES_IDT + BYTES_STACK
     CALL                 map_entries
 
+    ; Switching to 64-bit mode
+    ; Disable paging
+    MOV                  EAX, CR0
+    AND                  EAX, 0x7FFFFFFF
+    MOV                  CR0, EAX
+
+    ; Enable PAE
+    MOV                  EAX, CR4
+    OR                   EAX, 0x00000020
+    MOV                  CR4, EAX
+
+    ; Set PML4 address
+    MOV                  EAX, PML4
+    MOV                  CR3, EAX
+
+    ; Enable IA-32e mode
+    MOV                  ECX, 0xC0000080
+    RDMSR
+    OR                   EAX, 0x00000100
+    WRMSR
+
+    ; Enable 4-level paging
+    MOV                  EAX, CR0
+    OR                   EAX, 0x80000000
+    MOV                  CR0, EAX
+
+    CODE_SEGMENT_64 EQU 0x18
+    JMP                  CODE_SEGMENT_64:switch_to_64bit
+switch_to_64bit:
+
+    jmp $
+
     ; Functions
 
 map_entries:
@@ -152,4 +184,3 @@ end_map_to_single_table:
     MOV                  ESP, EBP
     POP                  EBP
     RET
-

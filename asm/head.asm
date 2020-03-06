@@ -66,7 +66,9 @@ pipelineflush:
 
     ; bootpackの起動
 
-    %include "paging.asm"
+    ;%include "paging.asm"
+
+    %include "paging_64.asm"
 
     MOV      ESP,0xC00a0FFF                ; スタック初期値
     JMP      0xC0000000
@@ -94,10 +96,11 @@ GDT0:
     DW       0xffff,0x0000,0x9200,0x00cf ; 読み書き可能セグメント32bit
     CODE_SEGMENT    EQU 0x10
     DW       0xffff,0x0000,0x9a00,0x00cf ; Executable 32bit
+    DW       0xffff,0x0000,0x9a00,0x00af ; Executable 64bit
 
     DW       0
 GDTR0:
-    DW       8*3-1
+    DW       8*4-1
     DD       GDT0
 
     ALIGNB   16
