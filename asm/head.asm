@@ -73,6 +73,7 @@ pipelineflush:
     MOV      RSP,0xFFFFFFFF80082FFF                ; スタック初期値
     JMP      0xFFFFFFFF80000000
 
+    [BITS 32]
 waitkbdout:
     IN       AL,0x64
     AND      AL,0x02
@@ -104,4 +105,5 @@ GDTR0:
     DD       GDT0
 
     ALIGNB   16
+    [BITS 64]
 bootpack:
