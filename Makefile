@@ -21,7 +21,7 @@ LIB_FILE	:= $(BUILD_DIR)/libramen_os.a
 
 ASMC		:= nasm
 CAT			:= cat
-VIEWER		:= qemu-system-i386
+VIEWER		:= bochs
 LD			:= ld
 RUSTCC		:= cargo
 RM			:= rm -rf
@@ -68,7 +68,7 @@ $(BUILD_DIR)/%.asm.o:$(ASM_DIR)/%.asm|$(BUILD_DIR)
 
 run:$(IMG_FILE)
 	make $^
-	$(VIEWER) -drive file=$<,format=raw,if=floppy -monitor stdio
+	$(VIEWER) -q
 
 $(BUILD_DIR):
 	mkdir $@

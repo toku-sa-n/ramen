@@ -1,0 +1,2 @@
+floppya: 1_44=build/ramen_os.img, status=inserted
+cpu: reset_on_triple_fault=false
