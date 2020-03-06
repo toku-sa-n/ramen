@@ -71,8 +71,7 @@ pipelineflush:
     %include "paging_64.asm"
 
     MOV      RSP,0xFFFFFFFF80082FFF                ; スタック初期値
-    jmp $
-    JMP      0xC0000000
+    JMP      0xFFFFFFFF80000000
 
 waitkbdout:
     IN       AL,0x64
