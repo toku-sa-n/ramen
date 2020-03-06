@@ -89,9 +89,6 @@
 
     CODE_SEGMENT_64 EQU 0x18
     JMP                  CODE_SEGMENT_64:switch_to_64bit
-switch_to_64bit:
-
-    jmp $
 
     ; Functions
 
@@ -184,3 +181,6 @@ end_map_to_single_table:
     MOV                  ESP, EBP
     POP                  EBP
     RET
+
+switch_to_64bit:
+    [BITS 64]
