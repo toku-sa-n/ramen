@@ -56,8 +56,8 @@
     MOV                  EDI, PD_KERNEL
 
     BYTES_KERNEL         EQU 512 * 1024
-    BYTES_IDT            EQU 4
-    BYTES_STACK          EQU 8
+    BYTES_IDT            EQU 4 * 1024
+    BYTES_STACK          EQU 8 * 1024
     MOV                  ECX, BYTES_KERNEL + BYTES_IDT + BYTES_STACK
     CALL                 map_entries
 
