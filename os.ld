@@ -5,7 +5,7 @@ ENTRY(os_main)
 
 SECTIONS
 {
-    .text 0xC0000000 : { *(.text*) }
+    .text 0xFFFFFFFF80000000 : { *(.text*) }
 
     .data : {
         *(.data)
