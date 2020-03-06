@@ -55,7 +55,7 @@
     MOV                  EBX, PT_KERNEL
     MOV                  EDI, PD_KERNEL
 
-    BYTES_KERNEL         EQU 512
+    BYTES_KERNEL         EQU 512 * 1024
     BYTES_IDT            EQU 4
     BYTES_STACK          EQU 8
     MOV                  ECX, BYTES_KERNEL + BYTES_IDT + BYTES_STACK
