@@ -26,7 +26,7 @@ LD			:= ld
 RUSTCC		:= cargo
 RM			:= rm -rf
 
-LDFLAGS := -nostdlib -m elf_i386 -T $(LD_SRC)
+LDFLAGS := -nostdlib -T $(LD_SRC)
 ASMFLAGS := -w+all -i $(ASM_DIR)/
 
 .PHONY:show_kernel_map run release clean test_paging
