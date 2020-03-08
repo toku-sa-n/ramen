@@ -1,13 +1,17 @@
 OUTPUT_FORMAT(binary);
-OUTPUT_ARCH(i386);
 
 ENTRY(os_main)
 
 SECTIONS
 {
-    .text 0xFFFFFFFF80000000 : { *(.text*) }
+    .head 0 : {
+        LONG(0xE9000000)
+        LONG(os_main - SIZEOF(.head))
+    }
 
-    .data : {
+    .text : { *(.text*) }
+
+    .data 0xFFFFFFFF80000000 + ADDR(.text) + SIZEOF(.text) : AT ( ADDR(.text) + SIZEOF(.text) ) {
         *(.data)
         *(.rodata*)
         *(.bss)
