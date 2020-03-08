@@ -51,7 +51,7 @@ show_kernel_map:$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
 	rm -rf $@
 
 test_paging:|$(BUILD_DIR)
-	$(ASMC) $(ASMFLAGS) -f elf -o build/libramen_os.a asm/hlt_loop_kernel.asm
+	$(ASMC) $(ASMFLAGS) -f elf64 -o build/libramen_os.a asm/hlt_loop_kernel.asm
 	make
 
 $(KERNEL_FILE):$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
