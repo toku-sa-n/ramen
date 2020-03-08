@@ -74,7 +74,7 @@ pipelineflush:
 
     ; JMP 0xFFFFFFFF80000000 can't be executed.
     ; Jump to 64 bit immediate address is not supported.
-    MOV      RDI,0xFFFFFFFF80000000
+    MOV      RDI,0xFFFFFFFF80000003
     JMP      RDI
 
     [BITS 32]
