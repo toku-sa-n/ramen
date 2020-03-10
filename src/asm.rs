@@ -25,7 +25,7 @@ pub fn cli() -> () {
     }
 }
 
-pub fn out8(port: i32, data: i32) -> () {
+pub fn out8(port: u32, data: u32) -> () {
     unsafe {
         asm!("OUT DX,AL"::"{DX}"(port),"{AL}"(data)::"intel");
     }
@@ -33,8 +33,8 @@ pub fn out8(port: i32, data: i32) -> () {
 
 // It might be true that the first line can be deleted because the lower bits of EDX are DX
 // itself.
-pub fn in8(port: i32) -> i32 {
-    let result: i32;
+pub fn in8(port: u32) -> u32 {
+    let result: u32;
     unsafe {
         asm!("MOV EDX,$0"::"r"(port)::"intel");
         asm!("MOV EAX,0"::::"intel");
