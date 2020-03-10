@@ -8,15 +8,6 @@ lazy_static::lazy_static! {
     pub static ref QUEUE:spin::Mutex<queue::Queue> = spin::Mutex::new(queue::Queue::new());
 }
 
-pub struct Device {
-    data_from_device: [i32; 3],
-    phase: i32,
-
-    speed: graphics::screen::TwoDimensionalVec,
-
-    buttons: MouseButtons,
-}
-
 struct MouseButtons {
     left: bool,
     center: bool,
@@ -39,6 +30,15 @@ impl MouseButtons {
             center: data & 0x04 != 0,
         }
     }
+}
+
+pub struct Device {
+    data_from_device: [i32; 3],
+    phase: i32,
+
+    speed: graphics::screen::TwoDimensionalVec,
+
+    buttons: MouseButtons,
 }
 
 impl Device {
