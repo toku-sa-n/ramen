@@ -16,9 +16,9 @@ struct GateDescriptor {
 }
 
 impl GateDescriptor {
-    fn set_gate_descriptor(&mut self, offset: u32, selector: u32, access_right: u32) -> () {
+    fn set_gate_descriptor(&mut self, offset: u32, selector: u16, access_right: u32) -> () {
         (*self).offset_low = (offset & 0xffff) as u16;
-        (*self).selector = selector as u16;
+        (*self).selector = selector;
         (*self).dw_count = ((access_right >> 8) & 0xff) as u8;
         (*self).access_right = (access_right & 0xff) as u8;
         (*self).offset_high = ((offset >> 16) & 0xffff) as u16;
