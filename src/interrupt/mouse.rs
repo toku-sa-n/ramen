@@ -23,7 +23,7 @@ impl MouseButtons {
         }
     }
 
-    fn purse_data(data: i32) -> Self {
+    fn purse_data(data: u32) -> Self {
         Self {
             left: data & 0x01 != 0,
             right: data & 0x02 != 0,
@@ -33,7 +33,7 @@ impl MouseButtons {
 }
 
 pub struct Device {
-    data_from_device: [i32; 3],
+    data_from_device: [u32; 3],
     phase: i32,
 
     speed: graphics::screen::TwoDimensionalVec<i32>,
@@ -60,7 +60,7 @@ impl Device {
 
     // Return true if three bytes data are sent.
     // Otherwise return false.
-    pub fn put_data(self, data: i32) -> (bool, Self) {
+    pub fn put_data(self, data: u32) -> (bool, Self) {
         match self.phase {
             0 => (
                 false,
@@ -99,8 +99,8 @@ impl Device {
     fn purse_data(self) -> Self {
         let mut new_self = self;
         new_self.buttons = MouseButtons::purse_data(new_self.data_from_device[0]);
-        new_self.speed.x = new_self.data_from_device[1];
-        new_self.speed.y = new_self.data_from_device[2];
+        new_self.speed.x = new_self.data_from_device[1] as i32;
+        new_self.speed.y = new_self.data_from_device[2] as i32;
 
         if new_self.data_from_device[0] & 0x10 != 0 {
             new_self.speed.x = (new_self.speed.x as u32 | 0xFFFFFF00) as i32;
@@ -116,7 +116,7 @@ impl Device {
     }
 
     // To sync phase, and data sent from mouse device
-    fn is_correct_first_byte_from_device(data: i32) -> bool {
+    fn is_correct_first_byte_from_device(data: u32) -> bool {
         data & 0xc8 == 0x08
     }
 

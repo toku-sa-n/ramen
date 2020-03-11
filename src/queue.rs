@@ -1,6 +1,6 @@
 const QUEUE_SIZE: usize = 128;
 pub struct Queue {
-    data: [i32; QUEUE_SIZE],
+    data: [u32; QUEUE_SIZE],
     next_idx_write: usize,
     next_idx_read: usize,
     size: usize,
@@ -16,7 +16,7 @@ impl Queue {
         }
     }
 
-    pub fn enqueue(&mut self, element: i32) -> () {
+    pub fn enqueue(&mut self, element: u32) -> () {
         if self.size == QUEUE_SIZE {
             return;
         }
@@ -26,12 +26,12 @@ impl Queue {
         self.next_idx_write = (self.next_idx_write + 1) % QUEUE_SIZE;
     }
 
-    pub fn dequeue(&mut self) -> Option<i32> {
+    pub fn dequeue(&mut self) -> Option<u32> {
         if self.size == 0 {
             return None;
         }
 
-        let return_value: i32 = self.data[self.next_idx_read];
+        let return_value: u32 = self.data[self.next_idx_read];
         self.next_idx_read = (self.next_idx_read + 1) % QUEUE_SIZE;
         self.size -= 1;
         return Some(return_value);
