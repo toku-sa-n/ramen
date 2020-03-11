@@ -36,7 +36,7 @@ pub struct Device {
     data_from_device: [i32; 3],
     phase: i32,
 
-    speed: graphics::screen::TwoDimensionalVec<isize>,
+    speed: graphics::screen::TwoDimensionalVec<i32>,
 
     buttons: MouseButtons,
 }
@@ -99,16 +99,15 @@ impl Device {
     fn purse_data(self) -> Self {
         let mut new_self = self;
         new_self.buttons = MouseButtons::purse_data(new_self.data_from_device[0]);
-        new_self.speed.x = new_self.data_from_device[1] as isize;
-        new_self.speed.y = new_self.data_from_device[2] as isize;
+        new_self.speed.x = new_self.data_from_device[1];
+        new_self.speed.y = new_self.data_from_device[2];
 
         if new_self.data_from_device[0] & 0x10 != 0 {
-            // -256 = 0xffffff00
-            new_self.speed.x |= -256;
+            new_self.speed.x = (new_self.speed.x as u32 | 0xFFFFFF00) as i32;
         }
 
         if new_self.data_from_device[0] & 0x20 != 0 {
-            new_self.speed.y |= -256;
+            new_self.speed.y = (new_self.speed.y as u32 | 0xFFFFFF00) as i32;
         }
 
         new_self.speed.y = -new_self.speed.y;
