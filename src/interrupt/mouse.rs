@@ -36,7 +36,7 @@ pub struct Device {
     data_from_device: [i32; 3],
     phase: i32,
 
-    speed: graphics::screen::TwoDimensionalVec,
+    speed: graphics::screen::TwoDimensionalVec<isize>,
 
     buttons: MouseButtons,
 }
@@ -121,7 +121,7 @@ impl Device {
         data & 0xc8 == 0x08
     }
 
-    pub fn get_speed(&self) -> graphics::screen::Coord {
+    pub fn get_speed(&self) -> graphics::screen::Coord<isize> {
         graphics::screen::Coord::new(self.speed.x as isize, self.speed.y as isize)
     }
 
