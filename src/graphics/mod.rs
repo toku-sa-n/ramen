@@ -59,7 +59,7 @@ impl Vram {
         }
     }
 
-    pub unsafe fn set_color(&mut self, coord: screen::Coord, rgb: RGB) -> () {
+    pub unsafe fn set_color(&mut self, coord: screen::Coord<isize>, rgb: RGB) -> () {
         let base_ptr: *mut u8 = self
             .ptr
             .offset((coord.y * self.x_len as isize + coord.x) * self.bits_per_pixel as isize / 8);
