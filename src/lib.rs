@@ -71,7 +71,7 @@ fn main_loop(
 }
 
 fn handle_keyboard_data() -> () {
-    let data: Option<i32> = interrupt::KEY_QUEUE.lock().dequeue();
+    let data: Option<u32> = interrupt::KEY_QUEUE.lock().dequeue();
 
     asm::sti();
 
@@ -97,7 +97,7 @@ fn handle_mouse_data(
     mouse_device: interrupt::mouse::Device,
     mouse_cursor: graphics::screen::MouseCursor,
 ) -> (interrupt::mouse::Device, graphics::screen::MouseCursor) {
-    let data: Option<i32> = interrupt::mouse::QUEUE.lock().dequeue();
+    let data: Option<u32> = interrupt::mouse::QUEUE.lock().dequeue();
 
     asm::sti();
 

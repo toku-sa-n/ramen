@@ -75,7 +75,12 @@ impl Screen {
     }
 
     // TODO: Specify top left coordinate and length, rather than two coordinates.
-    pub fn draw_rectangle(&mut self, color: RGB, top_left: Coord, bottom_right: Coord) -> () {
+    pub fn draw_rectangle(
+        &mut self,
+        color: RGB,
+        top_left: Coord<isize>,
+        bottom_right: Coord<isize>,
+    ) -> () {
         for y in top_left.y..=bottom_right.y {
             for x in top_left.x..=bottom_right.x {
                 unsafe {
@@ -86,17 +91,21 @@ impl Screen {
     }
 }
 
-// For now there is no need to implement type generic for Coord struct because struct Vram cannot
-// use Coord struct as it handles raw pointers.
 #[derive(Clone)]
-pub struct Coord {
-    pub x: isize,
-    pub y: isize,
+pub struct Coord<T> {
+    pub x: T,
+    pub y: T,
 }
 
-pub type TwoDimensionalVec = Coord;
+pub type TwoDimensionalVec<T> = Coord<T>;
 
-impl core::ops::Add for Coord {
+impl<T> Coord<T> {
+    pub fn new(x: T, y: T) -> Self {
+        Self { x, y }
+    }
+}
+
+impl<T: core::ops::Add<Output = T>> core::ops::Add for Coord<T> {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
@@ -107,11 +116,7 @@ impl core::ops::Add for Coord {
     }
 }
 
-impl Coord {
-    pub fn new(x: isize, y: isize) -> Self {
-        Self { x: x, y: y }
-    }
-
+impl<T: core::cmp::PartialOrd> Coord<T> {
     pub fn put_in(self, coord_1: Self, coord_2: Self) -> Self {
         let mut new_coord = self;
 
@@ -135,12 +140,12 @@ impl Coord {
 
 pub struct ScreenWrite {
     vram: Vram,
-    coord: Coord,
+    coord: Coord<isize>,
     color: RGB,
 }
 
 impl ScreenWrite {
-    pub fn new(vram: Vram, coord: Coord, color: RGB) -> Self {
+    pub fn new(vram: Vram, coord: Coord<isize>, color: RGB) -> Self {
         Self { vram, coord, color }
     }
 }
@@ -157,7 +162,7 @@ pub const MOUSE_CURSOR_WIDTH: usize = 16;
 pub const MOUSE_CURSOR_HEIGHT: usize = 16;
 
 pub struct MouseCursor {
-    coord: Coord,
+    coord: Coord<isize>,
 
     vram: Vram,
     image: [[RGB; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
@@ -189,12 +194,12 @@ impl MouseCursor {
         }
     }
 
-    pub fn draw_offset(self, offset: TwoDimensionalVec) -> Self {
+    pub fn draw_offset(self, offset: TwoDimensionalVec<isize>) -> Self {
         let new_coord = self.coord.clone() + offset;
         self.draw(new_coord)
     }
 
-    pub fn draw(mut self, coord: Coord) -> Self {
+    pub fn draw(mut self, coord: Coord<isize>) -> Self {
         self.remove_previous_cursor();
 
         let adjusted_coord = coord.put_in(
@@ -268,7 +273,7 @@ pub fn draw_desktop(vram: &Vram) -> () {
 
 fn print_char(
     vram: &mut Vram,
-    coord: Coord,
+    coord: Coord<isize>,
     color: RGB,
     font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT],
 ) -> () {
@@ -283,7 +288,7 @@ fn print_char(
     }
 }
 
-fn print_str(vram: &mut Vram, coord: &Coord, color: RGB, str: &str) -> () {
+fn print_str(vram: &mut Vram, coord: &Coord<isize>, color: RGB, str: &str) -> () {
     let mut char_x_pos = coord.x;
     for c in str.chars() {
         print_char(

@@ -73,11 +73,11 @@ pub fn init_keyboard() -> () {
 
 pub extern "C" fn interrupt_handler_21() -> () {
     asm::out8(PIC0_OCW2, 0x61);
-    KEY_QUEUE.lock().enqueue(asm::in8(PORT_KEYDATA) as i32);
+    KEY_QUEUE.lock().enqueue(asm::in8(PORT_KEYDATA));
 }
 
 pub extern "C" fn interrupt_handler_2c() -> () {
     asm::out8(PIC1_OCW2, 0x64);
     asm::out8(PIC0_OCW2, 0x62);
-    mouse::QUEUE.lock().enqueue(asm::in8(PORT_KEYDATA) as i32);
+    mouse::QUEUE.lock().enqueue(asm::in8(PORT_KEYDATA));
 }
