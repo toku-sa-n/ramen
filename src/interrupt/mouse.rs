@@ -34,7 +34,7 @@ impl MouseButtons {
 
 pub struct Device {
     data_from_device: [u32; 3],
-    phase: i32,
+    phase: u32,
 
     speed: graphics::screen::TwoDimensionalVec<i32>,
 
