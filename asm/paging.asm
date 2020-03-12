@@ -65,7 +65,7 @@
     CALL                map_entries
 
     ; Calculate the number of bytes of VRAM.
-    VRAM_BPP            EQU 0x0ff2
+    VRAM_BPP            EQU 0x0FF2
 
     ; This is equivalent to MOV EAX, 0.
     ; See https://stackoverflow.com/questions/33666617/what-is-the-best-way-to-set-a-register-to-zero-in-x86-assembly-xor-mov-or-and
@@ -77,7 +77,7 @@
     ; The unit of [VRAM_BPP] is pixel.
     SHR                 EAX, 3
 
-    VRAM_X              EQU 0x0ff4
+    VRAM_X              EQU 0x0FF4
     XOR                 EBX, EBX
     MOV                 BX, WORD[VRAM_X]
 
@@ -86,14 +86,14 @@
     ; This is why the codes don't touch EDX.
     MUL                 EBX
 
-    VRAM_Y              EQU 0x0ff6
+    VRAM_Y              EQU 0x0FF6
     XOR                 EBX, EBX
     MOV                 BX, WORD[VRAM_Y]
     MUL                 EBX
 
     MOV                 ECX, EAX
 
-    VRAM_PTR            EQU 0x0ff8
+    VRAM_PTR            EQU 0x0FF8
     MOV                 EAX, [VRAM_PTR]
 
     TABLE_VRAM          EQU TABLE_BELOW_1MB + SIZE_TABLE

@@ -1,10 +1,10 @@
     BOTPAK   EQU     0x00501000          ; bootpackのロード先
 
     ; BOOT_INFO関係
-    CYLS     EQU     0x0ff0              ; ブートセクタが設定する
-    LEDS     EQU     0x0ff1
+    CYLS     EQU     0x0FF0              ; ブートセクタが設定する
+    LEDS     EQU     0x0FF1
 
-    ORG      0xc200
+    ORG      0xC200
 
     %include "vbe.asm"
 
@@ -19,20 +19,20 @@
     ; こいつをCLI前にやっておかないと、たまにハングアップする
     ; PICの初期化はあとでやる
 
-    MOV      AL,0xff
+    MOV      AL,0xFF
     OUT      0x21,AL
     NOP                                  ; OUT命令を連続させるとうまくいかない機種があるらしいので
-    OUT      0xa1,AL
+    OUT      0xA1,AL
 
     CLI                                  ; さらにCPUレベルでも割り込み禁止
 
     ; CPUから1MB以上のメモリにアクセスできるように、A20GATEを設定
 
     CALL     waitkbdout
-    MOV      AL,0xd1
+    MOV      AL,0xD1
     OUT      0x64,AL
     CALL     waitkbdout
-    MOV      AL,0xdf                     ; enable A20
+    MOV      AL,0xDF                     ; enable A20
     OUT      0x60,AL
     CALL     waitkbdout
 
@@ -40,7 +40,7 @@
 
     LGDT     [GDTR0]                     ; 暫定GDTを設定
     MOV      EAX,CR0
-    AND      EAX,0x7fffffff              ; bit31を0にする（ページング禁止のため）
+    AND      EAX,0x7FFFFFFF              ; bit31を0にする（ページング禁止のため）
     OR       EAX,0x00000001              ; bit0を1にする（プロテクトモード移行のため）
     MOV      CR0,EAX
     JMP      CODE_SEGMENT:pipelineflush
@@ -68,7 +68,7 @@ pipelineflush:
 
     %include "paging.asm"
 
-    MOV      ESP,0xC00a0FFF                ; スタック初期値
+    MOV      ESP,0xC00A0FFF                ; スタック初期値
     JMP      0xC0000000
 
 waitkbdout:
@@ -91,9 +91,9 @@ memcpy:
 GDT0:
     TIMES    8 DB 0                      ; ヌルセレクタ
     DATA_SEGMENT    EQU 0x08
-    DW       0xffff,0x0000,0x9200,0x00cf ; 読み書き可能セグメント32bit
+    DW       0xFFFF,0x0000,0x9200,0x00CF ; 読み書き可能セグメント32bit
     CODE_SEGMENT    EQU 0x10
-    DW       0xffff,0x0000,0x9a00,0x00cf ; Executable 32bit
+    DW       0xFFFF,0x0000,0x9A00,0x00CF ; Executable 32bit
 
     DW       0
 GDTR0:

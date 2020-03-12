@@ -3,8 +3,8 @@
 use crate::asm;
 
 const VIRTUAL_ADDRESS_IDT: u32 = 0xC0080000;
-const LIMIT_INTERRUPT_DESCRIPTOR_TABLE: u32 = 0x000007ff;
-const ACCESS_RIGHT_IDT: u32 = 0x008e;
+const LIMIT_INTERRUPT_DESCRIPTOR_TABLE: u32 = 0x000007FF;
+const ACCESS_RIGHT_IDT: u32 = 0x008E;
 
 #[repr(C, packed)]
 struct GateDescriptor {
@@ -17,11 +17,11 @@ struct GateDescriptor {
 
 impl GateDescriptor {
     fn set_gate_descriptor(&mut self, offset: u32, selector: u16, access_right: u32) -> () {
-        (*self).offset_low = (offset & 0xffff) as u16;
+        (*self).offset_low = (offset & 0xFFFF) as u16;
         (*self).selector = selector;
-        (*self).dw_count = ((access_right >> 8) & 0xff) as u8;
-        (*self).access_right = (access_right & 0xff) as u8;
-        (*self).offset_high = ((offset >> 16) & 0xffff) as u16;
+        (*self).dw_count = ((access_right >> 8) & 0xFF) as u8;
+        (*self).access_right = (access_right & 0xFF) as u8;
+        (*self).offset_high = ((offset >> 16) & 0xFFFF) as u16;
     }
 }
 
@@ -60,7 +60,7 @@ fn set_interruption() {
             2 * 8,
             ACCESS_RIGHT_IDT,
         );
-        (*interrupt_descriptor_table.offset(0x2c)).set_gate_descriptor(
+        (*interrupt_descriptor_table.offset(0x2C)).set_gate_descriptor(
             interrupt_handler!(interrupt_handler_2c) as u32,
             2 * 8,
             ACCESS_RIGHT_IDT,

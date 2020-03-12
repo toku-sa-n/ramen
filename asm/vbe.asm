@@ -1,16 +1,16 @@
     VBE           EQU     0x9000
-    BPP           EQU     0x0ff2          ; 色数に関する情報。何ビットカラーか？
-    SCRNX         EQU     0x0ff4          ; 解像度のX
-    SCRNY         EQU     0x0ff6          ; 解像度のY
-    VRAM          EQU     0x0ff8          ; グラフィックバッファの開始番地
-    VBEMODE       EQU     0x0ffc          ; VBE mode number. word size
+    BPP           EQU     0x0FF2          ; 色数に関する情報。何ビットカラーか？
+    SCRNX         EQU     0x0FF4          ; 解像度のX
+    SCRNY         EQU     0x0FF6          ; 解像度のY
+    VRAM          EQU     0x0FF8          ; グラフィックバッファの開始番地
+    VBEMODE       EQU     0x0FFC          ; VBE mode number. word size
     VBE_INFO_SIZE EQU     0x0200
 
     ; Get VBE Info
     MOV           AX,VBE
     MOV           ES,AX
     MOV           DI,0
-    MOV           AX,0x4f00
+    MOV           AX,0x4F00
     INT           0x10
 
     ; Loop initialization
@@ -26,15 +26,15 @@ select_mode:
     MOV           FS,WORD[ES:VMODE_PTR+2]
     MOV           CX,WORD[FS:SI]
 
-    CMP           CX,0xffff
+    CMP           CX,0xFFFF
     JE            set_vbe
 
     ; Get VESA mode information.
-    MOV           AX,0x4f01
+    MOV           AX,0x4F01
 
     INT           0x10
 
-    CMP           AX,0x004f
+    CMP           AX,0x004F
     JNE           next_mode
 
     ; Check if this graphics mode supports linear frame buffer support.
@@ -89,7 +89,7 @@ next_mode:
     JMP           select_mode
 
 set_vbe:
-    MOV           AX,0x4f02
+    MOV           AX,0x4F02
     MOV           BX,WORD[VBEMODE]
     OR            BX,0x4000
     INT           0x10

@@ -2,7 +2,7 @@
     CYLS  EQU 10
 
     ; このプログラムが読み込まれる場所の指定
-    ORG   0x7c00
+    ORG   0x7C00
 
     ; FAT12のための記述
     JMP   entry
@@ -14,14 +14,14 @@
     DB    2                         ; FATの個数
     DW    224                       ; ルートディレクトリ領域の大きさ
     DW    2880                      ; このドライブの大きさ
-    DB    0xf0                      ; メディアのタイプ
+    DB    0xF0                      ; メディアのタイプ
     DW    9                         ; FAT領域の長さ
     DW    18                        ; 1トラックあたりのセクタの数
     DW    2                         ; ヘッドの数
     DD    0                         ; パーティション未使用
     DD    2880                      ; このドライブの大きさ
     DB    0,0,0x29
-    DD    0xffffffff                ; ボリュームシリアル番号
+    DD    0xFFFFFFFF                ; ボリュームシリアル番号
     DB    "MY-OS      "
     DB    "FAT12   "
     TIMES 18 DB 0
@@ -32,7 +32,7 @@ entry:
     ; レジスタ初期化
     MOV   AX,0
     MOV   SS,AX
-    MOV   SP,0x7c00
+    MOV   SP,0x7C00
     MOV   DS,AX
 
     ; ディスクの読み込み
@@ -76,8 +76,8 @@ next:
     CMP   CH,CYLS
     JB    readloop
 
-    MOV   [0x0ff0],CH
-    JMP   0xc200
+    MOV   [0x0FF0],CH
+    JMP   0xC200
 
 fin:
     HLT
@@ -92,15 +92,15 @@ putloop:
     ADD   SI,1
     CMP   AL,0
     JE    fin
-    MOV   AH,0x0e
+    MOV   AH,0x0E
     MOV   BX,15
     INT   0x10
     JMP   putloop
 
 msg:
-    DB    0x0a, 0x0a
+    DB    0x0A, 0x0A
     DB    "load error"
-    DB    0x0a
+    DB    0x0A
     DB    0
-    TIMES 0x7dfe-0x7c00-($-$$) DB 0
-    DB    0x55, 0xaa
+    TIMES 0x7DFE-0x7C00-($-$$) DB 0
+    DB    0x55, 0xAA
