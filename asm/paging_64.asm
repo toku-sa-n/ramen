@@ -61,6 +61,42 @@
     MOV                  ECX, BYTES_KERNEL + BYTES_IDT + BYTES_STACK
     CALL                 map_entries
 
+    ; Calculate bytes used by VRAM.
+    XOR                  EAX, EAX
+
+    VRAM_BPP             EQU 0x0FF2
+    MOV                  AL, [VRAM_BPP]
+    SHR                  AX, 3
+    XOR                  EBX, EBX
+
+    VRAM_X               EQU 0x0FF4
+    MOV                  BX, [VRAM_X]
+
+    ; The result of MUL instruction will be stored in EDX:EAX.
+    ; However, the resolution should be less than 2**32 = 4294967296.
+    ; The width of height must be less than 2**16 = 65536.
+    ; This is why this program won't touch EDX.
+    MUL                  EBX
+
+    VRAM_Y               EQU 0x0FF6
+    MOV                  BX, [VRAM_Y]
+    MUL                  EBX
+    MOV                  ECX, EAX
+
+    ; Add a PD entry and PT entries for VRAM.
+    VRAM_PTR             EQU 0x0FF8
+    MOV                  EAX, [VRAM_PTR]
+
+    ; *2 for IDT and stack PD entries.
+    PD_ENTRY_VRAM        EQU PD_KERNEL + SIZE_ENTRY * 2
+    MOV                  EDI, PD_ENTRY_VRAM
+
+    ; *2 for IDT and stack PTs.
+    PT_VRAM              EQU PT_KERNEL + BYTES_PT * 2
+    MOV                  EBX, PT_VRAM
+    CALL                 map_entries
+
+
     ; Switching to 64-bit mode
     ; Disable paging
     MOV                  EAX, CR0
@@ -184,3 +220,6 @@ end_map_to_single_table:
 
 switch_to_64bit:
     [BITS 64]
+
+    ; Replace pointer to the physical address of VRAM to the virtual one.
+    MOV                  QWORD[VRAM_PTR], 0xFFFFFFFF80400000
