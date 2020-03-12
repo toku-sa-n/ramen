@@ -65,7 +65,7 @@ impl Device {
             0 => (
                 false,
                 Self {
-                    phase: if data == 0xfa { 1 } else { 0 },
+                    phase: if data == 0xFA { 1 } else { 0 },
                     ..self
                 },
             ),
@@ -117,7 +117,7 @@ impl Device {
 
     // To sync phase, and data sent from mouse device
     fn is_correct_first_byte_from_device(data: u32) -> bool {
-        data & 0xc8 == 0x08
+        data & 0xC8 == 0x08
     }
 
     pub fn get_speed(&self) -> graphics::screen::Coord<isize> {

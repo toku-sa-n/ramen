@@ -11,12 +11,12 @@ const PIC0_IMR: u32 = 0x0021;
 const PIC0_ICW2: u32 = 0x0021;
 const PIC0_ICW3: u32 = 0x0021;
 const PIC0_ICW4: u32 = 0x0021;
-const PIC1_ICW1: u32 = 0x00a0;
-const PIC1_OCW2: u32 = 0x00a0;
-const PIC1_IMR: u32 = 0x00a1;
-const PIC1_ICW2: u32 = 0x00a1;
-const PIC1_ICW3: u32 = 0x00a1;
-const PIC1_ICW4: u32 = 0x00a1;
+const PIC1_ICW1: u32 = 0x00A0;
+const PIC1_OCW2: u32 = 0x00A0;
+const PIC1_IMR: u32 = 0x00A1;
+const PIC1_ICW2: u32 = 0x00A1;
+const PIC1_ICW3: u32 = 0x00A1;
+const PIC1_ICW4: u32 = 0x00A1;
 
 const PORT_KEYDATA: u32 = 0x0060;
 
@@ -25,8 +25,8 @@ const PORT_KEY_CMD: u32 = 0x0064;
 const KEY_STATUS_SEND_NOT_READY: u32 = 0x02;
 const KEY_CMD_WRITE_MODE: u32 = 0x60;
 const KEY_CMD_MODE: u32 = 0x47;
-const KEY_CMD_SEND_TO_MOUSE: u32 = 0xd4;
-const MOUSE_CMD_ENABLE: u32 = 0xf4;
+const KEY_CMD_SEND_TO_MOUSE: u32 = 0xD4;
+const MOUSE_CMD_ENABLE: u32 = 0xF4;
 
 lazy_static::lazy_static! {
     pub static ref KEY_QUEUE: spin::Mutex<queue::Queue> = spin::Mutex::new(queue::Queue::new());
@@ -34,8 +34,8 @@ lazy_static::lazy_static! {
 
 // See P.128.
 pub fn init_pic() -> () {
-    asm::out8(PIC0_IMR, 0xff);
-    asm::out8(PIC1_IMR, 0xff);
+    asm::out8(PIC0_IMR, 0xFF);
+    asm::out8(PIC1_IMR, 0xFF);
 
     asm::out8(PIC0_ICW1, 0x11);
     asm::out8(PIC0_ICW2, 0x20);
@@ -47,13 +47,13 @@ pub fn init_pic() -> () {
     asm::out8(PIC1_ICW3, 2);
     asm::out8(PIC1_ICW4, 0x01);
 
-    asm::out8(PIC0_IMR, 0xfb);
-    asm::out8(PIC1_IMR, 0xff);
+    asm::out8(PIC0_IMR, 0xFB);
+    asm::out8(PIC1_IMR, 0xFF);
 }
 
 pub fn set_init_pic_bits() -> () {
-    asm::out8(PIC0_IMR, 0xf9);
-    asm::out8(PIC1_IMR, 0xef);
+    asm::out8(PIC0_IMR, 0xF9);
+    asm::out8(PIC1_IMR, 0xEF);
 }
 
 fn wait_kbc_sendready() -> () {
