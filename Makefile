@@ -12,7 +12,7 @@ LD_SRC		:= os.ld
 IPL_FILE	:= $(BUILD_DIR)/ipl.asm.o
 HEAD_FILE	:= $(BUILD_DIR)/head.asm.o
 
-HEAD_DEPENDS:= $(ASM_DIR)/vbe.asm $(ASM_DIR)/paging.asm $(ASM_DIR)/paging_64.asm
+HEAD_DEPENDS:= $(ASM_DIR)/vbe.asm $(ASM_DIR)/paging_64.asm
 
 KERNEL_FILE	:= $(BUILD_DIR)/kernel.bin
 IMG_FILE	:= $(BUILD_DIR)/ramen_os.img

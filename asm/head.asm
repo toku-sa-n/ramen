@@ -66,8 +66,6 @@ pipelineflush:
 
     ; bootpackの起動
 
-    ;%include "paging.asm"
-
     %include "paging_64.asm"
 
     MOV      RSP,0xFFFFFFFF80082FFF                ; スタック初期値
