@@ -68,7 +68,7 @@ pipelineflush:
 
     %include "paging_64.asm"
 
-    MOV      RSP,0xFFFFFFFF80082FFF                ; スタック初期値
+    MOV      RSP,0xFFFFFFFF80083000                ; スタック初期値
 
     ; JMP 0xFFFFFFFF80000000 can't be executed.
     ; Jump to 64 bit immediate address is not supported.
