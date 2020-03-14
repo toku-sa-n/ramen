@@ -46,11 +46,11 @@ pub fn in8(port: u32) -> u32 {
 #[repr(C, packed)]
 struct GdtrIdtrData {
     _limit: i16,
-    _address: u32,
+    _address: u64,
 }
 
 impl GdtrIdtrData {
-    fn new(limit: i16, address: u32) -> Self {
+    fn new(limit: i16, address: u64) -> Self {
         Self {
             _limit: limit,
             _address: address,
@@ -58,7 +58,7 @@ impl GdtrIdtrData {
     }
 }
 
-pub fn load_interrupt_descriptor_table_register(limit: u32, address: u32) {
+pub fn load_interrupt_descriptor_table_register(limit: u32, address: u64) {
     unsafe {
         asm!("LIDT ($0)"::"r"(&GdtrIdtrData::new(limit as i16, address)));
     }
