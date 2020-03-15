@@ -95,7 +95,7 @@ macro_rules! interrupt_handler{
                     POP RDX
                     POP RCX
                     POP RAX
-                    IRETD"
+                    IRETQ"
                     ::::"intel","volatile"
                 );
             }
