@@ -194,6 +194,24 @@ impl MouseCursor {
         }
     }
 
+    pub fn print_coord(&self, coord: Coord<isize>) -> () {
+        let mut screen: Screen = Screen::new(self.vram.clone());
+
+        screen.draw_rectangle(
+            RGB::new(0x008484),
+            Coord::new(16, 32),
+            Coord::new(16 + 8 * 12 - 1, 32 + 15),
+        );
+
+        print_with_pos!(
+            coord,
+            RGB::new(0xFFFFFF),
+            "({}, {})",
+            self.coord.x,
+            self.coord.y
+        );
+    }
+
     pub fn draw_offset(self, offset: TwoDimensionalVec<isize>) -> Self {
         let new_coord = self.coord.clone() + offset;
         self.draw(new_coord)
