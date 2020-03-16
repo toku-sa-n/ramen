@@ -14,9 +14,9 @@ mod graphics;
 #[no_mangle]
 #[start]
 pub fn os_main() {
-    let mouse_device: interrupt::MouseDevice = interrupt::MouseDevice::new();
+    let mouse_device: interrupt::mouse::Device = interrupt::mouse::Device::new();
     let mut mouse_cursor: graphics::screen::MouseCursor = graphics::screen::MouseCursor::new(
-        graphics::screen::ColorIndex::Rgb008484,
+        graphics::RGB::new(0x008484),
         graphics::screen::MOUSE_GRAPHIC,
         graphics::Vram::new(),
     );
@@ -27,20 +27,19 @@ pub fn os_main() {
 }
 
 fn initialization(
-    mouse_device: &interrupt::MouseDevice,
+    mouse_device: &interrupt::mouse::Device,
     mouse_cursor: graphics::screen::MouseCursor,
 ) -> graphics::screen::MouseCursor {
     descriptor_table::init();
     interrupt::init_pic();
     asm::sti();
     let vram: graphics::Vram = graphics::Vram::new();
-    vram.init_palette();
 
     graphics::screen::draw_desktop(&vram);
 
     print_with_pos!(
         graphics::screen::Coord::new(16, 64),
-        graphics::screen::ColorIndex::RgbFFFFFF,
+        graphics::RGB::new(0xFFFFFF),
         "x_len = {}",
         vram.x_len
     );
@@ -53,14 +52,14 @@ fn initialization(
 }
 
 fn main_loop(
-    mut mouse_device: interrupt::MouseDevice,
+    mut mouse_device: interrupt::mouse::Device,
     mut mouse_cursor: graphics::screen::MouseCursor,
 ) -> () {
     loop {
         asm::cli();
         if interrupt::KEY_QUEUE.lock().size() != 0 {
             handle_keyboard_data();
-        } else if interrupt::MOUSE_QUEUE.lock().size() != 0 {
+        } else if interrupt::mouse::QUEUE.lock().size() != 0 {
             let (new_mouse_device, new_mouse_cursor) =
                 handle_mouse_data(mouse_device, mouse_cursor);
             mouse_device = new_mouse_device;
@@ -72,14 +71,14 @@ fn main_loop(
 }
 
 fn handle_keyboard_data() -> () {
-    let data: Option<i32> = interrupt::KEY_QUEUE.lock().dequeue();
+    let data: Option<u32> = interrupt::KEY_QUEUE.lock().dequeue();
 
     asm::sti();
 
-    let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
+    let mut screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
 
     screen.draw_rectangle(
-        graphics::screen::ColorIndex::Rgb008484,
+        graphics::RGB::new(0x008484),
         graphics::screen::Coord::new(0, 16),
         graphics::screen::Coord::new(15, 31),
     );
@@ -87,7 +86,7 @@ fn handle_keyboard_data() -> () {
     if let Some(data) = data {
         print_with_pos!(
             graphics::screen::Coord::new(0, 16),
-            graphics::screen::ColorIndex::RgbFFFFFF,
+            graphics::RGB::new(0xFFFFFF),
             "{:X}",
             data
         );
@@ -95,17 +94,17 @@ fn handle_keyboard_data() -> () {
 }
 
 fn handle_mouse_data(
-    mouse_device: interrupt::MouseDevice,
+    mouse_device: interrupt::mouse::Device,
     mouse_cursor: graphics::screen::MouseCursor,
-) -> (interrupt::MouseDevice, graphics::screen::MouseCursor) {
-    let data: Option<i32> = interrupt::MOUSE_QUEUE.lock().dequeue();
+) -> (interrupt::mouse::Device, graphics::screen::MouseCursor) {
+    let data: Option<u32> = interrupt::mouse::QUEUE.lock().dequeue();
 
     asm::sti();
 
-    let screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
+    let mut screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
 
     screen.draw_rectangle(
-        graphics::screen::ColorIndex::Rgb008484,
+        graphics::RGB::new(0x008484),
         graphics::screen::Coord::new(32, 16),
         graphics::screen::Coord::new(47, 31),
     );
@@ -122,6 +121,7 @@ fn handle_mouse_data(
     new_mouse_device.print_buf_data();
     let new_mouse_cursor: graphics::screen::MouseCursor =
         mouse_cursor.draw_offset(new_mouse_device.get_speed());
+    new_mouse_cursor.print_coord(graphics::screen::Coord::new(16, 32));
 
     (new_mouse_device, new_mouse_cursor)
 }

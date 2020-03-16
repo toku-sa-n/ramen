@@ -2,109 +2,53 @@
 
 use crate::asm;
 
-const ADDRESS_INTERRUPT_DESCRIPTOR_TABLE: i32 = 0x0026f800;
-const LIMIT_INTERRUPT_DESCRIPTOR_TABLE: i32 = 0x000007ff;
-const ADDRESS_GATE_DESCRIPTOR_TABLE: i32 = 0x00270000;
-const LIMIT_GATE_DESCRIPTOR_TABLE: i32 = 0x0000ffff;
-const ADDRESS_BOOTPACK: i32 = 0x00280000;
-const LIMIT_BOOTPACK: u32 = 0x0007ffff;
-const ADDRESS_SYSTEM_READ_WRITE: i32 = 0x4092;
-const ADDRESS_SYSTEM_READ_EXECUTE: i32 = 0x409a;
-const ADDRESS_INTERRUPT_GATE: i32 = 0x008e;
-
-#[repr(C, packed)]
-struct SegmentDescriptor {
-    limit_low: i16,
-    base_low: i16,
-    base_mid: i8,
-    access_right: i8,
-    limit_high: i8,
-    base_high: i8,
-}
-
-impl SegmentDescriptor {
-    fn set_segment_descriptor(&mut self, mut limit: u32, base: i32, mut access_right: i32) -> () {
-        if limit > 0xfffff {
-            access_right |= 0x8000;
-            limit /= 0x1000;
-        }
-
-        (*self).limit_low = (limit & 0xffff) as i16;
-        (*self).base_low = (base & 0xffff) as i16;
-        (*self).base_mid = ((base >> 16) & 0xff) as i8;
-        (*self).access_right = (access_right & 0xff) as i8;
-        (*self).limit_high = (((limit >> 16) & 0x0f) as i32 | ((access_right >> 8) & 0xf0)) as i8;
-        (*self).base_high = ((base >> 24) & 0xff) as i8;
-    }
-}
+const VIRTUAL_ADDRESS_IDT: u64 = 0xFFFFFFFF80080000;
+const LIMIT_INTERRUPT_DESCRIPTOR_TABLE: u32 = 0x000007FF;
+const ACCESS_RIGHT_IDT: u32 = 0x008E;
 
 #[repr(C, packed)]
 struct GateDescriptor {
-    offset_low: i16,
-    selector: i16,
-    dw_count: i8,
-    access_right: i8,
-    offset_high: i16,
+    offset_low: u16,
+    selector: u16,
+    dw_count: u8,
+    access_right: u8,
+    offset_mid: u16,
+    offset_high: u32,
+    reserved: u32,
 }
 
 impl GateDescriptor {
-    fn set_gate_descriptor(&mut self, offset: i32, selector: i32, access_right: i32) -> () {
-        (*self).offset_low = (offset & 0xffff) as i16;
-        (*self).selector = selector as i16;
-        (*self).dw_count = ((access_right >> 8) & 0xff) as i8;
-        (*self).access_right = (access_right & 0xff) as i8;
-        (*self).offset_high = ((offset >> 16) & 0xffff) as i16;
+    fn set_gate_descriptor(&mut self, offset: u64, selector: u16, access_right: u32) -> () {
+        (*self).offset_low = (offset & 0xFFFF) as u16;
+        (*self).selector = selector;
+        (*self).dw_count = ((access_right >> 8) & 0xFF) as u8;
+        (*self).access_right = (access_right & 0xFF) as u8;
+        (*self).offset_mid = ((offset >> 16) & 0xFFFF) as u16;
+        (*self).offset_high = ((offset >> 32) & 0xFFFFFFFF) as u32;
+        (*self).reserved = 0;
     }
 }
 
 pub fn init() -> () {
-    init_gdt();
     init_idt();
     set_interruption();
 }
 
-fn init_gdt() -> () {
-    let global_descriptor_table: *mut SegmentDescriptor =
-        ADDRESS_GATE_DESCRIPTOR_TABLE as *mut SegmentDescriptor;
-
-    for i in 0..=(LIMIT_GATE_DESCRIPTOR_TABLE / 8) {
-        unsafe {
-            (*global_descriptor_table.offset(i as isize)).set_segment_descriptor(0, 0, 0);
-        }
-    }
-    unsafe {
-        (*global_descriptor_table.offset(1)).set_segment_descriptor(
-            0xffffffff,
-            0x00000000,
-            ADDRESS_SYSTEM_READ_WRITE,
-        );
-
-        (*global_descriptor_table.offset(2)).set_segment_descriptor(
-            LIMIT_BOOTPACK,
-            ADDRESS_BOOTPACK,
-            ADDRESS_SYSTEM_READ_EXECUTE,
-        );
-    }
-
-    asm::load_global_descriptor_table_register(
-        LIMIT_GATE_DESCRIPTOR_TABLE,
-        ADDRESS_GATE_DESCRIPTOR_TABLE,
-    );
-}
-
 fn init_idt() -> () {
     let interrupt_descriptor_table: *mut GateDescriptor =
-        ADDRESS_INTERRUPT_DESCRIPTOR_TABLE as *mut GateDescriptor;
+        VIRTUAL_ADDRESS_IDT as *mut GateDescriptor;
 
-    for i in 0..=(LIMIT_INTERRUPT_DESCRIPTOR_TABLE / 8) {
+    const SIZE_IDT_ENTRY: u32 = 16;
+    for i in 0..=(LIMIT_INTERRUPT_DESCRIPTOR_TABLE / SIZE_IDT_ENTRY) {
         unsafe {
             (*interrupt_descriptor_table.offset(i as isize)).set_gate_descriptor(0, 0, 0);
         }
     }
 
+    // LDIT instruction takes PHYSICAL address of idt.
     asm::load_interrupt_descriptor_table_register(
         LIMIT_INTERRUPT_DESCRIPTOR_TABLE,
-        ADDRESS_INTERRUPT_DESCRIPTOR_TABLE,
+        VIRTUAL_ADDRESS_IDT,
     );
 }
 
@@ -114,17 +58,17 @@ fn set_interruption() {
     use crate::interrupt_handler;
 
     let interrupt_descriptor_table: *mut GateDescriptor =
-        ADDRESS_INTERRUPT_DESCRIPTOR_TABLE as *mut GateDescriptor;
+        VIRTUAL_ADDRESS_IDT as *mut GateDescriptor;
     unsafe {
         (*interrupt_descriptor_table.offset(0x21)).set_gate_descriptor(
-            interrupt_handler!(interrupt_handler_21) as i32,
-            2 * 8,
-            ADDRESS_INTERRUPT_GATE,
+            interrupt_handler!(interrupt_handler_21) as u64,
+            3 * 8,
+            ACCESS_RIGHT_IDT,
         );
-        (*interrupt_descriptor_table.offset(0x2c)).set_gate_descriptor(
-            interrupt_handler!(interrupt_handler_2c) as i32,
-            2 * 8,
-            ADDRESS_INTERRUPT_GATE,
+        (*interrupt_descriptor_table.offset(0x2C)).set_gate_descriptor(
+            interrupt_handler!(interrupt_handler_2c) as u64,
+            3 * 8,
+            ACCESS_RIGHT_IDT,
         );
     }
 }

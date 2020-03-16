@@ -19,29 +19,13 @@ pub fn stihlt() -> () {
     }
 }
 
-pub fn load_eflags() -> i32 {
-    let result: i32;
-    unsafe {
-        asm!("PUSHFD
-              POP EAX":"={EAX}"(result):::"intel");
-    }
-    result
-}
-
-pub fn store_eflags(eflags: i32) -> () {
-    unsafe {
-        asm!("PUSH EAX
-              POPFD"::"EAX"(eflags)::"intel");
-    }
-}
-
 pub fn cli() -> () {
     unsafe {
         asm!("cli"::::"intel");
     }
 }
 
-pub fn out8(port: i32, data: i32) -> () {
+pub fn out8(port: u32, data: u32) -> () {
     unsafe {
         asm!("OUT DX,AL"::"{DX}"(port),"{AL}"(data)::"intel");
     }
@@ -49,8 +33,8 @@ pub fn out8(port: i32, data: i32) -> () {
 
 // It might be true that the first line can be deleted because the lower bits of EDX are DX
 // itself.
-pub fn in8(port: i32) -> i32 {
-    let result: i32;
+pub fn in8(port: u32) -> u32 {
+    let result: u32;
     unsafe {
         asm!("MOV EDX,$0"::"r"(port)::"intel");
         asm!("MOV EAX,0"::::"intel");
@@ -62,11 +46,11 @@ pub fn in8(port: i32) -> i32 {
 #[repr(C, packed)]
 struct GdtrIdtrData {
     _limit: i16,
-    _address: i32,
+    _address: u64,
 }
 
 impl GdtrIdtrData {
-    fn new(limit: i16, address: i32) -> Self {
+    fn new(limit: i16, address: u64) -> Self {
         Self {
             _limit: limit,
             _address: address,
@@ -74,13 +58,7 @@ impl GdtrIdtrData {
     }
 }
 
-pub fn load_global_descriptor_table_register(limit: i32, address: i32) {
-    unsafe {
-        asm!("LGDT ($0)"::"r"(&GdtrIdtrData::new(limit as i16, address)));
-    }
-}
-
-pub fn load_interrupt_descriptor_table_register(limit: i32, address: i32) {
+pub fn load_interrupt_descriptor_table_register(limit: u32, address: u64) {
     unsafe {
         asm!("LIDT ($0)"::"r"(&GdtrIdtrData::new(limit as i16, address)));
     }
@@ -92,25 +70,32 @@ macro_rules! interrupt_handler{
     ($function_name:ident)=>{{
         #[naked]
         pub extern "C" fn handler_wrapper() -> () {
+            // In 64-bit mode, ES, DS, and SS segment registers are not used.
+            // It's not necessary to push these registers.
             unsafe{
                 asm!("
-                    PUSH ES
-                    PUSH DS
-                    PUSHAD
-                    MOV EAX,ESP
-                    PUSH EAX
-                    MOV AX,SS
-                    MOV DS,AX
-                    MOV ES,AX"
+                    PUSH RAX
+                    PUSH RCX
+                    PUSH RDX
+                    PUSH RBX
+                    PUSH RSP
+                    PUSH RBP
+                    PUSH RSI
+                    PUSH RDI
+                    "
                     ::::"intel","volatile"
                 );
                 asm!("CALL $0"::"r"($function_name as extern "C"  fn()->())::"intel");
                 asm!("
-                    POP EAX
-                    POPAD
-                    POP DS
-                    POP ES
-                    IRETD"
+                    POP RDI
+                    POP RSI
+                    POP RBP
+                    POP RSP
+                    POP RBX
+                    POP RDX
+                    POP RCX
+                    POP RAX
+                    IRETQ"
                     ::::"intel","volatile"
                 );
             }
