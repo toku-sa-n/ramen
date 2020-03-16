@@ -121,6 +121,7 @@ fn handle_mouse_data(
     new_mouse_device.print_buf_data();
     let new_mouse_cursor: graphics::screen::MouseCursor =
         mouse_cursor.draw_offset(new_mouse_device.get_speed());
+    new_mouse_cursor.print_coord(graphics::screen::Coord::new(16, 32));
 
     (new_mouse_device, new_mouse_cursor)
 }

@@ -37,7 +37,7 @@ impl Vram {
             bits_per_pixel: unsafe { *(0x0FF2 as *const i8) },
             x_len: unsafe { *(0x0FF4 as *const i16) },
             y_len: unsafe { *(0x0FF6 as *const i16) },
-            ptr: unsafe { &mut *(*(0x0FF8 as *const i32) as *mut u8) },
+            ptr: unsafe { *(0x0FF8 as *const i64) as *mut u8 },
             rgb_table: [
                 [0x00, 0x00, 0x00],
                 [0xFF, 0x00, 0x00],

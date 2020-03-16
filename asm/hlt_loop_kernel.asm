@@ -1,3 +1,4 @@
+    [BITS 64]
     EXTERN os_main
 
 os_main:

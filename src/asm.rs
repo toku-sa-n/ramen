@@ -46,11 +46,11 @@ pub fn in8(port: u32) -> u32 {
 #[repr(C, packed)]
 struct GdtrIdtrData {
     _limit: i16,
-    _address: u32,
+    _address: u64,
 }
 
 impl GdtrIdtrData {
-    fn new(limit: i16, address: u32) -> Self {
+    fn new(limit: i16, address: u64) -> Self {
         Self {
             _limit: limit,
             _address: address,
@@ -58,7 +58,7 @@ impl GdtrIdtrData {
     }
 }
 
-pub fn load_interrupt_descriptor_table_register(limit: u32, address: u32) {
+pub fn load_interrupt_descriptor_table_register(limit: u32, address: u64) {
     unsafe {
         asm!("LIDT ($0)"::"r"(&GdtrIdtrData::new(limit as i16, address)));
     }
@@ -70,25 +70,32 @@ macro_rules! interrupt_handler{
     ($function_name:ident)=>{{
         #[naked]
         pub extern "C" fn handler_wrapper() -> () {
+            // In 64-bit mode, ES, DS, and SS segment registers are not used.
+            // It's not necessary to push these registers.
             unsafe{
                 asm!("
-                    PUSH ES
-                    PUSH DS
-                    PUSHAD
-                    MOV EAX,ESP
-                    PUSH EAX
-                    MOV AX,SS
-                    MOV DS,AX
-                    MOV ES,AX"
+                    PUSH RAX
+                    PUSH RCX
+                    PUSH RDX
+                    PUSH RBX
+                    PUSH RSP
+                    PUSH RBP
+                    PUSH RSI
+                    PUSH RDI
+                    "
                     ::::"intel","volatile"
                 );
                 asm!("CALL $0"::"r"($function_name as extern "C"  fn()->())::"intel");
                 asm!("
-                    POP EAX
-                    POPAD
-                    POP DS
-                    POP ES
-                    IRETD"
+                    POP RDI
+                    POP RSI
+                    POP RBP
+                    POP RSP
+                    POP RBX
+                    POP RDX
+                    POP RCX
+                    POP RAX
+                    IRETQ"
                     ::::"intel","volatile"
                 );
             }

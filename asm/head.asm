@@ -66,11 +66,16 @@ pipelineflush:
 
     ; bootpackの起動
 
-    %include "paging.asm"
+    %include "paging_64.asm"
 
-    MOV      ESP,0xC00A0FFF                ; スタック初期値
-    JMP      0xC0000000
+    MOV      RSP,0xFFFFFFFF800a1000                ; スタック初期値
 
+    ; JMP 0xFFFFFFFF80000000 can't be executed.
+    ; Jump to 64 bit immediate address is not supported.
+    MOV      RDI,0xFFFFFFFF80000000
+    JMP      RDI
+
+    [BITS 32]
 waitkbdout:
     IN       AL,0x64
     AND      AL,0x02
@@ -94,11 +99,13 @@ GDT0:
     DW       0xFFFF,0x0000,0x9200,0x00CF ; 読み書き可能セグメント32bit
     CODE_SEGMENT    EQU 0x10
     DW       0xFFFF,0x0000,0x9A00,0x00CF ; Executable 32bit
+    DW       0xFFFF,0x0000,0x9A00,0x00AF ; Executable 64bit
 
     DW       0
 GDTR0:
-    DW       8*3-1
+    DW       8*4-1
     DD       GDT0
 
-    ALIGNB   16
+    ALIGNB   16, DB 0
+    [BITS 64]
 bootpack:
