@@ -9,21 +9,11 @@
     ; |0x00106000  |PT   for kernel, IDT and stack      |
     ; |0x00107000 ~|PT   for VRAM.                      |
 
-    ; Initialize PML4
-    XOR                  EAX, EAX
-
     PML4                 EQU 0x00100000
-    MOV                  EDI, PML4
-
-    ; 1 PML4, 2 PDPT, 2PD and 2PT
     BYTES_PML4           EQU 0x1000
     BYTES_PDPT           EQU 0x1000
     BYTES_PD             EQU 0x1000
     BYTES_PT             EQU 0x1000
-    NUM_ALL_ENTRIES      EQU BYTES_PML4 + 2 * BYTES_PDPT + 2 * BYTES_PD + 2 * BYTES_PT
-    MOV                  ECX, NUM_ALL_ENTRIES
-
-    REP                  STOSD
 
     ; Add a PML4 entry for below 1MB
     PDPT_BELOW_1MB       EQU PML4 + BYTES_PML4
