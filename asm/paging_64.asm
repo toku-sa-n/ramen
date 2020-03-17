@@ -87,12 +87,10 @@
     VRAM_PTR             EQU 0x0FF8
     MOV                  EAX, [VRAM_PTR]
 
-    ; *2 for IDT and stack PD entries.
-    PD_ENTRY_VRAM        EQU PD_KERNEL + SIZE_ENTRY * 2
+    PD_ENTRY_VRAM        EQU PD_KERNEL + SIZE_ENTRY
     MOV                  EDI, PD_ENTRY_VRAM
 
-    ; *2 for IDT and stack PTs.
-    PT_VRAM              EQU PT_KERNEL + BYTES_PT * 2
+    PT_VRAM              EQU PT_KERNEL + BYTES_PT
     MOV                  EBX, PT_VRAM
     CALL                 map_entries
 
@@ -222,4 +220,4 @@ switch_to_64bit:
     [BITS 64]
 
     ; Replace pointer to the physical address of VRAM to the virtual one.
-    MOV                  QWORD[VRAM_PTR], 0xFFFFFFFF80400000
+    MOV                  QWORD[VRAM_PTR], 0xFFFFFFFF80200000
