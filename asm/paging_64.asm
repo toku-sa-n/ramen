@@ -1,3 +1,14 @@
+    ; |Address     |Conversion table                    |
+    ; |------------|------------------------------------|
+    ; |0x00100000  |PML4                                |
+    ; |0x00101000  |PDPT for below 1MB                  |
+    ; |0x00102000  |PD   for below 1MB                  |
+    ; |0x00103000  |PT   for below 1MB                  |
+    ; |0x00104000  |PDPT for kernel, IDT, stack and VRAM|
+    ; |0x00105000  |PD   for kernel, IDT, stack and VRAM|
+    ; |0x00106000  |PT   for kernel, IDT and stack      |
+    ; |0x00107000 ~|PT   for VRAM.                      |
+
     ; Initialize PML4
     XOR                  EAX, EAX
 
