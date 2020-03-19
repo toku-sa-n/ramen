@@ -4,6 +4,7 @@ Cargo.lock
 tags
 build
 **/*.swp
+**/*.efi
 
 
 #Added by cargo
