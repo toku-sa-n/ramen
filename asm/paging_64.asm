@@ -49,7 +49,7 @@
 
     ; Add a PD entry and PT entries for kernel, IDT and stack.
     ; These three elements are located successively.
-    ADDRESS_KERNEL       EQU 0x00501000
+    ADDRESS_KERNEL       EQU 0x00200000
     MOV                  EAX, ADDRESS_KERNEL
 
     PT_KERNEL            EQU PD_KERNEL + BYTES_PD

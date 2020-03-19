@@ -1,4 +1,4 @@
-    BOTPAK   EQU     0x00501000          ; bootpackのロード先
+    BOTPAK   EQU     0x00200000          ; bootpackのロード先
 
     ; BOOT_INFO関係
     CYLS     EQU     0x0FF0              ; ブートセクタが設定する
