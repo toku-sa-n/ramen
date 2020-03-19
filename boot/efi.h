@@ -1,3 +1,6 @@
+#ifndef BOOT_EFI
+#define BOOT_EFI
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -698,3 +701,5 @@ typedef struct {
     EFI_MEMORY_TYPE ImageDataType;
     EFI_IMAGE_UNLOAD Unload;
 } EFI_LOADED_IMAGE_PROTOCOL;
+
+#endif
