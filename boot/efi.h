@@ -1,5 +1,8 @@
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
+
+#include "efi_guid.h"
 
 #define IN
 #define OUT
@@ -16,12 +19,16 @@ typedef VOID* EFI_EVENT;
 
 typedef unsigned short CHAR16;
 typedef int16_t INT16;
+typedef int64_t INT64;
 typedef uint8_t UINT8;
 typedef uint16_t UINT16;
 typedef uint64_t UINT64;
 typedef uint32_t UINT32;
+typedef INT64 INTN;
 typedef UINT64 UINTN;
 typedef UINTN EFI_STATUS;
+
+#define EFI_ERROR(STATUS) (((INTN)(STATUS)) < 0)
 
 typedef struct {
     UINT64 Signature;
@@ -568,3 +575,126 @@ typedef struct {
     UINTN NumberOfTableEntries;
     EFI_CONFIGURATION_TABLE* ConfigurationTable;
 } EFI_SYSTEM_TABLE;
+
+typedef struct _EFI_SIMPLE_FILE_SYSTEM_PROTOCOL EFI_SIMPLE_FILE_SYSTEM_PROTOCOL;
+
+typedef struct _EFI_FILE_PROTOCOL EFI_FILE_PROTOCOL;
+
+typedef EFI_STATUS(EFIAPI* EFI_FILE_OPEN)(
+    IN EFI_FILE_PROTOCOL* This,
+    OUT EFI_FILE_PROTOCOL** NewHandle,
+    IN CHAR16* FileName,
+    IN UINT64 OpenMode,
+    IN UINT64 Attributes);
+
+typedef EFI_STATUS(EFIAPI* EFI_FILE_CLOSE)(
+    IN EFI_FILE_PROTOCOL* This);
+
+typedef EFI_STATUS(EFIAPI* EFI_FILE_DELETE)(
+    IN EFI_FILE_PROTOCOL* This);
+
+typedef EFI_STATUS(EFIAPI* EFI_FILE_READ)(
+    IN EFI_FILE_PROTOCOL* This,
+    IN OUT UINTN* BufferSize,
+    OUT VOID* Buffer);
+
+typedef EFI_STATUS(EFIAPI* EFI_FILE_WRITE)(
+    IN EFI_FILE_PROTOCOL* This,
+    IN OUT UINTN* BufferSize,
+    IN VOID* Buffer);
+
+typedef EFI_STATUS(EFIAPI* EFI_FILE_GET_POSITION)(
+    IN EFI_FILE_PROTOCOL* This,
+    OUT UINT64* Position);
+
+typedef EFI_STATUS(EFIAPI* EFI_FILE_SET_POSITION)(
+    IN EFI_FILE_PROTOCOL* This,
+    IN UINT64 Position);
+
+typedef EFI_STATUS(EFIAPI* EFI_FILE_GET_INFO)(
+    IN EFI_FILE_PROTOCOL* This,
+    IN EFI_GUID* InformationType,
+    IN OUT UINTN* BufferSize,
+    OUT VOID* Buffer);
+
+typedef EFI_STATUS(EFIAPI* EFI_FILE_SET_INFO)(
+    IN EFI_FILE_PROTOCOL* This,
+    IN EFI_GUID* InformationType,
+    IN UINTN BufferSize,
+    IN VOID* Buffer);
+
+typedef EFI_STATUS(EFIAPI* EFI_FILE_FLUSH)(
+    IN EFI_FILE_PROTOCOL* This);
+
+typedef struct {
+    EFI_EVENT Event;
+    EFI_STATUS Status;
+    UINTN BufferSize;
+    VOID* Buffer;
+} EFI_FILE_IO_TOKEN;
+
+typedef EFI_STATUS(EFIAPI* EFI_FILE_OPEN_EX)(
+    IN EFI_FILE_PROTOCOL* This,
+    OUT EFI_FILE_PROTOCOL** NewHandle,
+    IN CHAR16* FileName,
+    IN UINT64 OpenMode,
+    IN UINT64 Attributes,
+    IN OUT EFI_FILE_IO_TOKEN* Token);
+
+typedef EFI_STATUS(EFIAPI* EFI_FILE_READ_EX)(
+    IN EFI_FILE_PROTOCOL* This,
+    IN OUT EFI_FILE_IO_TOKEN* Token);
+
+typedef EFI_STATUS(EFIAPI* EFI_FILE_WRITE_EX)(
+    IN EFI_FILE_PROTOCOL* This,
+    IN OUT EFI_FILE_IO_TOKEN* Token);
+
+typedef EFI_STATUS(EFIAPI* EFI_FILE_FLUSH_EX)(
+    IN EFI_FILE_PROTOCOL* This,
+    IN OUT EFI_FILE_IO_TOKEN* Token);
+
+typedef struct _EFI_FILE_PROTOCOL {
+    UINT64 Revision;
+    EFI_FILE_OPEN Open;
+    EFI_FILE_CLOSE Close;
+    EFI_FILE_DELETE Delete;
+    EFI_FILE_READ Read;
+    EFI_FILE_WRITE Write;
+    EFI_FILE_GET_POSITION GetPosition;
+    EFI_FILE_SET_POSITION SetPosition;
+    EFI_FILE_GET_INFO GetInfo;
+    EFI_FILE_SET_INFO SetInfo;
+    EFI_FILE_FLUSH Flush;
+    EFI_FILE_OPEN_EX OpenEx;
+    EFI_FILE_READ_EX ReadEx;
+    EFI_FILE_WRITE_EX WriteEx;
+    EFI_FILE_FLUSH_EX FlushEx;
+} EFI_FILE_PROTOCOL;
+
+typedef EFI_STATUS(EFIAPI* EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_OPEN_VOLUME)(
+    IN EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* This,
+    OUT EFI_FILE_PROTOCOL** Root);
+
+typedef struct _EFI_SIMPLE_FILE_SYSTEM_PROTOCOL {
+    UINT64 Revision;
+    EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_OPEN_VOLUME OpenVolume;
+} EFI_SIMPLE_FILE_SYSTEM_PROTOCOL;
+
+typedef struct {
+    UINT32 Revision;
+    EFI_HANDLE ParentHandle;
+    EFI_SYSTEM_TABLE* SystemTable;
+
+    EFI_HANDLE DeviceHandle;
+    EFI_DEVICE_PATH_PROTOCOL* FilePath;
+    VOID* Reserved;
+
+    UINT32 LoadOptionsSize;
+    VOID* LoadOptions;
+
+    VOID* ImageBase;
+    UINT64 ImageSize;
+    EFI_MEMORY_TYPE ImageCodeType;
+    EFI_MEMORY_TYPE ImageDataType;
+    EFI_IMAGE_UNLOAD Unload;
+} EFI_LOADED_IMAGE_PROTOCOL;
