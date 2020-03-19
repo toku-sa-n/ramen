@@ -3,6 +3,8 @@
 static EFI_GUID kEfiLoadedImageProtocolGuid = EFI_LOADED_IMAGE_PROTOCOL_GUID;
 static EFI_GUID kEfiSimpleFileSystemProtocolGuid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
 
+static EFI_PHYSICAL_ADDRESS kPhysicalAddressOS = 0x00100000;
+
 // 0x00100000 ~ 0x002FFFFF will be used by OS.
 // (Strictly speaking, the range is much narrower.)
 // Needed page number is 2MB / 4KB = 256 * 2;
@@ -38,6 +40,12 @@ EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* System
 
     if (EFI_ERROR(PrepareFilesystem(ImageHandle, SystemTable, efi_file_system))) {
         return 0;
+    }
+
+    if (EFI_ERROR(SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, kNumPagesForOS, &kPhysicalAddressOS))) {
+        SystemTable->ConOut->OutputString(SystemTable->ConOut, (CHAR16*)L"Failed to allocate memory for OS.");
+        while (1)
+            ;
     }
 
     SystemTable->ConOut->OutputString(SystemTable->ConOut, (CHAR16*)L"Hello World!\r\n");
