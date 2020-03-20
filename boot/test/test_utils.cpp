@@ -22,7 +22,7 @@ bool TestOSVSPrintf(int& num_test, int& num_success, const char* format, ...)
 
     va_start(ap, format);
     char os_buf[kBufferSize] = { '\0' };
-    int os_count = OSVSPrintf(os_buf, format, ap);
+    int os_count = OSVSPrintf<char>(os_buf, format, ap);
     va_end(ap);
 
     va_start(ap, format);

@@ -69,23 +69,71 @@ int Queue<QueueSize>::Dequeue()
     return data;
 }
 
+int IntToChars(char** str, int n, int base, bool zero_flag, int digits_num);
+
 template <unsigned QueueSize>
 int Queue<QueueSize>::GetNumElements()
 {
     return QueueSize - num_free_;
 }
 
-///
-/// @brief sprintf function for my cpp os
-/// @details This function supports these format specifiers: %%d, %%X, %%c
-///
-int OSSPrintf(char* str, const char* format, ...);
+template <typename T>
+int OSVSPrintf(T* str, const T* format, va_list ap)
+{
+    int count = 0;
 
-///
-/// @brief vsprintf function for my cpp os
-/// @details This function supports these format specifiers: %%d, %%X, %%c
-///
-int OSVSPrintf(char* str, const char* format, va_list ap);
+    while (*format != '\0') {
+        if (*format != '%') {
+            *str++ = *format++;
+            count++;
+            continue;
+        }
+
+        format++; // format points '%' so move it by 1.
+
+        bool zero_flag = false;
+        if (*format == '0') {
+            zero_flag = true;
+        }
+
+        int digits_num = 0;
+        while (*format >= '0' && *format <= '9') {
+            digits_num *= 10;
+            digits_num += *format++ - '0';
+        }
+
+        switch (*format) {
+        case 'd':
+            count += IntToChars(&str, va_arg(ap, int), 10, zero_flag, digits_num);
+            break;
+        case 'X':
+            count += IntToChars(&str, va_arg(ap, int), 16, zero_flag, digits_num);
+            break;
+        case 'c':
+            // Do not va_arg(ap, char). This causes a runtime error.
+            count++;
+            *str++ = va_arg(ap, int);
+            break;
+        }
+        format++;
+    }
+
+    *str = '\0';
+    return count;
+}
+
+template <typename T>
+int OSSPrintf(T* str, const T* format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+
+    int count = OSVSPrintf<T>(str, format, ap);
+
+    va_end(ap);
+
+    return count;
+}
 
 ///
 /// @brief Fit a value between two values.
