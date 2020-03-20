@@ -25,4 +25,12 @@
         }                                                  \
     }
 
+#define EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID                  \
+    {                                                      \
+        0x9042A9DE, 0x23DC, 0x4A38,                        \
+        {                                                  \
+            0x96, 0xFB, 0x7A, 0xDE, 0xD0, 0x80, 0x51, 0x6A \
+        }                                                  \
+    }
+
 #endif
