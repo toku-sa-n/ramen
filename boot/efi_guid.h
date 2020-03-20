@@ -17,4 +17,12 @@
         }                                                  \
     }
 
+#define EFI_EDID_DISCOVERED_PROTOCOL_GUID                  \
+    {                                                      \
+        0x1C0C34F6, 0xD380, 0x41FA,                        \
+        {                                                  \
+            0xA0, 0x49, 0x8A, 0xD0, 0x6C, 0x1A, 0x66, 0xAA \
+        }                                                  \
+    }
+
 #endif
