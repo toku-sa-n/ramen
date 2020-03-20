@@ -33,6 +33,19 @@ EFI_STATUS PrepareFilesystem(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* Sys
     return EFI_SUCCESS;
 }
 
+void Print(IN EFI_SYSTEM_TABLE* SystemTable, IN CHAR16* str)
+{
+    while (*str) {
+        if (*str == '\n') {
+            SystemTable->ConOut->OutputString(SystemTable->ConOut, (CHAR16*)L"\r\n");
+        } else {
+            CHAR16 temp[2] = { *str, '\0' };
+            SystemTable->ConOut->OutputString(SystemTable->ConOut, temp);
+        }
+        str++;
+    }
+}
+
 EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable)
 {
     // Prepare a filesystem.
@@ -44,7 +57,7 @@ EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* System
 
     // Allocate memory.
     if (EFI_ERROR(SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, kNumPagesForOS, &kPhysicalAddressOS))) {
-        SystemTable->ConOut->OutputString(SystemTable->ConOut, (CHAR16*)L"Failed to allocate memory for OS.");
+        Print(SystemTable, (CHAR16*)L"Failed to allocate memory for OS.\n");
         while (1)
             ;
     }
@@ -52,11 +65,11 @@ EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* System
     // Open kernel file.
     EFI_FILE_PROTOCOL* kernel_handle = NULL;
     if (EFI_ERROR(efi_file_system->Open(efi_file_system, &kernel_handle, (CHAR16*)L"ramen_os.sys", EFI_FILE_MODE_READ, 0))) {
-        SystemTable->ConOut->OutputString(SystemTable->ConOut, (CHAR16*)L"Could not open kernel file.");
+        Print(SystemTable, (CHAR16*)L"Could not open kernel file.\n");
     }
 
-    SystemTable->ConOut->OutputString(SystemTable->ConOut, (CHAR16*)L"Hello World!\r\n");
-    SystemTable->ConOut->OutputString(SystemTable->ConOut, (CHAR16*)L"Make America Great Again!\r\n");
+    Print(SystemTable, (CHAR16*)L"Hello World!\n");
+    Print(SystemTable, (CHAR16*)L"Make America Great Again!\n");
     while (1)
         ;
     return EFI_SUCCESS;
