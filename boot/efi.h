@@ -22,14 +22,17 @@ typedef VOID* EFI_EVENT;
 
 typedef unsigned short CHAR16;
 typedef int16_t INT16;
+typedef int32_t INT32;
 typedef int64_t INT64;
 typedef uint8_t UINT8;
 typedef uint16_t UINT16;
-typedef uint64_t UINT64;
 typedef uint32_t UINT32;
+typedef uint64_t UINT64;
 typedef INT64 INTN;
 typedef UINT64 UINTN;
 typedef UINTN EFI_STATUS;
+
+#define EFI_FILE_MODE_READ 0x0000000000000001
 
 #define EFI_ERROR(STATUS) (((INTN)(STATUS)) < 0)
 
@@ -58,7 +61,7 @@ typedef EFI_STATUS(EFIAPI* EFI_INPUT_READ_KEY)(
 
 typedef struct _EFI_SIMPLE_TEXT_INPUT_PROTOCOL {
     EFI_INPUT_RESET Reset;
-    EFI_INPUT_READ_KEY ReadKey;
+    EFI_INPUT_READ_KEY ReadKeyStroke;
     EFI_EVENT WaitForKey;
 } EFI_SIMPLE_TEXT_INPUT_PROTOCOL;
 
@@ -72,9 +75,57 @@ typedef EFI_STATUS(EFIAPI* EFI_TEXT_STRING)(
     IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL* This,
     IN CHAR16* String);
 
+typedef EFI_STATUS(EFIAPI* EFI_TEXT_TEST_STRING)(
+    IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL* This,
+    IN CHAR16* String);
+
+typedef EFI_STATUS(EFIAPI* EFI_TEXT_QUERY_MODE)(
+    IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL* This,
+    IN UINTN ModeNumber,
+    OUT UINTN* Columns,
+    OUT UINTN* Rows);
+
+typedef EFI_STATUS(EFIAPI* EFI_TEXT_SET_MODE)(
+    IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL* This,
+    IN UINTN ModeNumber);
+
+typedef EFI_STATUS(EFIAPI* EFI_TEXT_SET_ATTRIBUTE)(
+    IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL* This,
+    IN UINTN Attribute);
+
+typedef EFI_STATUS(EFIAPI* EFI_TEXT_CLEAR_SCREEN)(
+    IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL* This);
+
+typedef EFI_STATUS(EFIAPI* EFI_TEXT_SET_CURSOR_POSITION)(
+    IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL* This,
+    IN UINTN Column,
+    IN UINTN Row);
+
+typedef EFI_STATUS(EFIAPI* EFI_TEXT_ENABLE_CURSOR)(
+    IN EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL* This,
+    IN BOOLEAN Visible);
+
+typedef struct {
+    INT32 MaxMode;
+
+    INT32 Mode;
+    INT32 Attribute;
+    INT32 CursorColumn;
+    INT32 CursorRow;
+    BOOLEAN CursorVisible;
+} SIMPLE_TEXT_OUTPUT_MODE;
+
 typedef struct _EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL {
     EFI_TEXT_RESET Reset;
     EFI_TEXT_STRING OutputString;
+    EFI_TEXT_TEST_STRING TestString;
+    EFI_TEXT_QUERY_MODE QueryMode;
+    EFI_TEXT_SET_MODE SetMode;
+    EFI_TEXT_SET_ATTRIBUTE SetAttribute;
+    EFI_TEXT_CLEAR_SCREEN ClearScreen;
+    EFI_TEXT_SET_CURSOR_POSITION SetCursorPosition;
+    EFI_TEXT_ENABLE_CURSOR EnableCursor;
+    SIMPLE_TEXT_OUTPUT_MODE* Mode;
 } EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL;
 
 typedef struct {
@@ -215,7 +266,7 @@ typedef struct {
     EFI_GET_NEXT_VARIABLE_NAME GetNextVariableName;
     EFI_SET_VARIABLE SetVariable;
 
-    EFI_GET_NEXT_HIGH_MONO_COUNT GetNextHiMonotonicCount;
+    EFI_GET_NEXT_HIGH_MONO_COUNT GetNextHighMonotonicCount;
     EFI_RESET_SYSTEM ResetSystem;
 
     EFI_UPDATE_CAPSULE UpdateCapsule;
@@ -290,7 +341,9 @@ typedef VOID(EFIAPI* EFI_EVENT_NOTIFY)(
 typedef EFI_STATUS(EFIAPI* EFI_CREATE_EVENT)(
     IN UINT32 Type,
     IN EFI_TPL NotifyTpl,
-    IN EFI_EVENT_NOTIFY NotifyFunction, OPTIONAL IN VOID* NotifyContext, OPTIONAL OUT EFI_EVENT* Event);
+    IN EFI_EVENT_NOTIFY NotifyFunction OPTIONAL,
+    IN VOID* NotifyContext OPTIONAL,
+    OUT EFI_EVENT* Event);
 
 typedef enum {
     TimerCancel,
@@ -553,6 +606,7 @@ typedef struct {
     EFI_UNINSTALL_MULTIPLE_PROTOCOL_INTERFACES UninstallMultipleProtocolInterfaces;
 
     EFI_CALCULATE_CRC32 CalculateCrc32;
+
     EFI_COPY_MEM CopyMem;
     EFI_SET_MEM SetMem;
     EFI_CREATE_EVENT_EX CreateEventEX;
