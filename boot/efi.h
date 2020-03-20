@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <uchar.h>
 
 #include "efi_guid.h"
 
@@ -21,7 +22,7 @@ typedef void VOID;
 typedef VOID* EFI_HANDLE;
 typedef VOID* EFI_EVENT;
 
-typedef unsigned short CHAR16;
+typedef char16_t CHAR16;
 typedef int16_t INT16;
 typedef int32_t INT32;
 typedef int64_t INT64;
