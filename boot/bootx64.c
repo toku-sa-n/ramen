@@ -49,7 +49,7 @@ EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* System
             ;
     }
 
-    SystemTable->ConOut->OutputString(SystemTable->ConOut, (CHAR16*)L"OK.");
+    // Open kernel file.
     EFI_FILE_PROTOCOL* kernel_handle = NULL;
     if (EFI_ERROR(efi_file_system->Open(efi_file_system, &kernel_handle, (CHAR16*)L"ramen_os.sys", EFI_FILE_MODE_READ, 0))) {
         SystemTable->ConOut->OutputString(SystemTable->ConOut, (CHAR16*)L"Could not open kernel file.");
