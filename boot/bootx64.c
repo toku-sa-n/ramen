@@ -10,7 +10,7 @@ static EFI_PHYSICAL_ADDRESS kPhysicalAddressOS = 0x00100000;
 // Needed page number is 2MB / 4KB = 256 * 2;
 const EFI_PHYSICAL_ADDRESS kNumPagesForOS = 256 * 2;
 
-EFI_STATUS PrepareFilesystem(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable, OUT EFI_FILE_PROTOCOL* efi_file_system)
+EFI_STATUS PrepareFilesystem(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable, OUT EFI_FILE_PROTOCOL** efi_file_system)
 {
     EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* efi_fio;
     EFI_LOADED_IMAGE_PROTOCOL* efi_loaded_image_protocol;
@@ -25,7 +25,7 @@ EFI_STATUS PrepareFilesystem(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* Sys
         return return_status;
     }
 
-    return_status = efi_fio->OpenVolume(efi_fio, &efi_file_system);
+    return_status = efi_fio->OpenVolume(efi_fio, efi_file_system);
     if (EFI_ERROR(return_status)) {
         return return_status;
     }
@@ -38,14 +38,21 @@ EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* System
     // Prepare a filesystem.
     EFI_FILE_PROTOCOL* efi_file_system = NULL;
 
-    if (EFI_ERROR(PrepareFilesystem(ImageHandle, SystemTable, efi_file_system))) {
+    if (EFI_ERROR(PrepareFilesystem(ImageHandle, SystemTable, &efi_file_system))) {
         return 0;
     }
 
+    // Allocate memory.
     if (EFI_ERROR(SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, kNumPagesForOS, &kPhysicalAddressOS))) {
         SystemTable->ConOut->OutputString(SystemTable->ConOut, (CHAR16*)L"Failed to allocate memory for OS.");
         while (1)
             ;
+    }
+
+    SystemTable->ConOut->OutputString(SystemTable->ConOut, (CHAR16*)L"OK.");
+    EFI_FILE_PROTOCOL* kernel_handle = NULL;
+    if (EFI_ERROR(efi_file_system->Open(efi_file_system, &kernel_handle, (CHAR16*)L"ramen_os.sys", EFI_FILE_MODE_READ, 0))) {
+        SystemTable->ConOut->OutputString(SystemTable->ConOut, (CHAR16*)L"Could not open kernel file.");
     }
 
     SystemTable->ConOut->OutputString(SystemTable->ConOut, (CHAR16*)L"Hello World!\r\n");
