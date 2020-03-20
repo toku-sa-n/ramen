@@ -12,6 +12,7 @@
 #define OPTIONAL
 #define EFIAPI
 #define EFI_SUCCESS 0
+#define EFI_UNSUPPORTED 3
 
 #define CONST const
 
