@@ -140,37 +140,32 @@ extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TA
 {
     EFI_FILE_PROTOCOL* efi_file_system = NULL;
 
-    Print(SystemTable, (CHAR16*)L"Preparing filesystem...\n");
-
-    if (EFI_ERROR(PrepareFilesystem(ImageHandle, SystemTable, &efi_file_system))) {
-        Print(SystemTable, (CHAR16*)L"Failed to prepare filesystem\n");
-        while (1)
-            ;
+#define LOOP_ON_ERROR(condition, message)     \
+    if (EFI_ERROR(condition)) {               \
+        Print(SystemTable, (CHAR16*)message); \
+        while (1)                             \
+            ;                                 \
     }
+
+    Print(SystemTable, (CHAR16*)L"Preparing filesystem...\n");
+    LOOP_ON_ERROR(PrepareFilesystem(ImageHandle, SystemTable, &efi_file_system), "Failed to prepare filesystem\n");
 
     Print(SystemTable, (CHAR16*)L"Allocating memory...\n");
-
-    if (EFI_ERROR(SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, kNumPagesForOS, &kPhysicalAddressOS))) {
-        Print(SystemTable, (CHAR16*)L"Failed to allocate memory for OS.\n");
-        while (1)
-            ;
-    }
+    LOOP_ON_ERROR(SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, kNumPagesForOS, &kPhysicalAddressOS), "Failed to allocate memory for OS.\n");
 
     Print(SystemTable, (CHAR16*)L"Initializing GOP...\n");
-
     EFI_GRAPHICS_OUTPUT_PROTOCOL* gop = NULL;
-    InitGop(ImageHandle, SystemTable, &gop);
+    LOOP_ON_ERROR(InitGop(ImageHandle, SystemTable, &gop), "Failed to initialize GOP.\n");
 
     Print(SystemTable, (CHAR16*)L"Opening kernel file...\n");
-
     EFI_FILE_PROTOCOL* kernel_handle = NULL;
-    if (EFI_ERROR(efi_file_system->Open(efi_file_system, &kernel_handle, (CHAR16*)L"ramen_os.sys", EFI_FILE_MODE_READ, 0))) {
-        Print(SystemTable, (CHAR16*)L"Could not open kernel file.\n");
-    }
+    LOOP_ON_ERROR(efi_file_system->Open(efi_file_system, &kernel_handle, (CHAR16*)L"ramen_os.sys", EFI_FILE_MODE_READ, 0), "Failed to open kernel file.\n");
 
     Print(SystemTable, (CHAR16*)L"Hello World!\n");
     Print(SystemTable, (CHAR16*)L"Make America Great Again!\n");
     while (1)
         ;
     return EFI_SUCCESS;
+
+#undef LOOP_ON_ERROR
 }
