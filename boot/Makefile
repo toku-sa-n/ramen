@@ -1,5 +1,5 @@
 CC = x86_64-w64-mingw32-g++
-CFLAGS = -shared -nostdlib -mno-red-zone -fno-stack-protector -Wall -e EfiMain -std=c++17
+CFLAGS = -shared -nostdlib -mno-red-zone -fno-stack-protector -Wall -e EfiMain -std=c++17 -I include/
 
 EFIFILE = bootx64.efi
 

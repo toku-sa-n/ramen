@@ -1,5 +1,5 @@
 #include "efi.h"
-#include "include/utils.h"
+#include "utils.h"
 
 static EFI_GUID kEfiLoadedImageProtocolGuid = EFI_LOADED_IMAGE_PROTOCOL_GUID;
 static EFI_GUID kEfiSimpleFileSystemProtocolGuid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
