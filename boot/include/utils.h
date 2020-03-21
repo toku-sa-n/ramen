@@ -69,14 +69,14 @@ int Queue<QueueSize>::Dequeue()
     return data;
 }
 
-template <typename T>
-int IntToChars(T** str, int n, int base, bool zero_flag, int digits_num);
-
 template <unsigned QueueSize>
 int Queue<QueueSize>::GetNumElements()
 {
     return QueueSize - num_free_;
 }
+
+template <typename T>
+int IntToChars(T** str, int n, int base, bool zero_flag, int digits_num);
 
 template <typename T>
 int OSVSPrintf(T* str, const T* format, va_list ap)
