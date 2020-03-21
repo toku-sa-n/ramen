@@ -25,8 +25,10 @@ $(BUILD_DIR)/%.efi:$(BUILD_DIR)/%.dll|$(BUILD_DIR)
 $(BUILD_DIR)/%.dll:$(CXX_OBJ)|$(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) $^ -e EfiMain -o $@
 
+# TODO: Fix the problem of not compiling files correctly.
+# (See the output of `make && make`.)
 $(BUILD_DIR)/%.o:$(SRC_DIR)/%.cpp|$(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $^ -c -MMD -MP -o $@
+	$(CXX) $(CXXFLAGS) $< -c -MMD -MP -o $@
 
 copy_to_usb:$(EFIFILE)
 ifeq ($(USB_DEVICE_PATH),)
