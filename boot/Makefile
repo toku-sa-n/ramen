@@ -1,14 +1,18 @@
 CC = x86_64-w64-mingw32-g++
 CFLAGS = -shared -nostdlib -mno-red-zone -fno-stack-protector -Wall -e EfiMain -std=c++17 -I include/
 
-EFIFILE = bootx64.efi
+BUILD_DIR = build
+
+EFIFILE = $(BUILD_DIR)/bootx64.efi
+
+.SUFFIXES:
 
 all:$(EFIFILE)
 
-%.efi:%.dll
+$(BUILD_DIR)/%.efi:$(BUILD_DIR)/%.dll|$(BUILD_DIR)
 	objcopy --target=efi-app-x86_64 $< $@
 
-%.dll:%.cpp utils/os_sprintf.cpp
+$(BUILD_DIR)/%.dll:%.cpp utils/os_sprintf.cpp|$(BUILD_DIR)
 	$(CC) $(CFLAGS) $^ -o $@
 
 copy_to_usb:$(EFIFILE)
@@ -20,5 +24,8 @@ else
 	sudo umount /mnt
 endif
 
+$(BUILD_DIR):
+	mkdir -p $@
+
 clean:
-	rm -f $(EFIFILE)
+	rm -rf $(BUILD_DIR)
