@@ -9,6 +9,8 @@ CXX_SRC = bootx64.cpp $(UTILS_DIR)/os_sprintf.cpp efi_utils.cpp gop.cpp
 CXX_SRC_PATH = $(addprefix $(SRC_DIR))/, $(CXX_SRC))
 CXX_OBJ = $(addprefix $(BUILD_DIR)/, $(CXX_SRC:%.cpp=%.o))
 
+DEPS = $(addprefix $(BUILD_DIR)/, $(CXX_SRC:%.cpp=%.d))
+
 EFIFILE = $(BUILD_DIR)/bootx64.efi
 
 .SUFFIXES:
@@ -24,7 +26,7 @@ $(BUILD_DIR)/%.dll:$(CXX_OBJ)|$(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) $^ -e EfiMain -o $@
 
 $(BUILD_DIR)/%.o:$(SRC_DIR)/%.cpp|$(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $^ -c -o $@
+	$(CXX) $(CXXFLAGS) $^ -c -MMD -MP -o $@
 
 copy_to_usb:$(EFIFILE)
 ifeq ($(USB_DEVICE_PATH),)
@@ -40,3 +42,5 @@ $(BUILD_DIR):
 
 clean:
 	rm -rf $(BUILD_DIR)
+
+-include $(DEPS)
