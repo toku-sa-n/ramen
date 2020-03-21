@@ -162,10 +162,6 @@ extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TA
     EFI_GRAPHICS_OUTPUT_PROTOCOL* gop = NULL;
     LOOP_ON_ERROR(InitGop(ImageHandle, SystemTable, &gop), "Failed to initialize GOP.\n");
 
-    Print(SystemTable, (CHAR16*)L"Opening kernel file...\n");
-    EFI_FILE_PROTOCOL* kernel_handle = NULL;
-    LOOP_ON_ERROR(efi_file_system->Open(efi_file_system, &kernel_handle, (CHAR16*)L"ramen_os.sys", EFI_FILE_MODE_READ, 0), "Failed to open kernel file.\n");
-
     Print(SystemTable, (CHAR16*)L"Hello World!\n");
     Print(SystemTable, (CHAR16*)L"Make America Great Again!\n");
     while (1)
