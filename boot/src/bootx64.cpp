@@ -1,4 +1,5 @@
 #include "efi.h"
+#include "efi_utils.h"
 #include "utils.h"
 
 static EFI_GUID kEfiLoadedImageProtocolGuid = EFI_LOADED_IMAGE_PROTOCOL_GUID;
@@ -34,19 +35,6 @@ EFI_STATUS PrepareFilesystem(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* Sys
     }
 
     return EFI_SUCCESS;
-}
-
-void Print(IN EFI_SYSTEM_TABLE* SystemTable, IN CHAR16* str)
-{
-    while (*str) {
-        if (*str == '\n') {
-            SystemTable->ConOut->OutputString(SystemTable->ConOut, (CHAR16*)L"\r\n");
-        } else {
-            CHAR16 temp[2] = { *str, '\0' };
-            SystemTable->ConOut->OutputString(SystemTable->ConOut, temp);
-        }
-        str++;
-    }
 }
 
 EFI_STATUS GetPreferredResolution(IN EFI_SYSTEM_TABLE* SystemTable, OUT UINT32* x, OUT UINT32* y)
