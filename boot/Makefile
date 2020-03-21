@@ -8,6 +8,8 @@ EFIFILE = $(BUILD_DIR)/bootx64.efi
 
 .SUFFIXES:
 
+.PHONY=all copy_to_usb clean
+
 all:$(EFIFILE)
 
 $(BUILD_DIR)/%.efi:$(BUILD_DIR)/%.dll|$(BUILD_DIR)
