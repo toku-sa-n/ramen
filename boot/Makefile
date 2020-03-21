@@ -1,5 +1,5 @@
-CC = x86_64-w64-mingw32-gcc
-CFLAGS = -shared -nostdlib -mno-red-zone -fno-stack-protector -Wall -e EfiMain
+CC = x86_64-w64-mingw32-g++
+CFLAGS = -shared -nostdlib -mno-red-zone -fno-stack-protector -Wall -e EfiMain -std=c++17
 
 EFIFILE = bootx64.efi
 
@@ -8,8 +8,8 @@ all:$(EFIFILE)
 %.efi:%.dll
 	objcopy --target=efi-app-x86_64 $< $@
 
-%.dll:%.c
-	$(CC) $(CFLAGS) $< -o $@
+%.dll:%.cpp utils/os_sprintf.cpp
+	$(CC) $(CFLAGS) $^ -o $@
 
 copy_to_usb:$(EFIFILE)
 ifeq ($(USB_DEVICE_PATH),)

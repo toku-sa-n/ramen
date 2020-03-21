@@ -1,51 +1,15 @@
+#include "../include/utils.h"
 #include <cstring>
 #include <stdarg.h>
 
-int IntToChars(char** str, int n, int base, bool zero_flag, int digits_num)
+template <>
+int IntToChars<char>(char** str, int n, int base, bool zero_flag, int digits_num)
 {
-    char numbers[] = "0123456789ABCDEF";
-    char buf[1024] = { '\0' };
+    return IntToCharsCommon<char>(str, n, base, zero_flag, digits_num, "0123456789ABCDEF");
+}
 
-    int ptr = 0;
-    int digits = 0;
-
-    bool minus_flag = false;
-    if (n < 0) {
-        n = -n;
-        minus_flag = true;
-    }
-
-    if (n == 0) {
-        buf[ptr++] = '0';
-        digits++;
-    } else {
-        while (n > 0) {
-            buf[ptr++] = numbers[n % base];
-            n /= base;
-            digits++;
-        }
-    }
-
-    if (minus_flag) {
-        buf[ptr++] = '-';
-        digits++;
-    }
-
-    int num_padding = digits_num - digits;
-    for (int i = 0; i < num_padding; i++) {
-        buf[ptr++] = (zero_flag ? '0' : ' ');
-        digits++;
-    }
-
-    for (int i = 0; i < ptr / 2; i++) {
-        char temp = buf[i];
-        buf[i] = buf[ptr - 1 - i];
-        buf[ptr - 1 - i] = temp;
-    }
-
-    for (int i = 0; i < ptr; i++) {
-        *(*str)++ = buf[i];
-    }
-
-    return digits;
+template <>
+int IntToChars<char16_t>(char16_t** str, int n, int base, bool zero_flag, int digits_num)
+{
+    return IntToCharsCommon<char16_t>(str, n, base, zero_flag, digits_num, u"0123456789ABCDEF");
 }
