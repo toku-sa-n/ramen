@@ -138,24 +138,31 @@ EFI_STATUS InitGop(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable, 
 
 extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable)
 {
-    // Prepare a filesystem.
     EFI_FILE_PROTOCOL* efi_file_system = NULL;
 
+    Print(SystemTable, (CHAR16*)L"Preparing filesystem...\n");
+
     if (EFI_ERROR(PrepareFilesystem(ImageHandle, SystemTable, &efi_file_system))) {
-        return 0;
+        Print(SystemTable, (CHAR16*)L"Failed to prepare filesystem\n");
+        while (1)
+            ;
     }
 
-    // Allocate memory.
+    Print(SystemTable, (CHAR16*)L"Allocating memory...\n");
+
     if (EFI_ERROR(SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, kNumPagesForOS, &kPhysicalAddressOS))) {
         Print(SystemTable, (CHAR16*)L"Failed to allocate memory for OS.\n");
         while (1)
             ;
     }
 
+    Print(SystemTable, (CHAR16*)L"Initializing GOP...\n");
+
     EFI_GRAPHICS_OUTPUT_PROTOCOL* gop = NULL;
     InitGop(ImageHandle, SystemTable, &gop);
 
-    // Open kernel file.
+    Print(SystemTable, (CHAR16*)L"Opening kernel file...\n");
+
     EFI_FILE_PROTOCOL* kernel_handle = NULL;
     if (EFI_ERROR(efi_file_system->Open(efi_file_system, &kernel_handle, (CHAR16*)L"ramen_os.sys", EFI_FILE_MODE_READ, 0))) {
         Print(SystemTable, (CHAR16*)L"Could not open kernel file.\n");
