@@ -14,6 +14,7 @@
 #define EFIAPI
 #define EFI_SUCCESS 0
 #define EFI_UNSUPPORTED 3
+#define EFI_OUT_OF_RESOURCES 9
 
 #define CONST const
 
