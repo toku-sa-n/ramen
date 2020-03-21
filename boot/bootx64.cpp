@@ -62,7 +62,7 @@ EFI_STATUS GetPreferredResolution(IN EFI_SYSTEM_TABLE* SystemTable, OUT UINT32* 
     return return_status;
 }
 
-EFI_STATUS CheckGopInfo(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* info)
+EFI_STATUS CheckGopInfo(IN EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* info)
 {
     if (info->PixelFormat != PixelBlueGreenRedReserved8BitPerColor) {
         return EFI_UNSUPPORTED;
