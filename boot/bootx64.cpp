@@ -87,28 +87,27 @@ EFI_STATUS CheckGopInfo(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* info)
 
 EFI_STATUS InitGop(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable, OUT EFI_GRAPHICS_OUTPUT_PROTOCOL** gop)
 {
+#define RETURN_ON_ERROR(condition, message)       \
+    do {                                          \
+        EFI_STATUS STATUS = condition;            \
+        if (EFI_ERROR(STATUS)) {                  \
+            Print(SystemTable, (CHAR16*)message); \
+            return STATUS;                        \
+        }                                         \
+    } while (0)
+
     UINT32 preferred_resolution_x = 0, preferred_resolution_y = 0;
-    EFI_STATUS return_status = GetPreferredResolution(SystemTable, &preferred_resolution_x, &preferred_resolution_y);
-    if (EFI_ERROR(return_status)) {
-        Print(SystemTable, (CHAR16*)L"Error: Could not get information from EDID.\n");
-        return return_status;
-    }
+    RETURN_ON_ERROR(GetPreferredResolution(SystemTable, &preferred_resolution_x, &preferred_resolution_y), "Error: Could not get information from EDID.\n");
 
     EFI_HANDLE* handle_buffer = NULL;
 
     // Don't replace handle_count with NULL. It won't work.
     UINTN handle_count = 0;
-    return_status = SystemTable->BootServices->LocateHandleBuffer(ByProtocol, &kEfiGraphicsOutputProtocolGuid, NULL, &handle_count, &handle_buffer);
-    if (EFI_ERROR(return_status)) {
-        Print(SystemTable, (CHAR16*)L"Error: GOP not found (first)\n");
-        return return_status;
-    }
+    RETURN_ON_ERROR(SystemTable->BootServices->LocateHandleBuffer(ByProtocol, &kEfiGraphicsOutputProtocolGuid, NULL, &handle_count, &handle_buffer), "Error: GOP not found (first)\n");
 
-    return_status = SystemTable->BootServices->OpenProtocol(handle_buffer[0], &kEfiGraphicsOutputProtocolGuid, (VOID**)gop, ImageHandle, NULL, EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
-    if (EFI_ERROR(return_status)) {
-        Print(SystemTable, (CHAR16*)L"Error: GOP not found (second)\n");
-        return return_status;
-    }
+    RETURN_ON_ERROR(SystemTable->BootServices->OpenProtocol(handle_buffer[0], &kEfiGraphicsOutputProtocolGuid, (VOID**)gop, ImageHandle, NULL, EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL), "Error: GOP not found (second)\n");
+
+#undef RETURN_ON_ERROR
 
     Print(SystemTable, (CHAR16*)L"GOP Found.\n");
 
