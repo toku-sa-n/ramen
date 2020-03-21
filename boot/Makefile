@@ -15,7 +15,7 @@ all:$(EFIFILE)
 $(BUILD_DIR)/%.efi:$(BUILD_DIR)/%.dll|$(BUILD_DIR)
 	objcopy --target=efi-app-x86_64 $< $@
 
-$(BUILD_DIR)/%.dll:$(SRC_DIR)/%.cpp $(SRC_DIR)/utils/os_sprintf.cpp $(SRC_DIR)/efi_utils.cpp|$(BUILD_DIR)
+$(BUILD_DIR)/%.dll:$(SRC_DIR)/%.cpp $(SRC_DIR)/utils/os_sprintf.cpp $(SRC_DIR)/efi_utils.cpp $(SRC_DIR)/gop.cpp |$(BUILD_DIR)
 	$(CC) $(CFLAGS) $^ -o $@
 
 copy_to_usb:$(EFIFILE)
