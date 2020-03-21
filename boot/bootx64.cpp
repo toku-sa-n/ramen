@@ -111,19 +111,10 @@ EFI_STATUS InitGop(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable, 
 
     Print(SystemTable, (CHAR16*)L"GOP Found.\n");
 
-    CHAR16* str = NULL;
-    OSSPrintf(str, u"Mode: %d\n", (*gop)->Mode->Mode);
-    Print(SystemTable, str);
-    OSSPrintf(str, u"Preferred x: %d\n", preferred_resolution_x);
-    Print(SystemTable, str);
-    OSSPrintf(str, u"Preferred y: %d\n", preferred_resolution_y);
-    Print(SystemTable, str);
     for (UINT32 i = 0; i < (*gop)->Mode->MaxMode; i++) {
         UINTN size_of_info;
         EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* info;
         (*gop)->QueryMode(*gop, i, &size_of_info, &info);
-        OSSPrintf(str, u"(%d, %d)\n", info->HorizontalResolution, info->VerticalResolution);
-        Print(SystemTable, str);
         if (!EFI_ERROR(CheckGopInfo(info)) && info->HorizontalResolution == preferred_resolution_x && info->VerticalResolution == preferred_resolution_y) {
             (*gop)->SetMode(*gop, i);
             Print(SystemTable, (CHAR16*)L"Set GOP.\n");
