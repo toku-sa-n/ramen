@@ -85,6 +85,19 @@ EFI_STATUS CheckGopInfo(IN EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* info)
     return EFI_SUCCESS;
 }
 
+EFI_STATUS GetGop(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable, OUT EFI_GRAPHICS_OUTPUT_PROTOCOL** gop)
+{
+    // Don't replace handle_count with NULL. It won't work.
+    UINTN handle_count = 0;
+    EFI_HANDLE* handle_buffer;
+    EFI_STATUS status = SystemTable->BootServices->LocateHandleBuffer(ByProtocol, &kEfiGraphicsOutputProtocolGuid, NULL, &handle_count, &handle_buffer);
+    if (EFI_ERROR(status)) {
+        return status;
+    }
+
+    return SystemTable->BootServices->OpenProtocol(handle_buffer[0], &kEfiGraphicsOutputProtocolGuid, (VOID**)gop, ImageHandle, NULL, EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+}
+
 EFI_STATUS InitGop(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable, OUT EFI_GRAPHICS_OUTPUT_PROTOCOL** gop)
 {
 #define RETURN_ON_ERROR(condition, message)       \
@@ -99,13 +112,7 @@ EFI_STATUS InitGop(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable, 
     UINT32 preferred_resolution_x = 0, preferred_resolution_y = 0;
     RETURN_ON_ERROR(GetPreferredResolution(SystemTable, &preferred_resolution_x, &preferred_resolution_y), "Error: Could not get information from EDID.\n");
 
-    EFI_HANDLE* handle_buffer = NULL;
-
-    // Don't replace handle_count with NULL. It won't work.
-    UINTN handle_count = 0;
-    RETURN_ON_ERROR(SystemTable->BootServices->LocateHandleBuffer(ByProtocol, &kEfiGraphicsOutputProtocolGuid, NULL, &handle_count, &handle_buffer), "Error: GOP not found (first)\n");
-
-    RETURN_ON_ERROR(SystemTable->BootServices->OpenProtocol(handle_buffer[0], &kEfiGraphicsOutputProtocolGuid, (VOID**)gop, ImageHandle, NULL, EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL), "Error: GOP not found (second)\n");
+    RETURN_ON_ERROR(GetGop(ImageHandle, SystemTable, gop), "Error: GOP not found.\n");
 
 #undef RETURN_ON_ERROR
 
