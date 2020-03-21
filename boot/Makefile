@@ -1,5 +1,5 @@
-CC = x86_64-w64-mingw32-g++
-CFLAGS = -shared -nostdlib -mno-red-zone -fno-stack-protector -Wall -e EfiMain -std=c++17 -I include/
+CXX = x86_64-w64-mingw32-g++
+CXXFLAGS = -shared -nostdlib -mno-red-zone -fno-stack-protector -Wall -e EfiMain -std=c++17 -I include/
 
 BUILD_DIR = build
 SRC_DIR = src
@@ -16,7 +16,7 @@ $(BUILD_DIR)/%.efi:$(BUILD_DIR)/%.dll|$(BUILD_DIR)
 	objcopy --target=efi-app-x86_64 $< $@
 
 $(BUILD_DIR)/%.dll:$(SRC_DIR)/%.cpp $(SRC_DIR)/utils/os_sprintf.cpp $(SRC_DIR)/efi_utils.cpp $(SRC_DIR)/gop.cpp |$(BUILD_DIR)
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
 copy_to_usb:$(EFIFILE)
 ifeq ($(USB_DEVICE_PATH),)
