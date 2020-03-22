@@ -59,6 +59,8 @@ EFI_STATUS GetFileSize(IN EFI_FILE_PROTOCOL* file_system, IN CHAR16* file_name, 
 
     RETURN_ON_ERROR(file_handle->GetPosition(file_handle, file_size));
 
+    RETURN_ON_ERROR(file_handle->SetPosition(file_handle, 0));
+
     // Close function always succeeds.
     file_handle->Close(file_handle);
 
@@ -81,7 +83,17 @@ VOID Free(IN EFI_SYSTEM_TABLE* SystemTable, IN VOID* p)
     }
 }
 
-EFI_STATUS ReadFileToMemory(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL* file_system, IN CHAR16* file_name, IN VOID* address)
+void Memcpy(void* dst, const void* src, size_t n)
+{
+    void *ptr1, *ptr2;
+    size_t sz;
+    __asm__ volatile("REP MOVSB;"
+                     : "=D"(ptr1), "=S"(ptr2), "=c"(sz)
+                     : "D"(dst), "S"(src), "c"(n)
+                     : "memory");
+}
+
+EFI_STATUS ReadFileToMemory(EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL* file_system, IN CHAR16* file_name, IN VOID* address)
 {
 
 #define RETURN_ON_ERROR(condition)     \
@@ -95,36 +107,67 @@ EFI_STATUS ReadFileToMemory(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOC
     UINT64 file_size = 0;
     RETURN_ON_ERROR(GetFileSize(file_system, file_name, &file_size));
 
-    Print(SystemTable, (CHAR16*)L"Got file size.\n");
     EFI_FILE_PROTOCOL* opened_file = NULL;
     RETURN_ON_ERROR(file_system->Open(file_system, &opened_file, file_name, EFI_FILE_MODE_READ, 0));
 
-    Print(SystemTable, (CHAR16*)L"Opened file.\n");
 #undef RETURN_ON_ERROR
 
-    EFI_STATUS return_status = opened_file->Read(opened_file, (UINTN*)file_size, address);
+    VOID* buffer = Malloc(SystemTable, file_size);
+    if (!buffer) {
+        return EFI_OUT_OF_RESOURCES;
+    }
+
+    EFI_STATUS return_status = opened_file->Read(opened_file, (UINTN*)&file_size, buffer);
     opened_file->Close(opened_file);
+
+    Memcpy(address, buffer, file_size);
+    Free(SystemTable, buffer);
 
     return return_status;
 }
 
-EFI_STATUS TerminateBootServices(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable)
+EFI_STATUS TerminateBootServices(IN EFI_HANDLE* ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable)
 {
     UINTN size_of_memory_map = sizeof(EFI_MEMORY_DESCRIPTOR);
     EFI_MEMORY_DESCRIPTOR* memory_map = (EFI_MEMORY_DESCRIPTOR*)Malloc(SystemTable, size_of_memory_map);
     UINTN map_key, size_of_descriptor;
     UINT32 descriptor_version;
 
+    Print(SystemTable, (CHAR16*)L"Terminating boot services...\n");
+
     while (SystemTable->BootServices->GetMemoryMap(&size_of_memory_map, memory_map, &map_key, &size_of_descriptor, &descriptor_version) == EFI_BUFFER_TOO_SMALL) {
+        Print(SystemTable, (CHAR16*)L"Retrying...\n");
         Free(SystemTable, memory_map);
         memory_map = (EFI_MEMORY_DESCRIPTOR*)Malloc(SystemTable, size_of_memory_map);
     }
+    Print(SystemTable, (CHAR16*)L"OK...\n");
 
-    if (!EFI_ERROR(SystemTable->BootServices->ExitBootServices(ImageHandle, map_key))) {
-        Print(SystemTable, (CHAR16*)L"Got.");
+    return SystemTable->BootServices->ExitBootServices(*ImageHandle, map_key);
+}
+
+void SetGraphicsSettings(EFI_GRAPHICS_OUTPUT_PROTOCOL* gop)
+{
+    struct __attribute__((__packed__)) VramSettings {
+        uint16_t bpp;
+        uint16_t screen_x;
+        uint16_t screen_y;
+        uint64_t ptr;
+    }* vram_settings = (VramSettings*)0x0FF2;
+
+    vram_settings->bpp = 32;
+    vram_settings->screen_x = gop->Mode->Info->HorizontalResolution;
+    vram_settings->screen_y = gop->Mode->Info->VerticalResolution;
+    vram_settings->ptr = gop->Mode->FrameBufferBase;
+}
+
+void PrintMemoryContents(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_PHYSICAL_ADDRESS start, IN UINTN length)
+{
+    for (UINTN i = 0; i < length; i++) {
+        CHAR16* str = NULL;
+        OSSPrintf(str, u"%02X ", *(unsigned char*)(start + i));
+        Print(SystemTable, str);
     }
-
-    return SystemTable->BootServices->ExitBootServices(ImageHandle, map_key);
+    Print(SystemTable, (CHAR16*)L"\n");
 }
 
 extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable)
@@ -148,10 +191,20 @@ extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TA
     EFI_GRAPHICS_OUTPUT_PROTOCOL* gop = NULL;
     LOOP_ON_ERROR(InitGop(ImageHandle, SystemTable, &gop), L"Failed to initialize GOP.\n");
 
-    LOOP_ON_ERROR(TerminateBootServices(ImageHandle, SystemTable), L"Failed to terminate boot services.\n");
-
     LOOP_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"ramen_os.sys", (VOID*)0x00200000), L"Failed to read kernel image.\n");
+
     LOOP_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"head.asm.o", (VOID*)0x0500), L"Failed to read head file.\n");
+
+    SetGraphicsSettings(gop);
+
+    PrintMemoryContents(SystemTable, 0x0FF8, 8);
+    PrintMemoryContents(SystemTable, 0x00C00000, 32);
+    PrintMemoryContents(SystemTable, gop->Mode->FrameBufferBase, 32);
+
+    LOOP_ON_ERROR(TerminateBootServices(&ImageHandle, SystemTable), L"Failed to terminate boot services.\n");
+
+    void (*jmp_to_header)(void) = (void (*)(void))0x0500;
+    jmp_to_header();
 
     return EFI_SUCCESS;
 
