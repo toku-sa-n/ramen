@@ -120,14 +120,14 @@ extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TA
     }
 
     Print(SystemTable, (CHAR16*)L"Preparing filesystem...\n");
-    LOOP_ON_ERROR(PrepareFilesystem(ImageHandle, SystemTable, &efi_file_system), "Failed to prepare filesystem\n");
+    LOOP_ON_ERROR(PrepareFilesystem(ImageHandle, SystemTable, &efi_file_system), L"Failed to prepare filesystem\n");
 
     Print(SystemTable, (CHAR16*)L"Allocating memory...\n");
-    LOOP_ON_ERROR(AllocateMemoryForOS(SystemTable), "Failed to allocate memory for OS.\n");
+    LOOP_ON_ERROR(AllocateMemoryForOS(SystemTable), L"Failed to allocate memory for OS.\n");
 
     Print(SystemTable, (CHAR16*)L"Initializing GOP...\n");
     EFI_GRAPHICS_OUTPUT_PROTOCOL* gop = NULL;
-    LOOP_ON_ERROR(InitGop(ImageHandle, SystemTable, &gop), "Failed to initialize GOP.\n");
+    LOOP_ON_ERROR(InitGop(ImageHandle, SystemTable, &gop), L"Failed to initialize GOP.\n");
 
     LOOP_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"ramen_os.img", (VOID*)0x00200000), L"Failed to read kernel image.\n");
 
