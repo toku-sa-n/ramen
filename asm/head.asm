@@ -1,3 +1,4 @@
+    [BITS 64]
     BOTPAK   EQU     0x00200000          ; bootpackのロード先
 
     ; BOOT_INFO関係

@@ -9,6 +9,7 @@
     ; |0x00106000  |PT   for kernel, IDT and stack      |
     ; |0x00107000 ~|PT   for VRAM.                      |
 
+    [BITS 64]
     PML4                 EQU 0x00100000
     BYTES_PML4           EQU 0x1000
     BYTES_PDPT           EQU 0x1000
@@ -95,35 +96,14 @@
     MOV                  EBX, PT_VRAM
     CALL                 map_entries
 
-
-    ; Switching to 64-bit mode
-    ; Disable paging
-    MOV                  EAX, CR0
-    AND                  EAX, 0x7FFFFFFF
-    MOV                  CR0, EAX
-
-    ; Enable PAE
-    MOV                  EAX, CR4
-    OR                   EAX, 0x00000020
-    MOV                  CR4, EAX
-
     ; Set PML4 address
-    MOV                  EAX, PML4
-    MOV                  CR3, EAX
+    MOV                  RAX, PML4
+    MOV                  CR3, RAX
 
-    ; Enable IA-32e mode
-    MOV                  ECX, 0xC0000080
-    RDMSR
-    OR                   EAX, 0x00000100
-    WRMSR
+    ; Replace pointer to the physical address of VRAM to the virtual one.
+    MOV                  QWORD[VRAM_PTR], 0xFFFFFFFF80200000
 
-    ; Enable 4-level paging
-    MOV                  EAX, CR0
-    OR                   EAX, 0x80000000
-    MOV                  CR0, EAX
-
-    CODE_SEGMENT_64 EQU 0x18
-    JMP                  CODE_SEGMENT_64:switch_to_64bit
+    JMP                  finish_paging_setting
 
     ; Functions
 
@@ -137,8 +117,8 @@ map_entries:
     ; EBX: Starting address of page tables.
     ; EDI: Starting address of entries of a page directory.
     ; ECX: Number of bytes to map.
-    PUSH                 EBP
-    MOV                  EBP, ESP
+    PUSH                 RBP
+    MOV                  RBP, RSP
 
     ; Number of entries = ECX / (bytes of a page table)
     ;                   = ECX >> 12
@@ -154,15 +134,15 @@ loop_map_entries:
     OR                   EDX, PAGE_EXISTS
     MOV                  [EDI], EDX
 
-    PUSH                 ECX,
+    PUSH                 RCX,
     MOV                  ECX, NUM_PAGE_ENTRIES
 
-    PUSH                 EDI
+    PUSH                 RDI
     MOV                  EDI, EBX
     CALL                 map_to_single_table
 
-    POP                  EDI
-    POP                  ECX
+    POP                  RDI
+    POP                  RCX
 
     SUB                  ECX, NUM_PAGE_ENTRIES
 
@@ -183,8 +163,8 @@ map_remainings:
     MOV                  EDI, EBX
     CALL                 map_to_single_table
 
-    MOV                  ESP, EBP
-    POP                  EBP
+    MOV                  RSP, RBP
+    POP                  RBP
     RET
 
 map_to_single_table:
@@ -195,8 +175,8 @@ map_to_single_table:
     ; ECX: Number of entries to map.
     ; EDI: Starting address of entries of a page table.
     ; EDX will be used as a temporary register.
-    PUSH                 EBP
-    MOV                  EBP, ESP
+    PUSH                 RBP
+    MOV                  RBP, RSP
 
 loop_map_to_single_table:
     CMP                  ECX, 0
@@ -213,12 +193,8 @@ loop_map_to_single_table:
     JMP                  loop_map_to_single_table
 
 end_map_to_single_table:
-    MOV                  ESP, EBP
-    POP                  EBP
+    MOV                  RSP, RBP
+    POP                  RBP
     RET
 
-switch_to_64bit:
-    [BITS 64]
-
-    ; Replace pointer to the physical address of VRAM to the virtual one.
-    MOV                  QWORD[VRAM_PTR], 0xFFFFFFFF80200000
+finish_paging_setting:
