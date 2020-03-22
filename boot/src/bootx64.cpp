@@ -153,10 +153,6 @@ extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TA
     LOOP_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"ramen_os.sys", (VOID*)0x00200000), L"Failed to read kernel image.\n");
     LOOP_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"head.asm.o", (VOID*)0x0500), L"Failed to read head file.\n");
 
-    Print(SystemTable, (CHAR16*)L"Hello World!\n");
-    Print(SystemTable, (CHAR16*)L"Make America Great Again!\n");
-    while (1)
-        ;
     return EFI_SUCCESS;
 
 #undef LOOP_ON_ERROR
