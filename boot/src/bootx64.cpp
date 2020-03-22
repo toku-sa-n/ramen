@@ -108,6 +108,25 @@ EFI_STATUS ReadFileToMemory(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOC
     return return_status;
 }
 
+EFI_STATUS TerminateBootServices(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable)
+{
+    UINTN size_of_memory_map = sizeof(EFI_MEMORY_DESCRIPTOR);
+    EFI_MEMORY_DESCRIPTOR* memory_map = (EFI_MEMORY_DESCRIPTOR*)Malloc(SystemTable, size_of_memory_map);
+    UINTN map_key, size_of_descriptor;
+    UINT32 descriptor_version;
+
+    while (SystemTable->BootServices->GetMemoryMap(&size_of_memory_map, memory_map, &map_key, &size_of_descriptor, &descriptor_version) == EFI_BUFFER_TOO_SMALL) {
+        Free(SystemTable, memory_map);
+        memory_map = (EFI_MEMORY_DESCRIPTOR*)Malloc(SystemTable, size_of_memory_map);
+    }
+
+    if (!EFI_ERROR(SystemTable->BootServices->ExitBootServices(ImageHandle, map_key))) {
+        Print(SystemTable, (CHAR16*)L"Got.");
+    }
+
+    return SystemTable->BootServices->ExitBootServices(ImageHandle, map_key);
+}
+
 extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable)
 {
     EFI_FILE_PROTOCOL* efi_file_system = NULL;
@@ -128,6 +147,8 @@ extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TA
     Print(SystemTable, (CHAR16*)L"Initializing GOP...\n");
     EFI_GRAPHICS_OUTPUT_PROTOCOL* gop = NULL;
     LOOP_ON_ERROR(InitGop(ImageHandle, SystemTable, &gop), L"Failed to initialize GOP.\n");
+
+    LOOP_ON_ERROR(TerminateBootServices(ImageHandle, SystemTable), L"Failed to terminate boot services.\n");
 
     LOOP_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"ramen_os.img", (VOID*)0x00200000), L"Failed to read kernel image.\n");
 
