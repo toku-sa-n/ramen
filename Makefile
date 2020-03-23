@@ -33,6 +33,8 @@ ASMFLAGS := -w+all -i $(ASM_DIR)/
 
 .SUFFIXES:
 
+all:$(KERNEL_FILE) $(HEAD_FILE)
+
 $(IMG_FILE):$(IPL_FILE) $(SYS_FILE)|$(BUILD_DIR)
 	mformat -f 1440 -C -B $(IPL_FILE) -i $@ ::
 	mcopy $(SYS_FILE) -i $@ ::
