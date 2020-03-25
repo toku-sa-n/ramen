@@ -32,7 +32,8 @@ fn initialization(
 ) -> graphics::screen::MouseCursor {
     descriptor_table::init();
     interrupt::init_pic();
-    asm::sti();
+    // Temporarily disable interruption to see whether desktop is drawn successfully or not.
+    // asm::sti();
     let vram: graphics::Vram = graphics::Vram::new();
 
     graphics::screen::draw_desktop(&vram);
