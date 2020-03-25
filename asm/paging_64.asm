@@ -109,6 +109,12 @@
     MOV                  RAX, PML4
     MOV                  CR3, RAX
 
+    ; Clear write protection
+    ; See: https://forum.osdev.org/viewtopic.php?f=1&t=36615
+    MOV                  RAX, CR0
+    AND                  EAX, 0xFFFEFFFF
+    MOV                  CR0, RAX
+
     ; Changing PML4 address doesn't cause any problems.
     ; MOV RAX, PML4
     ; MOV CR3, RAX                  <--- not crash.
