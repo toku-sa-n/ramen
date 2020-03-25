@@ -28,11 +28,13 @@
     ; MOV [DWORD PML4] will cause an assemble error.
     ; MOV DWORD[PML4] won't cause any assemble errors, but it won't assign a value
     ; to ES:PML4.
-    MOV                  QWORD[DWORD PML4], PDPT_BELOW_1MB | PAGE_EXISTS
+    MOV                  RAX, PDPT_BELOW_1MB | PAGE_EXISTS
+    MOV                  QWORD[DWORD PML4], RAX
 
     ; Add a PDPT entry for below 1MB
     PD_BELOW_1MB         EQU PDPT_BELOW_1MB + BYTES_PDPT
-    MOV                  QWORD[DWORD PDPT_BELOW_1MB], PD_BELOW_1MB | PAGE_EXISTS
+    MOV                  RAX, PD_BELOW_1MB | PAGE_EXISTS
+    MOV                  QWORD[DWORD PDPT_BELOW_1MB], RAX
 
     ; Add a PD entry and PT entries for below 1MB
     XOR                  EAX, EAX
@@ -46,12 +48,14 @@
     ; Add a PML4 entry for kernel
     PML4_ENTRY_KERNEL    EQU PML4 + 0x1FF * SIZE_ENTRY
     PDPT_KERNEL          EQU PT_BELOW_1MB + BYTES_PT
-    MOV                  QWORD[DWORD PML4_ENTRY_KERNEL], PDPT_KERNEL | PAGE_EXISTS
+    MOV                  RAX, PDPT_KERNEL | PAGE_EXISTS
+    MOV                  QWORD[DWORD PML4_ENTRY_KERNEL], RAX
 
     ; Add a PDPT entry for kernel
     PDPT_ENTRY_KERNEL    EQU PDPT_KERNEL + 0x1FE * SIZE_ENTRY
     PD_KERNEL            EQU PDPT_KERNEL + BYTES_PDPT
-    MOV                  QWORD[DWORD PDPT_ENTRY_KERNEL], PD_KERNEL | PAGE_EXISTS
+    MOV                  RAX, PD_KERNEL | PAGE_EXISTS
+    MOV                  QWORD[DWORD PDPT_ENTRY_KERNEL], RAX
 
     ; Add a PD entry and PT entries for kernel, IDT and stack.
     ; These three elements are located successively.
@@ -106,8 +110,8 @@
     MOV                  CR3, RAX
 
     ; Replace pointer to the physical address of VRAM to the virtual one.
-    MOV                  QWORD[VRAM_PTR], 0xFFFFFFFF80200000
-
+    MOV                  RAX, 0xFFFFFFFF80200000
+    MOV                  QWORD[VRAM_PTR], RAX
     JMP                  finish_paging_setting
 
     ; Functions
