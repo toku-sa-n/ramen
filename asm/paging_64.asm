@@ -115,17 +115,6 @@
     AND                  EAX, 0xFFFEFFFF
     MOV                  CR0, RAX
 
-    ; Changing PML4 address doesn't cause any problems.
-    ; MOV RAX, PML4
-    ; MOV CR3, RAX                  <--- not crash.
-    ;
-    ; Assign a value from memory to a register is OK.
-    ; MOV RAX, QWORD[VRAM_PTR]      <--- not crash.
-    ;
-    ; Set a value to memory is not.
-    ; MOV RAX, 0xFFFFFFFF80200000
-    ; MOV QWORD[VRAM_PTR], RAX      <--- crash.
-
     ; Replace pointer to the physical address of VRAM to the virtual one.
     MOV                  RAX, 0xFFFFFFFF80200000
     MOV                  QWORD[VRAM_PTR], RAX
