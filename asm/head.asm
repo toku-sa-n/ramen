@@ -1,10 +1,4 @@
     [BITS 64]
-    BOTPAK   EQU     0x00200000          ; bootpackのロード先
-
-    ; BOOT_INFO関係
-    CYLS     EQU     0x0FF0              ; ブートセクタが設定する
-    LEDS     EQU     0x0FF1
-
     ORG      0x500
 
     ; PICが一切の割り込みを受け付けないようにする
