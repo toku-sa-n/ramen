@@ -24,9 +24,9 @@ impl RGB {
 
 #[derive(Clone)]
 pub struct Vram {
-    pub bits_per_pixel: i8,
-    pub x_len: i16,
-    pub y_len: i16,
+    pub bits_per_pixel: u8,
+    pub x_len: u16,
+    pub y_len: u16,
     pub ptr: *mut u8,
     rgb_table: [[u8; 3]; 16],
 }
@@ -34,10 +34,10 @@ pub struct Vram {
 impl Vram {
     pub fn new() -> Self {
         Self {
-            bits_per_pixel: unsafe { *(0x0FF2 as *const i8) },
-            x_len: unsafe { *(0x0FF4 as *const i16) },
-            y_len: unsafe { *(0x0FF6 as *const i16) },
-            ptr: unsafe { *(0x0FF8 as *const i64) as *mut u8 },
+            bits_per_pixel: unsafe { *(0x0FF2 as *const u8) },
+            x_len: unsafe { *(0x0FF4 as *const u16) },
+            y_len: unsafe { *(0x0FF6 as *const u16) },
+            ptr: unsafe { *(0x0FF8 as *const u64) as *mut u8 },
             rgb_table: [
                 [0x00, 0x00, 0x00],
                 [0xFF, 0x00, 0x00],
