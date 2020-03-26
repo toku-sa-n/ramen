@@ -174,7 +174,7 @@ extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TA
 {
     EFI_FILE_PROTOCOL* efi_file_system = NULL;
 
-#define LOOP_ON_ERROR(condition, message)     \
+#define EXIT_ON_ERROR(condition, message)     \
     if (EFI_ERROR(condition)) {               \
         Print(SystemTable, (CHAR16*)message); \
         while (1)                             \
@@ -182,18 +182,19 @@ extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TA
     }
 
     Print(SystemTable, (CHAR16*)L"Preparing filesystem...\n");
-    LOOP_ON_ERROR(PrepareFilesystem(ImageHandle, SystemTable, &efi_file_system), L"Failed to prepare filesystem\n");
+    EXIT_ON_ERROR(PrepareFilesystem(ImageHandle, SystemTable, &efi_file_system), L"Failed to prepare filesystem\n");
 
+    // TODO: Allocate from 0x500 to 0x00200000.
     Print(SystemTable, (CHAR16*)L"Allocating memory...\n");
-    LOOP_ON_ERROR(AllocateMemoryForOS(SystemTable), L"Failed to allocate memory for OS.\n");
+    EXIT_ON_ERROR(AllocateMemoryForOS(SystemTable), L"Failed to allocate memory for OS.\n");
 
     Print(SystemTable, (CHAR16*)L"Initializing GOP...\n");
     EFI_GRAPHICS_OUTPUT_PROTOCOL* gop = NULL;
-    LOOP_ON_ERROR(InitGop(ImageHandle, SystemTable, &gop), L"Failed to initialize GOP.\n");
+    EXIT_ON_ERROR(InitGop(ImageHandle, SystemTable, &gop), L"Failed to initialize GOP.\n");
 
-    LOOP_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"kernel.bin", (VOID*)0x00200000), L"Failed to read kernel image.\n");
+    EXIT_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"kernel.bin", (VOID*)0x00200000), L"Failed to read kernel image.\n");
 
-    LOOP_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"head.asm.o", (VOID*)0x0500), L"Failed to read head file.\n");
+    EXIT_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"head.asm.o", (VOID*)0x0500), L"Failed to read head file.\n");
 
     SetGraphicsSettings(gop);
 
@@ -201,12 +202,12 @@ extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TA
     PrintMemoryContents(SystemTable, 0x00C00000, 32);
     PrintMemoryContents(SystemTable, gop->Mode->FrameBufferBase, 32);
 
-    LOOP_ON_ERROR(TerminateBootServices(&ImageHandle, SystemTable), L"Failed to terminate boot services.\n");
+    EXIT_ON_ERROR(TerminateBootServices(&ImageHandle, SystemTable), L"Failed to terminate boot services.\n");
 
     void (*jmp_to_header)(void) = (void (*)(void))0x0500;
     jmp_to_header();
 
     return EFI_SUCCESS;
 
-#undef LOOP_ON_ERROR
+#undef EXIT_ON_ERROR
 }
