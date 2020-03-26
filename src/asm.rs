@@ -82,11 +82,27 @@ macro_rules! interrupt_handler{
                     PUSH RBP
                     PUSH RSI
                     PUSH RDI
+                    PUSH R8
+                    PUSH R9
+                    PUSH R10
+                    PUSH R11
+                    PUSH R12
+                    PUSH R13
+                    PUSH R14
+                    PUSH R15
                     "
                     ::::"intel","volatile"
                 );
                 asm!("CALL $0"::"r"($function_name as extern "C"  fn()->())::"intel");
                 asm!("
+                    POP R15
+                    POP R14
+                    POP R13
+                    POP R12
+                    POP R11
+                    POP R10
+                    POP R9
+                    POP R8
                     POP RDI
                     POP RSI
                     POP RBP
