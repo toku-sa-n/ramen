@@ -186,15 +186,21 @@ void PrintMemoryContents(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_PHYSICAL_ADDRE
     Print(SystemTable, (CHAR16*)L"\n");
 }
 
+void AbortBooting(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable)
+{
+    SystemTable->BootServices->FreePages(kPhysicalAddressHeadFile, kNumPagesForOS);
+    SystemTable->BootServices->Exit(ImageHandle, EFI_LOAD_ERROR, 0, NULL);
+}
+
 extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable)
 {
     EFI_FILE_PROTOCOL* efi_file_system = NULL;
 
-#define EXIT_ON_ERROR(condition, message)     \
-    if (EFI_ERROR(condition)) {               \
-        Print(SystemTable, (CHAR16*)message); \
-        while (1)                             \
-            ;                                 \
+#define EXIT_ON_ERROR(condition, message)       \
+    if (EFI_ERROR(condition)) {                 \
+        Print(SystemTable, (CHAR16*)message);   \
+        AbortBooting(ImageHandle, SystemTable); \
+        return EFI_LOAD_ERROR;                  \
     }
 
     Print(SystemTable, (CHAR16*)L"Preparing filesystem...\n");
