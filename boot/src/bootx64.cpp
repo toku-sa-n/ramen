@@ -128,6 +128,7 @@ EFI_STATUS ReadFileToMemory(EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL*
 
     VOID* buffer = Malloc(SystemTable, file_size);
     if (!buffer) {
+        opened_file->Close(opened_file);
         return EFI_OUT_OF_RESOURCES;
     }
 
