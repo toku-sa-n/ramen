@@ -8,6 +8,7 @@ static EFI_GUID kEfiSimpleFileSystemProtocolGuid = EFI_SIMPLE_FILE_SYSTEM_PROTOC
 static EFI_GUID kEfiFileInfoId = EFI_FILE_INFO_ID;
 
 static EFI_PHYSICAL_ADDRESS kPhysicalAddressHeadFile = 0x0500;
+static EFI_PHYSICAL_ADDRESS kPhysicalAddressKernelFile = 0x00200000;
 
 // 0x0500 ~ 0x002FFFFF will be used by OS.
 // (Strictly speaking, the range is much narrower.)
@@ -203,9 +204,9 @@ extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TA
     EFI_GRAPHICS_OUTPUT_PROTOCOL* gop = NULL;
     EXIT_ON_ERROR(InitGop(ImageHandle, SystemTable, &gop), L"Failed to initialize GOP.\n");
 
-    EXIT_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"kernel.bin", (VOID*)0x00200000), L"Failed to read kernel image.\n");
+    EXIT_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"kernel.bin", (VOID*)kPhysicalAddressKernelFile), L"Failed to read kernel image.\n");
 
-    EXIT_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"head.asm.o", (VOID*)0x0500), L"Failed to read head file.\n");
+    EXIT_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"head.asm.o", (VOID*)kPhysicalAddressHeadFile), L"Failed to read head file.\n");
 
     SetGraphicsSettings(gop);
 
