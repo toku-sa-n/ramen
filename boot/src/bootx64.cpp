@@ -7,7 +7,7 @@ static EFI_GUID kEfiLoadedImageProtocolGuid = EFI_LOADED_IMAGE_PROTOCOL_GUID;
 static EFI_GUID kEfiSimpleFileSystemProtocolGuid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
 static EFI_GUID kEfiFileInfoId = EFI_FILE_INFO_ID;
 
-static EFI_PHYSICAL_ADDRESS kPhysicalAddressOS = 0x0500;
+static EFI_PHYSICAL_ADDRESS kPhysicalAddressHeadFile = 0x0500;
 
 // 0x0500 ~ 0x002FFFFF will be used by OS.
 // (Strictly speaking, the range is much narrower.)
@@ -39,7 +39,7 @@ EFI_STATUS PrepareFilesystem(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* Sys
 
 EFI_STATUS AllocateMemoryForOS(IN EFI_SYSTEM_TABLE* SystemTable)
 {
-    return SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, kNumPagesForOS, &kPhysicalAddressOS);
+    return SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, kNumPagesForOS, &kPhysicalAddressHeadFile);
 }
 
 VOID* Malloc(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_PHYSICAL_ADDRESS n)
