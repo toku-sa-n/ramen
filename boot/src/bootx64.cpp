@@ -7,12 +7,12 @@ static EFI_GUID kEfiLoadedImageProtocolGuid = EFI_LOADED_IMAGE_PROTOCOL_GUID;
 static EFI_GUID kEfiSimpleFileSystemProtocolGuid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
 static EFI_GUID kEfiFileInfoId = EFI_FILE_INFO_ID;
 
-static EFI_PHYSICAL_ADDRESS kPhysicalAddressOS = 0x00100000;
+static EFI_PHYSICAL_ADDRESS kPhysicalAddressOS = 0x0500;
 
-// 0x00100000 ~ 0x002FFFFF will be used by OS.
+// 0x0500 ~ 0x002FFFFF will be used by OS.
 // (Strictly speaking, the range is much narrower.)
 // Needed page number is 2MB / 4KB = 256 * 2;
-const EFI_PHYSICAL_ADDRESS kNumPagesForOS = 256 * 2;
+const EFI_PHYSICAL_ADDRESS kNumPagesForOS = 256 * 3;
 
 EFI_STATUS PrepareFilesystem(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable, OUT EFI_FILE_PROTOCOL** efi_file_system)
 {
