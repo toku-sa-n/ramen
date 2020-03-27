@@ -5,6 +5,7 @@
 
 static EFI_GUID kEfiLoadedImageProtocolGuid = EFI_LOADED_IMAGE_PROTOCOL_GUID;
 static EFI_GUID kEfiSimpleFileSystemProtocolGuid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
+static EFI_GUID kEfiFileInfoId = EFI_FILE_INFO_ID;
 
 static EFI_PHYSICAL_ADDRESS kPhysicalAddressOS = 0x00100000;
 
@@ -41,34 +42,6 @@ EFI_STATUS AllocateMemoryForOS(IN EFI_SYSTEM_TABLE* SystemTable)
     return SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, kNumPagesForOS, &kPhysicalAddressOS);
 }
 
-EFI_STATUS GetFileSize(IN EFI_FILE_PROTOCOL* file_system, IN CHAR16* file_name, OUT EFI_PHYSICAL_ADDRESS* file_size)
-{
-#define RETURN_ON_ERROR(condition)     \
-    do {                               \
-        EFI_STATUS STATUS = condition; \
-        if (EFI_ERROR(STATUS)) {       \
-            return STATUS;             \
-        }                              \
-    } while (0)
-
-    EFI_FILE_PROTOCOL* file_handle = NULL;
-    RETURN_ON_ERROR(file_system->Open(file_system, &file_handle, file_name, EFI_FILE_MODE_READ, 0));
-
-    const UINT64 SET_POSITION_TO_EOF = 0xFFFFFFFFFFFFFFFF;
-    RETURN_ON_ERROR(file_handle->SetPosition(file_handle, SET_POSITION_TO_EOF));
-
-    RETURN_ON_ERROR(file_handle->GetPosition(file_handle, file_size));
-
-    RETURN_ON_ERROR(file_handle->SetPosition(file_handle, 0));
-
-    // Close function always succeeds.
-    file_handle->Close(file_handle);
-
-#undef RETURN_ON_ERROR
-
-    return EFI_SUCCESS;
-}
-
 VOID* Malloc(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_PHYSICAL_ADDRESS n)
 {
     VOID* result = NULL;
@@ -81,6 +54,54 @@ VOID Free(IN EFI_SYSTEM_TABLE* SystemTable, IN VOID* p)
     if (p) {
         SystemTable->BootServices->FreePool(p);
     }
+}
+
+EFI_STATUS GetFileSize(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL* file_system, IN CHAR16* file_name, OUT EFI_PHYSICAL_ADDRESS* file_size)
+{
+#define RETURN_ON_ERROR(condition)     \
+    do {                               \
+        EFI_STATUS STATUS = condition; \
+        if (EFI_ERROR(STATUS)) {       \
+            return STATUS;             \
+        }                              \
+    } while (0)
+
+    Print(SystemTable, (CHAR16*)L"Enter GetFileSize() function...\n");
+    EFI_FILE_PROTOCOL* file_handle = NULL;
+    RETURN_ON_ERROR(file_system->Open(file_system, &file_handle, file_name, EFI_FILE_MODE_READ, 0));
+#undef RETURN_ON_ERROR
+
+    Print(SystemTable, (CHAR16*)L"Successfully opened file...\n");
+
+    UINTN info_size = sizeof(EFI_FILE_INFO);
+    EFI_FILE_INFO* file_info;
+    EFI_STATUS status;
+    while (1) {
+        file_info = (EFI_FILE_INFO*)Malloc(SystemTable, info_size);
+        status = file_handle->GetInfo(file_handle, &kEfiFileInfoId, &info_size, file_info);
+        if (!EFI_ERROR(status)) {
+            *file_size = file_info->FileSize;
+            CHAR16* str;
+            OSSPrintf(str, u"File size: %d\n", *file_size);
+            Print(SystemTable, (CHAR16*)str);
+            break;
+        }
+
+        if (status != EFI_BUFFER_TOO_SMALL) {
+            CHAR16* str;
+            OSSPrintf(str, u"An error occurred. Error code: %d\n", status);
+            Print(SystemTable, str);
+            break;
+        }
+
+        Free(SystemTable, file_info);
+    }
+
+    // Close function always succeeds.
+    file_handle->Close(file_handle);
+    Free(SystemTable, file_info);
+
+    return status;
 }
 
 void Memcpy(void* dst, const void* src, size_t n)
@@ -105,7 +126,7 @@ EFI_STATUS ReadFileToMemory(EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL*
     } while (0)
 
     UINT64 file_size = 0;
-    RETURN_ON_ERROR(GetFileSize(file_system, file_name, &file_size));
+    RETURN_ON_ERROR(GetFileSize(SystemTable, file_system, file_name, &file_size));
 
     EFI_FILE_PROTOCOL* opened_file = NULL;
     RETURN_ON_ERROR(file_system->Open(file_system, &opened_file, file_name, EFI_FILE_MODE_READ, 0));
