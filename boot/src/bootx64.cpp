@@ -56,9 +56,9 @@ VOID Free(IN EFI_SYSTEM_TABLE* SystemTable, IN VOID* p)
     }
 }
 
-EFI_STATUS GetFileSize(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL* file_system, IN CHAR16* file_name, OUT EFI_PHYSICAL_ADDRESS* file_size)
+EFI_STATUS GetFileBytes(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL* file_system, IN CHAR16* file_name, OUT EFI_PHYSICAL_ADDRESS* file_bytes)
 {
-    Print(SystemTable, (CHAR16*)L"Enter GetFileSize() function...\n");
+    Print(SystemTable, (CHAR16*)L"Enter GetFileBytes() function...\n");
     EFI_FILE_PROTOCOL* file_handle = NULL;
     EFI_STATUS status = file_system->Open(file_system, &file_handle, file_name, EFI_FILE_MODE_READ, 0);
     if (EFI_ERROR(status)) {
@@ -73,9 +73,9 @@ EFI_STATUS GetFileSize(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL* f
         file_info = (EFI_FILE_INFO*)Malloc(SystemTable, info_size);
         status = file_handle->GetInfo(file_handle, &kEfiFileInfoId, &info_size, file_info);
         if (!EFI_ERROR(status)) {
-            *file_size = file_info->FileSize;
+            *file_bytes = file_info->FileSize;
             CHAR16 str[1024];
-            OSSPrintf(str, u"File size: %d\n", *file_size);
+            OSSPrintf(str, u"File size: %d\n", *file_bytes);
             Print(SystemTable, (CHAR16*)str);
             break;
         }
@@ -119,7 +119,7 @@ EFI_STATUS ReadFileToMemory(EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL*
     } while (0)
 
     UINT64 file_size = 0;
-    RETURN_ON_ERROR(GetFileSize(SystemTable, file_system, file_name, &file_size));
+    RETURN_ON_ERROR(GetFileBytes(SystemTable, file_system, file_name, &file_size));
 
     EFI_FILE_PROTOCOL* opened_file = NULL;
     RETURN_ON_ERROR(file_system->Open(file_system, &opened_file, file_name, EFI_FILE_MODE_READ, 0));
