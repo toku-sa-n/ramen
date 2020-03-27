@@ -198,10 +198,6 @@ extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TA
     Print(SystemTable, (CHAR16*)L"Preparing filesystem...\n");
     EXIT_ON_ERROR(PrepareFilesystem(ImageHandle, SystemTable, &efi_file_system), L"Failed to prepare filesystem\n");
 
-    // TODO: Allocate from 0x500 to 0x00200000.
-    Print(SystemTable, (CHAR16*)L"Allocating memory...\n");
-    EXIT_ON_ERROR(AllocateMemoryForOS(SystemTable), L"Failed to allocate memory for OS.\n");
-
     Print(SystemTable, (CHAR16*)L"Initializing GOP...\n");
     EFI_GRAPHICS_OUTPUT_PROTOCOL* gop = NULL;
     EXIT_ON_ERROR(InitGop(ImageHandle, SystemTable, &gop), L"Failed to initialize GOP.\n");
