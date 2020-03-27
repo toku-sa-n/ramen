@@ -58,24 +58,17 @@ VOID Free(IN EFI_SYSTEM_TABLE* SystemTable, IN VOID* p)
 
 EFI_STATUS GetFileSize(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL* file_system, IN CHAR16* file_name, OUT EFI_PHYSICAL_ADDRESS* file_size)
 {
-#define RETURN_ON_ERROR(condition)     \
-    do {                               \
-        EFI_STATUS STATUS = condition; \
-        if (EFI_ERROR(STATUS)) {       \
-            return STATUS;             \
-        }                              \
-    } while (0)
-
     Print(SystemTable, (CHAR16*)L"Enter GetFileSize() function...\n");
     EFI_FILE_PROTOCOL* file_handle = NULL;
-    RETURN_ON_ERROR(file_system->Open(file_system, &file_handle, file_name, EFI_FILE_MODE_READ, 0));
-#undef RETURN_ON_ERROR
+    EFI_STATUS status = file_system->Open(file_system, &file_handle, file_name, EFI_FILE_MODE_READ, 0);
+    if (EFI_ERROR(status)) {
+        return status;
+    }
 
     Print(SystemTable, (CHAR16*)L"Successfully opened file...\n");
 
     UINTN info_size = sizeof(EFI_FILE_INFO);
     EFI_FILE_INFO* file_info;
-    EFI_STATUS status;
     while (1) {
         file_info = (EFI_FILE_INFO*)Malloc(SystemTable, info_size);
         status = file_handle->GetInfo(file_handle, &kEfiFileInfoId, &info_size, file_info);
