@@ -846,4 +846,15 @@ typedef struct {
     UINT8* Edid;
 } EFI_EDID_DISCOVERED_PROTOCOL;
 
+typedef struct {
+    UINT64 Size;
+    UINT64 FileSize;
+    UINT64 PhysicalSize;
+    EFI_TIME CreateTime;
+    EFI_TIME LastAccessTime;
+    EFI_TIME ModificationTime;
+    UINT64 Attribute;
+    CHAR16 FileName[];
+} EFI_FILE_INFO;
+
 #endif
