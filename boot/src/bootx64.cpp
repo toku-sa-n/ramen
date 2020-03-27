@@ -74,14 +74,14 @@ EFI_STATUS GetFileSize(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL* f
         status = file_handle->GetInfo(file_handle, &kEfiFileInfoId, &info_size, file_info);
         if (!EFI_ERROR(status)) {
             *file_size = file_info->FileSize;
-            CHAR16* str;
+            CHAR16 str[1024];
             OSSPrintf(str, u"File size: %d\n", *file_size);
             Print(SystemTable, (CHAR16*)str);
             break;
         }
 
         if (status != EFI_BUFFER_TOO_SMALL) {
-            CHAR16* str;
+            CHAR16 str[1024];
             OSSPrintf(str, u"An error occurred. Error code: %d\n", status);
             Print(SystemTable, str);
             break;
