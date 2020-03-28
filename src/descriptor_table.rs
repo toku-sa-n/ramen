@@ -45,7 +45,6 @@ fn init_idt() -> () {
         }
     }
 
-    // LDIT instruction takes PHYSICAL address of idt.
     asm::load_interrupt_descriptor_table_register(
         LIMIT_INTERRUPT_DESCRIPTOR_TABLE,
         VIRTUAL_ADDRESS_IDT,
