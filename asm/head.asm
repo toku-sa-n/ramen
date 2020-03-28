@@ -10,6 +10,16 @@
     CLI                                  ; さらにCPUレベルでも割り込み禁止
 
     LGDT     [gdtr]
+    PUSH     CODE_SEGMENT
+    PUSH     change_code_segment
+    RETFQ
+change_code_segment:
+    MOV      EAX, DATA_SEGMENT
+    MOV      ES, AX
+    MOV      SS, AX
+    MOV      DS, AX
+    MOV      FS, AX
+    MOV      GS, AX
 
     %include "paging_64.asm"
 
