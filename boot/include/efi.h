@@ -13,6 +13,8 @@
 #define OPTIONAL
 #define EFIAPI
 
+// The highest bit of error code is set.
+// See UEFI Specification Version 2.8 (Errata A), Appendix D, Table 258.
 #define EFI_ERROR_CODE(Code) \
     (0x8000000000000000 | Code)
 
