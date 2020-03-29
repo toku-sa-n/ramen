@@ -32,7 +32,7 @@ change_code_segment:
 
 gdtr:
     DW       gdt_end - gdt - 1
-    DD       gdt
+    DQ       gdt
 
 gdt:
     TIMES    8  DB  0
