@@ -223,8 +223,8 @@ impl MouseCursor {
         let adjusted_coord = coord.put_in(
             Coord::new(0, 0),
             Coord::new(
-                (self.vram.x_len - MOUSE_CURSOR_WIDTH as i16 - 1) as isize,
-                (self.vram.y_len - MOUSE_CURSOR_HEIGHT as i16 - 1) as isize,
+                (self.vram.x_len - MOUSE_CURSOR_WIDTH as u16 - 1) as isize,
+                (self.vram.y_len - MOUSE_CURSOR_HEIGHT as u16 - 1) as isize,
             ),
         );
 

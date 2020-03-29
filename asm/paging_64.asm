@@ -1,18 +1,25 @@
-    ; Initialize PML4
+    ; |Address     |Conversion table                    |
+    ; |------------|------------------------------------|
+    ; |0x00100000  |PML4                                |
+    ; |0x00101000  |PDPT for below 1MB                  |
+    ; |0x00102000  |PD   for below 1MB                  |
+    ; |0x00103000  |PT   for below 1MB                  |
+    ; |0x00104000  |PDPT for kernel, IDT, stack and VRAM|
+    ; |0x00105000  |PD   for kernel, IDT, stack and VRAM|
+    ; |0x00106000  |PT   for kernel, IDT and stack      |
+    ; |0x00107000 ~|PT   for VRAM.                      |
+
+    [BITS 64]
     XOR                  EAX, EAX
+    MOV                  RCX, 0x00100000 / 8
+    MOV                  RDI, 0x00100000
+    REP                  STOSQ
 
     PML4                 EQU 0x00100000
-    MOV                  EDI, PML4
-
-    ; 1 PML4, 2 PDPT, 2PD and 2PT
     BYTES_PML4           EQU 0x1000
     BYTES_PDPT           EQU 0x1000
     BYTES_PD             EQU 0x1000
     BYTES_PT             EQU 0x1000
-    NUM_ALL_ENTRIES      EQU BYTES_PML4 + 2 * BYTES_PDPT + 2 * BYTES_PD + 2 * BYTES_PT
-    MOV                  ECX, NUM_ALL_ENTRIES
-
-    REP                  STOSD
 
     ; Add a PML4 entry for below 1MB
     PDPT_BELOW_1MB       EQU PML4 + BYTES_PML4
@@ -21,34 +28,38 @@
     ; MOV [DWORD PML4] will cause an assemble error.
     ; MOV DWORD[PML4] won't cause any assemble errors, but it won't assign a value
     ; to ES:PML4.
-    MOV                  DWORD[DWORD PML4], PDPT_BELOW_1MB | PAGE_EXISTS
+    MOV                  RAX, PDPT_BELOW_1MB | PAGE_EXISTS
+    MOV                  QWORD[DWORD PML4], RAX
 
     ; Add a PDPT entry for below 1MB
     PD_BELOW_1MB         EQU PDPT_BELOW_1MB + BYTES_PDPT
-    MOV                  DWORD[DWORD PDPT_BELOW_1MB], PD_BELOW_1MB | PAGE_EXISTS
+    MOV                  RAX, PD_BELOW_1MB | PAGE_EXISTS
+    MOV                  QWORD[DWORD PDPT_BELOW_1MB], RAX
 
     ; Add a PD entry and PT entries for below 1MB
     XOR                  EAX, EAX
 
     PT_BELOW_1MB         EQU PD_BELOW_1MB + BYTES_PD
-    MOV                  EBX, PT_BELOW_1MB
-    MOV                  EDI, PD_BELOW_1MB
-    MOV                  ECX, 1024 * 1024
+    MOV                  RBX, PT_BELOW_1MB
+    MOV                  RDI, PD_BELOW_1MB
+    MOV                  RCX, 1024 * 1024
     CALL                 map_entries
 
     ; Add a PML4 entry for kernel
     PML4_ENTRY_KERNEL    EQU PML4 + 0x1FF * SIZE_ENTRY
     PDPT_KERNEL          EQU PT_BELOW_1MB + BYTES_PT
-    MOV                  DWORD[DWORD PML4_ENTRY_KERNEL], PDPT_KERNEL | PAGE_EXISTS
+    MOV                  RAX, PDPT_KERNEL | PAGE_EXISTS
+    MOV                  QWORD[DWORD PML4_ENTRY_KERNEL], RAX
 
     ; Add a PDPT entry for kernel
     PDPT_ENTRY_KERNEL    EQU PDPT_KERNEL + 0x1FE * SIZE_ENTRY
     PD_KERNEL            EQU PDPT_KERNEL + BYTES_PDPT
-    MOV                  DWORD[DWORD PDPT_ENTRY_KERNEL], PD_KERNEL | PAGE_EXISTS
+    MOV                  RAX, PD_KERNEL | PAGE_EXISTS
+    MOV                  QWORD[DWORD PDPT_ENTRY_KERNEL], RAX
 
     ; Add a PD entry and PT entries for kernel, IDT and stack.
     ; These three elements are located successively.
-    ADDRESS_KERNEL       EQU 0x00501000
+    ADDRESS_KERNEL       EQU 0x00200000
     MOV                  EAX, ADDRESS_KERNEL
 
     PT_KERNEL            EQU PD_KERNEL + BYTES_PD
@@ -87,59 +98,42 @@
     VRAM_PTR             EQU 0x0FF8
     MOV                  EAX, [VRAM_PTR]
 
-    ; *2 for IDT and stack PD entries.
-    PD_ENTRY_VRAM        EQU PD_KERNEL + SIZE_ENTRY * 2
+    PD_ENTRY_VRAM        EQU PD_KERNEL + SIZE_ENTRY
     MOV                  EDI, PD_ENTRY_VRAM
 
-    ; *2 for IDT and stack PTs.
-    PT_VRAM              EQU PT_KERNEL + BYTES_PT * 2
+    PT_VRAM              EQU PT_KERNEL + BYTES_PT
     MOV                  EBX, PT_VRAM
     CALL                 map_entries
 
-
-    ; Switching to 64-bit mode
-    ; Disable paging
-    MOV                  EAX, CR0
-    AND                  EAX, 0x7FFFFFFF
-    MOV                  CR0, EAX
-
-    ; Enable PAE
-    MOV                  EAX, CR4
-    OR                   EAX, 0x00000020
-    MOV                  CR4, EAX
-
     ; Set PML4 address
-    MOV                  EAX, PML4
-    MOV                  CR3, EAX
+    MOV                  RAX, PML4
+    MOV                  CR3, RAX
 
-    ; Enable IA-32e mode
-    MOV                  ECX, 0xC0000080
-    RDMSR
-    OR                   EAX, 0x00000100
-    WRMSR
+    ; Clear write protection
+    ; See: https://forum.osdev.org/viewtopic.php?f=1&t=36615
+    MOV                  RAX, CR0
+    AND                  EAX, 0xFFFEFFFF
+    MOV                  CR0, RAX
 
-    ; Enable 4-level paging
-    MOV                  EAX, CR0
-    OR                   EAX, 0x80000000
-    MOV                  CR0, EAX
-
-    CODE_SEGMENT_64 EQU 0x18
-    JMP                  CODE_SEGMENT_64:switch_to_64bit
+    ; Replace pointer to the physical address of VRAM to the virtual one.
+    MOV                  RAX, 0xFFFFFFFF80200000
+    MOV                  QWORD[VRAM_PTR], RAX
+    JMP                  finish_paging_setting
 
     ; Functions
 
 map_entries:
-    ; Associate physical memories starting with EAX to page directory entries
-    ; starting with EDI.
-    ; Page table will be created successively from physical address EBX.
-    ; EDX will be used as a temporary register.
+    ; Associate physical memories starting with RAX to page directory entries
+    ; starting with RDI.
+    ; Page table will be created successively from physical address RBX.
+    ; RDX will be used as a temporary register.
     ;
-    ; EAX: Starting address of physical memories.
-    ; EBX: Starting address of page tables.
-    ; EDI: Starting address of entries of a page directory.
+    ; RAX: Starting address of physical memories.
+    ; RBX: Starting address of page tables.
+    ; RDI: Starting address of entries of a page directory.
     ; ECX: Number of bytes to map.
-    PUSH                 EBP
-    MOV                  EBP, ESP
+    PUSH                 RBP
+    MOV                  RBP, RSP
 
     ; Number of entries = ECX / (bytes of a page table)
     ;                   = ECX >> 12
@@ -151,75 +145,71 @@ loop_map_entries:
     CMP                  ECX, NUM_PAGE_ENTRIES
     JBE                  map_remainings
 
-    MOV                  EDX, EBX
-    OR                   EDX, PAGE_EXISTS
-    MOV                  [EDI], EDX
+    MOV                  RDX, RBX
+    OR                   RDX, PAGE_EXISTS
+    MOV                  [RDI], EDX
 
-    PUSH                 ECX,
+    PUSH                 RCX,
     MOV                  ECX, NUM_PAGE_ENTRIES
 
-    PUSH                 EDI
-    MOV                  EDI, EBX
+    PUSH                 RDI
+    MOV                  RDI, RBX
     CALL                 map_to_single_table
 
-    POP                  EDI
-    POP                  ECX
+    POP                  RDI
+    POP                  RCX
 
     SUB                  ECX, NUM_PAGE_ENTRIES
 
     SIZE_TABLE           EQU 0x1000
-    ADD                  EBX, SIZE_TABLE
+    ADD                  RBX, SIZE_TABLE
 
     ; The size of entry of 4-level paging is 8 bytes, not 4.
     SIZE_ENTRY           EQU 8
-    ADD                  EDI, SIZE_ENTRY
+    ADD                  RDI, SIZE_ENTRY
 
     JMP                  loop_map_entries
 
 map_remainings:
-    MOV                  EDX, EBX
-    OR                   EDX, PAGE_EXISTS
-    MOV                  [EDI], EDX
+    MOV                  RDX, RBX
+    OR                   RDX, PAGE_EXISTS
+    MOV                  [RDI], RDX
 
-    MOV                  EDI, EBX
+    MOV                  RDI, RBX
     CALL                 map_to_single_table
 
-    MOV                  ESP, EBP
-    POP                  EBP
+    MOV                  RSP, RBP
+    POP                  RBP
     RET
 
 map_to_single_table:
     ; Map ECX entries to a page table.
     ; (EDI - (page directory base address)) / 4 + ECX must be less than or equal to 1024.
     ;
-    ; EAX: Starting address of physical memories.
+    ; RAX: Starting address of physical memories.
     ; ECX: Number of entries to map.
     ; EDI: Starting address of entries of a page table.
-    ; EDX will be used as a temporary register.
-    PUSH                 EBP
-    MOV                  EBP, ESP
+    ; RDX will be used as a temporary register.
+    PUSH                 RBP
+    MOV                  RBP, RSP
 
 loop_map_to_single_table:
     CMP                  ECX, 0
     JBE                  end_map_to_single_table
 
-    MOV                  EDX, EAX
-    OR                   EDX, PAGE_EXISTS
-    MOV                  [EDI], EDX
+    MOV                  RDX, RAX
+    OR                   RDX, PAGE_EXISTS
+    MOV                  [EDI], RDX
 
-    ADD                  EAX, 0x1000
-    ADD                  EDI, SIZE_ENTRY
+    ADD                  RAX, 0x1000
+    ADD                  RDI, SIZE_ENTRY
     DEC                  ECX
 
     JMP                  loop_map_to_single_table
 
 end_map_to_single_table:
-    MOV                  ESP, EBP
-    POP                  EBP
+    MOV                  RSP, RBP
+    POP                  RBP
     RET
 
-switch_to_64bit:
-    [BITS 64]
-
-    ; Replace pointer to the physical address of VRAM to the virtual one.
-    MOV                  QWORD[VRAM_PTR], 0xFFFFFFFF80400000
+finish_paging_setting:

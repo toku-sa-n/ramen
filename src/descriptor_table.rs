@@ -45,7 +45,6 @@ fn init_idt() -> () {
         }
     }
 
-    // LDIT instruction takes PHYSICAL address of idt.
     asm::load_interrupt_descriptor_table_register(
         LIMIT_INTERRUPT_DESCRIPTOR_TABLE,
         VIRTUAL_ADDRESS_IDT,
@@ -62,12 +61,12 @@ fn set_interruption() {
     unsafe {
         (*interrupt_descriptor_table.offset(0x21)).set_gate_descriptor(
             interrupt_handler!(interrupt_handler_21) as u64,
-            3 * 8,
+            2 * 8,
             ACCESS_RIGHT_IDT,
         );
         (*interrupt_descriptor_table.offset(0x2C)).set_gate_descriptor(
             interrupt_handler!(interrupt_handler_2c) as u64,
-            3 * 8,
+            2 * 8,
             ACCESS_RIGHT_IDT,
         );
     }

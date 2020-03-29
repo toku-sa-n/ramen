@@ -1,27 +1,24 @@
 RUST_SRC_DIR:= src
 BUILD_DIR	:= build
 ASM_DIR		:= asm
+BOOT_DIR	:= boot
 
-IPL_SRC		:= $(ASM_DIR)/ipl.asm
 HEAD_SRC	:= $(ASM_DIR)/head.asm
 CARGO_JSON	:= cargo_settings
 RUST_SRC	:= $(shell cd $(RUST_SRC_DIR) && ls)
 
 LD_SRC		:= os.ld
 
-IPL_FILE	:= $(BUILD_DIR)/ipl.asm.o
 HEAD_FILE	:= $(BUILD_DIR)/head.asm.o
+EFI_FILE	:= $(BOOT_DIR)/$(BUILD_DIR)/bootx64.efi
 
-HEAD_DEPENDS:= $(ASM_DIR)/vbe.asm $(ASM_DIR)/paging_64.asm
+HEAD_DEPENDS:= $(ASM_DIR)/paging_64.asm
 
 KERNEL_FILE	:= $(BUILD_DIR)/kernel.bin
-IMG_FILE	:= $(BUILD_DIR)/ramen_os.img
-SYS_FILE	:= $(BUILD_DIR)/ramen_os.sys
 LIB_FILE	:= $(BUILD_DIR)/libramen_os.a
 
 ASMC		:= nasm
 CAT			:= cat
-VIEWER		:= bochs
 LD			:= ld
 RUSTCC		:= cargo
 RM			:= rm -rf
@@ -29,29 +26,27 @@ RM			:= rm -rf
 LDFLAGS := -nostdlib -T $(LD_SRC)
 ASMFLAGS := -w+all -i $(ASM_DIR)/
 
-.PHONY:show_kernel_map run release clean test_paging
+.PHONY:all show_kernel_map run release clean $(EFI_FILE)
 
 .SUFFIXES:
 
-$(IMG_FILE):$(IPL_FILE) $(SYS_FILE)|$(BUILD_DIR)
-	mformat -f 1440 -C -B $(IPL_FILE) -i $@ ::
-	mcopy $(SYS_FILE) -i $@ ::
+all:$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 
-release:$(IPL_FILE) $(HEAD_FILE) $(LD_SRC)|$(BUILD_DIR)
+copy_to_usb:$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
+ifeq ($(USB_DEVICE_PATH),)
+	echo 'Specify device path by $$USB_DEVICE_PATH environment variable.' >&2
+else
+	sudo mount $(USB_DEVICE_PATH) /mnt
+	sudo cp $(EFI_FILE) /mnt/efi/boot/
+	sudo cp $(KERNEL_FILE) /mnt/
+	sudo cp $(HEAD_FILE) /mnt/
+	sudo umount /mnt
+endif
+
+release:$(KERNEL_FILE) $(HEAD_FILE) $(LD_SRC)|$(BUILD_DIR)
 	make clean
 	$(RUSTCC) xbuild --target-dir $(BUILD_DIR) --release
 	cp $(BUILD_DIR)/$(CARGO_JSON)/$@/$(shell basename $(LIB_FILE))  $(LIB_FILE)
-	make $(IMG_FILE)
-
-$(SYS_FILE):$(HEAD_FILE) $(KERNEL_FILE)|$(BUILD_DIR)
-	$(CAT) $^ > $@
-
-show_kernel_map:$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -M -o $@ $<|less
-	rm -rf $@
-
-test_paging:|$(BUILD_DIR)
-	$(ASMC) $(ASMFLAGS) -f elf64 -o build/libramen_os.a asm/hlt_loop_kernel.asm
 	make
 
 $(KERNEL_FILE):$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
@@ -66,12 +61,12 @@ $(HEAD_FILE):$(HEAD_DEPENDS)
 $(BUILD_DIR)/%.asm.o:$(ASM_DIR)/%.asm|$(BUILD_DIR)
 	$(ASMC) $(ASMFLAGS) -o $@ $<
 
-run:$(IMG_FILE)
-	make $^
-	$(VIEWER) -q
+$(EFI_FILE):
+	make -C $(BOOT_DIR)
 
 $(BUILD_DIR):
 	mkdir $@
 
 clean:
 	$(RM) build
+	make -C $(BOOT_DIR) clean
