@@ -26,7 +26,7 @@ RM			:= rm -rf
 LDFLAGS := -nostdlib -T $(LD_SRC)
 ASMFLAGS := -w+all -i $(ASM_DIR)/
 
-.PHONY:all show_kernel_map run release clean $(EFI_FILE)
+.PHONY:all run release clean $(EFI_FILE)
 
 .SUFFIXES:
 
