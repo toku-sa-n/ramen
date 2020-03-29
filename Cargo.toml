@@ -1,7 +1,7 @@
 [package]
 name = "ramen"
-version = "0.1.0"
-authors = ["toku-sa-n <tokuchan3515@gmail.com>"]
+version = "0.3.0"
+authors = ["toku-sa-n <tokusan441@gmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
