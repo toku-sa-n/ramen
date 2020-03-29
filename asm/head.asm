@@ -14,7 +14,7 @@
     PUSH     change_code_segment
     RETFQ
 change_code_segment:
-    MOV      EAX, DATA_SEGMENT
+    MOV      AX, DATA_SEGMENT
     MOV      ES, AX
     MOV      SS, AX
     MOV      DS, AX
