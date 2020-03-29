@@ -12,10 +12,17 @@
 #define OUT
 #define OPTIONAL
 #define EFIAPI
+
+// The highest bit of error code is set.
+// See UEFI Specification Version 2.8 (Errata A), Appendix D, Table 258.
+#define EFI_ERROR_CODE(Code) \
+    (0x8000000000000000 | Code)
+
 #define EFI_SUCCESS 0
-#define EFI_UNSUPPORTED 3
-#define EFI_BUFFER_TOO_SMALL 5
-#define EFI_OUT_OF_RESOURCES 9
+#define EFI_LOAD_ERROR EFI_ERROR_CODE(1)
+#define EFI_UNSUPPORTED EFI_ERROR_CODE(3)
+#define EFI_BUFFER_TOO_SMALL EFI_ERROR_CODE(5)
+#define EFI_OUT_OF_RESOURCES EFI_ERROR_CODE(9)
 
 #define CONST const
 
@@ -845,5 +852,16 @@ typedef struct {
     UINT32 SizeOfEdid;
     UINT8* Edid;
 } EFI_EDID_DISCOVERED_PROTOCOL;
+
+typedef struct {
+    UINT64 Size;
+    UINT64 FileSize;
+    UINT64 PhysicalSize;
+    EFI_TIME CreateTime;
+    EFI_TIME LastAccessTime;
+    EFI_TIME ModificationTime;
+    UINT64 Attribute;
+    CHAR16 FileName[];
+} EFI_FILE_INFO;
 
 #endif

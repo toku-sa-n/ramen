@@ -5,13 +5,15 @@
 
 static EFI_GUID kEfiLoadedImageProtocolGuid = EFI_LOADED_IMAGE_PROTOCOL_GUID;
 static EFI_GUID kEfiSimpleFileSystemProtocolGuid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
+static EFI_GUID kEfiFileInfoId = EFI_FILE_INFO_ID;
 
-static EFI_PHYSICAL_ADDRESS kPhysicalAddressOS = 0x00100000;
+static EFI_PHYSICAL_ADDRESS kPhysicalAddressHeadFile = 0x0500;
+static EFI_PHYSICAL_ADDRESS kPhysicalAddressKernelFile = 0x00200000;
 
-// 0x00100000 ~ 0x002FFFFF will be used by OS.
+// 0x0500 ~ 0x002FFFFF will be used by OS.
 // (Strictly speaking, the range is much narrower.)
 // Needed page number is 2MB / 4KB = 256 * 2;
-const EFI_PHYSICAL_ADDRESS kNumPagesForOS = 256 * 2;
+const EFI_PHYSICAL_ADDRESS kNumPagesForOS = 256 * 3;
 
 EFI_STATUS PrepareFilesystem(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable, OUT EFI_FILE_PROTOCOL** efi_file_system)
 {
@@ -38,35 +40,7 @@ EFI_STATUS PrepareFilesystem(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* Sys
 
 EFI_STATUS AllocateMemoryForOS(IN EFI_SYSTEM_TABLE* SystemTable)
 {
-    return SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, kNumPagesForOS, &kPhysicalAddressOS);
-}
-
-EFI_STATUS GetFileSize(IN EFI_FILE_PROTOCOL* file_system, IN CHAR16* file_name, OUT EFI_PHYSICAL_ADDRESS* file_size)
-{
-#define RETURN_ON_ERROR(condition)     \
-    do {                               \
-        EFI_STATUS STATUS = condition; \
-        if (EFI_ERROR(STATUS)) {       \
-            return STATUS;             \
-        }                              \
-    } while (0)
-
-    EFI_FILE_PROTOCOL* file_handle = NULL;
-    RETURN_ON_ERROR(file_system->Open(file_system, &file_handle, file_name, EFI_FILE_MODE_READ, 0));
-
-    const UINT64 SET_POSITION_TO_EOF = 0xFFFFFFFFFFFFFFFF;
-    RETURN_ON_ERROR(file_handle->SetPosition(file_handle, SET_POSITION_TO_EOF));
-
-    RETURN_ON_ERROR(file_handle->GetPosition(file_handle, file_size));
-
-    RETURN_ON_ERROR(file_handle->SetPosition(file_handle, 0));
-
-    // Close function always succeeds.
-    file_handle->Close(file_handle);
-
-#undef RETURN_ON_ERROR
-
-    return EFI_SUCCESS;
+    return SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, kNumPagesForOS, &kPhysicalAddressHeadFile);
 }
 
 VOID* Malloc(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_PHYSICAL_ADDRESS n)
@@ -81,6 +55,47 @@ VOID Free(IN EFI_SYSTEM_TABLE* SystemTable, IN VOID* p)
     if (p) {
         SystemTable->BootServices->FreePool(p);
     }
+}
+
+EFI_STATUS GetFileBytes(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL* file_system, IN CHAR16* file_name, OUT EFI_PHYSICAL_ADDRESS* file_bytes)
+{
+    Print(SystemTable, (CHAR16*)L"Enter GetFileBytes() function...\n");
+    EFI_FILE_PROTOCOL* file_handle = NULL;
+    EFI_STATUS status = file_system->Open(file_system, &file_handle, file_name, EFI_FILE_MODE_READ, 0);
+    if (EFI_ERROR(status)) {
+        return status;
+    }
+
+    Print(SystemTable, (CHAR16*)L"Successfully opened file...\n");
+
+    UINTN info_size = sizeof(EFI_FILE_INFO);
+    EFI_FILE_INFO* file_info;
+    while (1) {
+        file_info = (EFI_FILE_INFO*)Malloc(SystemTable, info_size);
+        status = file_handle->GetInfo(file_handle, &kEfiFileInfoId, &info_size, file_info);
+        if (!EFI_ERROR(status)) {
+            *file_bytes = file_info->FileSize;
+            CHAR16 str[1024];
+            OSSPrintf(str, u"File size: %d\n", *file_bytes);
+            Print(SystemTable, (CHAR16*)str);
+            break;
+        }
+
+        if (status != EFI_BUFFER_TOO_SMALL) {
+            CHAR16 str[1024];
+            OSSPrintf(str, u"An error occurred. Error code: %d\n", status);
+            Print(SystemTable, str);
+            break;
+        }
+
+        Free(SystemTable, file_info);
+    }
+
+    // Close function always succeeds.
+    file_handle->Close(file_handle);
+    Free(SystemTable, file_info);
+
+    return status;
 }
 
 void Memcpy(void* dst, const void* src, size_t n)
@@ -105,7 +120,7 @@ EFI_STATUS ReadFileToMemory(EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL*
     } while (0)
 
     UINT64 file_size = 0;
-    RETURN_ON_ERROR(GetFileSize(file_system, file_name, &file_size));
+    RETURN_ON_ERROR(GetFileBytes(SystemTable, file_system, file_name, &file_size));
 
     EFI_FILE_PROTOCOL* opened_file = NULL;
     RETURN_ON_ERROR(file_system->Open(file_system, &opened_file, file_name, EFI_FILE_MODE_READ, 0));
@@ -114,6 +129,7 @@ EFI_STATUS ReadFileToMemory(EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL*
 
     VOID* buffer = Malloc(SystemTable, file_size);
     if (!buffer) {
+        opened_file->Close(opened_file);
         return EFI_OUT_OF_RESOURCES;
     }
 
@@ -170,30 +186,33 @@ void PrintMemoryContents(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_PHYSICAL_ADDRE
     Print(SystemTable, (CHAR16*)L"\n");
 }
 
+void AbortBooting(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable)
+{
+    SystemTable->BootServices->FreePages(kPhysicalAddressHeadFile, kNumPagesForOS);
+    SystemTable->BootServices->Exit(ImageHandle, EFI_LOAD_ERROR, 0, NULL);
+}
+
 extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable)
 {
     EFI_FILE_PROTOCOL* efi_file_system = NULL;
 
-#define LOOP_ON_ERROR(condition, message)     \
-    if (EFI_ERROR(condition)) {               \
-        Print(SystemTable, (CHAR16*)message); \
-        while (1)                             \
-            ;                                 \
+#define EXIT_ON_ERROR(condition, message)       \
+    if (EFI_ERROR(condition)) {                 \
+        Print(SystemTable, (CHAR16*)message);   \
+        AbortBooting(ImageHandle, SystemTable); \
+        return EFI_LOAD_ERROR;                  \
     }
 
     Print(SystemTable, (CHAR16*)L"Preparing filesystem...\n");
-    LOOP_ON_ERROR(PrepareFilesystem(ImageHandle, SystemTable, &efi_file_system), L"Failed to prepare filesystem\n");
-
-    Print(SystemTable, (CHAR16*)L"Allocating memory...\n");
-    LOOP_ON_ERROR(AllocateMemoryForOS(SystemTable), L"Failed to allocate memory for OS.\n");
+    EXIT_ON_ERROR(PrepareFilesystem(ImageHandle, SystemTable, &efi_file_system), L"Failed to prepare filesystem\n");
 
     Print(SystemTable, (CHAR16*)L"Initializing GOP...\n");
     EFI_GRAPHICS_OUTPUT_PROTOCOL* gop = NULL;
-    LOOP_ON_ERROR(InitGop(ImageHandle, SystemTable, &gop), L"Failed to initialize GOP.\n");
+    EXIT_ON_ERROR(InitGop(ImageHandle, SystemTable, &gop), L"Failed to initialize GOP.\n");
 
-    LOOP_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"kernel.bin", (VOID*)0x00200000), L"Failed to read kernel image.\n");
+    EXIT_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"kernel.bin", (VOID*)kPhysicalAddressKernelFile), L"Failed to read kernel image.\n");
 
-    LOOP_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"head.asm.o", (VOID*)0x0500), L"Failed to read head file.\n");
+    EXIT_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"head.asm.o", (VOID*)kPhysicalAddressHeadFile), L"Failed to read head file.\n");
 
     SetGraphicsSettings(gop);
 
@@ -201,12 +220,12 @@ extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TA
     PrintMemoryContents(SystemTable, 0x00C00000, 32);
     PrintMemoryContents(SystemTable, gop->Mode->FrameBufferBase, 32);
 
-    LOOP_ON_ERROR(TerminateBootServices(&ImageHandle, SystemTable), L"Failed to terminate boot services.\n");
+    EXIT_ON_ERROR(TerminateBootServices(&ImageHandle, SystemTable), L"Failed to terminate boot services.\n");
 
     void (*jmp_to_header)(void) = (void (*)(void))0x0500;
     jmp_to_header();
 
     return EFI_SUCCESS;
 
-#undef LOOP_ON_ERROR
+#undef EXIT_ON_ERROR
 }
