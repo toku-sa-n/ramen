@@ -26,7 +26,7 @@ RM			:= rm -rf
 LDFLAGS := -nostdlib -T $(LD_SRC)
 ASMFLAGS := -w+all -i $(ASM_DIR)/
 
-.PHONY:all show_kernel_map run release clean test_paging $(EFI_FILE)
+.PHONY:all show_kernel_map run release clean $(EFI_FILE)
 
 .SUFFIXES:
 
@@ -47,14 +47,6 @@ release:$(KERNEL_FILE) $(HEAD_FILE) $(LD_SRC)|$(BUILD_DIR)
 	make clean
 	$(RUSTCC) xbuild --target-dir $(BUILD_DIR) --release
 	cp $(BUILD_DIR)/$(CARGO_JSON)/$@/$(shell basename $(LIB_FILE))  $(LIB_FILE)
-	make
-
-show_kernel_map:$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -M -o $@ $<|less
-	rm -rf $@
-
-test_paging:|$(BUILD_DIR)
-	$(ASMC) $(ASMFLAGS) -f elf64 -o build/libramen_os.a asm/hlt_loop_kernel.asm
 	make
 
 $(KERNEL_FILE):$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
