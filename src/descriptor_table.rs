@@ -1,8 +1,8 @@
 // See P.114
 
+use crate::addresses::*;
 use crate::asm;
 
-const VIRTUAL_ADDRESS_IDT: u64 = 0xFFFFFFFF80080000;
 const LIMIT_INTERRUPT_DESCRIPTOR_TABLE: u32 = 0x000007FF;
 const ACCESS_RIGHT_IDT: u32 = 0x008E;
 

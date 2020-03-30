@@ -3,6 +3,7 @@
 #![feature(start)]
 #![feature(naked_functions)]
 
+mod addresses;
 mod asm;
 mod descriptor_table;
 mod interrupt;
