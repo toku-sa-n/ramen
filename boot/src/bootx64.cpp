@@ -83,10 +83,6 @@ extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TA
 
     SetGraphicsSettings(gop);
 
-    PrintMemoryContents(SystemTable, 0x0FF8, 8);
-    PrintMemoryContents(SystemTable, 0x00C00000, 32);
-    PrintMemoryContents(SystemTable, gop->Mode->FrameBufferBase, 32);
-
     EXIT_ON_ERROR(TerminateBootServices(&ImageHandle, SystemTable), L"Failed to terminate boot services.\n");
 
     void (*jmp_to_header)(void) = (void (*)(void))0x0500;
