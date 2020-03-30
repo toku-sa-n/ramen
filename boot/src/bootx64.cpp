@@ -142,23 +142,29 @@ EFI_STATUS ReadFileToMemory(EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL*
     return return_status;
 }
 
+EFI_STATUS PrepareMemoryMap(IN EFI_SYSTEM_TABLE* SystemTable, OUT UINTN* MemoryMapSize, OUT EFI_MEMORY_DESCRIPTOR** MemoryMap, OUT UINTN* MapKey, OUT UINTN* DescriptorSize, OUT UINT32* DescriptorVersion)
+{
+    *MemoryMapSize = sizeof(EFI_MEMORY_DESCRIPTOR);
+    *MemoryMap = (EFI_MEMORY_DESCRIPTOR*)Malloc(SystemTable, *MemoryMapSize);
+
+    EFI_STATUS return_status;
+    while ((return_status = SystemTable->BootServices->GetMemoryMap(MemoryMapSize, *MemoryMap, MapKey, DescriptorSize, DescriptorVersion)) == EFI_BUFFER_TOO_SMALL) {
+        Print(SystemTable, (CHAR16*)L"Retrying...\n");
+        Free(SystemTable, *MemoryMap);
+        *MemoryMap = (EFI_MEMORY_DESCRIPTOR*)Malloc(SystemTable, *MemoryMapSize);
+    }
+
+    return return_status;
+}
+
 EFI_STATUS TerminateBootServices(IN EFI_HANDLE* ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable)
 {
-    UINTN size_of_memory_map = sizeof(EFI_MEMORY_DESCRIPTOR);
-    EFI_MEMORY_DESCRIPTOR* memory_map = (EFI_MEMORY_DESCRIPTOR*)Malloc(SystemTable, size_of_memory_map);
-    UINTN map_key, size_of_descriptor;
-    UINT32 descriptor_version;
+    UINTN MemoryMapSize, MapKey, DescriptorSize;
+    UINT32 DescriptorVersion;
+    EFI_MEMORY_DESCRIPTOR* MemoryMap;
 
-    Print(SystemTable, (CHAR16*)L"Terminating boot services...\n");
-
-    while (SystemTable->BootServices->GetMemoryMap(&size_of_memory_map, memory_map, &map_key, &size_of_descriptor, &descriptor_version) == EFI_BUFFER_TOO_SMALL) {
-        Print(SystemTable, (CHAR16*)L"Retrying...\n");
-        Free(SystemTable, memory_map);
-        memory_map = (EFI_MEMORY_DESCRIPTOR*)Malloc(SystemTable, size_of_memory_map);
-    }
-    Print(SystemTable, (CHAR16*)L"OK...\n");
-
-    return SystemTable->BootServices->ExitBootServices(*ImageHandle, map_key);
+    PrepareMemoryMap(SystemTable, &MemoryMapSize, &MemoryMap, &MapKey, &DescriptorSize, &DescriptorVersion);
+    return SystemTable->BootServices->ExitBootServices(*ImageHandle, MapKey);
 }
 
 void SetGraphicsSettings(EFI_GRAPHICS_OUTPUT_PROTOCOL* gop)
