@@ -5,7 +5,7 @@ BUILD_DIR = build
 SRC_DIR = src
 UTILS_DIR = utils
 
-CXX_SRC = bootx64.cpp $(UTILS_DIR)/os_sprintf.cpp efi_utils.cpp gop.cpp
+CXX_SRC = bootx64.cpp $(UTILS_DIR)/os_sprintf.cpp efi_utils.cpp gop.cpp memory.cpp
 CXX_SRC_PATH = $(addprefix $(SRC_DIR))/, $(CXX_SRC))
 CXX_OBJ = $(addprefix $(BUILD_DIR)/, $(CXX_SRC:%.cpp=%.o))
 

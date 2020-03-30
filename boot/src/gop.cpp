@@ -1,7 +1,6 @@
 #include "efi.h"
+#include "efi_constants.h"
 #include "efi_utils.h"
-
-static EFI_GUID kEfiGraphicsOutputProtocolGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
 
 EFI_STATUS CheckGopInfo(IN EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* info)
 {
@@ -31,12 +30,12 @@ EFI_STATUS GetGop(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable, O
     // Don't replace handle_count with NULL. It won't work.
     UINTN handle_count = 0;
     EFI_HANDLE* handle_buffer;
-    EFI_STATUS status = SystemTable->BootServices->LocateHandleBuffer(ByProtocol, &kEfiGraphicsOutputProtocolGuid, NULL, &handle_count, &handle_buffer);
+    EFI_STATUS status = SystemTable->BootServices->LocateHandleBuffer(ByProtocol, (EFI_GUID*)&kEfiGraphicsOutputProtocolGuid, NULL, &handle_count, &handle_buffer);
     if (EFI_ERROR(status)) {
         return status;
     }
 
-    return SystemTable->BootServices->OpenProtocol(handle_buffer[0], &kEfiGraphicsOutputProtocolGuid, (VOID**)gop, ImageHandle, NULL, EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+    return SystemTable->BootServices->OpenProtocol(handle_buffer[0], (EFI_GUID*)&kEfiGraphicsOutputProtocolGuid, (VOID**)gop, ImageHandle, NULL, EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
 }
 
 EFI_STATUS SetResolution(IN EFI_GRAPHICS_OUTPUT_PROTOCOL** gop)
