@@ -1,31 +1,20 @@
 #include "efi.h"
+#include "efi_constants.h"
 #include "efi_utils.h"
 #include "gop.h"
 #include "utils.h"
-
-static EFI_GUID kEfiLoadedImageProtocolGuid = EFI_LOADED_IMAGE_PROTOCOL_GUID;
-static EFI_GUID kEfiSimpleFileSystemProtocolGuid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
-static EFI_GUID kEfiFileInfoId = EFI_FILE_INFO_ID;
-
-static EFI_PHYSICAL_ADDRESS kPhysicalAddressHeadFile = 0x0500;
-static EFI_PHYSICAL_ADDRESS kPhysicalAddressKernelFile = 0x00200000;
-
-// 0x0500 ~ 0x002FFFFF will be used by OS.
-// (Strictly speaking, the range is much narrower.)
-// Needed page number is 2MB / 4KB = 256 * 2;
-const EFI_PHYSICAL_ADDRESS kNumPagesForOS = 256 * 3;
 
 EFI_STATUS PrepareFilesystem(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* SystemTable, OUT EFI_FILE_PROTOCOL** efi_file_system)
 {
     EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* efi_fio;
     EFI_LOADED_IMAGE_PROTOCOL* efi_loaded_image_protocol;
 
-    EFI_STATUS return_status = SystemTable->BootServices->HandleProtocol(ImageHandle, &kEfiLoadedImageProtocolGuid, (VOID**)&efi_loaded_image_protocol);
+    EFI_STATUS return_status = SystemTable->BootServices->HandleProtocol(ImageHandle, (EFI_GUID*)&kEfiLoadedImageProtocolGuid, (VOID**)&efi_loaded_image_protocol);
     if (EFI_ERROR(return_status)) {
         return return_status;
     }
 
-    return_status = SystemTable->BootServices->HandleProtocol(efi_loaded_image_protocol->DeviceHandle, &kEfiSimpleFileSystemProtocolGuid, (VOID**)&efi_fio);
+    return_status = SystemTable->BootServices->HandleProtocol(efi_loaded_image_protocol->DeviceHandle, (EFI_GUID*)&kEfiSimpleFileSystemProtocolGuid, (VOID**)&efi_fio);
     if (EFI_ERROR(return_status)) {
         return return_status;
     }
@@ -40,7 +29,7 @@ EFI_STATUS PrepareFilesystem(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE* Sys
 
 EFI_STATUS AllocateMemoryForOS(IN EFI_SYSTEM_TABLE* SystemTable)
 {
-    return SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, kNumPagesForOS, &kPhysicalAddressHeadFile);
+    return SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, kNumPagesForOS, (EFI_PHYSICAL_ADDRESS*)&kPhysicalAddressHeadFile);
 }
 
 VOID* Malloc(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_PHYSICAL_ADDRESS n)
@@ -72,7 +61,7 @@ EFI_STATUS GetFileBytes(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL* 
     EFI_FILE_INFO* file_info;
     while (1) {
         file_info = (EFI_FILE_INFO*)Malloc(SystemTable, info_size);
-        status = file_handle->GetInfo(file_handle, &kEfiFileInfoId, &info_size, file_info);
+        status = file_handle->GetInfo(file_handle, (EFI_GUID*)&kEfiFileInfoId, &info_size, file_info);
         if (!EFI_ERROR(status)) {
             *file_bytes = file_info->FileSize;
             CHAR16 str[1024];
