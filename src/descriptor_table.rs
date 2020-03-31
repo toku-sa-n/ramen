@@ -112,6 +112,8 @@ fn init_gdt() -> () {
     }
 
     lgdt(LIMIT_GDT, VIRTUAL_ADDRESS_GDT);
+    set_cs(0x08);
+    set_segments_except_cs(0x10);
 }
 
 fn set_interruption() {
@@ -159,5 +161,29 @@ fn lidt(limit: u16, address: u64) {
 fn lgdt(limit: u16, address: u64) {
     unsafe {
         asm!("LGDT ($0)"::"r"(&GdtrIdtrData::new(limit,address)));
+    }
+}
+
+fn set_segments_except_cs(segment_index: u16) -> () {
+    unsafe {
+        asm!("
+        MOV AX, $0
+        MOV ES, AX
+        MOV SS, AX
+        MOV DS, AX
+        MOV FS, AX
+        MOV GS, AX
+        "::"r"(segment_index)::"intel");
+    }
+}
+
+fn set_cs(segment_index: u16) -> () {
+    unsafe {
+        asm!("
+            PUSH $0
+            PUSH change_code_segment
+            RETFQ
+            change_code_segment:
+            "::"r"(segment_index)::"intel");
     }
 }
