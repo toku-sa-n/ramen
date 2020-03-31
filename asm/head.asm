@@ -21,13 +21,13 @@ change_code_segment:
     MOV      FS, AX
     MOV      GS, AX
 
-    %include "paging_64.asm"
+    ;%include "paging_64.asm"
 
-    MOV      RSP,0xFFFFFFFF800a1000
+    MOV      RSP,0x00400000
 
     ; JMP 0xFFFFFFFF80000000 can't be executed.
     ; Jump to 64 bit immediate address is not supported.
-    MOV      RDI,0xFFFFFFFF80000000
+    MOV      RDI,0x00200000
     JMP      RDI
 
 gdtr:
