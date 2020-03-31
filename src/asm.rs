@@ -58,7 +58,7 @@ impl GdtrIdtrData {
     }
 }
 
-pub fn load_interrupt_descriptor_table_register(limit: u16, address: u64) {
+pub fn lidt(limit: u16, address: u64) {
     unsafe {
         asm!("LIDT ($0)"::"r"(&GdtrIdtrData::new(limit, address)));
     }

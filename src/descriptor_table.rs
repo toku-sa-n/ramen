@@ -94,10 +94,7 @@ fn init_idt() -> () {
         }
     }
 
-    asm::load_interrupt_descriptor_table_register(
-        LIMIT_INTERRUPT_DESCRIPTOR_TABLE,
-        VIRTUAL_ADDRESS_IDT,
-    );
+    asm::lidt(LIMIT_INTERRUPT_DESCRIPTOR_TABLE, VIRTUAL_ADDRESS_IDT);
 }
 
 fn init_gdt() -> () {
