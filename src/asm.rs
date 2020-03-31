@@ -43,33 +43,6 @@ pub fn in8(port: u32) -> u32 {
     result
 }
 
-#[repr(C, packed)]
-struct GdtrIdtrData {
-    _limit: u16,
-    _address: u64,
-}
-
-impl GdtrIdtrData {
-    fn new(limit: u16, address: u64) -> Self {
-        Self {
-            _limit: limit,
-            _address: address,
-        }
-    }
-}
-
-pub fn lidt(limit: u16, address: u64) {
-    unsafe {
-        asm!("LIDT ($0)"::"r"(&GdtrIdtrData::new(limit, address)));
-    }
-}
-
-pub fn lgdt(limit: u16, address: u64) {
-    unsafe {
-        asm!("LGDT ($0)"::"r"(&GdtrIdtrData::new(limit,address)));
-    }
-}
-
 // Don't put these asm! in one! It doesn't work!
 #[macro_export]
 macro_rules! interrupt_handler{

@@ -1,7 +1,6 @@
 // See P.114
 
 use crate::addresses::*;
-use crate::asm;
 
 const LIMIT_INTERRUPT_DESCRIPTOR_TABLE: u16 = 0x000007FF;
 const LIMIT_GDT: u16 = 8 * 3 - 1;
@@ -94,7 +93,7 @@ fn init_idt() -> () {
         }
     }
 
-    asm::lidt(LIMIT_INTERRUPT_DESCRIPTOR_TABLE, VIRTUAL_ADDRESS_IDT);
+    lidt(LIMIT_INTERRUPT_DESCRIPTOR_TABLE, VIRTUAL_ADDRESS_IDT);
 }
 
 fn init_gdt() -> () {
@@ -112,7 +111,7 @@ fn init_gdt() -> () {
         (*gdt.offset(2)).set_segment_descriptor(SegmentType::CodeSegment);
     }
 
-    asm::lgdt(LIMIT_GDT, VIRTUAL_ADDRESS_GDT);
+    lgdt(LIMIT_GDT, VIRTUAL_ADDRESS_GDT);
 }
 
 fn set_interruption() {
@@ -133,5 +132,32 @@ fn set_interruption() {
             2 * 8,
             ACCESS_RIGHT_IDT,
         );
+    }
+}
+
+#[repr(C, packed)]
+struct GdtrIdtrData {
+    _limit: u16,
+    _address: u64,
+}
+
+impl GdtrIdtrData {
+    fn new(limit: u16, address: u64) -> Self {
+        Self {
+            _limit: limit,
+            _address: address,
+        }
+    }
+}
+
+fn lidt(limit: u16, address: u64) {
+    unsafe {
+        asm!("LIDT ($0)"::"r"(&GdtrIdtrData::new(limit, address)));
+    }
+}
+
+fn lgdt(limit: u16, address: u64) {
+    unsafe {
+        asm!("LGDT ($0)"::"r"(&GdtrIdtrData::new(limit,address)));
     }
 }
