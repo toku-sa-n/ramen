@@ -64,6 +64,12 @@ pub fn load_interrupt_descriptor_table_register(limit: u32, address: u64) {
     }
 }
 
+pub fn lgdt(limit: u16, address: u64) {
+    unsafe {
+        asm!("LGDT ($0)"::"r"(&GdtrIdtrData::new(limit as i16,address)));
+    }
+}
+
 // Don't put these asm! in one! It doesn't work!
 #[macro_export]
 macro_rules! interrupt_handler{

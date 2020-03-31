@@ -4,6 +4,7 @@ use crate::addresses::*;
 use crate::asm;
 
 const LIMIT_INTERRUPT_DESCRIPTOR_TABLE: u32 = 0x000007FF;
+const LIMIT_GDT: u32 = 8 * 3 - 1;
 const ACCESS_RIGHT_IDT: u32 = 0x008E;
 
 #[repr(C, packed)]
@@ -29,8 +30,56 @@ impl GateDescriptor {
     }
 }
 
+#[repr(C, packed)]
+struct SegmentDescriptor {
+    limit_low: u16,
+    base_low: u16,
+    base_mid: u8,
+    p_dpl_s_type: u8,
+    flags_and_limit_high: u8,
+    base_high: u8,
+}
+
+enum SegmentType {
+    NullSegment,
+    CodeSegment,
+    DataSegment,
+}
+
+impl SegmentDescriptor {
+    fn set_segment_descriptor(&mut self, seg_type: SegmentType) -> () {
+        match seg_type {
+            SegmentType::NullSegment => {
+                (*self).limit_low = 0;
+                (*self).base_low = 0;
+                (*self).base_mid = 0;
+                (*self).p_dpl_s_type = 0;
+                (*self).flags_and_limit_high = 0;
+                (*self).base_high = 0;
+            }
+            SegmentType::CodeSegment => {
+                (*self).limit_low = 0xFFFF;
+                (*self).base_low = 0x0000;
+                (*self).base_mid = 0x00;
+                (*self).p_dpl_s_type = 0x9A;
+                (*self).flags_and_limit_high = 0xAF;
+                (*self).base_high = 0x00;
+            }
+            SegmentType::DataSegment => {
+                (*self).limit_low = 0xFFFF;
+                (*self).base_low = 0x0000;
+                (*self).base_mid = 0x00;
+                (*self).p_dpl_s_type = 0x92;
+                (*self).flags_and_limit_high = 0xCF;
+                (*self).base_high = 0x00;
+            }
+        }
+    }
+}
+
 pub fn init() -> () {
     init_idt();
+    init_gdt();
     set_interruption();
 }
 
@@ -49,6 +98,24 @@ fn init_idt() -> () {
         LIMIT_INTERRUPT_DESCRIPTOR_TABLE,
         VIRTUAL_ADDRESS_IDT,
     );
+}
+
+fn init_gdt() -> () {
+    let gdt: *mut SegmentDescriptor = VIRTUAL_ADDRESS_GDT as *mut SegmentDescriptor;
+
+    const SIZE_GDT_ENTRY: u32 = 8;
+    for i in 0..=((LIMIT_GDT + 1) / SIZE_GDT_ENTRY) {
+        unsafe {
+            (*gdt.offset(i as isize)).set_segment_descriptor(SegmentType::NullSegment);
+        }
+    }
+
+    unsafe {
+        (*gdt.offset(1)).set_segment_descriptor(SegmentType::DataSegment);
+        (*gdt.offset(2)).set_segment_descriptor(SegmentType::CodeSegment);
+    }
+
+    asm::lgdt(LIMIT_GDT as u16, VIRTUAL_ADDRESS_GDT);
 }
 
 fn set_interruption() {
