@@ -77,15 +77,17 @@ extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TA
     EFI_GRAPHICS_OUTPUT_PROTOCOL* gop = NULL;
     EXIT_ON_ERROR(InitGop(ImageHandle, SystemTable, &gop), L"Failed to initialize GOP.\n");
 
-    EXIT_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"kernel.bin", (VOID*)kPhysicalAddressKernelFile), L"Failed to read kernel image.\n");
+    VOID* kernel_address;
+    EXIT_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"kernel.bin", (VOID**)&kernel_address), L"Failed to read kernel image.\n");
 
-    EXIT_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"head.asm.o", (VOID*)kPhysicalAddressHeadFile), L"Failed to read head file.\n");
+    VOID* head_address;
+    EXIT_ON_ERROR(ReadFileToMemory(SystemTable, efi_file_system, (CHAR16*)L"head.asm.o", (VOID**)&head_address), L"Failed to read head file.\n");
 
     SetGraphicsSettings(gop);
 
     EXIT_ON_ERROR(TerminateBootServices(&ImageHandle, SystemTable), L"Failed to terminate boot services.\n");
 
-    void (*jmp_to_header)(void) = (void (*)(void))0x0500;
+    void (*jmp_to_header)(void) = (void (*)(void))head_address;
     jmp_to_header();
 
     return EFI_SUCCESS;

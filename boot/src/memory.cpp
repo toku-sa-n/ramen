@@ -73,9 +73,13 @@ static EFI_STATUS GetFileBytes(IN EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PRO
     return status;
 }
 
-EFI_STATUS ReadFileToMemory(EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL* file_system, IN CHAR16* file_name, IN VOID* address)
+static UINTN CalculateNumOfPagesForBytes(UINTN bytes)
 {
+    return (bytes + 0x1000 - 1) / 0x1000;
+}
 
+EFI_STATUS ReadFileToMemory(EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL* file_system, IN CHAR16* file_name, OUT VOID** address)
+{
 #define RETURN_ON_ERROR(condition)     \
     do {                               \
         EFI_STATUS STATUS = condition; \
@@ -92,19 +96,22 @@ EFI_STATUS ReadFileToMemory(EFI_SYSTEM_TABLE* SystemTable, IN EFI_FILE_PROTOCOL*
 
 #undef RETURN_ON_ERROR
 
-    VOID* buffer = Malloc(SystemTable, file_size);
-    if (!buffer) {
-        opened_file->Close(opened_file);
-        return EFI_OUT_OF_RESOURCES;
-    }
+    Print(SystemTable, (CHAR16*)L"File Opened.\n");
 
-    EFI_STATUS return_status = opened_file->Read(opened_file, (UINTN*)&file_size, buffer);
+    // Though the value of parameter Memory of AllocatePages is ignored, specifying NULL as Memory will cause EFI_INVALID_PARAMETER.
+    // Thus assign some random value to *address.
+    *address = (VOID*)0x55aa55aa;
+    EFI_STATUS status = SystemTable->BootServices->AllocatePages(AllocateAnyPages, EfiLoaderData, CalculateNumOfPagesForBytes(file_size), (EFI_PHYSICAL_ADDRESS*)*address);
+    if (EFI_ERROR(status)) {
+        opened_file->Close(opened_file);
+        return status;
+    }
+    Print(SystemTable, (CHAR16*)L"File Allocated.\n");
+
+    status = opened_file->Read(opened_file, (UINTN*)&file_size, *address);
     opened_file->Close(opened_file);
 
-    Memcpy(address, buffer, file_size);
-    Free(SystemTable, buffer);
-
-    return return_status;
+    return status;
 }
 
 EFI_STATUS PrepareMemoryMap(IN EFI_SYSTEM_TABLE* SystemTable, OUT UINTN* MemoryMapSize, OUT EFI_MEMORY_DESCRIPTOR** MemoryMap, OUT UINTN* MapKey, OUT UINTN* DescriptorSize, OUT UINT32* DescriptorVersion)
