@@ -100,7 +100,7 @@ fn init_gdt() -> () {
     let gdt: *mut SegmentDescriptor = VIRTUAL_ADDRESS_GDT as *mut SegmentDescriptor;
 
     const SIZE_GDT_ENTRY: u16 = 8;
-    for i in 0..=((LIMIT_GDT + 1) / SIZE_GDT_ENTRY) {
+    for i in 0..=(LIMIT_GDT / SIZE_GDT_ENTRY) {
         unsafe {
             (*gdt.offset(i as isize)).set_segment_descriptor(SegmentType::NullSegment);
         }
