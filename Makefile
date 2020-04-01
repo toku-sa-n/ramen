@@ -11,6 +11,7 @@ LD_SRC		:= os.ld
 
 HEAD_FILE	:= $(BUILD_DIR)/head.asm.o
 EFI_FILE	:= $(BOOT_DIR)/$(BUILD_DIR)/bootx64.efi
+IMG_FILE	:= $(BUILD_DIR)/ramen_os.img
 
 HEAD_DEPENDS:= $(ASM_DIR)/paging_64.asm
 
@@ -22,15 +23,40 @@ CAT			:= cat
 LD			:= ld
 RUSTCC		:= cargo
 RM			:= rm -rf
+VIEWER		:= qemu-system-x86_64
+
+OVMF_CODE	:= OVMF_CODE-pure-efi.fd
+OVMF_VARS	:= OVMF_VARS-pure-efi.fd
 
 LDFLAGS := -nostdlib -T $(LD_SRC)
 ASMFLAGS := -w+all -i $(ASM_DIR)/
+VIEWERFLAGS := -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -monitor stdio -no-reboot -no-shutdown -m 4G
 
 .PHONY:all run release clean $(EFI_FILE)
 
 .SUFFIXES:
 
 all:$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
+
+run:$(IMG_FILE) $(OVMF_CODE) $(OVMF_VARS)
+	$(VIEWER) $(VIEWERFLAGS)
+
+$(OVMF_CODE):
+	@echo "$@ not found."
+	exit 1
+
+$(OVMF_VARS):
+	@echo "$@ not found."
+	exit 1
+
+$(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
+	dd if=/dev/zero of=$@ bs=1k count=1440
+	mformat -i $@ -f 1440 ::
+	mmd -i $@ ::/efi
+	mmd -i $@ ::/efi/boot
+	mcopy -i $@ $(KERNEL_FILE) ::
+	mcopy -i $@ $(HEAD_FILE) ::
+	mcopy -i $@ $(EFI_FILE) ::/efi/boot
 
 copy_to_usb:$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 ifeq ($(USB_DEVICE_PATH),)

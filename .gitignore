@@ -5,6 +5,8 @@ tags
 build
 **/*.swp
 **/*.efi
+**/*.fd
+**/*.img
 
 
 #Added by cargo
