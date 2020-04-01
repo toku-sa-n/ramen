@@ -85,7 +85,7 @@ extern "C" EFI_STATUS EFIAPI EfiMain(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TA
 
     EXIT_ON_ERROR(TerminateBootServices(&ImageHandle, SystemTable), L"Failed to terminate boot services.\n");
 
-    void (*jmp_to_header)(void) = (void (*)(void))0x0500;
+    void (*jmp_to_header)(void) = (void (*)(void))0x200000;
     jmp_to_header();
 
     return EFI_SUCCESS;
