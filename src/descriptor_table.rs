@@ -135,7 +135,6 @@ fn init_gdt() -> () {
     lgdt(LIMIT_GDT, VIRTUAL_ADDRESS_GDT);
     set_cs!(0x08);
     set_segments_except_cs(0x10);
-    loop {}
 }
 
 fn set_interruption() {
