@@ -6,6 +6,27 @@ const LIMIT_INTERRUPT_DESCRIPTOR_TABLE: u16 = 0x000007FF;
 const LIMIT_GDT: u16 = 8 * 3 - 1;
 const ACCESS_RIGHT_IDT: u32 = 0x008E;
 
+// #[naked] and #[inline] can't prevent from pushing arguments into stack.
+// This is why set_cs is a macro, not a function.
+macro_rules! set_cs {
+    ($index:expr) => {
+        unsafe {
+            asm!("
+                PUSH AX
+                "::"{AX}"($index)::"intel","volatile");
+            // Don't use Intel syntax for pushing label.
+            // PUSH $$change_code_segments
+            // AT&T:  PUSH change_code_segments
+            // Intel: PUSH [change_code_segments]
+            asm!("PUSH $$change_code_segment");
+            asm!("
+                RETFQ
+                change_code_segment:
+                "::::"intel","volatile");
+        }
+    };
+}
+
 #[repr(C, packed)]
 struct GateDescriptor {
     offset_low: u16,
@@ -112,8 +133,8 @@ fn init_gdt() -> () {
     }
 
     lgdt(LIMIT_GDT, VIRTUAL_ADDRESS_GDT);
-    set_cs(0x08);
-    set_segments_except_cs(0x10);
+    set_cs!(0x10);
+    set_segments_except_cs(0x08);
 }
 
 fn set_interruption() {
@@ -174,16 +195,5 @@ fn set_segments_except_cs(segment_index: u16) -> () {
         MOV FS, AX
         MOV GS, AX
         "::"r"(segment_index)::"intel");
-    }
-}
-
-fn set_cs(segment_index: u16) -> () {
-    unsafe {
-        asm!("
-            PUSH $0
-            PUSH change_code_segment
-            RETFQ
-            change_code_segment:
-            "::"r"(segment_index)::"intel");
     }
 }
