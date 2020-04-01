@@ -128,13 +128,14 @@ fn init_gdt() -> () {
     }
 
     unsafe {
-        (*gdt.offset(1)).set_segment_descriptor(SegmentType::DataSegment);
-        (*gdt.offset(2)).set_segment_descriptor(SegmentType::CodeSegment);
+        (*gdt.offset(1)).set_segment_descriptor(SegmentType::CodeSegment);
+        (*gdt.offset(2)).set_segment_descriptor(SegmentType::DataSegment);
     }
 
     lgdt(LIMIT_GDT, VIRTUAL_ADDRESS_GDT);
-    set_cs!(0x10);
-    set_segments_except_cs(0x08);
+    set_cs!(0x08);
+    set_segments_except_cs(0x10);
+    loop {}
 }
 
 fn set_interruption() {
@@ -147,12 +148,12 @@ fn set_interruption() {
     unsafe {
         (*interrupt_descriptor_table.offset(0x21)).set_gate_descriptor(
             interrupt_handler!(interrupt_handler_21) as u64,
-            2 * 8,
+            3 * 8,
             ACCESS_RIGHT_IDT,
         );
         (*interrupt_descriptor_table.offset(0x2C)).set_gate_descriptor(
             interrupt_handler!(interrupt_handler_2c) as u64,
-            2 * 8,
+            3 * 8,
             ACCESS_RIGHT_IDT,
         );
     }
