@@ -58,7 +58,7 @@ pub fn set_init_pic_bits() -> () {
 
 fn wait_kbc_sendready() -> () {
     loop {
-        if asm::in8(PORT_KEY_STATUS) & KEY_STATUS_SEND_NOT_READY == 0 {
+        if asm::in8(PORT_KEY_STATUS) as u32 & KEY_STATUS_SEND_NOT_READY == 0 {
             break;
         }
     }
@@ -66,18 +66,18 @@ fn wait_kbc_sendready() -> () {
 
 pub fn init_keyboard() -> () {
     wait_kbc_sendready();
-    asm::out8(PORT_KEY_CMD, KEY_CMD_WRITE_MODE);
+    asm::out8(PORT_KEY_CMD, KEY_CMD_WRITE_MODE as u8);
     wait_kbc_sendready();
-    asm::out8(PORT_KEYDATA, KEY_CMD_MODE);
+    asm::out8(PORT_KEYDATA, KEY_CMD_MODE as u8);
 }
 
 pub extern "C" fn interrupt_handler_21() -> () {
     asm::out8(PIC0_OCW2, 0x61);
-    KEY_QUEUE.lock().enqueue(asm::in8(PORT_KEYDATA));
+    KEY_QUEUE.lock().enqueue(asm::in8(PORT_KEYDATA) as u32);
 }
 
 pub extern "C" fn interrupt_handler_2c() -> () {
     asm::out8(PIC1_OCW2, 0x64);
     asm::out8(PIC0_OCW2, 0x62);
-    mouse::QUEUE.lock().enqueue(asm::in8(PORT_KEYDATA));
+    mouse::QUEUE.lock().enqueue(asm::in8(PORT_KEYDATA) as u32);
 }

@@ -53,9 +53,9 @@ impl Device {
 
     pub fn enable(&self) -> () {
         super::wait_kbc_sendready();
-        asm::out8(super::PORT_KEY_CMD, super::KEY_CMD_SEND_TO_MOUSE);
+        asm::out8(super::PORT_KEY_CMD, super::KEY_CMD_SEND_TO_MOUSE as u8);
         super::wait_kbc_sendready();
-        asm::out8(super::PORT_KEYDATA, super::MOUSE_CMD_ENABLE);
+        asm::out8(super::PORT_KEYDATA, super::MOUSE_CMD_ENABLE as u8);
     }
 
     // Return true if three bytes data are sent.
