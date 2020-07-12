@@ -1,5 +1,5 @@
 CXX = x86_64-w64-mingw32-g++
-CXXFLAGS = -shared -nostdlib -mno-red-zone -fno-stack-protector -Wall -std=c++17 -I include/ -O2 -pipe
+CXXFLAGS = -shared -nostdlib -mno-red-zone -fno-stack-protector -Wall -std=c++17 -I include/ -O1 -pipe
 
 BUILD_DIR = build
 SRC_DIR = src
