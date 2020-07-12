@@ -1,44 +1,44 @@
 pub fn hlt() -> () {
     unsafe {
-        asm!("HLT"::::"intel");
+        asm!("hlt");
     }
 }
 
 pub fn sti() -> () {
     unsafe {
-        asm!("STI"::::"intel");
+        asm!("sti");
     }
 }
 
 pub fn stihlt() -> () {
     unsafe {
         asm!(
-            "STI
-             HLT"
-             :::: "intel");
+            "sti
+             hlt"
+        );
     }
 }
 
 pub fn cli() -> () {
     unsafe {
-        asm!("cli"::::"intel");
+        asm!("cli");
     }
 }
 
-pub fn out8(port: u32, data: u32) -> () {
+pub fn out8(port: u32, data: u8) -> () {
     unsafe {
-        asm!("OUT DX,AL"::"{DX}"(port),"{AL}"(data)::"intel");
+        asm!("out dx, al",in("dx") port,in("al") data);
     }
 }
 
 // It might be true that the first line can be deleted because the lower bits of EDX are DX
 // itself.
-pub fn in8(port: u32) -> u32 {
-    let result: u32;
+pub fn in8(port: u32) -> u8 {
+    let result: u8;
     unsafe {
-        asm!("MOV EDX,$0"::"r"(port)::"intel");
-        asm!("MOV EAX,0"::::"intel");
-        asm!("IN AL,DX":"={AL}"(result):::"intel");
+        asm!("mov edx, {:e}",in(reg) port);
+        asm!("mov eax, 0");
+        asm!("in al, dx", out("al") result);
     }
     result
 }
@@ -60,7 +60,7 @@ impl GdtrIdtrData {
 
 pub fn load_interrupt_descriptor_table_register(limit: u32, address: u64) {
     unsafe {
-        asm!("LIDT ($0)"::"r"(&GdtrIdtrData::new(limit as i16, address)));
+        asm!("lidt [{:r}]",in(reg) &GdtrIdtrData::new(limit as i16, address));
     }
 }
 
@@ -74,45 +74,43 @@ macro_rules! interrupt_handler{
             // It's not necessary to push these registers.
             unsafe{
                 asm!("
-                    PUSH RAX
-                    PUSH RCX
-                    PUSH RDX
-                    PUSH RBX
-                    PUSH RSP
-                    PUSH RBP
-                    PUSH RSI
-                    PUSH RDI
-                    PUSH R8
-                    PUSH R9
-                    PUSH R10
-                    PUSH R11
-                    PUSH R12
-                    PUSH R13
-                    PUSH R14
-                    PUSH R15
+                    push rax
+                    push rcx
+                    push rdx
+                    push rbx
+                    push rsp
+                    push rbp
+                    push rsi
+                    push rdi
+                    push r8
+                    push r9
+                    push r10
+                    push r11
+                    push r12
+                    push r13
+                    push r14
+                    push r15
                     "
-                    ::::"intel","volatile"
                 );
-                asm!("CALL $0"::"r"($function_name as extern "C"  fn()->())::"intel");
+                asm!("call {}",in(reg) ($function_name as extern "C" fn()->()));
                 asm!("
-                    POP R15
-                    POP R14
-                    POP R13
-                    POP R12
-                    POP R11
-                    POP R10
-                    POP R9
-                    POP R8
-                    POP RDI
-                    POP RSI
-                    POP RBP
-                    POP RSP
-                    POP RBX
-                    POP RDX
-                    POP RCX
-                    POP RAX
-                    IRETQ"
-                    ::::"intel","volatile"
+                    pop r15
+                    pop r14
+                    pop r13
+                    pop r12
+                    pop r11
+                    pop r10
+                    pop r9
+                    pop r8
+                    pop rdi
+                    pop rsi
+                    pop rbp
+                    pop rsp
+                    pop rbx
+                    pop rdx
+                    pop rcx
+                    pop rax
+                    iretq"
                 );
             }
         }
