@@ -16,12 +16,19 @@ HEAD_DEPENDS:= $(ASM_DIR)/paging_64.asm
 
 KERNEL_FILE	:= $(BUILD_DIR)/kernel.bin
 LIB_FILE	:= $(BUILD_DIR)/libramen_os.a
+IMG_FILE	= $(BUILD_DIR)/ramen_os.img
 
 ASMC		:= nasm
 CAT			:= cat
 LD			:= ld
 RUSTCC		:= cargo
 RM			:= rm -rf
+VIEWER		= qemu-system-x86_64
+
+OVMF_CODE	= OVMF_CODE-pure-efi.fd
+OVMF_VARS	= OVMF_VARS-pure-efi.fd
+
+VIEWERFLAGS	= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -monitor stdio -no-reboot -no-shutdown -m 4G
 
 LDFLAGS := -nostdlib -T $(LD_SRC)
 ASMFLAGS := -w+all -i $(ASM_DIR)/
@@ -43,6 +50,18 @@ else
 	sudo umount /mnt
 endif
 
+run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE)
+	$(VIEWER) $(VIEWERFLAGS)
+
+$(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
+	dd if=/dev/zero of=$@ bs=1k count=1440
+	mformat -i $@ -f 1440 ::
+	mmd -i $@ ::/efi
+	mmd -i $@ ::/efi/boot
+	mcopy -i $@ $(KERNEL_FILE) ::
+	mcopy -i $@ $(HEAD_FILE) ::
+	mcopy -i $@ $(EFI_FILE) ::/efi/boot
+
 release:$(KERNEL_FILE) $(HEAD_FILE) $(LD_SRC)|$(BUILD_DIR)
 	make clean
 	$(RUSTCC) xbuild --target-dir $(BUILD_DIR) --release
@@ -60,6 +79,14 @@ $(HEAD_FILE):$(HEAD_DEPENDS)
 
 $(BUILD_DIR)/%.asm.o:$(ASM_DIR)/%.asm|$(BUILD_DIR)
 	$(ASMC) $(ASMFLAGS) -o $@ $<
+
+$(OVMF_CODE):
+	@echo "$@ not found."
+	exit 1
+
+$(OVMF_VARS):
+	@echo "$@ not found."
+	exit 1
 
 $(EFI_FILE):
 	make -C $(BOOT_DIR)
