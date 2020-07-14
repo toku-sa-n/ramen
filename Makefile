@@ -1,7 +1,7 @@
 RUST_SRC_DIR:= src
 BUILD_DIR	:= build
 ASM_DIR		:= asm
-BOOT_DIR	:= boot
+BOOT_DIR	:= bootx64
 
 HEAD_SRC	:= $(ASM_DIR)/head.asm
 CARGO_JSON	:= cargo_settings
@@ -10,7 +10,7 @@ RUST_SRC	:= $(shell cd $(RUST_SRC_DIR) && ls)
 LD_SRC		:= os.ld
 
 HEAD_FILE	:= $(BUILD_DIR)/head.asm.o
-EFI_FILE	:= $(BOOT_DIR)/$(BUILD_DIR)/bootx64.efi
+EFI_FILE	:= $(BOOT_DIR)/target/x86_64-unknown-uefi/debug/bootx64.efi
 
 HEAD_DEPENDS:= $(ASM_DIR)/paging_64.asm
 
@@ -89,11 +89,11 @@ $(OVMF_VARS):
 	exit 1
 
 $(EFI_FILE):
-	make -C $(BOOT_DIR)
+	$(RUSTCC) xbuild --target=x86_64-unknown-uefi --manifest-path=$(BOOT_DIR)/Cargo.toml
 
 $(BUILD_DIR):
 	mkdir $@
 
 clean:
 	$(RM) build
-	make -C $(BOOT_DIR) clean
+	$(RUSTCC) clean --manifest-path=$(BOOT_DIR)/Cargo.toml
