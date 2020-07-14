@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 uefi = "0.4.6"
+uefi-services = "0.2.4"
