@@ -45,12 +45,16 @@ fn open_root_dir(image: &Handle, system_table: &SystemTable<Boot>) -> file::Dire
         .expect_success("Failed to open volume.")
 }
 
-#[start]
-#[no_mangle]
-pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
+fn initialize(system_table: &SystemTable<Boot>) -> () {
     initialize_uefi_utilities(&system_table);
     reset_console(&system_table);
     info!("Hello World!");
+}
+
+#[start]
+#[no_mangle]
+pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
+    initialize(&system_table);
     open_root_dir(&image, &system_table);
     info!("Opened volume");
     loop {}
