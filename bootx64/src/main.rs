@@ -40,14 +40,14 @@ fn get_buf_len_for_locate_handler(
         .expect_success("Failed to get buffer length for locate_handler.")
 }
 
-fn malloc<T: Sized>(system_table: &SystemTable<Boot>, num: usize) -> uefi::Result<&mut T> {
+fn malloc<T: Sized>(system_table: &SystemTable<Boot>, num: usize) -> uefi::Result<*mut T> {
     let buffer = system_table
         .boot_services()
         .allocate_pool(MemoryType::LOADER_DATA, num * core::mem::size_of::<T>());
 
     match buffer {
         Err(e) => Err(e),
-        Ok(buf) => Ok(buf.map(|x| unsafe { &mut *(x as *mut T) })),
+        Ok(buf) => Ok(buf.map(|x| x as *mut T)),
     }
 }
 
@@ -67,7 +67,7 @@ fn get_gop(system_table: &SystemTable<Boot>) -> &mut Handle {
         )
         .expect_success("Failed to locate gop's handle.");
 
-    buf
+    unsafe { &mut *buf }
 }
 
 fn open_root_dir(image: &Handle, system_table: &SystemTable<Boot>) -> file::Directory {
