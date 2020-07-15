@@ -96,6 +96,10 @@ fn initialize(system_table: &SystemTable<Boot>) -> () {
     info!("Hello World!");
 }
 
+fn init_gop(image: &Handle, system_table: &SystemTable<Boot>) -> () {
+    get_gop(system_table);
+}
+
 #[start]
 #[no_mangle]
 pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
