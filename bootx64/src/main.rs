@@ -8,6 +8,7 @@ extern crate log;
 extern crate uefi;
 extern crate uefi_services;
 
+use core::ptr;
 use uefi::prelude::{Boot, Handle, Status, SystemTable};
 use uefi::proto::console::gop;
 use uefi::proto::loaded_image;
@@ -51,7 +52,7 @@ fn malloc<T: Sized>(system_table: &SystemTable<Boot>, num: usize) -> uefi::Resul
     }
 }
 
-fn get_gop(system_table: &SystemTable<Boot>) -> &mut Handle {
+fn get_gop<'a>(system_table: &'a SystemTable<Boot>) -> gop::GraphicsOutput<'a> {
     let search_type = SearchType::from_proto::<gop::GraphicsOutput>();
 
     let buf_length = get_buf_len_for_locate_handler(system_table, search_type);
@@ -67,7 +68,14 @@ fn get_gop(system_table: &SystemTable<Boot>) -> &mut Handle {
         )
         .expect_success("Failed to locate gop's handle.");
 
-    unsafe { &mut *buf }
+    let gop_buf = unsafe { ptr::read(buf) };
+
+    let gop = system_table
+        .boot_services()
+        .handle_protocol::<gop::GraphicsOutput>(gop_buf)
+        .expect_success("Failed to get gop.");
+
+    unsafe { ptr::read(gop.get()) }
 }
 
 fn open_root_dir(image: &Handle, system_table: &SystemTable<Boot>) -> file::Directory {
@@ -106,5 +114,6 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
     initialize(&system_table);
     open_root_dir(&image, &system_table);
     info!("Opened volume");
+    init_gop(&image, &system_table);
     loop {}
 }
