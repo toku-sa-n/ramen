@@ -9,15 +9,12 @@ extern crate uefi;
 extern crate uefi_services;
 
 use core::mem::MaybeUninit;
-use core::ptr;
 use uefi::prelude::{Boot, Handle, Status, SystemTable};
 use uefi::proto::console::gop;
 use uefi::proto::console::gop::PixelFormat;
 use uefi::proto::loaded_image;
 use uefi::proto::media::file;
 use uefi::proto::media::fs;
-use uefi::table::boot::MemoryType;
-use uefi::table::boot::SearchType;
 use uefi::ResultExt;
 
 fn reset_console(system_table: &SystemTable<Boot>) -> () {
@@ -29,29 +26,6 @@ fn reset_console(system_table: &SystemTable<Boot>) -> () {
 
 fn initialize_uefi_utilities(system_table: &SystemTable<Boot>) -> () {
     uefi_services::init(&system_table).expect_success("Failed to initialize_uefi_utilities");
-}
-
-fn get_buf_len_for_locate_handler(
-    system_table: &SystemTable<Boot>,
-    search_type: SearchType,
-) -> usize {
-    // To get the length of buffer, this function should be called with None.
-    // See: https://docs.rs/uefi/0.4.7/uefi/table/boot/struct.BootServices.html#method.locate_handle
-    system_table
-        .boot_services()
-        .locate_handle(search_type, None)
-        .expect_success("Failed to get buffer length for locate_handler.")
-}
-
-fn malloc<T: Sized>(system_table: &SystemTable<Boot>, num: usize) -> uefi::Result<*mut T> {
-    let buffer = system_table
-        .boot_services()
-        .allocate_pool(MemoryType::LOADER_DATA, num * core::mem::size_of::<T>());
-
-    match buffer {
-        Err(e) => Err(e),
-        Ok(buf) => Ok(buf.map(|x| x as *mut T)),
-    }
 }
 
 fn get_gop<'a>(system_table: &'a SystemTable<Boot>) -> &'a mut gop::GraphicsOutput<'a> {
@@ -134,7 +108,7 @@ fn set_resolution(gop: &mut gop::GraphicsOutput) -> () {
     info!("width: {} height: {}", max_width, max_height);
 }
 
-fn init_gop(image: &Handle, system_table: &SystemTable<Boot>) -> () {
+fn init_gop(system_table: &SystemTable<Boot>) -> () {
     set_resolution(get_gop(system_table));
 }
 
@@ -144,7 +118,7 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
     initialize(&system_table);
     open_root_dir(&image, &system_table);
     info!("Opened volume");
-    init_gop(&image, &system_table);
+    init_gop(&system_table);
     info!("GOP set.");
     loop {}
 }
