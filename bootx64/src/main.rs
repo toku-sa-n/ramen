@@ -38,16 +38,9 @@ fn fetch_gop<'a>(system_table: &'a SystemTable<Boot>) -> &'a mut gop::GraphicsOu
 }
 
 fn open_root_dir(image: &Handle, system_table: &SystemTable<Boot>) -> file::Directory {
-    let loaded_image = system_table
-        .boot_services()
-        .handle_protocol::<loaded_image::LoadedImage>(*image)
-        .expect_success("Failed to load image");
-
-    let loaded_image = unsafe { &*loaded_image.get() };
-
     let simple_file_system = system_table
         .boot_services()
-        .handle_protocol::<fs::SimpleFileSystem>(loaded_image.device())
+        .locate_protocol::<fs::SimpleFileSystem>()
         .expect_success("Failed to prepare simple file system.");
 
     let simple_file_system = unsafe { &mut *simple_file_system.get() };
