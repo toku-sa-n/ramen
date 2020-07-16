@@ -12,7 +12,6 @@ use core::mem::MaybeUninit;
 use uefi::prelude::{Boot, Handle, Status, SystemTable};
 use uefi::proto::console::gop;
 use uefi::proto::console::gop::PixelFormat;
-use uefi::proto::loaded_image;
 use uefi::proto::media::file;
 use uefi::proto::media::fs;
 use uefi::ResultExt;
@@ -37,7 +36,7 @@ fn fetch_gop<'a>(system_table: &'a SystemTable<Boot>) -> &'a mut gop::GraphicsOu
     unsafe { &mut *gop.get() }
 }
 
-fn open_root_dir(image: &Handle, system_table: &SystemTable<Boot>) -> file::Directory {
+fn open_root_dir(system_table: &SystemTable<Boot>) -> file::Directory {
     let simple_file_system = system_table
         .boot_services()
         .locate_protocol::<fs::SimpleFileSystem>()
@@ -109,7 +108,7 @@ fn init_gop(system_table: &SystemTable<Boot>) -> () {
 #[no_mangle]
 pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
     initialize(&system_table);
-    open_root_dir(&image, &system_table);
+    open_root_dir(&system_table);
     info!("Opened volume");
     init_gop(&system_table);
     info!("GOP set.");
