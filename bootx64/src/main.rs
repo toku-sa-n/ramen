@@ -28,7 +28,7 @@ fn initialize_uefi_utilities(system_table: &SystemTable<Boot>) -> () {
     uefi_services::init(&system_table).expect_success("Failed to initialize_uefi_utilities");
 }
 
-fn get_gop<'a>(system_table: &'a SystemTable<Boot>) -> &'a mut gop::GraphicsOutput<'a> {
+fn fetch_gop<'a>(system_table: &'a SystemTable<Boot>) -> &'a mut gop::GraphicsOutput<'a> {
     let gop = system_table
         .boot_services()
         .locate_protocol::<gop::GraphicsOutput>()
@@ -109,7 +109,7 @@ fn set_resolution(gop: &mut gop::GraphicsOutput) -> () {
 }
 
 fn init_gop(system_table: &SystemTable<Boot>) -> () {
-    set_resolution(get_gop(system_table));
+    set_resolution(fetch_gop(system_table));
 }
 
 #[start]
