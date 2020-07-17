@@ -58,6 +58,6 @@ fn fetch_gop<'a>(system_table: &'a SystemTable<Boot>) -> &'a mut gop::GraphicsOu
     unsafe { &mut *gop.get() }
 }
 
-pub fn init_gop(system_table: &SystemTable<Boot>) -> () {
+pub fn init(system_table: &SystemTable<Boot>) -> () {
     set_resolution(fetch_gop(system_table));
 }

@@ -51,7 +51,7 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
     initialize(&system_table);
     open_root_dir(&system_table);
     info!("Opened volume");
-    gop::init_gop(&system_table);
+    gop::init(&system_table);
     info!("GOP set.");
     loop {}
 }
