@@ -19,7 +19,7 @@ impl KernelFileInfo {
     }
 }
 
-const kernel_files: [KernelFileInfo; 2] = [
+const KERNEL_FILES: [KernelFileInfo; 2] = [
     KernelFileInfo::new("head.asm.o", 500, 0x500),
     KernelFileInfo::new("kernel.bin", 0x200000, 0x20000000),
 ];
