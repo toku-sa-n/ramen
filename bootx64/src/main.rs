@@ -21,6 +21,8 @@ fn reset_console(system_table: &SystemTable<Boot>) -> () {
         .expect_success("Failed to reset stdout");
 }
 
+/// Initialize uefi-rs services. This includes initialization of GlobalAlloc, which enables us to
+/// use Vec and so on.
 fn initialize_uefi_utilities(system_table: &SystemTable<Boot>) -> () {
     uefi_services::init(&system_table).expect_success("Failed to initialize_uefi_utilities");
 }
