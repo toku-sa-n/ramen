@@ -60,7 +60,7 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
     terminate_boot_services(image, system_table);
 
     unsafe {
-        asm!("jmp rdi",in("rdi") 0x100000 );
+        asm!("jmp rdi",in("rdi") 0x8000 );
     }
 
     loop {}
