@@ -47,6 +47,12 @@ fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> ()
         .unwrap();
 }
 
+fn jump_to_kernel() -> () {
+    unsafe {
+        asm!("jmp rdi",in("rdi") 0x8000 );
+    }
+}
+
 #[start]
 #[no_mangle]
 pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
@@ -55,10 +61,7 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
     info!("GOP set.");
     fs::place_binary_files(&system_table);
     terminate_boot_services(image, system_table);
-
-    unsafe {
-        asm!("jmp rdi",in("rdi") 0x8000 );
-    }
+    jump_to_kernel();
 
     loop {}
 }
