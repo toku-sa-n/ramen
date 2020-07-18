@@ -8,5 +8,5 @@ edition = "2018"
 
 [dependencies]
 log = "0.4.8"
-uefi = { version = "0.4.7", features = ["logger","alloc"] }
+uefi = { version = "0.4.7", features = ["logger"] }
 uefi-services = "0.2.4"
