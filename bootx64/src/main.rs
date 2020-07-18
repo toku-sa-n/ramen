@@ -13,6 +13,7 @@ extern crate uefi_services;
 
 mod fs;
 mod gop;
+mod memory;
 
 use uefi::prelude::{Boot, Handle, Status, SystemTable};
 use uefi::ResultExt;
@@ -36,6 +37,19 @@ fn initialize(system_table: &SystemTable<Boot>) -> () {
     info!("Hello World!");
 }
 
+fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> () {
+    let memory_map = memory::generate_map(&system_table);
+
+    let memory_map_size = system_table.boot_services().memory_map_size() * 2;
+
+    system_table
+        .exit_boot_services(image, unsafe {
+            core::slice::from_raw_parts_mut(memory_map, memory_map_size)
+        })
+        .expect("Failed to exit boot services")
+        .unwrap();
+}
+
 #[start]
 #[no_mangle]
 pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
@@ -43,5 +57,6 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
     gop::init(&system_table);
     info!("GOP set.");
     fs::place_binary_files(&system_table);
+    terminate_boot_services(image, system_table);
     loop {}
 }
