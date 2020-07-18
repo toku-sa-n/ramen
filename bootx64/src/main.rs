@@ -1,5 +1,5 @@
 #![no_std]
-#![feature(lang_items, start)]
+#![feature(lang_items, start, asm)]
 #![no_main]
 
 #[macro_use]
@@ -58,5 +58,10 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
     info!("GOP set.");
     fs::place_binary_files(&system_table);
     terminate_boot_services(image, system_table);
+
+    unsafe {
+        asm!("jmp rdi",in("rdi") 0x5000 );
+    }
+
     loop {}
 }
