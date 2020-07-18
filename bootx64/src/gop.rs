@@ -48,12 +48,11 @@ fn is_usable_gop_mode(mode: &gop::ModeInfo) -> bool {
     true
 }
 
-fn set_resolution(gop: &mut gop::GraphicsOutput) -> () {
+fn get_the_maximum_resolution_and_mode(gop: &gop::GraphicsOutput) -> (usize, usize, gop::Mode) {
     let mut max_height = 0;
     let mut max_width = 0;
     let mut preferred_mode = MaybeUninit::<gop::Mode>::uninit();
 
-    // TODO: Move the process of the maximum resolution into a new function.
     for mode in gop.modes() {
         let mode = mode.expect("Failed to get gop mode.");
 
@@ -65,10 +64,18 @@ fn set_resolution(gop: &mut gop::GraphicsOutput) -> () {
         }
     }
 
-    gop.set_mode(unsafe { &preferred_mode.assume_init() })
+    (max_height, max_width, unsafe {
+        preferred_mode.assume_init()
+    })
+}
+
+fn set_resolution(gop: &mut gop::GraphicsOutput) -> () {
+    let (width, height, mode) = get_the_maximum_resolution_and_mode(gop);
+
+    gop.set_mode(&mode)
         .expect_success("Failed to set resolution.");
 
-    info!("width: {} height: {}", max_width, max_height);
+    info!("width: {} height: {}", width, height);
 }
 
 fn fetch_gop<'a>(system_table: &'a SystemTable<Boot>) -> &'a mut gop::GraphicsOutput<'a> {
