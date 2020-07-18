@@ -4,6 +4,27 @@ use uefi::proto::console::gop;
 use uefi::proto::console::gop::PixelFormat;
 use uefi::ResultExt;
 
+#[repr(C, packed)]
+struct VramSettings {
+    bpp: u16,
+    screen_x: u16,
+    screen_y: u16,
+    ptr: u64,
+}
+
+fn set_graphics_settings(gop: &mut gop::GraphicsOutput) -> () {
+    let vram_settings: *mut VramSettings = 0x0ff2 as *mut _;
+    unsafe {
+        (*vram_settings).bpp = 32;
+
+        let (width, height) = gop.current_mode_info().resolution();
+        (*vram_settings).screen_x = width as u16;
+        (*vram_settings).screen_y = height as u16;
+
+        (*vram_settings).ptr = gop.frame_buffer().as_mut_ptr() as u64;
+    }
+}
+
 fn is_usable_gop_mode(mode: &gop::ModeInfo) -> bool {
     if mode.pixel_format() != PixelFormat::BGR {
         return false;
@@ -32,6 +53,7 @@ fn set_resolution(gop: &mut gop::GraphicsOutput) -> () {
     let mut max_width = 0;
     let mut preferred_mode = MaybeUninit::<gop::Mode>::uninit();
 
+    // TODO: Move the process of the maximum resolution into a new function.
     for mode in gop.modes() {
         let mode = mode.expect("Failed to get gop mode.");
 
@@ -59,5 +81,7 @@ fn fetch_gop<'a>(system_table: &'a SystemTable<Boot>) -> &'a mut gop::GraphicsOu
 }
 
 pub fn init(system_table: &SystemTable<Boot>) -> () {
-    set_resolution(fetch_gop(system_table));
+    let gop = fetch_gop(system_table);
+    set_resolution(gop);
+    set_graphics_settings(gop);
 }
