@@ -5,6 +5,9 @@
 #[macro_use]
 extern crate log;
 
+#[macro_use]
+extern crate alloc;
+
 extern crate uefi;
 extern crate uefi_services;
 
@@ -37,9 +40,8 @@ fn initialize(system_table: &SystemTable<Boot>) -> () {
 #[no_mangle]
 pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
     initialize(&system_table);
-    fs::open_root_dir(&system_table);
-    info!("Opened volume");
     gop::init(&system_table);
     info!("GOP set.");
+    fs::place_binary_files(&system_table);
     loop {}
 }
