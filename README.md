@@ -1,6 +1,6 @@
 # ramen
 
-[![Build Status](https://travis-ci.com/toku-sa-n/ramen.svg?branch=master)](https://travis-ci.com/toku-sa-n/ramen)
+![Rust](https://github.com/toku-sa-n/ramen/workflows/Rust/badge.svg)
 
 A toy OS
 
