@@ -80,6 +80,16 @@ pub unsafe fn set_code_segment(offset_of_cs: u16) {
     ret", in(reg) offset_of_cs);
 }
 
+/// Safety: `offset_of_ds` must be a valid offset offset to data segment. Otherwise unexpected
+/// behavior will occur.
+pub unsafe fn set_data_segment(offset_of_ds: u16) {
+    asm!("mov es, ax
+    mov ss, ax
+    mov ds, ax
+    mov fs, ax
+    mov gs, ax",in("ax") offset_of_ds);
+}
+
 // Don't put these asm! in one! It doesn't work!
 #[macro_export]
 macro_rules! interrupt_handler{
