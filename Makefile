@@ -46,6 +46,7 @@ ifeq ($(USB_DEVICE_PATH),)
 	echo 'Specify device path by $$USB_DEVICE_PATH environment variable.' >&2
 else
 	sudo mount $(USB_DEVICE_PATH) /mnt
+	sudo mkdir -p /mnt/efi/boot
 	sudo cp $(EFI_FILE) /mnt/efi/boot/
 	sudo cp $(KERNEL_FILE) /mnt/
 	sudo cp $(HEAD_FILE) /mnt/
