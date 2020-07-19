@@ -76,8 +76,7 @@ pub unsafe fn set_code_segment(offset_of_cs: u16) {
     asm!("push {0:x}
     push change_code_segment
     retfq
-    change_code_segment:
-    ret", in(reg) offset_of_cs);
+    change_code_segment:", in(reg) offset_of_cs);
 }
 
 /// Safety: `offset_of_ds` must be a valid offset offset to data segment. Otherwise unexpected
