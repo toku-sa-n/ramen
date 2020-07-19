@@ -24,8 +24,8 @@ jobs:
         components: rust-src
         override: true
 
-    - name: Install nasm
-      run: sudo apt-get install nasm
+    - name: Install dependencies
+      run: sudo apt-get install nasm mtools
 
     - name: Install cargo-xbuild
       run: cargo install cargo-xbuild
@@ -35,3 +35,6 @@ jobs:
 
     - name: build release version
       run: make release
+
+    - name: Create image file
+      run: make build/ramen_os.img
