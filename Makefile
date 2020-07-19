@@ -2,10 +2,12 @@ RUST_SRC_DIR	:= src
 BUILD_DIR		:= build
 ASM_DIR			:= asm
 BOOT_DIR		:= bootx64
+EFI_SRC_DIR		:= $(BOOT_DIR)/$(RUST_SRC_DIR)
 
 HEAD_SRC		:= $(ASM_DIR)/head.asm
 CARGO_JSON		:= cargo_settings
 RUST_SRC		:= $(shell cd $(RUST_SRC_DIR) && ls)
+EFI_SRC			:= $(shell cd $(EFI_SRC_DIR) && ls)
 
 LD_SRC			:= os.ld
 
@@ -33,7 +35,7 @@ VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive
 LDFLAGS			:= -nostdlib -T $(LD_SRC)
 ASMFLAGS		:= -w+all -i $(ASM_DIR)/
 
-.PHONY:all show_kernel_map run release clean $(EFI_FILE)
+.PHONY:all show_kernel_map run release clean
 
 .SUFFIXES:
 
@@ -67,6 +69,8 @@ release:
 	$(RUSTCC) xbuild --target-dir $(BUILD_DIR) --release
 	$(RUSTCC) xbuild --target=x86_64-unknown-uefi --manifest-path=$(BOOT_DIR)/Cargo.toml --release
 	cp $(BUILD_DIR)/$(CARGO_JSON)/$@/$(shell basename $(LIB_FILE))  $(LIB_FILE)
+	mkdir -p $(BOOT_DIR)/target/x86_64-unknown-uefi/debug
+	cp $(BOOT_DIR)/target/x86_64-unknown-uefi/$@/bootx64.efi $(BOOT_DIR)/target/x86_64-unknown-uefi/debug/bootx64.efi
 	make
 
 $(KERNEL_FILE):$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
@@ -89,7 +93,7 @@ $(OVMF_VARS):
 	@echo "$@ not found."
 	exit 1
 
-$(EFI_FILE):
+$(EFI_FILE):$(addprefix $(EFI_SRC_DIR)/, $(EFI_SRC))
 	$(RUSTCC) xbuild --target=x86_64-unknown-uefi --manifest-path=$(BOOT_DIR)/Cargo.toml
 
 $(BUILD_DIR):
