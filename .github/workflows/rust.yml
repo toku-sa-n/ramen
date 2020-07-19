@@ -35,3 +35,6 @@ jobs:
 
     - name: build release version
       run: make release
+
+    - name: Create image file
+      run: make build/ramen_os.img
