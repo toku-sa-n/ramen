@@ -62,7 +62,7 @@ $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 	mcopy -i $@ $(HEAD_FILE) ::
 	mcopy -i $@ $(EFI_FILE) ::/efi/boot
 
-release:$(KERNEL_FILE) $(HEAD_FILE) $(LD_SRC)|$(BUILD_DIR)
+release:
 	make clean
 	$(RUSTCC) xbuild --target-dir $(BUILD_DIR) --release
 	$(RUSTCC) xbuild --target=x86_64-unknown-uefi --manifest-path=$(BOOT_DIR)/Cargo.toml --release
