@@ -70,7 +70,7 @@ release:
 	$(RUSTCC) xbuild --target=x86_64-unknown-uefi --manifest-path=$(BOOT_DIR)/Cargo.toml --release
 	cp $(BUILD_DIR)/$(CARGO_JSON)/$@/$(shell basename $(LIB_FILE))  $(LIB_FILE)
 	mkdir -p $(BOOT_DIR)/target/x86_64-unknown-uefi/debug
-	cp $(BOOT_DIR)/target/x86_64-unknown-uefi/{$@,debug}/bootx64.efi
+	cp $(BOOT_DIR)/target/x86_64-unknown-uefi/$@/bootx64.efi $(BOOT_DIR)/target/x86_64-unknown-uefi/debug/bootx64.efi
 	make
 
 $(KERNEL_FILE):$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
