@@ -16,19 +16,19 @@ HEAD_DEPENDS:= $(ASM_DIR)/paging_64.asm
 
 KERNEL_FILE	:= $(BUILD_DIR)/kernel.bin
 LIB_FILE	:= $(BUILD_DIR)/libramen_os.a
-IMG_FILE	= $(BUILD_DIR)/ramen_os.img
+IMG_FILE	:= $(BUILD_DIR)/ramen_os.img
 
 ASMC		:= nasm
 CAT			:= cat
 LD			:= ld
 RUSTCC		:= cargo
 RM			:= rm -rf
-VIEWER		= qemu-system-x86_64
+VIEWER		:= qemu-system-x86_64
 
-OVMF_CODE	= OVMF_CODE-pure-efi.fd
-OVMF_VARS	= OVMF_VARS-pure-efi.fd
+OVMF_CODE	:= OVMF_CODE-pure-efi.fd
+OVMF_VARS	:= OVMF_VARS-pure-efi.fd
 
-VIEWERFLAGS	= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -monitor stdio -no-reboot -no-shutdown -m 4G
+VIEWERFLAGS	:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -monitor stdio -no-reboot -no-shutdown -m 4G
 
 LDFLAGS := -nostdlib -T $(LD_SRC)
 ASMFLAGS := -w+all -i $(ASM_DIR)/
