@@ -16,19 +16,19 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    
+
     - name: Install rust nightly
       uses: actions-rs/toolchain@v1.0.6
       with:
         toolchain: nightly
         components: rust-src
         override: true
-    
+
     - name: Install cargo-xbuild
       run: cargo install cargo-xbuild
-           
+
     - name: build debug version
       run: make
-      
+
     - name: build release version
       run: make release
