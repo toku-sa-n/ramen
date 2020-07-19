@@ -1,0 +1,31 @@
+name: Rust
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install rust nightly
+      uses: actions-rs/toolchain@v1.0.6
+      with:
+        toolchain: nightly
+        components: rust-src
+        override: true
+    
+    - name: build debug version
+      run: make
+      
+    - name: build release version
+      run: make release
