@@ -35,9 +35,7 @@ fn initialize(system_table: &SystemTable<Boot>) -> () {
 }
 
 fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> () {
-    let memory_map = memory::generate_map(&system_table);
-
-    let memory_map_size = system_table.boot_services().memory_map_size() * 2;
+    let (memory_map, memory_map_size) = memory::generate_map(&system_table);
 
     system_table
         .exit_boot_services(image, unsafe {

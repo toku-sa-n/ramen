@@ -2,7 +2,7 @@ use uefi::prelude::{Boot, SystemTable};
 use uefi::table::boot::MemoryType;
 
 /// Return the address of memory map
-pub fn generate_map(system_table: &SystemTable<Boot>) -> *mut u8 {
+pub fn generate_map(system_table: &SystemTable<Boot>) -> (*mut u8, usize) {
     // Using returned value itself causes bufer too small erorr.
     // Doubling should solve this.
     let memory_map_size = system_table.boot_services().memory_map_size() * 2;
@@ -23,5 +23,5 @@ pub fn generate_map(system_table: &SystemTable<Boot>) -> *mut u8 {
         .expect("Failed to get memory map")
         .unwrap();
 
-    memory_map_buf
+    (memory_map_buf, memory_map_size)
 }
