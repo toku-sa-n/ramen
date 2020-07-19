@@ -46,6 +46,7 @@ ifeq ($(USB_DEVICE_PATH),)
 	echo 'Specify device path by $$USB_DEVICE_PATH environment variable.' >&2
 else
 	sudo mount $(USB_DEVICE_PATH) /mnt
+	sudo mkdir -p /mnt/efi/boot
 	sudo cp $(EFI_FILE) /mnt/efi/boot/
 	sudo cp $(KERNEL_FILE) /mnt/
 	sudo cp $(HEAD_FILE) /mnt/
@@ -58,11 +59,7 @@ run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE)
 $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 	dd if=/dev/zero of=$@ bs=1k count=2880
 	mformat -i $@ -f 2880 ::
-	mmd -i $@ ::/efi
-	mmd -i $@ ::/efi/boot
-	mcopy -i $@ $(KERNEL_FILE) ::
-	mcopy -i $@ $(HEAD_FILE) ::
-	mcopy -i $@ $(EFI_FILE) ::/efi/boot
+	USB_DEVICE_PATH=$(IMG_FILE) make copy_to_usb
 
 release:
 	make clean
