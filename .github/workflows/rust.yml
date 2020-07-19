@@ -24,6 +24,9 @@ jobs:
         components: rust-src
         override: true
 
+    - name: Install nasm
+      run: sudo apt-get install nasm
+
     - name: Install cargo-xbuild
       run: cargo install cargo-xbuild
 
