@@ -101,4 +101,5 @@ $(BUILD_DIR):
 
 clean:
 	$(RM) build
+	$(RUSTCC) clean
 	$(RUSTCC) clean --manifest-path=$(BOOT_DIR)/Cargo.toml
