@@ -1,4 +1,5 @@
 /target
+bootx64/target
 **/*.rs.bk
 Cargo.lock
 tags

@@ -1,5 +1,5 @@
     [BITS 64]
-    ORG      0x500
+    ORG      0x8000
 
     ; Disable all interrupts.
     MOV      AL,0xFF
