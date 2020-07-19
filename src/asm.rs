@@ -70,6 +70,16 @@ pub fn lgdt(limit: u16, address: u64) {
     }
 }
 
+/// Safety: `offset_of_cs` must be a valid offset offset to code segment. Otherwise unexpected
+/// behavior will occur.
+pub unsafe fn set_code_segment(offset_of_cs: u16) {
+    asm!("push {0:x}
+    push change_code_segment
+    retfq
+    change_code_segment:
+    ret", in(reg) offset_of_cs);
+}
+
 // Don't put these asm! in one! It doesn't work!
 #[macro_export]
 macro_rules! interrupt_handler{
