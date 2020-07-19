@@ -24,6 +24,9 @@ jobs:
         components: rust-src
         override: true
     
+    - name: Install cargo-xbuild
+      run: cargo install cargo-xbuild
+           
     - name: build debug version
       run: make
       
