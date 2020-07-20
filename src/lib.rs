@@ -5,6 +5,7 @@
 
 mod asm;
 mod descriptor_table;
+mod gdt;
 mod interrupt;
 mod queue;
 
@@ -30,6 +31,7 @@ fn initialization(
     mouse_device: &interrupt::mouse::Device,
     mouse_cursor: graphics::screen::MouseCursor,
 ) -> graphics::screen::MouseCursor {
+    gdt::init();
     descriptor_table::init();
     interrupt::init_pic();
     // Temporarily disable interruption to see whether desktop is drawn successfully or not.
