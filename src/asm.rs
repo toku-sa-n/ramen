@@ -64,6 +64,32 @@ pub fn load_interrupt_descriptor_table_register(limit: u32, address: u64) {
     }
 }
 
+pub fn lgdt(limit: u16, address: u64) {
+    unsafe {
+        asm!("lgdt [{:r}]",in(reg) &GdtrIdtrData::new(limit as i16, address));
+    }
+}
+
+/// Safety: `offset_of_cs` must be a valid offset to code segment. Otherwise unexpected
+/// behavior will occur.
+pub unsafe fn set_code_segment(offset_of_cs: u16) {
+    asm!("push {0:r}
+    lea rax, 1f
+    push rax
+    retfq
+    1:", in(reg) offset_of_cs);
+}
+
+/// Safety: `offset_of_ds` must be a valid offset to data segment. Otherwise unexpected
+/// behavior will occur.
+pub unsafe fn set_data_segment(offset_of_ds: u16) {
+    asm!("mov es, ax
+    mov ss, ax
+    mov ds, ax
+    mov fs, ax
+    mov gs, ax",in("ax") offset_of_ds);
+}
+
 // Don't put these asm! in one! It doesn't work!
 #[macro_export]
 macro_rules! interrupt_handler{
