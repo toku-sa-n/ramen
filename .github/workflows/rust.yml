@@ -30,10 +30,10 @@ jobs:
     - name: Install cargo-xbuild
       run: cargo install cargo-xbuild
 
-    - name: build debug version
+    - name: Build debug version
       run: make
 
-    - name: build release version
+    - name: Build release version
       run: make release
 
     - name: Create image file
