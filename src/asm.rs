@@ -70,7 +70,7 @@ pub fn lgdt(limit: u16, address: u64) {
     }
 }
 
-/// Safety: `offset_of_cs` must be a valid offset offset to code segment. Otherwise unexpected
+/// Safety: `offset_of_cs` must be a valid offset to code segment. Otherwise unexpected
 /// behavior will occur.
 pub unsafe fn set_code_segment(offset_of_cs: u16) {
     asm!("push {0:x}
@@ -79,7 +79,7 @@ pub unsafe fn set_code_segment(offset_of_cs: u16) {
     change_code_segment:", in(reg) offset_of_cs);
 }
 
-/// Safety: `offset_of_ds` must be a valid offset offset to data segment. Otherwise unexpected
+/// Safety: `offset_of_ds` must be a valid offset to data segment. Otherwise unexpected
 /// behavior will occur.
 pub unsafe fn set_data_segment(offset_of_ds: u16) {
     asm!("mov es, ax
