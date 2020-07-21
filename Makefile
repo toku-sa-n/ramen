@@ -59,7 +59,11 @@ run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE)
 $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 	dd if=/dev/zero of=$@ bs=1k count=2880
 	mformat -i $@ -f 2880 ::
-	USB_DEVICE_PATH=$(IMG_FILE) make copy_to_usb
+	mmd -i $@ ::/efi
+	mmd -i $@ ::/efi/boot
+	mcopy -i $@ $(KERNEL_FILE) ::
+	mcopy -i $@ $(HEAD_FILE) ::
+	mcopy -i $@ $(EFI_FILE) ::/efi/boot
 
 release:
 	make clean
