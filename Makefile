@@ -59,6 +59,9 @@ run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE)
 $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 	dd if=/dev/zero of=$@ bs=1k count=2880
 	mformat -i $@ -f 2880 ::
+	# Cannot replace these mmd and mcopy with `make copy_to_usb` because `mount` needs `sudo`
+	# regardless of the permission of the image file or the device. Using `mmd` and `mcopy` is
+	# the only way to edit image file without `sudo`.
 	mmd -i $@ ::/efi
 	mmd -i $@ ::/efi/boot
 	mcopy -i $@ $(KERNEL_FILE) ::
