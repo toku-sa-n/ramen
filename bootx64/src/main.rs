@@ -46,7 +46,7 @@ fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> ()
 }
 
 fn disable_interruption() -> () {
-    // Use `nop` because some machine goes wrong when continuously doing `out`.
+    // Use `nop` because some machines go wrong when continuously doing `out`.
     unsafe {
         asm!(
             "mov al,0xff
