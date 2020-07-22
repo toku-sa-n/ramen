@@ -45,6 +45,19 @@ fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> ()
         .unwrap();
 }
 
+fn disable_interruption() -> () {
+    // Use `nop` because some machine goes wrong when continuously doing `out`.
+    unsafe {
+        asm!(
+            "mov al,0xff
+            out 0x21,al
+            nop
+            out 0xa1,al
+            cli"
+        );
+    }
+}
+
 fn jump_to_kernel() -> () {
     unsafe {
         asm!("jmp rdi",in("rdi") 0x8000 );
@@ -59,6 +72,8 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
     info!("GOP set.");
     fs::place_binary_files(&system_table);
     terminate_boot_services(image, system_table);
+
+    disable_interruption();
     jump_to_kernel();
 
     loop {}
