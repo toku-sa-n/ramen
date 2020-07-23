@@ -59,7 +59,7 @@ impl GdtrIdtrData {
     }
 }
 
-pub fn lidt(limit: u32, address: u64) {
+pub fn lidt(limit: u16, address: u64) {
     unsafe {
         asm!("lidt [{:r}]",in(reg) &GdtrIdtrData::new(limit as i16, address),options(readonly, preserves_flags, nostack));
     }

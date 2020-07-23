@@ -3,7 +3,7 @@
 use crate::asm;
 
 const VIRTUAL_ADDRESS_IDT: u64 = 0xFFFFFFFF80080000;
-const LIMIT_INTERRUPT_DESCRIPTOR_TABLE: u32 = 0x000007FF;
+const LIMIT_INTERRUPT_DESCRIPTOR_TABLE: u16 = 0x000007FF;
 const ACCESS_RIGHT_IDT: u32 = 0x008E;
 
 #[repr(C, packed)]
@@ -38,7 +38,7 @@ fn init_idt() -> () {
     let interrupt_descriptor_table: *mut GateDescriptor =
         VIRTUAL_ADDRESS_IDT as *mut GateDescriptor;
 
-    const SIZE_IDT_ENTRY: u32 = 16;
+    const SIZE_IDT_ENTRY: u16 = 16;
     for i in 0..=(LIMIT_INTERRUPT_DESCRIPTOR_TABLE / SIZE_IDT_ENTRY) {
         unsafe {
             (*interrupt_descriptor_table.offset(i as isize)).set_gate_descriptor(0, 0, 0);
