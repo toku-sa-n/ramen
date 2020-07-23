@@ -76,6 +76,7 @@ fn lgdt(limit: u16, address: u64) {
         _limit: limit,
         _address: address,
     };
+
     unsafe {
         asm!("lgdt [{:r}]",in(reg) &entry,options(readonly, preserves_flags, nostack));
     }
