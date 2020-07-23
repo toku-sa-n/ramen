@@ -1,4 +1,3 @@
-use crate::asm;
 use core::mem;
 
 #[repr(C, packed)]
@@ -66,10 +65,46 @@ static GDT: Gdt = Gdt::new([
     GdtEntry::new(0xFFFF, 0, 0, 0x9A, 0xAF, 0), // Code segment
 ]);
 
+fn lgdt(limit: u16, address: u64) {
+    #[repr(C, packed)]
+    struct LgdtEntry {
+        _limit: u16,
+        _address: u64,
+    };
+
+    let entry = LgdtEntry {
+        _limit: limit,
+        _address: address,
+    };
+    unsafe {
+        asm!("lgdt [{:r}]",in(reg) &entry,options(readonly, preserves_flags, nostack));
+    }
+}
+
+/// Safety: `offset_of_ds` must be a valid offset to data segment. Otherwise unexpected
+/// behavior will occur.
+unsafe fn set_data_segment(offset_of_ds: u16) {
+    asm!("mov es, ax
+    mov ss, ax
+    mov ds, ax
+    mov fs, ax
+    mov gs, ax",in("ax") offset_of_ds,options(nomem, preserves_flags, nostack));
+}
+
+/// Safety: `offset_of_cs` must be a valid offset to code segment. Otherwise unexpected
+/// behavior will occur.
+unsafe fn set_code_segment(offset_of_cs: u16) {
+    asm!("push {0:r}
+    lea rax, 1f
+    push rax
+    retfq
+    1:", in(reg) offset_of_cs,options(preserves_flags));
+}
+
 pub fn init() -> () {
     unsafe {
-        asm::lgdt(GDT.get_limit(), GDT.as_ptr() as u64);
-        asm::set_code_segment(GDT.offset_of_code_segment());
-        asm::set_data_segment(GDT.offset_of_data_segment());
+        lgdt(GDT.get_limit(), GDT.as_ptr() as u64);
+        set_code_segment(GDT.offset_of_code_segment());
+        set_data_segment(GDT.offset_of_data_segment());
     }
 }
