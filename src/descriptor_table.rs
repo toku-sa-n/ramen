@@ -1,7 +1,5 @@
 // See P.114
 
-use crate::asm;
-
 const VIRTUAL_ADDRESS_IDT: u64 = 0xFFFFFFFF80080000;
 const LIMIT_INTERRUPT_DESCRIPTOR_TABLE: u16 = 0x000007FF;
 const ACCESS_RIGHT_IDT: u32 = 0x008E;
@@ -29,6 +27,23 @@ impl GateDescriptor {
     }
 }
 
+fn lidt(limit: u16, address: u64) {
+    #[repr(C, packed)]
+    struct LidtEntry {
+        _limit: u16,
+        _address: u64,
+    };
+
+    let entry = LidtEntry {
+        _limit: limit,
+        _address: address,
+    };
+
+    unsafe {
+        asm!("lidt [{:r}]",in(reg) &entry,options(readonly, preserves_flags, nostack));
+    }
+}
+
 pub fn init() -> () {
     init_idt();
     set_interruption();
@@ -45,7 +60,7 @@ fn init_idt() -> () {
         }
     }
 
-    asm::lidt(LIMIT_INTERRUPT_DESCRIPTOR_TABLE, VIRTUAL_ADDRESS_IDT);
+    lidt(LIMIT_INTERRUPT_DESCRIPTOR_TABLE, VIRTUAL_ADDRESS_IDT);
 }
 
 fn set_interruption() {

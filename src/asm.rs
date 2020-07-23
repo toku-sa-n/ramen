@@ -44,53 +44,6 @@ pub fn in8(port: u32) -> u8 {
     result
 }
 
-#[repr(C, packed)]
-struct GdtrIdtrData {
-    _limit: i16,
-    _address: u64,
-}
-
-impl GdtrIdtrData {
-    fn new(limit: i16, address: u64) -> Self {
-        Self {
-            _limit: limit,
-            _address: address,
-        }
-    }
-}
-
-pub fn lidt(limit: u16, address: u64) {
-    unsafe {
-        asm!("lidt [{:r}]",in(reg) &GdtrIdtrData::new(limit as i16, address),options(readonly, preserves_flags, nostack));
-    }
-}
-
-pub fn lgdt(limit: u16, address: u64) {
-    unsafe {
-        asm!("lgdt [{:r}]",in(reg) &GdtrIdtrData::new(limit as i16, address),options(readonly, preserves_flags, nostack));
-    }
-}
-
-/// Safety: `offset_of_cs` must be a valid offset to code segment. Otherwise unexpected
-/// behavior will occur.
-pub unsafe fn set_code_segment(offset_of_cs: u16) {
-    asm!("push {0:r}
-    lea rax, 1f
-    push rax
-    retfq
-    1:", in(reg) offset_of_cs,options(preserves_flags));
-}
-
-/// Safety: `offset_of_ds` must be a valid offset to data segment. Otherwise unexpected
-/// behavior will occur.
-pub unsafe fn set_data_segment(offset_of_ds: u16) {
-    asm!("mov es, ax
-    mov ss, ax
-    mov ds, ax
-    mov fs, ax
-    mov gs, ax",in("ax") offset_of_ds,options(nomem, preserves_flags, nostack));
-}
-
 // Don't put these asm! in one! It doesn't work!
 #[macro_export]
 macro_rules! interrupt_handler{
