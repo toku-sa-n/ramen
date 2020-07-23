@@ -1,12 +1,12 @@
 pub fn hlt() -> () {
     unsafe {
-        asm!("hlt");
+        asm!("hlt", options(nomem, preserves_flags, nostack));
     }
 }
 
 pub fn sti() -> () {
     unsafe {
-        asm!("sti");
+        asm!("sti", options(nomem, preserves_flags, nostack));
     }
 }
 
@@ -14,20 +14,21 @@ pub fn stihlt() -> () {
     unsafe {
         asm!(
             "sti
-             hlt"
+             hlt",
+            options(nomem, preserves_flags, nostack)
         );
     }
 }
 
 pub fn cli() -> () {
     unsafe {
-        asm!("cli");
+        asm!("cli", options(nomem, preserves_flags, nostack));
     }
 }
 
 pub fn out8(port: u32, data: u8) -> () {
     unsafe {
-        asm!("out dx, al",in("dx") port,in("al") data);
+        asm!("out dx, al",in("dx") port,in("al") data,options(nomem, preserves_flags, nostack));
     }
 }
 
@@ -36,9 +37,9 @@ pub fn out8(port: u32, data: u8) -> () {
 pub fn in8(port: u32) -> u8 {
     let result: u8;
     unsafe {
-        asm!("mov edx, {:e}",in(reg) port);
-        asm!("mov eax, 0");
-        asm!("in al, dx", out("al") result);
+        asm!("mov edx, {:e}",in(reg) port,options(nomem, preserves_flags, nostack));
+        asm!("mov eax, 0", options(nomem, preserves_flags, nostack));
+        asm!("in al, dx", out("al") result,options(nomem, preserves_flags, nostack));
     }
     result
 }
@@ -60,13 +61,13 @@ impl GdtrIdtrData {
 
 pub fn lidt(limit: u32, address: u64) {
     unsafe {
-        asm!("lidt [{:r}]",in(reg) &GdtrIdtrData::new(limit as i16, address));
+        asm!("lidt [{:r}]",in(reg) &GdtrIdtrData::new(limit as i16, address),options(readonly, preserves_flags, nostack));
     }
 }
 
 pub fn lgdt(limit: u16, address: u64) {
     unsafe {
-        asm!("lgdt [{:r}]",in(reg) &GdtrIdtrData::new(limit as i16, address));
+        asm!("lgdt [{:r}]",in(reg) &GdtrIdtrData::new(limit as i16, address),options(readonly, preserves_flags, nostack));
     }
 }
 
@@ -77,7 +78,7 @@ pub unsafe fn set_code_segment(offset_of_cs: u16) {
     lea rax, 1f
     push rax
     retfq
-    1:", in(reg) offset_of_cs);
+    1:", in(reg) offset_of_cs,options(preserves_flags));
 }
 
 /// Safety: `offset_of_ds` must be a valid offset to data segment. Otherwise unexpected
@@ -87,7 +88,7 @@ pub unsafe fn set_data_segment(offset_of_ds: u16) {
     mov ss, ax
     mov ds, ax
     mov fs, ax
-    mov gs, ax",in("ax") offset_of_ds);
+    mov gs, ax",in("ax") offset_of_ds,options(nomem, preserves_flags, nostack));
 }
 
 // Don't put these asm! in one! It doesn't work!
@@ -116,9 +117,9 @@ macro_rules! interrupt_handler{
                     push r13
                     push r14
                     push r15
-                    "
+                    ",options(preserves_flags)
                 );
-                asm!("call {}",in(reg) ($function_name as extern "C" fn()->()));
+                asm!("call {}",in(reg) ($function_name as extern "C" fn()->()),options(preserves_flags));
                 asm!("
                     pop r15
                     pop r14
@@ -136,7 +137,7 @@ macro_rules! interrupt_handler{
                     pop rdx
                     pop rcx
                     pop rax
-                    iretq"
+                    iretq",options(preserves_flags)
                 );
             }
         }
