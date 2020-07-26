@@ -15,7 +15,9 @@ mod fs;
 mod gop;
 mod memory;
 
+use core::slice;
 use uefi::prelude::{Boot, Handle, Status, SystemTable};
+use uefi::table::boot;
 use uefi::ResultExt;
 
 fn reset_console(system_table: &SystemTable<Boot>) -> () {
@@ -37,7 +39,10 @@ fn initialize(system_table: &SystemTable<Boot>) -> () {
     info!("Hello World!");
 }
 
-fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> () {
+fn terminate_boot_services<'a>(
+    image: Handle,
+    system_table: SystemTable<Boot>,
+) -> &'a mut [boot::MemoryDescriptor] {
     let (memory_map, memory_map_size) = memory::generate_map(&system_table);
 
     system_table
@@ -46,6 +51,10 @@ fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> ()
         })
         .expect("Failed to exit boot services")
         .unwrap();
+
+    unsafe {
+        slice::from_raw_parts_mut::<boot::MemoryDescriptor>(memory_map as *mut _, memory_map_size)
+    }
 }
 
 fn disable_interruption() -> () {
@@ -62,8 +71,19 @@ fn disable_interruption() -> () {
 }
 
 fn jump_to_kernel() -> () {
+    const ADDR_OF_KERNEL: usize = 0xffff_ffff_8000_0000;
     unsafe {
-        asm!("jmp rdi",in("rdi") 0x8000 );
+        asm!("
+            mov rax, cr0
+            and eax, 0xfffeffff
+            mov cr0, rax
+
+            mov rax, cr3
+            mov cr3, rax
+
+            mov rsp, 0xffffffff800a1000
+
+            jmp rdi",in("rdi") ADDR_OF_KERNEL );
     }
 }
 
@@ -73,10 +93,12 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
     initialize(&system_table);
     gop::init(&system_table);
     info!("GOP set.");
-    fs::place_binary_files(&system_table);
-    terminate_boot_services(image, system_table);
+    fs::place_kernel(&system_table);
+    let mem_map = terminate_boot_services(image, system_table);
 
     disable_interruption();
+
+    memory::init_paging(mem_map);
     jump_to_kernel();
 
     loop {}
