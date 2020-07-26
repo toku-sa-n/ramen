@@ -79,11 +79,7 @@ fn read_kernel_on_memory(handler: &mut file::RegularFile) -> () {
         .expect_success("Failed to read kernel");
 }
 
-fn open_kernel(
-    system_table: &SystemTable<Boot>,
-    file: &KernelFileInfo,
-    root_dir: &mut file::Directory,
-) -> () {
+fn open_kernel(system_table: &SystemTable<Boot>, root_dir: &mut file::Directory) -> () {
     let file_handler = get_kernel_handler(root_dir);
 
     // Kernel file is a regular file, not a directory.
@@ -96,7 +92,7 @@ fn open_kernel(
 pub fn place_kernel(system_table: &SystemTable<Boot>) -> () {
     let mut root_dir = open_root_dir(system_table);
 
-    open_kernel(system_table, &KERNEL_FILE, &mut root_dir);
+    open_kernel(system_table, &mut root_dir);
 }
 
 fn open_root_dir(system_table: &SystemTable<Boot>) -> file::Directory {
