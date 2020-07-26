@@ -53,21 +53,15 @@ fn open_file(file: &KernelFileInfo, root_dir: &mut file::Directory) -> file::Fil
     file_handler.unwrap().unwrap()
 }
 
-fn allocate_for_kernel_file(system_table: &SystemTable<Boot>, file: &KernelFileInfo) -> () {
-    let status = system_table.boot_services().allocate_pages(
-        AllocateType::Address(file.address()),
-        MemoryType::LOADER_DATA,
-        file.num_of_pages(),
-    );
-
-    // Use panic!, not expect_success() to know which allocation fails.
-    if let Err(e) = status {
-        panic!(
-            "Failed to allocate memory for {}: {:?}",
-            file.get_filename(),
-            e
-        );
-    }
+fn allocate_for_kernel_file(system_table: &SystemTable<Boot>) -> () {
+    system_table
+        .boot_services()
+        .allocate_pages(
+            AllocateType::Address(KERNEL_FILE.address()),
+            MemoryType::LOADER_DATA,
+            KERNEL_FILE.num_of_pages(),
+        )
+        .expect_success("Failed to allocate memory for the kernel");
 
     // It is not necessary to return the address as it is fixed.
 }
@@ -96,7 +90,7 @@ fn open_kernel(
     // Kernel file is a regular file, not a directory.
     // This `new` always succeeds.
     let mut file_handler = unsafe { file::RegularFile::new(file_handler) };
-    allocate_for_kernel_file(system_table, file);
+    allocate_for_kernel_file(system_table);
     read_kernel_on_memory(&mut file_handler);
 }
 
