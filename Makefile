@@ -42,7 +42,6 @@ else
 	sudo mkdir -p /mnt/efi/boot
 	sudo cp $(EFI_FILE) /mnt/efi/boot/
 	sudo cp $(KERNEL_FILE) /mnt/
-	sudo cp $(HEAD_FILE) /mnt/
 	sudo umount /mnt
 endif
 
@@ -58,7 +57,6 @@ $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 	mmd -i $@ ::/efi
 	mmd -i $@ ::/efi/boot
 	mcopy -i $@ $(KERNEL_FILE) ::
-	mcopy -i $@ $(HEAD_FILE) ::
 	mcopy -i $@ $(EFI_FILE) ::/efi/boot
 
 release:
