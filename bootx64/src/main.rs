@@ -93,7 +93,7 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
     initialize(&system_table);
     gop::init(&system_table);
     info!("GOP set.");
-    fs::place_binary_files(&system_table);
+    fs::place_kernel(&system_table);
     let mem_map = terminate_boot_services(image, system_table);
 
     disable_interruption();
