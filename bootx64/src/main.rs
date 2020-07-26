@@ -12,6 +12,9 @@ mod fs;
 mod gop;
 mod memory;
 
+#[macro_use]
+mod debug;
+
 use uefi::prelude::{Boot, Handle, Status, SystemTable};
 use uefi::ResultExt;
 
