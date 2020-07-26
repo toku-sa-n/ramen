@@ -72,21 +72,18 @@ fn allocate_for_kernel_file(system_table: &SystemTable<Boot>, file: &KernelFileI
     // It is not necessary to return the address as it is fixed.
 }
 
-fn read_kernel_on_memory(file: &KernelFileInfo, handler: &mut file::RegularFile) -> () {
+fn read_kernel_on_memory(handler: &mut file::RegularFile) -> () {
     // Reading should use while statement with the number of bytes which were actually read.
     // However, without while statement previous uefi implementation worked so this uefi
     // implementation also never use it.
-    let status = handler.read(unsafe {
-        core::slice::from_raw_parts_mut(
-            file.address() as *mut u8,
-            file.num_of_pages() * BYTES_OF_PAGE,
-        )
-    });
-
-    // Use panic! to know which files causes an error.
-    if let Err(e) = status {
-        panic!("Failed to read {}: {:?}", file.get_filename(), e);
-    }
+    handler
+        .read(unsafe {
+            core::slice::from_raw_parts_mut(
+                KERNEL_FILE.address() as *mut u8,
+                KERNEL_FILE.num_of_pages() * BYTES_OF_PAGE,
+            )
+        })
+        .expect_success("Failed to read kernel");
 }
 
 fn open_kernel(
@@ -100,7 +97,7 @@ fn open_kernel(
     // This `new` always succeeds.
     let mut file_handler = unsafe { file::RegularFile::new(file_handler) };
     allocate_for_kernel_file(system_table, file);
-    read_kernel_on_memory(file, &mut file_handler);
+    read_kernel_on_memory(&mut file_handler);
 }
 
 pub fn place_kernel(system_table: &SystemTable<Boot>) -> () {
