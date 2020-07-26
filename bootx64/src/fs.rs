@@ -80,13 +80,13 @@ fn read_kernel_on_memory(handler: &mut file::RegularFile) -> () {
 }
 
 fn open_kernel(system_table: &SystemTable<Boot>, root_dir: &mut file::Directory) -> () {
-    let file_handler = get_kernel_handler(root_dir);
+    let kernel_handler = get_kernel_handler(root_dir);
 
     // Kernel file is a regular file, not a directory.
     // This `new` always succeeds.
-    let mut file_handler = unsafe { file::RegularFile::new(file_handler) };
+    let mut kernel_handler = unsafe { file::RegularFile::new(kernel_handler) };
     allocate_for_kernel_file(system_table);
-    read_kernel_on_memory(&mut file_handler);
+    read_kernel_on_memory(&mut kernel_handler);
 }
 
 pub fn place_kernel(system_table: &SystemTable<Boot>) -> () {
