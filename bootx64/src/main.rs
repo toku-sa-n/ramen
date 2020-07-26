@@ -8,12 +8,12 @@ extern crate log;
 extern crate uefi;
 extern crate uefi_services;
 
+#[macro_use]
+mod debug;
+
 mod fs;
 mod gop;
 mod memory;
-
-#[macro_use]
-mod debug;
 
 use uefi::prelude::{Boot, Handle, Status, SystemTable};
 use uefi::ResultExt;
