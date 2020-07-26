@@ -168,9 +168,48 @@ pub fn map_virt_to_phys(
     for i in 0..num_of_pages {
         virt_points_phys(virt + BYTES_OF_PAGE * i, phys + BYTES_OF_PAGE * i, mem_map);
     }
-    stop!();
 }
 
-pub fn map_kernel(mem_map: &mut [boot::MemoryDescriptor]) -> () {
+fn map_kernel(mem_map: &mut [boot::MemoryDescriptor]) -> () {
     map_virt_to_phys(0xffff_ffff_8000_0000, 0x0020_0000, 512 * 1024, mem_map);
+}
+
+pub fn init_paging(mem_map: &mut [boot::MemoryDescriptor]) -> () {
+    map_kernel(mem_map);
+    map_stack(mem_map);
+    map_idt(mem_map);
+    map_vram(mem_map);
+}
+
+fn map_idt(mem_map: &mut [boot::MemoryDescriptor]) -> () {
+    map_virt_to_phys(
+        0xffff_ffff_8000_0000 + 512 * 1024,
+        0x0020_0000 + 512 * 1024,
+        4 * 1024,
+        mem_map,
+    );
+}
+
+fn map_stack(mem_map: &mut [boot::MemoryDescriptor]) -> () {
+    map_virt_to_phys(
+        0xffff_ffff_8000_0000 + 516 * 1024,
+        0x0020_0000 + 4 * 1024 + 512 * 1024,
+        128 * 1024,
+        mem_map,
+    );
+}
+
+fn map_vram(mem_map: &mut [boot::MemoryDescriptor]) -> () {
+    unsafe {
+        map_virt_to_phys(
+            0xffff_ffff_8020_0000,
+            ptr::read(0x0ff8 as *const u64) as usize,
+            ptr::read(0x0ff2 as *const u8) as usize
+                * ptr::read(0x0ff4 as *const u16) as usize
+                * ptr::read(0x0ff6 as *const u16) as usize
+                / 8,
+            mem_map,
+        );
+        ptr::write(0x0ff8 as *mut u64, 0xffff_ffff_8020_0000u64);
+    }
 }

@@ -71,8 +71,19 @@ fn disable_interruption() -> () {
 }
 
 fn jump_to_kernel() -> () {
+    const ADDR_OF_KERNEL: usize = 0xffff_ffff_8000_0000;
     unsafe {
-        asm!("jmp rdi",in("rdi") 0x8000 );
+        asm!("
+            mov rax, cr0
+            and eax, 0xfffeffff
+            mov cr0, rax
+
+            mov rax, cr3
+            mov cr3, rax
+
+            mov rsp, 0xffffffff800a1000
+
+            jmp rdi",in("rdi") ADDR_OF_KERNEL );
     }
 }
 
@@ -85,8 +96,9 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
     fs::place_binary_files(&system_table);
     let mem_map = terminate_boot_services(image, system_table);
 
-    memory::map_kernel(mem_map);
     disable_interruption();
+
+    memory::init_paging(mem_map);
     jump_to_kernel();
 
     loop {}
