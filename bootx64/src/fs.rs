@@ -40,10 +40,7 @@ impl KernelFileInfo {
 // Using the size of binary as the memory consumption is useless because the size of .bss section
 // is not included in the binary size. Using ELF file may improve effeciency as it might contain
 // the size of memory comsuption.
-const KERNEL_FILES: [KernelFileInfo; 2] = [
-    KernelFileInfo::new("head.asm.o", 0x8000, 0x500),
-    KernelFileInfo::new("kernel.bin", 0x200000, 0x20000),
-];
+const KERNEL_FILE: KernelFileInfo = KernelFileInfo::new("kernel.bin", 0x200000, 0x20000);
 
 fn open_file(file: &KernelFileInfo, root_dir: &mut file::Directory) -> file::FileHandle {
     let file_handler = root_dir.open(file.get_filename(), FileMode::Read, FileAttribute::empty());
@@ -75,7 +72,7 @@ fn allocate_for_kernel_file(system_table: &SystemTable<Boot>, file: &KernelFileI
     // It is not necessary to return the address as it is fixed.
 }
 
-fn read_file_on_memory(file: &KernelFileInfo, handler: &mut file::RegularFile) -> () {
+fn read_kernel_on_memory(file: &KernelFileInfo, handler: &mut file::RegularFile) -> () {
     // Reading should use while statement with the number of bytes which were actually read.
     // However, without while statement previous uefi implementation worked so this uefi
     // implementation also never use it.
@@ -92,7 +89,7 @@ fn read_file_on_memory(file: &KernelFileInfo, handler: &mut file::RegularFile) -
     }
 }
 
-fn open_indivisual_file(
+fn open_kernel(
     system_table: &SystemTable<Boot>,
     file: &KernelFileInfo,
     root_dir: &mut file::Directory,
@@ -103,15 +100,13 @@ fn open_indivisual_file(
     // This `new` always succeeds.
     let mut file_handler = unsafe { file::RegularFile::new(file_handler) };
     allocate_for_kernel_file(system_table, file);
-    read_file_on_memory(file, &mut file_handler);
+    read_kernel_on_memory(file, &mut file_handler);
 }
 
-pub fn place_binary_files(system_table: &SystemTable<Boot>) -> () {
+pub fn place_kernel(system_table: &SystemTable<Boot>) -> () {
     let mut root_dir = open_root_dir(system_table);
 
-    for file in &KERNEL_FILES {
-        open_indivisual_file(system_table, file, &mut root_dir);
-    }
+    open_kernel(system_table, &KERNEL_FILE, &mut root_dir);
 }
 
 fn open_root_dir(system_table: &SystemTable<Boot>) -> file::Directory {
