@@ -74,10 +74,6 @@ fn jump_to_kernel() -> () {
     const ADDR_OF_KERNEL: usize = 0xffff_ffff_8000_0000;
     unsafe {
         asm!("
-            mov rax, cr0
-            and eax, 0xfffeffff
-            mov cr0, rax
-
             mov rax, cr3
             mov cr3, rax
 
