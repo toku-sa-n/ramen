@@ -42,15 +42,14 @@ impl KernelFileInfo {
 // the size of memory comsuption.
 const KERNEL_FILE: KernelFileInfo = KernelFileInfo::new("kernel.bin", 0x200000, 0x20000);
 
-fn get_kernel_handler(file: &KernelFileInfo, root_dir: &mut file::Directory) -> file::FileHandle {
-    let file_handler = root_dir.open(file.get_filename(), FileMode::Read, FileAttribute::empty());
-
-    // Use panic!, not expect_success() to print the detail of error.
-    if let Err(e) = file_handler {
-        panic!("Failed to open file: {} {:?}", file.get_filename(), e);
-    }
-
-    file_handler.unwrap().unwrap()
+fn get_kernel_handler(root_dir: &mut file::Directory) -> file::FileHandle {
+    root_dir
+        .open(
+            KERNEL_FILE.get_filename(),
+            FileMode::Read,
+            FileAttribute::empty(),
+        )
+        .expect_success("Failed to get file handler of the kernel.")
 }
 
 fn allocate_for_kernel_file(system_table: &SystemTable<Boot>) -> () {
@@ -85,7 +84,7 @@ fn open_kernel(
     file: &KernelFileInfo,
     root_dir: &mut file::Directory,
 ) -> () {
-    let file_handler = get_kernel_handler(file, root_dir);
+    let file_handler = get_kernel_handler(root_dir);
 
     // Kernel file is a regular file, not a directory.
     // This `new` always succeeds.
