@@ -105,5 +105,5 @@ fn open_root_dir(system_table: &SystemTable<Boot>) -> file::Directory {
 
     simple_file_system
         .open_volume()
-        .expect_success("Failed to open volume.")
+        .expect_success("Failed to open the root directory.")
 }
