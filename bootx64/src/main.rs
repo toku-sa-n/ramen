@@ -15,7 +15,9 @@ mod fs;
 mod gop;
 mod memory;
 
+use core::slice;
 use uefi::prelude::{Boot, Handle, Status, SystemTable};
+use uefi::table::boot;
 use uefi::ResultExt;
 
 fn reset_console(system_table: &SystemTable<Boot>) -> () {
@@ -37,7 +39,10 @@ fn initialize(system_table: &SystemTable<Boot>) -> () {
     info!("Hello World!");
 }
 
-fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> () {
+fn terminate_boot_services<'a>(
+    image: Handle,
+    system_table: SystemTable<Boot>,
+) -> &'a mut [boot::MemoryDescriptor] {
     let (memory_map, memory_map_size) = memory::generate_map(&system_table);
 
     system_table
@@ -46,6 +51,10 @@ fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> ()
         })
         .expect("Failed to exit boot services")
         .unwrap();
+
+    unsafe {
+        slice::from_raw_parts_mut::<boot::MemoryDescriptor>(memory_map as *mut _, memory_map_size)
+    }
 }
 
 fn disable_interruption() -> () {
