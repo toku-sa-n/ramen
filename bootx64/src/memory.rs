@@ -153,7 +153,6 @@ fn remove_table_protection() -> () {
 }
 
 fn virt_points_phys(virt: usize, phys: usize, mem_map: &mut [boot::MemoryDescriptor]) -> () {
-    remove_table_protection();
     virt_points_phys_recur(virt, phys, get_pml4_addr(), mem_map, TableType::Pml4);
 }
 
@@ -175,6 +174,8 @@ fn map_kernel(mem_map: &mut [boot::MemoryDescriptor]) -> () {
 }
 
 pub fn init_paging(mem_map: &mut [boot::MemoryDescriptor]) -> () {
+    remove_table_protection();
+
     map_kernel(mem_map);
     map_stack(mem_map);
     map_idt(mem_map);
