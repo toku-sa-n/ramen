@@ -15,6 +15,7 @@ mod fs;
 mod gop;
 mod memory;
 
+use core::mem;
 use core::slice;
 use uefi::prelude::{Boot, Handle, Status, SystemTable};
 use uefi::table::boot;
@@ -72,9 +73,10 @@ fn disable_interruption() -> () {
 
 fn jump_to_kernel() -> () {
     const ADDR_OF_KERNEL: usize = 0xffff_ffff_8000_0000;
-    unsafe {
-        asm!("jmp rdi",in("rdi") ADDR_OF_KERNEL);
-    }
+
+    let kernel_entry: fn() -> () = unsafe { mem::transmute(ADDR_OF_KERNEL) };
+
+    (kernel_entry)()
 }
 
 #[start]
