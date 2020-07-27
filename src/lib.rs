@@ -15,6 +15,10 @@ mod graphics;
 #[no_mangle]
 #[start]
 pub fn os_main() {
+    unsafe {
+        asm!("mov rsp, 0xffffffff800a1000");
+    }
+
     let mouse_device: interrupt::mouse::Device = interrupt::mouse::Device::new();
     let mut mouse_cursor: graphics::screen::MouseCursor = graphics::screen::MouseCursor::new(
         graphics::RGB::new(0x008484),
