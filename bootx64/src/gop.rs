@@ -12,6 +12,19 @@ struct VramInfo {
     ptr: u64,
 }
 
+impl VramInfo {
+    fn new_from_gop(gop: &mut gop::GraphicsOutput) -> Self {
+        let (screen_x, screen_y) = gop.current_mode_info().resolution();
+
+        Self {
+            bpp: 32,
+            screen_x: screen_x as u16,
+            screen_y: screen_y as u16,
+            ptr: gop.frame_buffer().as_mut_ptr() as u64,
+        }
+    }
+}
+
 fn set_graphics_settings(gop: &mut gop::GraphicsOutput) -> () {
     let vram_settings: *mut VramInfo = 0x0ff2 as *mut _;
     unsafe {
