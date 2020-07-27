@@ -5,7 +5,7 @@ use uefi::proto::console::gop::PixelFormat;
 use uefi::ResultExt;
 
 #[repr(C, packed)]
-struct VramInfo {
+pub struct VramInfo {
     bpp: u16,
     screen_x: u16,
     screen_y: u16,
@@ -100,8 +100,10 @@ fn fetch_gop<'a>(system_table: &'a SystemTable<Boot>) -> &'a mut gop::GraphicsOu
     unsafe { &mut *gop.get() }
 }
 
-pub fn init(system_table: &SystemTable<Boot>) -> () {
+pub fn init(system_table: &SystemTable<Boot>) -> VramInfo {
     let gop = fetch_gop(system_table);
     set_resolution(gop);
     set_graphics_settings(gop);
+
+    VramInfo::new_from_gop(gop)
 }

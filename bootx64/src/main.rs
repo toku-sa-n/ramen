@@ -81,8 +81,10 @@ fn jump_to_kernel() -> () {
 #[no_mangle]
 pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
     initialize(&system_table);
-    gop::init(&system_table);
+
+    let _vram_info = gop::init(&system_table);
     info!("GOP set.");
+
     fs::place_kernel(&system_table);
     let mem_map = terminate_boot_services(image, system_table);
 
