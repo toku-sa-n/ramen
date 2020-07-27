@@ -40,6 +40,17 @@ enum TableType {
     Pt,
 }
 
+impl TableType {
+    fn next_table(&self) -> Option<TableType> {
+        match self {
+            TableType::Pt => None,
+            TableType::Pd => Some(TableType::Pt),
+            TableType::Pdpt => Some(TableType::Pd),
+            TableType::Pml4 => Some(TableType::Pdpt),
+        }
+    }
+}
+
 const TABLE_ENTRY_SIZE: usize = 8;
 
 fn get_offset_of_entry(virt_addr: usize, table: TableType) -> usize {
@@ -74,15 +85,6 @@ fn allocate_page_for_page_table(mem_map: &mut [boot::MemoryDescriptor]) -> usize
 
 fn entry_exists(entry: usize) -> bool {
     entry & PAGE_EXISTS == 1
-}
-
-fn next_table(table: TableType) -> Option<TableType> {
-    match table {
-        TableType::Pt => None,
-        TableType::Pd => Some(TableType::Pt),
-        TableType::Pdpt => Some(TableType::Pd),
-        TableType::Pml4 => Some(TableType::Pdpt),
-    }
 }
 
 fn get_addr_from_table_entry(entry: usize) -> usize {
@@ -129,7 +131,7 @@ fn virt_points_phys_recur(
         phys,
         get_addr_from_table_entry(entry),
         mem_map,
-        next_table(table).unwrap(), // `table` can't be `Pt`. This `unwrap` always succeeds.
+        table.next_table().unwrap(), // `table` can't be `Pt`. This `unwrap` always succeeds.
     )
 }
 
