@@ -5,7 +5,7 @@ use uefi::proto::console::gop::PixelFormat;
 use uefi::ResultExt;
 
 #[repr(C, packed)]
-struct VramSettings {
+struct VramInfo {
     bpp: u16,
     screen_x: u16,
     screen_y: u16,
@@ -13,7 +13,7 @@ struct VramSettings {
 }
 
 fn set_graphics_settings(gop: &mut gop::GraphicsOutput) -> () {
-    let vram_settings: *mut VramSettings = 0x0ff2 as *mut _;
+    let vram_settings: *mut VramInfo = 0x0ff2 as *mut _;
     unsafe {
         (*vram_settings).bpp = 32;
 
