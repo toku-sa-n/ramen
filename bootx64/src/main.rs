@@ -73,10 +73,7 @@ fn disable_interruption() -> () {
 fn jump_to_kernel() -> () {
     const ADDR_OF_KERNEL: usize = 0xffff_ffff_8000_0000;
     unsafe {
-        asm!("
-            mov rsp, 0xffffffff800a1000
-
-            jmp rdi",in("rdi") ADDR_OF_KERNEL );
+        asm!("jmp rdi",in("rdi") ADDR_OF_KERNEL);
     }
 }
 
