@@ -12,12 +12,20 @@ mod queue;
 #[macro_use]
 mod graphics;
 
+// Don't change this to a function. After changing rsp it will impossible to return.
+macro_rules! change_rsp{
+    () => {
+        unsafe{
+            const INIT_RSP:usize=0xffff_ffff_800a_1000;
+            asm!("mov rsp, {}",in(reg) INIT_RSP);
+        }
+    }
+}
+
 #[no_mangle]
 #[start]
 pub fn os_main() {
-    unsafe {
-        asm!("mov rsp, 0xffffffff800a1000");
-    }
+    change_rsp!();
 
     let mouse_device: interrupt::mouse::Device = interrupt::mouse::Device::new();
     let mut mouse_cursor: graphics::screen::MouseCursor = graphics::screen::MouseCursor::new(
