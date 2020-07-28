@@ -18,7 +18,7 @@ mod memory;
 use core::mem;
 use core::ptr;
 use core::slice;
-use uefi::prelude::{Boot, Handle, Status, SystemTable};
+use uefi::prelude::{Boot, Handle, SystemTable};
 use uefi::table::boot;
 use uefi::ResultExt;
 
@@ -88,20 +88,20 @@ fn save_boot_info(boot_info: BootInfo) -> () {
     unsafe { ptr::write(INIT_RSP as *mut BootInfo, boot_info) }
 }
 
-fn jump_to_kernel(boot_info: BootInfo) -> () {
+fn jump_to_kernel(boot_info: BootInfo) -> ! {
     save_boot_info(boot_info);
 
     const ADDR_OF_KERNEL: usize = 0xffff_ffff_8000_0000;
 
     unsafe {
         asm!("mov rsp, rax
-        jmp rdi",in("rax") INIT_RSP,in("rdi") ADDR_OF_KERNEL);
+        jmp rdi",in("rax") INIT_RSP,in("rdi") ADDR_OF_KERNEL,options(nomem, preserves_flags, nostack,noreturn));
     }
 }
 
 #[start]
 #[no_mangle]
-pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
+pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     initialize(&system_table);
 
     let vram_info = gop::init(&system_table);
@@ -114,6 +114,4 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
 
     memory::init_paging(mem_map);
     jump_to_kernel(BootInfo::new(vram_info));
-
-    loop {}
 }
