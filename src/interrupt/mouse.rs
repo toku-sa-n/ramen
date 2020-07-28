@@ -60,59 +60,54 @@ impl Device {
 
     // Return true if three bytes data are sent.
     // Otherwise return false.
-    pub fn put_data(self, data: u32) -> (bool, Self) {
+    pub fn put_data(&mut self, data: u32) -> bool {
         match self.phase {
-            0 => (
-                false,
-                Self {
-                    phase: if data == 0xFA { 1 } else { 0 },
-                    ..self
-                },
-            ),
+            0 => {
+                self.phase = if data == 0xfa { 1 } else { 0 };
+                false
+            }
 
             1 => {
-                let mut new_self = self;
                 if Self::is_correct_first_byte_from_device(data) {
-                    new_self.phase = 2;
-                    new_self.data_from_device[0] = data;
+                    self.phase = 2;
+                    self.data_from_device[0] = data;
                 }
-                (false, new_self)
+                false
             }
             2 => {
-                let mut new_self = self;
-                new_self.data_from_device[1] = data;
-                new_self.phase = 3;
-                (false, new_self)
+                self.data_from_device[1] = data;
+                self.phase = 3;
+                false
             }
             3 => {
-                let mut new_self = self;
+                self.data_from_device[2] = data;
+                self.phase = 1;
 
-                new_self.data_from_device[2] = data;
-                new_self.phase = 1;
+                self.purse_data();
 
-                (true, new_self.purse_data())
+                true
             }
-            _ => (true, Self { phase: 1, ..self }),
+            _ => {
+                self.phase = 1;
+                true
+            }
         }
     }
 
-    fn purse_data(self) -> Self {
-        let mut new_self = self;
-        new_self.buttons = MouseButtons::purse_data(new_self.data_from_device[0]);
-        new_self.speed.x = new_self.data_from_device[1] as i32;
-        new_self.speed.y = new_self.data_from_device[2] as i32;
+    fn purse_data(&mut self) -> () {
+        self.buttons = MouseButtons::purse_data(self.data_from_device[0]);
+        self.speed.x = self.data_from_device[1] as i32;
+        self.speed.y = self.data_from_device[2] as i32;
 
-        if new_self.data_from_device[0] & 0x10 != 0 {
-            new_self.speed.x = (new_self.speed.x as u32 | 0xFFFFFF00) as i32;
+        if self.data_from_device[0] & 0x10 != 0 {
+            self.speed.x = (self.speed.x as u32 | 0xFFFFFF00) as i32;
         }
 
-        if new_self.data_from_device[0] & 0x20 != 0 {
-            new_self.speed.y = (new_self.speed.y as u32 | 0xFFFFFF00) as i32;
+        if self.data_from_device[0] & 0x20 != 0 {
+            self.speed.y = (self.speed.y as u32 | 0xFFFFFF00) as i32;
         }
 
-        new_self.speed.y = -new_self.speed.y;
-
-        new_self
+        self.speed.y = -self.speed.y;
     }
 
     // To sync phase, and data sent from mouse device

@@ -212,12 +212,12 @@ impl MouseCursor {
         );
     }
 
-    pub fn draw_offset(self, offset: TwoDimensionalVec<isize>) -> Self {
+    pub fn draw_offset(&mut self, offset: TwoDimensionalVec<isize>) -> () {
         let new_coord = self.coord.clone() + offset;
         self.draw(new_coord)
     }
 
-    pub fn draw(mut self, coord: Coord<isize>) -> Self {
+    pub fn draw(&mut self, coord: Coord<isize>) -> () {
         self.remove_previous_cursor();
 
         let adjusted_coord = coord.put_in(
@@ -239,10 +239,7 @@ impl MouseCursor {
             }
         }
 
-        Self {
-            coord: adjusted_coord,
-            ..self
-        }
+        self.coord = adjusted_coord;
     }
 
     fn remove_previous_cursor(&self) -> () {
