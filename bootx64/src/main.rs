@@ -15,6 +15,8 @@ mod fs;
 mod gop;
 mod memory;
 
+use core::mem;
+use core::ptr;
 use core::slice;
 use uefi::prelude::{Boot, Handle, Status, SystemTable};
 use uefi::table::boot;
@@ -70,10 +72,30 @@ fn disable_interruption() -> () {
     }
 }
 
-fn jump_to_kernel() -> () {
+struct BootInfo {
+    _vram_info: gop::VramInfo,
+}
+
+impl BootInfo {
+    fn new(_vram_info: gop::VramInfo) -> Self {
+        Self { _vram_info }
+    }
+}
+
+const INIT_RSP: usize = 0xffff_ffff_800a_1000 - mem::size_of::<BootInfo>();
+
+fn save_boot_info(boot_info: BootInfo) -> () {
+    unsafe { ptr::write(INIT_RSP as *mut BootInfo, boot_info) }
+}
+
+fn jump_to_kernel(boot_info: BootInfo) -> () {
+    save_boot_info(boot_info);
+
     const ADDR_OF_KERNEL: usize = 0xffff_ffff_8000_0000;
+
     unsafe {
-        asm!("jmp rdi",in("rdi") ADDR_OF_KERNEL);
+        asm!("mov rsp, rax
+        jmp rdi",in("rax") INIT_RSP,in("rdi") ADDR_OF_KERNEL);
     }
 }
 
@@ -81,15 +103,17 @@ fn jump_to_kernel() -> () {
 #[no_mangle]
 pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> Status {
     initialize(&system_table);
-    gop::init(&system_table);
+
+    let vram_info = gop::init(&system_table);
     info!("GOP set.");
+
     fs::place_kernel(&system_table);
     let mem_map = terminate_boot_services(image, system_table);
 
     disable_interruption();
 
     memory::init_paging(mem_map);
-    jump_to_kernel();
+    jump_to_kernel(BootInfo::new(vram_info));
 
     loop {}
 }

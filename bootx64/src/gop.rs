@@ -4,24 +4,23 @@ use uefi::proto::console::gop;
 use uefi::proto::console::gop::PixelFormat;
 use uefi::ResultExt;
 
-#[repr(C, packed)]
-struct VramSettings {
-    bpp: u16,
-    screen_x: u16,
-    screen_y: u16,
-    ptr: u64,
+pub struct VramInfo {
+    _bpp: u16,
+    _screen_x: u16,
+    _screen_y: u16,
+    _ptr: u64,
 }
 
-fn set_graphics_settings(gop: &mut gop::GraphicsOutput) -> () {
-    let vram_settings: *mut VramSettings = 0x0ff2 as *mut _;
-    unsafe {
-        (*vram_settings).bpp = 32;
+impl VramInfo {
+    fn new_from_gop(gop: &mut gop::GraphicsOutput) -> Self {
+        let (screen_x, screen_y) = gop.current_mode_info().resolution();
 
-        let (width, height) = gop.current_mode_info().resolution();
-        (*vram_settings).screen_x = width as u16;
-        (*vram_settings).screen_y = height as u16;
-
-        (*vram_settings).ptr = gop.frame_buffer().as_mut_ptr() as u64;
+        Self {
+            _bpp: 32,
+            _screen_x: screen_x as u16,
+            _screen_y: screen_y as u16,
+            _ptr: gop.frame_buffer().as_mut_ptr() as u64,
+        }
     }
 }
 
@@ -87,8 +86,9 @@ fn fetch_gop<'a>(system_table: &'a SystemTable<Boot>) -> &'a mut gop::GraphicsOu
     unsafe { &mut *gop.get() }
 }
 
-pub fn init(system_table: &SystemTable<Boot>) -> () {
+pub fn init(system_table: &SystemTable<Boot>) -> VramInfo {
     let gop = fetch_gop(system_table);
     set_resolution(gop);
-    set_graphics_settings(gop);
+
+    VramInfo::new_from_gop(gop)
 }

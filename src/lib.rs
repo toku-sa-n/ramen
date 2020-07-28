@@ -12,22 +12,22 @@ mod queue;
 #[macro_use]
 mod graphics;
 
-// Don't change this to a function. After changing rsp it will impossible to return.
-macro_rules! change_rsp{
-    () => {
-        unsafe{
-            const INIT_RSP:usize=0xffff_ffff_800a_1000;
-            asm!("mov rsp, {}",in(reg) INIT_RSP);
-        }
-    }
+use core::{mem, ptr};
+
+struct BootInfo {
+    vram_info: graphics::Vram,
+}
+
+fn get_boot_info() -> BootInfo {
+    const ADDR_OF_BOOT_INFO: *const BootInfo =
+        (0xffff_ffff_800a_1000 - mem::size_of::<BootInfo>()) as *const _;
+    unsafe { ptr::read(ADDR_OF_BOOT_INFO) }
 }
 
 #[no_mangle]
 #[start]
 pub fn os_main() {
-    change_rsp!();
-
-    let vram = graphics::Vram::new();
+    let vram = get_boot_info().vram_info;
 
     let mut mouse_device: interrupt::mouse::Device = interrupt::mouse::Device::new(&vram);
     let mut mouse_cursor: graphics::screen::MouseCursor = graphics::screen::MouseCursor::new(
