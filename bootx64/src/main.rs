@@ -105,7 +105,6 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     initialize(&system_table);
 
     let vram_info = gop::init(&system_table);
-    info!("GOP set.");
 
     fs::place_kernel(&system_table);
     let mem_map = terminate_boot_services(image, system_table);
