@@ -99,6 +99,13 @@ fn jump_to_kernel(boot_info: BootInfo) -> ! {
     }
 }
 
+fn exit_bootx64<'a>(mem_map: &'a mut [boot::MemoryDescriptor], boot_info: BootInfo) -> ! {
+    disable_interruption();
+
+    memory::init_paging(mem_map);
+    jump_to_kernel(boot_info);
+}
+
 #[start]
 #[no_mangle]
 pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
@@ -109,8 +116,5 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     fs::place_kernel(&system_table);
     let mem_map = terminate_boot_services(image, system_table);
 
-    disable_interruption();
-
-    memory::init_paging(mem_map);
-    jump_to_kernel(BootInfo::new(vram_info));
+    exit_bootx64(mem_map, BootInfo::new(vram_info));
 }
