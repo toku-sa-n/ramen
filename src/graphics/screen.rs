@@ -53,9 +53,9 @@ pub const MOUSE_GRAPHIC: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] = [
 
 #[macro_export]
 macro_rules! print_with_pos {
-    ($coord:expr,$color:expr,$text:expr,$($args:expr),*) => {
+    ($vram:expr,$coord:expr,$color:expr,$text:expr,$($args:expr),*) => {
         let mut screen_write =
-            crate::graphics::screen::ScreenWrite::new(crate::graphics::Vram::new(), $coord, $color);
+            crate::graphics::screen::ScreenWrite::new($vram, $coord, $color);
 
         // To narrow the scope of `use core::fmt::Write;`, enclose sentences by curly braces.
         {
@@ -65,12 +65,12 @@ macro_rules! print_with_pos {
     };
 }
 
-pub struct Screen {
-    vram: Vram,
+pub struct Screen<'a> {
+    vram: &'a Vram,
 }
 
-impl Screen {
-    pub fn new(vram: Vram) -> Self {
+impl<'a> Screen<'a> {
+    pub fn new(vram: &'a Vram) -> Self {
         Self { vram }
     }
 
@@ -138,21 +138,21 @@ impl<T: core::cmp::PartialOrd> Coord<T> {
     }
 }
 
-pub struct ScreenWrite {
-    vram: Vram,
+pub struct ScreenWrite<'a> {
+    vram: &'a Vram,
     coord: Coord<isize>,
     color: RGB,
 }
 
-impl ScreenWrite {
-    pub fn new(vram: Vram, coord: Coord<isize>, color: RGB) -> Self {
+impl<'a> ScreenWrite<'a> {
+    pub fn new(vram: &'a Vram, coord: Coord<isize>, color: RGB) -> Self {
         Self { vram, coord, color }
     }
 }
 
-impl core::fmt::Write for ScreenWrite {
+impl<'a> core::fmt::Write for ScreenWrite<'a> {
     fn write_str(&mut self, s: &str) -> core::result::Result<(), core::fmt::Error> {
-        print_str(&mut self.vram, &self.coord, self.color, s);
+        print_str(&self.vram, &self.coord, self.color, s);
         self.coord.x += (s.len() * font::FONT_WIDTH) as isize;
         Ok(())
     }
@@ -161,18 +161,18 @@ impl core::fmt::Write for ScreenWrite {
 pub const MOUSE_CURSOR_WIDTH: usize = 16;
 pub const MOUSE_CURSOR_HEIGHT: usize = 16;
 
-pub struct MouseCursor {
+pub struct MouseCursor<'a> {
     coord: Coord<isize>,
 
-    vram: Vram,
+    vram: &'a Vram,
     image: [[RGB; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
 }
 
-impl MouseCursor {
+impl<'a> MouseCursor<'a> {
     pub fn new(
         background_color: RGB,
         image: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
-        vram: Vram,
+        vram: &'a Vram,
     ) -> Self {
         let mut colored_dots: [[RGB; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] =
             [[background_color; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_WIDTH];
@@ -194,8 +194,8 @@ impl MouseCursor {
         }
     }
 
-    pub fn print_coord(&self, coord: Coord<isize>) -> () {
-        let mut screen: Screen = Screen::new(self.vram.clone());
+    pub fn print_coord(&mut self, coord: Coord<isize>) -> () {
+        let mut screen: Screen = Screen::new(self.vram);
 
         screen.draw_rectangle(
             RGB::new(0x008484),
@@ -204,6 +204,7 @@ impl MouseCursor {
         );
 
         print_with_pos!(
+            self.vram,
             coord,
             RGB::new(0xFFFFFF),
             "({}, {})",
@@ -243,7 +244,7 @@ impl MouseCursor {
     }
 
     fn remove_previous_cursor(&self) -> () {
-        let mut screen: Screen = Screen::new(self.vram.clone());
+        let mut screen: Screen = Screen::new(self.vram);
 
         screen.draw_rectangle(
             RGB::new(0x008484),
@@ -264,7 +265,7 @@ pub fn draw_desktop(vram: &Vram) -> () {
     // It seems that changing the arguments as `color, coord_1, coord_2` actually makes the code
     // dirty because by doing it lots of `Coord::new(x1, x2)` appear on below.
     let draw_desktop_part = |color, x0, y0, x1, y1| {
-        let mut screen:screen::Screen = screen::Screen::new(vram.clone());
+        let mut screen:screen::Screen = screen::Screen::new(vram);
         screen.draw_rectangle(RGB::new(color), Coord::new(x0, y0), Coord::new(x1, y1));
     };
 
@@ -287,7 +288,7 @@ pub fn draw_desktop(vram: &Vram) -> () {
 }
 
 fn print_char(
-    vram: &mut Vram,
+    vram: &Vram,
     coord: Coord<isize>,
     color: RGB,
     font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT],
@@ -303,7 +304,7 @@ fn print_char(
     }
 }
 
-fn print_str(vram: &mut Vram, coord: &Coord<isize>, color: RGB, str: &str) -> () {
+fn print_str(vram: &Vram, coord: &Coord<isize>, color: RGB, str: &str) -> () {
     let mut char_x_pos = coord.x;
     for c in str.chars() {
         print_char(
