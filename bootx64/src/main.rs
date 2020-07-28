@@ -58,6 +58,7 @@ fn terminate_boot_services<'a>(
         slice::from_raw_parts_mut::<boot::MemoryDescriptor>(memory_map as *mut _, memory_map_size)
     }
 }
+
 #[start]
 #[no_mangle]
 pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
