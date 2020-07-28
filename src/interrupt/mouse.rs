@@ -32,22 +32,25 @@ impl MouseButtons {
     }
 }
 
-pub struct Device {
+pub struct Device<'a> {
     data_from_device: [u32; 3],
     phase: u32,
 
     speed: graphics::screen::TwoDimensionalVec<i32>,
 
     buttons: MouseButtons,
+
+    vram: &'a graphics::Vram,
 }
 
-impl Device {
-    pub fn new() -> Self {
+impl<'a> Device<'a> {
+    pub fn new(vram: &'a graphics::Vram) -> Self {
         Self {
             data_from_device: [0; 3],
             phase: 0,
             speed: graphics::screen::TwoDimensionalVec::new(0, 0),
             buttons: MouseButtons::new(),
+            vram,
         }
     }
 
@@ -119,10 +122,9 @@ impl Device {
         graphics::screen::Coord::new(self.speed.x as isize, self.speed.y as isize)
     }
 
-    pub fn print_buf_data(&self) -> () {
+    pub fn print_buf_data(&mut self) -> () {
         use crate::print_with_pos;
-        let mut screen: graphics::screen::Screen =
-            graphics::screen::Screen::new(graphics::Vram::new());
+        let mut screen: graphics::screen::Screen = graphics::screen::Screen::new(self.vram);
 
         screen.draw_rectangle(
             graphics::RGB::new(0x008484),
@@ -131,6 +133,7 @@ impl Device {
         );
 
         print_with_pos!(
+            self.vram,
             graphics::screen::Coord::new(32, 16),
             graphics::RGB::new(0xFFFFFF),
             "[{}{}{} {:4}{:4}]",

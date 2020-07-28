@@ -27,32 +27,35 @@ macro_rules! change_rsp{
 pub fn os_main() {
     change_rsp!();
 
-    let mut mouse_device: interrupt::mouse::Device = interrupt::mouse::Device::new();
+    let vram = graphics::Vram::new();
+
+    let mut mouse_device: interrupt::mouse::Device = interrupt::mouse::Device::new(&vram);
     let mut mouse_cursor: graphics::screen::MouseCursor = graphics::screen::MouseCursor::new(
         graphics::RGB::new(0x008484),
         graphics::screen::MOUSE_GRAPHIC,
-        graphics::Vram::new(),
+        &vram,
     );
 
-    initialization(&mut mouse_device, &mut mouse_cursor);
+    initialization(&mut mouse_device, &mut mouse_cursor, &vram);
 
-    main_loop(&mut mouse_device, &mut mouse_cursor)
+    main_loop(&mut mouse_device, &mut mouse_cursor, &vram)
 }
 
 fn initialization(
     mouse_device: &mut interrupt::mouse::Device,
     mouse_cursor: &mut graphics::screen::MouseCursor,
+    vram: &graphics::Vram,
 ) -> () {
     gdt::init();
     descriptor_table::init();
     interrupt::init_pic();
     // Temporarily disable interruption to see whether desktop is drawn successfully or not.
     // asm::sti();
-    let vram: graphics::Vram = graphics::Vram::new();
 
     graphics::screen::draw_desktop(&vram);
 
     print_with_pos!(
+        vram,
         graphics::screen::Coord::new(16, 64),
         graphics::RGB::new(0xFFFFFF),
         "x_len = {}",
@@ -69,25 +72,26 @@ fn initialization(
 fn main_loop(
     mouse_device: &mut interrupt::mouse::Device,
     mouse_cursor: &mut graphics::screen::MouseCursor,
+    vram: &graphics::Vram,
 ) -> () {
     loop {
         asm::cli();
         if interrupt::KEY_QUEUE.lock().size() != 0 {
-            handle_keyboard_data();
+            handle_keyboard_data(vram);
         } else if interrupt::mouse::QUEUE.lock().size() != 0 {
-            handle_mouse_data(mouse_device, mouse_cursor);
+            handle_mouse_data(mouse_device, mouse_cursor, vram);
         } else {
             asm::stihlt();
         }
     }
 }
 
-fn handle_keyboard_data() -> () {
+fn handle_keyboard_data(vram: &graphics::Vram) -> () {
     let data: Option<u32> = interrupt::KEY_QUEUE.lock().dequeue();
 
     asm::sti();
 
-    let mut screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
+    let mut screen: graphics::screen::Screen = graphics::screen::Screen::new(vram);
 
     screen.draw_rectangle(
         graphics::RGB::new(0x008484),
@@ -97,6 +101,7 @@ fn handle_keyboard_data() -> () {
 
     if let Some(data) = data {
         print_with_pos!(
+            vram,
             graphics::screen::Coord::new(0, 16),
             graphics::RGB::new(0xFFFFFF),
             "{:X}",
@@ -108,12 +113,13 @@ fn handle_keyboard_data() -> () {
 fn handle_mouse_data(
     mouse_device: &mut interrupt::mouse::Device,
     mouse_cursor: &mut graphics::screen::MouseCursor,
+    vram: &graphics::Vram,
 ) -> () {
     let data: Option<u32> = interrupt::mouse::QUEUE.lock().dequeue();
 
     asm::sti();
 
-    let mut screen: graphics::screen::Screen = graphics::screen::Screen::new(graphics::Vram::new());
+    let mut screen: graphics::screen::Screen = graphics::screen::Screen::new(vram);
 
     screen.draw_rectangle(
         graphics::RGB::new(0x008484),
