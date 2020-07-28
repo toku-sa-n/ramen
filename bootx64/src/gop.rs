@@ -4,7 +4,6 @@ use uefi::proto::console::gop;
 use uefi::proto::console::gop::PixelFormat;
 use uefi::ResultExt;
 
-#[repr(C, packed)]
 pub struct VramInfo {
     bpp: u16,
     screen_x: u16,
