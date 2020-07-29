@@ -21,9 +21,8 @@ jobs:
       uses: actions-rs/toolchain@v1.0.6
       with:
         toolchain: nightly
-        components: rust-src
         override: true
-    
+
     - name: Install rust-src
       run: rustup component add rust-src
 
