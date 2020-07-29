@@ -32,9 +32,16 @@ impl MouseButtons {
     }
 }
 
+enum DevicePhase {
+    Init,
+    NoData,
+    OneData,
+    TwoData,
+}
+
 pub struct Device<'a> {
     data_from_device: [u32; 3],
-    phase: u32,
+    phase: DevicePhase,
 
     speed: graphics::screen::TwoDimensionalVec<i32>,
 
@@ -47,7 +54,7 @@ impl<'a> Device<'a> {
     pub fn new(vram: &'a graphics::Vram) -> Self {
         Self {
             data_from_device: [0; 3],
-            phase: 0,
+            phase: DevicePhase::Init,
             speed: graphics::screen::TwoDimensionalVec::new(0, 0),
             buttons: MouseButtons::new(),
             vram,
@@ -65,33 +72,33 @@ impl<'a> Device<'a> {
     // Otherwise return false.
     pub fn put_data(&mut self, data: u32) -> bool {
         match self.phase {
-            0 => {
-                self.phase = if data == 0xfa { 1 } else { 0 };
+            DevicePhase::Init => {
+                self.phase = if data == 0xfa {
+                    DevicePhase::NoData
+                } else {
+                    DevicePhase::Init
+                };
                 false
             }
 
-            1 => {
+            DevicePhase::NoData => {
                 if Self::is_correct_first_byte_from_device(data) {
-                    self.phase = 2;
+                    self.phase = DevicePhase::OneData;
                     self.data_from_device[0] = data;
                 }
                 false
             }
-            2 => {
+            DevicePhase::OneData => {
                 self.data_from_device[1] = data;
-                self.phase = 3;
+                self.phase = DevicePhase::TwoData;
                 false
             }
-            3 => {
+            DevicePhase::TwoData => {
                 self.data_from_device[2] = data;
-                self.phase = 1;
+                self.phase = DevicePhase::NoData;
 
                 self.purse_data();
 
-                true
-            }
-            _ => {
-                self.phase = 1;
                 true
             }
         }
