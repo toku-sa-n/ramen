@@ -33,10 +33,10 @@ jobs:
       run: cargo install cargo-xbuild
 
     - name: Build debug version
-      run: make
+      run: rustup component add rust-src && make
 
     - name: Build release version
-      run: make release
+      run: rustup component add rust-src && make release
 
     - name: Create image file
       run: make build/ramen_os.img
