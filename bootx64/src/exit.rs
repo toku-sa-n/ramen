@@ -33,14 +33,16 @@ fn save_boot_info(boot_info: BootInfo) -> () {
     unsafe { ptr::write(INIT_RSP as *mut BootInfo, boot_info) }
 }
 
+fn fetch_entry_address() -> u64 {
+    unsafe { ptr::read(0xffff_ffff_8000_0000 as *const u64) }
+}
+
 fn jump_to_kernel(boot_info: BootInfo) -> ! {
     save_boot_info(boot_info);
 
-    const ADDR_OF_KERNEL: usize = 0xffff_ffff_8000_0000;
-
     unsafe {
         asm!("mov rsp, rax
-        jmp rdi",in("rax") INIT_RSP,in("rdi") ADDR_OF_KERNEL,options(nomem, preserves_flags, nostack,noreturn));
+        jmp rdi",in("rax") INIT_RSP,in("rdi") fetch_entry_address(),options(nomem, preserves_flags, nostack,noreturn));
     }
 }
 
