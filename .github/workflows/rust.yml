@@ -26,17 +26,14 @@ jobs:
     - name: Install cargo-xbuild
       run: cargo install cargo-xbuild
 
-    - name: Check rust-src
-      run: rustup component add rust-src && rustc --print sysroot && ls -R $(rustc --print sysroot)|grep libstd && rustup component list|grep rust-src
-
-    - name: Check Cargo.toml
-      run: find $(rustc --print sysroot) -name Cargo.toml|grep libstd
+    - name: Install rust-src
+      run: rustup component add rust-src
 
     - name: Build debug version
-      run: rustup component add rust-src && make
+      run: make
 
     - name: Build release version
-      run: rustup component add rust-src && make release
+      run: make release
 
     - name: Create image file
       run: make build/ramen_os.img
