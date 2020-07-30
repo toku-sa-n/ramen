@@ -29,6 +29,9 @@ jobs:
     - name: Check rust-src
       run: rustup component add rust-src && rustc --print sysroot && ls -R $(rustc --print sysroot)|grep libstd && rustup component list|grep rust-src
 
+    - name: Check Cargo.toml
+      run: find $(rustc --print sysroot) -name Cargo.toml
+
     - name: Build debug version
       run: rustup component add rust-src && make
 
