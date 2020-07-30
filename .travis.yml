@@ -12,7 +12,7 @@ addons:
 
 install:
   - cargo install cargo-xbuild
-  -rustup component add rust-src
+  - rustup component add rust-src
 
 script:
   - make
