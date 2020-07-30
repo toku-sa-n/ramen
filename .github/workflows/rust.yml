@@ -32,6 +32,9 @@ jobs:
     - name: Check rust-src
       run: rustup component add rust-src && rustc --print sysroot && find $(rustc --print sysroot) -name libstd
 
+    - name: Get backtrace
+      run: RUST_BACKTRACE=1 cargo xbuild
+
     - name: Build debug version
       run: rustup component add rust-src && make
 
