@@ -27,7 +27,7 @@ jobs:
       run: cargo install cargo-xbuild
 
     - name: Check rust-src
-      run: rustup component add rust-src && rustc --print sysroot && ls -R $(rustc --print sysroot)
+      run: rustup component add rust-src && rustc --print sysroot && ls -R $(rustc --print sysroot)|grep libstd && rustup component list|grep rust-src
 
     - name: Build debug version
       run: rustup component add rust-src && make
