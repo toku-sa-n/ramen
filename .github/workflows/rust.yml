@@ -23,9 +23,6 @@ jobs:
         toolchain: nightly
         override: true
 
-    - name: Install rust-src
-      run: rustup component add rust-src
-
     - name: Install dependencies
       run: sudo apt-get install nasm mtools
 
