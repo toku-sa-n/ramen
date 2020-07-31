@@ -1,0 +1,19 @@
+language:
+  rust
+
+rust:
+  - nightly
+
+addons:
+  apt:
+    packages:
+      - nasm
+      - mtools
+
+install:
+  - cargo install cargo-xbuild
+  - rustup component add rust-src
+
+script:
+  - make
+  - make release
