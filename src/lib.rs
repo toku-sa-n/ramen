@@ -3,6 +3,8 @@
 #![feature(start)]
 #![feature(naked_functions)]
 
+extern crate rlibc;
+
 mod asm;
 mod descriptor_table;
 mod gdt;
