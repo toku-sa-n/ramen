@@ -1,14 +1,6 @@
 #include <stddef.h>
 
-void* memcpy(void* dst, const void* src, size_t n)
-{
-    void* ptr = dst;
-    for (size_t i = 0; i < n; i++) {
-        *(char*)ptr++ = *(char*)src++;
-    }
-
-    return dst;
-}
+extern void* memcpy(void* dest, const void* src, size_t n);
 
 void* memmove(void* dst, const void* src, size_t n)
 {

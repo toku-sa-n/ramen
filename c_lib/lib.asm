@@ -1,6 +1,7 @@
     [bits 64]
 
     extern memset
+    extern memcpy
 
     [section .text]
 
@@ -12,3 +13,10 @@ memset:
     rep stosb
     mov rax, rsi
     ret
+
+    ; void *memcpy(void *dest, const void *src, size_t n);
+memcpy:
+    mov rcx, rdx
+    rep movsb
+    ret
+
