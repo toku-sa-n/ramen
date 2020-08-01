@@ -11,12 +11,10 @@ opt-level = 0
 
 # I don't know why lto = false causes some problems like not print the correct words on the screen.
 lto = true
-panic = "abort"
 
 [profile.release]
 opt-level = 3
 lto = true
-panic = "abort"
 
 [lib]
 name = "ramen_os"

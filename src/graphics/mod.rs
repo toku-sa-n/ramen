@@ -3,6 +3,8 @@ pub mod font;
 #[macro_use]
 pub mod screen;
 
+use core::ptr;
+
 // Copy trait is needed for constructing MouseCursor struct
 // If you are unsure, remove Copy trait from this struct and see the error messages.
 #[derive(Clone, Copy)]
@@ -38,8 +40,8 @@ impl Vram {
 
         // The order of `RGB` is right.
         // See: https://wiki.osdev.org/Drawing_In_Protected_Mode
-        *base_ptr.offset(0) = rgb.b;
-        *base_ptr.offset(1) = rgb.g;
-        *base_ptr.offset(2) = rgb.r;
+        ptr::write(base_ptr.offset(0), rgb.b);
+        ptr::write(base_ptr.offset(1), rgb.g);
+        ptr::write(base_ptr.offset(2), rgb.r);
     }
 }
