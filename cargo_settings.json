@@ -14,6 +14,7 @@
     "archive-format": "gnu",
     "target-env": "gnu",
     "no-compiler-rt": false,
+    "panic-strategy": "abort",
     "linker-flavor": "ld",
     "linker-is-gnu": true,
     "disable-redzone": true,

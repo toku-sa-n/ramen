@@ -1,0 +1,18 @@
+language:
+  rust
+
+rust:
+  - nightly
+
+addons:
+  apt:
+    packages:
+      - nasm
+      - mtools
+
+install:
+  - rustup component add rust-src
+
+script:
+  - make
+  - make release
