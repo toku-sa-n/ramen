@@ -27,9 +27,6 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get install nasm mtools
 
-    - name: Install cargo-xbuild
-      run: cargo install cargo-xbuild
-
     - name: Build debug version
       run: make
 

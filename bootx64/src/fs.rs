@@ -40,7 +40,7 @@ impl KernelFileInfo {
 // Using the size of binary as the memory consumption is useless because the size of .bss section
 // is not included in the binary size. Using ELF file may improve effeciency as it might contain
 // the size of memory comsuption.
-const KERNEL_FILE: KernelFileInfo = KernelFileInfo::new("kernel.bin", 0x200000, 0x20000);
+const KERNEL_FILE: KernelFileInfo = KernelFileInfo::new("kernel.bin", 0x200000, 0x200000);
 
 fn get_kernel_handler(root_dir: &mut file::Directory) -> file::FileHandle {
     root_dir
