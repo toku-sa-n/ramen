@@ -1,5 +1,8 @@
 use super::*;
 
+pub const MOUSE_CURSOR_WIDTH: usize = 16;
+pub const MOUSE_CURSOR_HEIGHT: usize = 16;
+
 pub const MOUSE_GRAPHIC: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] = [
     [
         '*', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.',
@@ -158,9 +161,6 @@ impl<'a> core::fmt::Write for ScreenWrite<'a> {
     }
 }
 
-pub const MOUSE_CURSOR_WIDTH: usize = 16;
-pub const MOUSE_CURSOR_HEIGHT: usize = 16;
-
 pub struct MouseCursor<'a> {
     coord: Coord<isize>,
 
@@ -287,6 +287,19 @@ pub fn draw_desktop(vram: &Vram) -> () {
     draw_desktop_part(0xFFFFFF, x_len -  3, y_len - 24, x_len -  3, y_len -  3);
 }
 
+fn print_str(vram: &Vram, coord: &Coord<isize>, color: RGB, str: &str) -> () {
+    let mut char_x_pos = coord.x;
+    for c in str.chars() {
+        print_char(
+            vram,
+            Coord::new(char_x_pos, coord.y),
+            color,
+            font::FONTS[c as usize],
+        );
+        char_x_pos += font::FONT_WIDTH as isize;
+    }
+}
+
 fn print_char(
     vram: &Vram,
     coord: Coord<isize>,
@@ -301,18 +314,5 @@ fn print_char(
                 }
             }
         }
-    }
-}
-
-fn print_str(vram: &Vram, coord: &Coord<isize>, color: RGB, str: &str) -> () {
-    let mut char_x_pos = coord.x;
-    for c in str.chars() {
-        print_char(
-            vram,
-            Coord::new(char_x_pos, coord.y),
-            color,
-            font::FONTS[c as usize],
-        );
-        char_x_pos += font::FONT_WIDTH as isize;
     }
 }

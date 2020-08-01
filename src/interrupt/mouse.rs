@@ -104,6 +104,11 @@ impl<'a> Device<'a> {
         }
     }
 
+    // To sync phase, and data sent from mouse device
+    fn is_correct_first_byte_from_device(data: u32) -> bool {
+        data & 0xC8 == 0x08
+    }
+
     fn purse_data(&mut self) -> () {
         self.buttons = MouseButtons::purse_data(self.data_from_device[0]);
         self.speed.x = self.data_from_device[1] as i32;
@@ -118,11 +123,6 @@ impl<'a> Device<'a> {
         }
 
         self.speed.y = -self.speed.y;
-    }
-
-    // To sync phase, and data sent from mouse device
-    fn is_correct_first_byte_from_device(data: u32) -> bool {
-        data & 0xC8 == 0x08
     }
 
     pub fn get_speed(&self) -> graphics::screen::Coord<isize> {

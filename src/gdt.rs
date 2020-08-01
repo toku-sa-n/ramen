@@ -1,6 +1,35 @@
 use core::mem;
 
 #[repr(C, packed)]
+struct Gdt {
+    entries: [GdtEntry; Gdt::NUM_OF_ENTRIES_OF_GDT],
+}
+
+impl Gdt {
+    const NUM_OF_ENTRIES_OF_GDT: usize = 3;
+
+    const fn new(entries: [GdtEntry; Gdt::NUM_OF_ENTRIES_OF_GDT]) -> Self {
+        Self { entries }
+    }
+
+    fn offset_of_code_segment(&self) -> u16 {
+        0x10
+    }
+
+    fn offset_of_data_segment(&self) -> u16 {
+        0x08
+    }
+
+    fn as_ptr(&self) -> *const Self {
+        self as *const _
+    }
+
+    fn get_limit(&self) -> u16 {
+        Self::NUM_OF_ENTRIES_OF_GDT as u16 * mem::size_of::<GdtEntry>() as u16 - 1
+    }
+}
+
+#[repr(C, packed)]
 struct GdtEntry {
     limit_low: u16,
     base_low: u16,
@@ -30,40 +59,19 @@ impl GdtEntry {
     }
 }
 
-#[repr(C, packed)]
-struct Gdt {
-    entries: [GdtEntry; Gdt::NUM_OF_ENTRIES_OF_GDT],
-}
-
-impl Gdt {
-    const NUM_OF_ENTRIES_OF_GDT: usize = 3;
-
-    const fn new(entries: [GdtEntry; Gdt::NUM_OF_ENTRIES_OF_GDT]) -> Self {
-        Self { entries }
-    }
-
-    fn offset_of_code_segment(&self) -> u16 {
-        0x10
-    }
-
-    fn offset_of_data_segment(&self) -> u16 {
-        0x08
-    }
-
-    fn as_ptr(&self) -> *const Self {
-        self as *const _
-    }
-
-    fn get_limit(&self) -> u16 {
-        Self::NUM_OF_ENTRIES_OF_GDT as u16 * mem::size_of::<GdtEntry>() as u16 - 1
-    }
-}
-
 static GDT: Gdt = Gdt::new([
     GdtEntry::new(0, 0, 0, 0, 0, 0),            // Null segment
     GdtEntry::new(0xFFFF, 0, 0, 0x92, 0xCF, 0), // Data segment
     GdtEntry::new(0xFFFF, 0, 0, 0x9A, 0xAF, 0), // Code segment
 ]);
+
+pub fn init() -> () {
+    unsafe {
+        lgdt(GDT.get_limit(), GDT.as_ptr() as u64);
+        set_code_segment(GDT.offset_of_code_segment());
+        set_data_segment(GDT.offset_of_data_segment());
+    }
+}
 
 fn lgdt(limit: u16, address: u64) {
     #[repr(C, packed)]
@@ -82,16 +90,6 @@ fn lgdt(limit: u16, address: u64) {
     }
 }
 
-/// Safety: `offset_of_ds` must be a valid offset to data segment. Otherwise unexpected
-/// behavior will occur.
-unsafe fn set_data_segment(offset_of_ds: u16) {
-    asm!("mov es, ax
-    mov ss, ax
-    mov ds, ax
-    mov fs, ax
-    mov gs, ax",in("ax") offset_of_ds,options(nomem, preserves_flags, nostack));
-}
-
 /// Safety: `offset_of_cs` must be a valid offset to code segment. Otherwise unexpected
 /// behavior will occur.
 unsafe fn set_code_segment(offset_of_cs: u16) {
@@ -102,10 +100,12 @@ unsafe fn set_code_segment(offset_of_cs: u16) {
     1:", in(reg) offset_of_cs,options(preserves_flags));
 }
 
-pub fn init() -> () {
-    unsafe {
-        lgdt(GDT.get_limit(), GDT.as_ptr() as u64);
-        set_code_segment(GDT.offset_of_code_segment());
-        set_data_segment(GDT.offset_of_data_segment());
-    }
+/// Safety: `offset_of_ds` must be a valid offset to data segment. Otherwise unexpected
+/// behavior will occur.
+unsafe fn set_data_segment(offset_of_ds: u16) {
+    asm!("mov es, ax
+    mov ss, ax
+    mov ds, ax
+    mov fs, ax
+    mov gs, ax",in("ax") offset_of_ds,options(nomem, preserves_flags, nostack));
 }

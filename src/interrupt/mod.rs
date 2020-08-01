@@ -22,7 +22,7 @@ const PORT_KEYDATA: u32 = 0x0060;
 
 const PORT_KEY_STATUS: u32 = 0x0064;
 const PORT_KEY_CMD: u32 = 0x0064;
-const KEY_STATUS_SEND_NOT_READY: u32 = 0x02;
+const KEY_STATUS_SEND_NOT_READY: u8 = 0x02;
 const KEY_CMD_WRITE_MODE: u32 = 0x60;
 const KEY_CMD_MODE: u32 = 0x47;
 const KEY_CMD_SEND_TO_MOUSE: u32 = 0xD4;
@@ -56,19 +56,19 @@ pub fn set_init_pic_bits() -> () {
     asm::out8(PIC1_IMR, 0xEF);
 }
 
-fn wait_kbc_sendready() -> () {
-    loop {
-        if asm::in8(PORT_KEY_STATUS) as u32 & KEY_STATUS_SEND_NOT_READY == 0 {
-            break;
-        }
-    }
-}
-
 pub fn init_keyboard() -> () {
     wait_kbc_sendready();
     asm::out8(PORT_KEY_CMD, KEY_CMD_WRITE_MODE as u8);
     wait_kbc_sendready();
     asm::out8(PORT_KEYDATA, KEY_CMD_MODE as u8);
+}
+
+fn wait_kbc_sendready() -> () {
+    loop {
+        if asm::in8(PORT_KEY_STATUS) & KEY_STATUS_SEND_NOT_READY == 0 {
+            break;
+        }
+    }
 }
 
 pub extern "C" fn interrupt_handler_21() -> () {
