@@ -3,8 +3,6 @@
     extern memset
     extern memcpy
 
-    [section .text]
-
     ; void *memset(void *dest, int c, size_t n);
     ; size_t == usize
 memset:
