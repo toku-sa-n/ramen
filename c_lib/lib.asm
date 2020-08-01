@@ -10,4 +10,5 @@ memset:
     mov rax, rsi
     mov rcx, rdx
     rep stosb
+    mov rax, rsi
     ret
