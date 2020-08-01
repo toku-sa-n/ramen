@@ -10,6 +10,7 @@ EFI_SRC			:= $(shell cd $(EFI_SRC_DIR) && ls)
 
 LD_SRC			:= os.ld
 CLIB_SRC		:= $(CLIB_DIR)/lib.c
+ASMLIB_SRC		:= $(CLIB_DIR)/lib.asm
 
 EFI_FILE		:= $(BOOT_DIR)/target/x86_64-unknown-uefi/debug/bootx64.efi
 
@@ -17,11 +18,13 @@ KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
 LIB_FILE		:= $(BUILD_DIR)/libramen_os.a
 IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
 CLIB_FILE		:= $(BUILD_DIR)/clib.o
+ASMLIB_FILE		:= $(BUILD_DIR)/asmlib.o
 
 CAT				:= cat
 LD				:= ld
 CC				:= gcc
 RUSTCC			:= cargo
+ASMC			:= nasm
 RM				:= rm -rf
 VIEWER			:= qemu-system-x86_64
 
@@ -29,6 +32,7 @@ OVMF_CODE		:= OVMF_CODE-pure-efi.fd
 OVMF_VARS		:= OVMF_VARS-pure-efi.fd
 
 CFLAGS			:= -O3 -pipe -nostdlib -c -ffreestanding
+ASMFLGAS		:= -f elf64
 VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -monitor stdio -no-reboot -no-shutdown -m 4G -d int
 
 LDFLAGS			:= -nostdlib -T $(LD_SRC)
@@ -73,8 +77,8 @@ release:
 	cp $(BOOT_DIR)/target/x86_64-unknown-uefi/$@/bootx64.efi $(BOOT_DIR)/target/x86_64-unknown-uefi/debug/bootx64.efi
 	make
 
-$(KERNEL_FILE):$(LIB_FILE) $(CLIB_FILE) $(LD_SRC)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE) $(CLIB_FILE)
+$(KERNEL_FILE):$(LIB_FILE) $(CLIB_FILE) $(ASMLIB_FILE) $(LD_SRC)|$(BUILD_DIR)
+	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE) $(CLIB_FILE) $(ASMLIB_FILE)
 
 $(LIB_FILE): $(addprefix $(RUST_SRC_DIR)/, $(RUST_SRC))|$(BUILD_DIR)
 	$(RUSTCC) build --target-dir $(BUILD_DIR)
@@ -82,6 +86,9 @@ $(LIB_FILE): $(addprefix $(RUST_SRC_DIR)/, $(RUST_SRC))|$(BUILD_DIR)
 
 $(CLIB_FILE):$(CLIB_SRC)|$(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $@ $<
+
+$(ASMLIB_FILE):$(ASMLIB_SRC)|$(BUILD_DIR)
+	$(ASMC) $(ASMFLGAS) -o $@ $<
 
 $(OVMF_CODE):
 	@echo "$@ not found."
