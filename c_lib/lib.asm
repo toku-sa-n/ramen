@@ -11,12 +11,13 @@ memset:
     mov rax, rsi
     mov rcx, rdx
     rep stosb
-    mov rax, rsi
+    mov rax, rdi
     ret
 
     ; void *memcpy(void *dest, const void *src, size_t n);
 memcpy:
     mov rcx, rdx
     rep movsb
+    mov rax, rdi
     ret
 
