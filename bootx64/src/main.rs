@@ -2,8 +2,6 @@
 #![feature(lang_items, start, asm)]
 #![no_main]
 
-extern crate rlibc;
-
 #[macro_use]
 extern crate log;
 
