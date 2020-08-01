@@ -1,7 +1,7 @@
     [bits 64]
 
-    extern memset
-    extern memcpy
+    global memset
+    global memcpy
 
     ; void *memset(void *dest, int c, size_t n);
     ; size_t == usize
