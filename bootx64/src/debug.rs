@@ -18,6 +18,15 @@ macro_rules! stop {
 }
 
 #[allow(unused_macros)]
+macro_rules! watch_if {
+    ($cond:expr,$value:expr) => {
+        if $cond {
+            watch!($value);
+        }
+    };
+}
+
+#[allow(unused_macros)]
 macro_rules! stop_if {
     ($condition:expr) => {
         if $condition {
