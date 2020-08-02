@@ -55,13 +55,17 @@ fn map_kernel(mem_map: &mut [boot::MemoryDescriptor]) -> () {
 }
 
 fn map_vram(mem_map: &mut [boot::MemoryDescriptor]) -> () {
+    map_virt_to_phys(
+        0xffff_ffff_8020_0000,
+        get_vram_ptr(),
+        calculate_vram_bytes(),
+        mem_map,
+    );
+    update_vram_ptr()
+}
+
+fn update_vram_ptr() -> () {
     unsafe {
-        map_virt_to_phys(
-            0xffff_ffff_8020_0000,
-            get_vram_ptr(),
-            calculate_vram_bytes(),
-            mem_map,
-        );
         ptr::write(0x0ff8 as *mut u64, 0xffff_ffff_8020_0000u64);
     }
 }
