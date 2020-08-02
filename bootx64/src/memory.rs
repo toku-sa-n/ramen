@@ -74,15 +74,22 @@ fn map_vram(mem_map: &mut [boot::MemoryDescriptor]) -> () {
         map_virt_to_phys(
             0xffff_ffff_8020_0000,
             ptr::read(0x0ff8 as *const u64) as usize,
-            ptr::read(0x0ff2 as *const u8) as usize
-                * ptr::read(0x0ff4 as *const u16) as usize
-                * ptr::read(0x0ff6 as *const u16) as usize
-                / 8,
+            calculate_vram_bytes(),
             mem_map,
         );
         ptr::write(0x0ff8 as *mut u64, 0xffff_ffff_8020_0000u64);
     }
 }
+
+fn calculate_vram_bytes() -> usize {
+    unsafe {
+        ptr::read(0x0ff2 as *const u8) as usize
+            * ptr::read(0x0ff4 as *const u16) as usize
+            * ptr::read(0x0ff6 as *const u16) as usize
+            / 8
+    }
+}
+
 fn map_virt_to_phys(
     virt: usize,
     phys: usize,
