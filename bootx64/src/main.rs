@@ -24,6 +24,19 @@ use exit::BootInfo;
 use uefi::prelude::{Boot, Handle, SystemTable};
 use uefi::table::boot;
 
+#[start]
+#[no_mangle]
+pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
+    init::uefi(&system_table);
+
+    let vram_info = gop::init(&system_table);
+
+    fs::place_kernel(&system_table);
+    let mem_map = terminate_boot_services(image, system_table);
+
+    exit::bootx64(mem_map, BootInfo::new(vram_info));
+}
+
 fn terminate_boot_services<'a>(
     image: Handle,
     system_table: SystemTable<Boot>,
@@ -40,17 +53,4 @@ fn terminate_boot_services<'a>(
     unsafe {
         slice::from_raw_parts_mut::<boot::MemoryDescriptor>(memory_map as *mut _, memory_map_size)
     }
-}
-
-#[start]
-#[no_mangle]
-pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
-    init::uefi(&system_table);
-
-    let vram_info = gop::init(&system_table);
-
-    fs::place_kernel(&system_table);
-    let mem_map = terminate_boot_services(image, system_table);
-
-    exit::bootx64(mem_map, BootInfo::new(vram_info));
 }
