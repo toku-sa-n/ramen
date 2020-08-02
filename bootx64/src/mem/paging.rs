@@ -1,5 +1,4 @@
 use core::ptr;
-use uefi::prelude::{Boot, SystemTable};
 use uefi::table::boot;
 use uefi::table::boot::MemoryType;
 

@@ -1,3 +1,7 @@
+use uefi::prelude::Boot;
+use uefi::prelude::SystemTable;
+use uefi::table::boot::MemoryType;
+
 /// (*mut u8, usize): (address to memory map, the size of memory map)
 pub fn generate_map(system_table: &SystemTable<Boot>) -> (*mut u8, usize) {
     // Using returned value itself causes bufer too small erorr.
