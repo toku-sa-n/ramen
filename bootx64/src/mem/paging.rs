@@ -3,13 +3,13 @@ use uefi::prelude::{Boot, SystemTable};
 use uefi::table::boot;
 use uefi::table::boot::MemoryType;
 
-struct MapInfo {
+struct PageMapInfo {
     virt: usize,
     phys: usize,
     bytes: usize,
 }
 
-impl MapInfo {
+impl PageMapInfo {
     fn new(virt: usize, phys: usize, bytes: usize) -> Self {
         Self { virt, phys, bytes }
     }
@@ -23,8 +23,8 @@ pub fn init_paging(mem_map: &mut [boot::MemoryDescriptor]) -> () {
     remove_table_protection();
 
     let map_info = [
-        MapInfo::new(0xffff_ffff_8000_0000, 0x0020_0000, (512 + 4 + 128) * 1024),
-        MapInfo::new(
+        PageMapInfo::new(0xffff_ffff_8000_0000, 0x0020_0000, (512 + 4 + 128) * 1024),
+        PageMapInfo::new(
             0xffff_ffff_8020_0000,
             get_vram_ptr(),
             calculate_vram_bytes(),
