@@ -18,7 +18,7 @@ impl PageMapInfo {
     }
 }
 
-pub fn init_paging(mem_map: &mut [boot::MemoryDescriptor]) -> () {
+pub fn init(mem_map: &mut [boot::MemoryDescriptor]) -> () {
     remove_table_protection();
 
     let map_info = [
