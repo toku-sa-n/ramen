@@ -3,6 +3,22 @@ use uefi::prelude::{Boot, SystemTable};
 use uefi::table::boot;
 use uefi::table::boot::MemoryType;
 
+struct MapInfo {
+    virt: usize,
+    phys: usize,
+    bytes: usize,
+}
+
+impl MapInfo {
+    fn new(virt: usize, phys: usize, bytes: usize) -> Self {
+        Self { virt, phys, bytes }
+    }
+
+    fn map(&self, mem_map: &mut [boot::MemoryDescriptor]) -> () {
+        map_virt_to_phys(self.virt, self.phys, self.bytes, mem_map);
+    }
+}
+
 pub fn init_paging(mem_map: &mut [boot::MemoryDescriptor]) -> () {
     remove_table_protection();
 
