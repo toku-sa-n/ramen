@@ -158,7 +158,7 @@ fn virt_points_phys(virt: usize, phys: usize, mem_map: &mut [boot::MemoryDescrip
     virt_points_phys_recur(virt, phys, get_pml4_addr(), mem_map, TableType::Pml4);
 }
 
-pub fn map_virt_to_phys(
+fn map_virt_to_phys(
     virt: usize,
     phys: usize,
     bytes: usize,
