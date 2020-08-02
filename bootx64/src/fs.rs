@@ -42,6 +42,35 @@ impl KernelFileInfo {
 // the size of memory comsuption.
 const KERNEL_FILE: KernelFileInfo = KernelFileInfo::new("kernel.bin", 0x200000, 0x200000);
 
+pub fn place_kernel(system_table: &SystemTable<Boot>) -> () {
+    let mut root_dir = open_root_dir(system_table);
+
+    open_kernel(system_table, &mut root_dir);
+}
+
+fn open_root_dir(system_table: &SystemTable<Boot>) -> file::Directory {
+    let simple_file_system = system_table
+        .boot_services()
+        .locate_protocol::<fs::SimpleFileSystem>()
+        .expect_success("Failed to prepare simple file system.");
+
+    let simple_file_system = unsafe { &mut *simple_file_system.get() };
+
+    simple_file_system
+        .open_volume()
+        .expect_success("Failed to open the root directory.")
+}
+
+fn open_kernel(system_table: &SystemTable<Boot>, root_dir: &mut file::Directory) -> () {
+    let kernel_handler = get_kernel_handler(root_dir);
+
+    // Kernel file is a regular file, not a directory.
+    // This `new` always succeeds.
+    let mut kernel_handler = unsafe { file::RegularFile::new(kernel_handler) };
+    allocate_for_kernel_file(system_table);
+    read_kernel_on_memory(&mut kernel_handler);
+}
+
 fn get_kernel_handler(root_dir: &mut file::Directory) -> file::FileHandle {
     root_dir
         .open(
@@ -77,33 +106,4 @@ fn read_kernel_on_memory(handler: &mut file::RegularFile) -> () {
             )
         })
         .expect_success("Failed to read kernel");
-}
-
-fn open_kernel(system_table: &SystemTable<Boot>, root_dir: &mut file::Directory) -> () {
-    let kernel_handler = get_kernel_handler(root_dir);
-
-    // Kernel file is a regular file, not a directory.
-    // This `new` always succeeds.
-    let mut kernel_handler = unsafe { file::RegularFile::new(kernel_handler) };
-    allocate_for_kernel_file(system_table);
-    read_kernel_on_memory(&mut kernel_handler);
-}
-
-pub fn place_kernel(system_table: &SystemTable<Boot>) -> () {
-    let mut root_dir = open_root_dir(system_table);
-
-    open_kernel(system_table, &mut root_dir);
-}
-
-fn open_root_dir(system_table: &SystemTable<Boot>) -> file::Directory {
-    let simple_file_system = system_table
-        .boot_services()
-        .locate_protocol::<fs::SimpleFileSystem>()
-        .expect_success("Failed to prepare simple file system.");
-
-    let simple_file_system = unsafe { &mut *simple_file_system.get() };
-
-    simple_file_system
-        .open_volume()
-        .expect_success("Failed to open the root directory.")
 }

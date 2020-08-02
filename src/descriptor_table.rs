@@ -27,23 +27,6 @@ impl GateDescriptor {
     }
 }
 
-fn lidt(limit: u16, address: u64) {
-    #[repr(C, packed)]
-    struct LidtEntry {
-        _limit: u16,
-        _address: u64,
-    };
-
-    let entry = LidtEntry {
-        _limit: limit,
-        _address: address,
-    };
-
-    unsafe {
-        asm!("lidt [{:r}]",in(reg) &entry,options(readonly, preserves_flags, nostack));
-    }
-}
-
 pub fn init() -> () {
     init_idt();
     set_interruption();
@@ -81,5 +64,22 @@ fn set_interruption() {
             2 * 8,
             ACCESS_RIGHT_IDT,
         );
+    }
+}
+
+fn lidt(limit: u16, address: u64) {
+    #[repr(C, packed)]
+    struct LidtEntry {
+        _limit: u16,
+        _address: u64,
+    };
+
+    let entry = LidtEntry {
+        _limit: limit,
+        _address: address,
+    };
+
+    unsafe {
+        asm!("lidt [{:r}]",in(reg) &entry,options(readonly, preserves_flags, nostack));
     }
 }

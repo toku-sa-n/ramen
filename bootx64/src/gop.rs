@@ -24,27 +24,29 @@ impl VramInfo {
     }
 }
 
-fn is_usable_gop_mode(mode: &gop::ModeInfo) -> bool {
-    if mode.pixel_format() != PixelFormat::BGR {
-        return false;
-    }
+pub fn init(system_table: &SystemTable<Boot>) -> VramInfo {
+    let gop = fetch_gop(system_table);
+    set_resolution(gop);
 
-    // According to UEFI Specification 2.8 Errata A, P.479,
-    // . : Pixel
-    // P : Padding
-    // ..........................................PPPPPPPPPP
-    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^|^^^^^^^^^^
-    //             HorizontalResolution         | Paddings
-    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    //                    PixelsPerScanLine
-    //
-    // This OS doesn't deal with pixel paddings, so return an error if pixel paddings exist.
-    let (width, _) = mode.resolution();
-    if width != mode.stride() {
-        return false;
-    }
+    VramInfo::new_from_gop(gop)
+}
 
-    true
+fn fetch_gop<'a>(system_table: &'a SystemTable<Boot>) -> &'a mut gop::GraphicsOutput<'a> {
+    let gop = system_table
+        .boot_services()
+        .locate_protocol::<gop::GraphicsOutput>()
+        .expect_success("Your computer does not support Graphics Output Protocol!");
+
+    unsafe { &mut *gop.get() }
+}
+
+fn set_resolution(gop: &mut gop::GraphicsOutput) -> () {
+    let (width, height, mode) = get_the_maximum_resolution_and_mode(gop);
+
+    gop.set_mode(&mode)
+        .expect_success("Failed to set resolution.");
+
+    info!("width: {} height: {}", width, height);
 }
 
 fn get_the_maximum_resolution_and_mode(gop: &gop::GraphicsOutput) -> (usize, usize, gop::Mode) {
@@ -68,27 +70,25 @@ fn get_the_maximum_resolution_and_mode(gop: &gop::GraphicsOutput) -> (usize, usi
     })
 }
 
-fn set_resolution(gop: &mut gop::GraphicsOutput) -> () {
-    let (width, height, mode) = get_the_maximum_resolution_and_mode(gop);
+fn is_usable_gop_mode(mode: &gop::ModeInfo) -> bool {
+    if mode.pixel_format() != PixelFormat::BGR {
+        return false;
+    }
 
-    gop.set_mode(&mode)
-        .expect_success("Failed to set resolution.");
+    // According to UEFI Specification 2.8 Errata A, P.479,
+    // . : Pixel
+    // P : Padding
+    // ..........................................PPPPPPPPPP
+    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^|^^^^^^^^^^
+    //             HorizontalResolution         | Paddings
+    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                    PixelsPerScanLine
+    //
+    // This OS doesn't deal with pixel paddings, so return an error if pixel paddings exist.
+    let (width, _) = mode.resolution();
+    if width != mode.stride() {
+        return false;
+    }
 
-    info!("width: {} height: {}", width, height);
-}
-
-fn fetch_gop<'a>(system_table: &'a SystemTable<Boot>) -> &'a mut gop::GraphicsOutput<'a> {
-    let gop = system_table
-        .boot_services()
-        .locate_protocol::<gop::GraphicsOutput>()
-        .expect_success("Your computer does not support Graphics Output Protocol!");
-
-    unsafe { &mut *gop.get() }
-}
-
-pub fn init(system_table: &SystemTable<Boot>) -> VramInfo {
-    let gop = fetch_gop(system_table);
-    set_resolution(gop);
-
-    VramInfo::new_from_gop(gop)
+    true
 }

@@ -18,12 +18,6 @@ struct BootInfo {
     vram_info: graphics::Vram,
 }
 
-fn get_boot_info() -> BootInfo {
-    const ADDR_OF_BOOT_INFO: *const BootInfo =
-        (0xffff_ffff_800a_1000 - mem::size_of::<BootInfo>()) as *const _;
-    unsafe { ptr::read(ADDR_OF_BOOT_INFO) }
-}
-
 #[no_mangle]
 #[start]
 pub fn os_main() {
@@ -39,6 +33,12 @@ pub fn os_main() {
     initialization(&mut mouse_device, &mut mouse_cursor, &vram);
 
     main_loop(&mut mouse_device, &mut mouse_cursor, &vram)
+}
+
+fn get_boot_info() -> BootInfo {
+    const ADDR_OF_BOOT_INFO: *const BootInfo =
+        (0xffff_ffff_800a_1000 - mem::size_of::<BootInfo>()) as *const _;
+    unsafe { ptr::read(ADDR_OF_BOOT_INFO) }
 }
 
 fn initialization(
