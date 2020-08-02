@@ -1,6 +1,6 @@
 use crate::gop;
-use crate::memory;
-use core::mem;
+use crate::mem::paging;
+use core::mem::size_of;
 use core::ptr;
 use uefi::table::boot;
 
@@ -14,12 +14,12 @@ impl BootInfo {
     }
 }
 
-const INIT_RSP: usize = 0xffff_ffff_800a_1000 - mem::size_of::<BootInfo>();
+const INIT_RSP: usize = 0xffff_ffff_800a_1000 - size_of::<BootInfo>();
 
 pub fn bootx64<'a>(mem_map: &'a mut [boot::MemoryDescriptor], boot_info: BootInfo) -> ! {
     disable_interruption();
 
-    memory::init_paging(mem_map);
+    paging::init(mem_map);
     jump_to_kernel(boot_info);
 }
 

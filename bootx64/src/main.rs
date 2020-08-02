@@ -17,10 +17,11 @@ mod exit;
 mod fs;
 mod gop;
 mod init;
-mod memory;
+mod mem;
 
 use core::slice;
 use exit::BootInfo;
+use mem::map;
 use uefi::prelude::{Boot, Handle, SystemTable};
 use uefi::table::boot;
 
@@ -41,7 +42,7 @@ fn terminate_boot_services<'a>(
     image: Handle,
     system_table: SystemTable<Boot>,
 ) -> &'a mut [boot::MemoryDescriptor] {
-    let (memory_map, memory_map_size) = memory::generate_map(&system_table);
+    let (memory_map, memory_map_size) = map::generate_map(&system_table);
 
     system_table
         .exit_boot_services(image, unsafe {
