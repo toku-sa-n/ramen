@@ -32,8 +32,6 @@ pub fn init_paging(mem_map: &mut [boot::MemoryDescriptor]) -> () {
     remove_table_protection();
 
     map_kernel(mem_map);
-    map_stack(mem_map);
-    map_idt(mem_map);
     map_vram(mem_map);
 }
 
@@ -48,23 +46,10 @@ fn remove_table_protection() -> () {
 }
 
 fn map_kernel(mem_map: &mut [boot::MemoryDescriptor]) -> () {
-    map_virt_to_phys(0xffff_ffff_8000_0000, 0x0020_0000, 512 * 1024, mem_map);
-}
-
-fn map_idt(mem_map: &mut [boot::MemoryDescriptor]) -> () {
     map_virt_to_phys(
-        0xffff_ffff_8000_0000 + 512 * 1024,
-        0x0020_0000 + 512 * 1024,
-        4 * 1024,
-        mem_map,
-    );
-}
-
-fn map_stack(mem_map: &mut [boot::MemoryDescriptor]) -> () {
-    map_virt_to_phys(
-        0xffff_ffff_8000_0000 + 516 * 1024,
-        0x0020_0000 + 4 * 1024 + 512 * 1024,
-        128 * 1024,
+        0xffff_ffff_8000_0000,
+        0x0020_0000,
+        (512 + 4 + 128) * 1024,
         mem_map,
     );
 }
