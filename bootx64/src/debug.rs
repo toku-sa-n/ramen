@@ -16,3 +16,12 @@ macro_rules! stop {
         watch!(0x55aa55aa55aa55aa);
     };
 }
+
+#[allow(unused_macros)]
+macro_rules! stop_if {
+    ($condition:expr) => {
+        if $condition {
+            stop!();
+        }
+    };
+}
