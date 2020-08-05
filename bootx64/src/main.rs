@@ -22,7 +22,6 @@ mod mem;
 use core::ptr;
 use core::slice;
 use exit::BootInfo;
-use mem::map;
 use uefi::prelude::{Boot, Handle, SystemTable};
 use uefi::table::boot;
 use uefi::table::boot::MemoryType;
@@ -54,12 +53,22 @@ fn terminate_boot_services<'a>(
         .expect_success("Failed to allocate memory for memory map")
         as *mut boot::MemoryDescriptor;
 
-    let (memory_map_for_exiting, memory_map_size) = map::generate_map(&system_table);
+    let buf_for_exiting = system_table
+        .boot_services()
+        .allocate_pool(
+            MemoryType::LOADER_DATA,
+            system_table.boot_services().memory_map_size() * 2,
+        )
+        .expect_success("Failed to allocate memory to exit boot services");
+    let buf_for_exiting = unsafe {
+        slice::from_raw_parts_mut(
+            buf_for_exiting,
+            system_table.boot_services().memory_map_size() * 2,
+        )
+    };
 
     let (_, descriptors_iter) = system_table
-        .exit_boot_services(image, unsafe {
-            core::slice::from_raw_parts_mut(memory_map_for_exiting, memory_map_size)
-        })
+        .exit_boot_services(image, buf_for_exiting)
         .expect("Failed to exit boot services")
         .unwrap();
 
