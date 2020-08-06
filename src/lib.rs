@@ -19,8 +19,6 @@ mod queue;
 #[macro_use]
 mod graphics;
 
-use core::{mem, ptr};
-
 #[no_mangle]
 #[start]
 pub fn os_main() {
