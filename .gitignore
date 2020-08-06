@@ -2,7 +2,7 @@
 bootx64/target
 debug/target
 **/*.rs.bk
-Cargo.lock
+**/Cargo.lock
 tags
 build
 **/*.swp
