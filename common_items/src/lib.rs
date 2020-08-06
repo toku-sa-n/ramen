@@ -7,13 +7,15 @@ use core::ptr;
 use uefi::proto::console::gop;
 use uefi::table::boot;
 
-const INIT_RSP: usize = 0xffff_ffff_800a_1000 - size_of::<BootInfo>();
+pub const INIT_RSP: usize = 0xffff_ffff_800a_1000 - size_of::<BootInfo>();
 
+#[derive(Copy, Clone)]
+#[repr(C)]
 pub struct VramInfo {
-    bpp: u16,
-    screen_x: u16,
-    screen_y: u16,
-    ptr: u64,
+    pub bpp: u16,
+    pub screen_x: u16,
+    pub screen_y: u16,
+    pub ptr: u64,
 }
 
 impl VramInfo {
@@ -29,6 +31,7 @@ impl VramInfo {
     }
 }
 
+#[repr(C)]
 pub struct MemMapInfo {
     ptr: *mut boot::MemoryDescriptor,
     num_descriptors: usize,
@@ -46,6 +49,7 @@ impl MemMapInfo {
     }
 }
 
+#[repr(C)]
 pub struct BootInfo {
     vram_info: VramInfo,
     mem_map_info: MemMapInfo,
@@ -59,9 +63,17 @@ impl BootInfo {
         }
     }
 
+    pub fn vram(&self) -> VramInfo {
+        self.vram_info
+    }
+
     pub fn set(self) -> () {
         unsafe {
             ptr::write(INIT_RSP as *mut BootInfo, self);
         }
+    }
+
+    pub fn get() -> Self {
+        unsafe { ptr::read(INIT_RSP as *mut BootInfo) }
     }
 }

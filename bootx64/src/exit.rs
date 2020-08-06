@@ -4,8 +4,6 @@ use core::mem::size_of;
 use core::ptr;
 use uefi::table::boot;
 
-const INIT_RSP: usize = 0xffff_ffff_800a_1000 - size_of::<common_items::BootInfo>();
-
 pub fn bootx64<'a>(
     mem_map: &'a mut [boot::MemoryDescriptor],
     boot_info: common_items::BootInfo,
@@ -34,7 +32,7 @@ fn jump_to_kernel(boot_info: common_items::BootInfo) -> ! {
 
     unsafe {
         asm!("mov rsp, rax
-        jmp rdi",in("rax") INIT_RSP,in("rdi") fetch_entry_address(),options(nomem, preserves_flags, nostack,noreturn));
+        jmp rdi",in("rax") common_items::INIT_RSP,in("rdi") fetch_entry_address(),options(nomem, preserves_flags, nostack,noreturn));
     }
 }
 
