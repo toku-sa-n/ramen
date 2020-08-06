@@ -1,3 +1,5 @@
+#![no_std]
+
 #[macro_export]
 #[allow(unused_macros)]
 macro_rules! watch{
@@ -10,6 +12,7 @@ macro_rules! watch{
     };
 }
 
+#[macro_export]
 #[allow(unused_macros)]
 macro_rules! stop {
     () => {
@@ -17,6 +20,7 @@ macro_rules! stop {
     };
 }
 
+#[macro_export]
 #[allow(unused_macros)]
 macro_rules! watch_if {
     ($cond:expr,$value:expr) => {
@@ -26,6 +30,7 @@ macro_rules! watch_if {
     };
 }
 
+#[macro_export]
 #[allow(unused_macros)]
 macro_rules! stop_if {
     ($condition:expr) => {

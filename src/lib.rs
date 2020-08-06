@@ -3,6 +3,10 @@
 #![feature(start)]
 #![feature(naked_functions)]
 
+#[macro_use]
+#[allow(unused_imports)]
+extern crate debug;
+
 mod asm;
 mod descriptor_table;
 mod gdt;
