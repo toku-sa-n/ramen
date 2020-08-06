@@ -175,7 +175,7 @@ unsafe fn initialize_page_table(table_addr: usize) -> () {
     ptr::write_bytes(table_addr as *mut u8, 0, BYTES_OF_PAGE)
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 enum TableType {
     Pml4,
     Pdpt,

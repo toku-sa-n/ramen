@@ -19,11 +19,13 @@ mod gop;
 mod init;
 mod mem;
 
+use core::ptr;
 use core::slice;
 use exit::BootInfo;
-use mem::map;
 use uefi::prelude::{Boot, Handle, SystemTable};
 use uefi::table::boot;
+use uefi::table::boot::MemoryType;
+use uefi::ResultExt;
 
 #[start]
 #[no_mangle]
@@ -42,16 +44,42 @@ fn terminate_boot_services<'a>(
     image: Handle,
     system_table: SystemTable<Boot>,
 ) -> &'a mut [boot::MemoryDescriptor] {
-    let (memory_map, memory_map_size) = map::generate_map(&system_table);
+    let memory_map_buf = system_table
+        .boot_services()
+        .allocate_pool(
+            MemoryType::LOADER_DATA,
+            system_table.boot_services().memory_map_size(),
+        )
+        .expect_success("Failed to allocate memory for memory map")
+        as *mut boot::MemoryDescriptor;
 
-    system_table
-        .exit_boot_services(image, unsafe {
-            core::slice::from_raw_parts_mut(memory_map, memory_map_size)
-        })
+    let buf_for_exiting = system_table
+        .boot_services()
+        .allocate_pool(
+            MemoryType::LOADER_DATA,
+            system_table.boot_services().memory_map_size() * 2,
+        )
+        .expect_success("Failed to allocate memory to exit boot services");
+    let buf_for_exiting = unsafe {
+        slice::from_raw_parts_mut(
+            buf_for_exiting,
+            system_table.boot_services().memory_map_size() * 2,
+        )
+    };
+
+    let (_, descriptors_iter) = system_table
+        .exit_boot_services(image, buf_for_exiting)
         .expect("Failed to exit boot services")
         .unwrap();
 
-    unsafe {
-        slice::from_raw_parts_mut::<boot::MemoryDescriptor>(memory_map as *mut _, memory_map_size)
+    let mut num_descriptors = 0;
+    for (index, descriptor) in descriptors_iter.enumerate() {
+        unsafe {
+            ptr::write(memory_map_buf.offset(index as isize), *descriptor);
+        }
+
+        num_descriptors += 1;
     }
+
+    unsafe { slice::from_raw_parts_mut(memory_map_buf, num_descriptors) }
 }
