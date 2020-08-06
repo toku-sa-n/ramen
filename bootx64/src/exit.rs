@@ -4,13 +4,31 @@ use core::mem::size_of;
 use core::ptr;
 use uefi::table::boot;
 
+pub struct MemMapInfo {
+    _ptr: *mut boot::MemoryDescriptor,
+    _count: usize,
+}
+
+impl MemMapInfo {
+    pub fn new_from_slice(map: &mut [boot::MemoryDescriptor]) -> Self {
+        let _ptr = map.as_mut_ptr();
+        let _count = map.len();
+
+        Self { _ptr, _count }
+    }
+}
+
 pub struct BootInfo {
     _vram_info: gop::VramInfo,
+    _mem_map_info: MemMapInfo,
 }
 
 impl BootInfo {
-    pub fn new(_vram_info: gop::VramInfo) -> Self {
-        Self { _vram_info }
+    pub fn new(_vram_info: gop::VramInfo, _mem_map_info: MemMapInfo) -> Self {
+        Self {
+            _vram_info,
+            _mem_map_info,
+        }
     }
 }
 
