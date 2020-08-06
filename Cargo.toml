@@ -22,6 +22,7 @@ crate-type = ["staticlib"]
 
 [dependencies]
 spin = "0.5.2"
+debug = { path = "debug" }
 
 [dependencies.lazy_static]
 version = "1.4.0"

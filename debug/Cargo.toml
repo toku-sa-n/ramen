@@ -1,5 +1,5 @@
 [package]
-name = "bootx64"
+name = "debug"
 version = "0.1.0"
 authors = ["toku-sa-n <tokusan441@gmail.com>"]
 edition = "2018"
@@ -7,8 +7,3 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-log = "0.4.8"
-uefi = { version = "0.4.7", features = ["logger"] }
-uefi-services = "0.2.4"
-rlibc = "1.0.0"
-debug = { path = "../debug/" }

@@ -11,7 +11,8 @@ extern crate uefi;
 extern crate uefi_services;
 
 #[macro_use]
-mod debug;
+#[allow(unused_imports)]
+extern crate debug;
 
 mod exit;
 mod fs;
