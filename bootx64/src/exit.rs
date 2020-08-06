@@ -30,16 +30,12 @@ fn disable_interruption() -> () {
 }
 
 fn jump_to_kernel(boot_info: common_items::BootInfo) -> ! {
-    save_boot_info(boot_info);
+    boot_info.set();
 
     unsafe {
         asm!("mov rsp, rax
         jmp rdi",in("rax") INIT_RSP,in("rdi") fetch_entry_address(),options(nomem, preserves_flags, nostack,noreturn));
     }
-}
-
-fn save_boot_info(boot_info: common_items::BootInfo) -> () {
-    unsafe { ptr::write(INIT_RSP as *mut common_items::BootInfo, boot_info) }
 }
 
 fn fetch_entry_address() -> u64 {
