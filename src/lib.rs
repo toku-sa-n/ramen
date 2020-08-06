@@ -7,6 +7,7 @@ mod asm;
 mod descriptor_table;
 mod gdt;
 mod interrupt;
+mod memory;
 mod queue;
 
 #[macro_use]
@@ -16,6 +17,7 @@ use core::{mem, ptr};
 
 struct BootInfo {
     vram_info: graphics::Vram,
+    mem_map_info: memory::MapInfo,
 }
 
 #[no_mangle]

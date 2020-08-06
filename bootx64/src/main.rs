@@ -37,7 +37,9 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     fs::place_kernel(&system_table);
     let mem_map = terminate_boot_services(image, system_table);
 
-    exit::bootx64(mem_map, BootInfo::new(vram_info));
+    let mem_map_info = exit::MemMapInfo::new_from_slice(mem_map);
+
+    exit::bootx64(mem_map, BootInfo::new(vram_info, mem_map_info));
 }
 
 fn terminate_boot_services<'a>(
