@@ -1,40 +1,15 @@
-use crate::gop;
+use crate::common_items;
 use crate::mem::paging;
 use core::mem::size_of;
 use core::ptr;
 use uefi::table::boot;
 
-pub struct MemMapInfo {
-    _ptr: *mut boot::MemoryDescriptor,
-    _count: usize,
-}
+const INIT_RSP: usize = 0xffff_ffff_800a_1000 - size_of::<common_items::BootInfo>();
 
-impl MemMapInfo {
-    pub fn new_from_slice(map: &mut [boot::MemoryDescriptor]) -> Self {
-        let _ptr = map.as_mut_ptr();
-        let _count = map.len();
-
-        Self { _ptr, _count }
-    }
-}
-
-pub struct BootInfo {
-    _vram_info: gop::VramInfo,
-    _mem_map_info: MemMapInfo,
-}
-
-impl BootInfo {
-    pub fn new(_vram_info: gop::VramInfo, _mem_map_info: MemMapInfo) -> Self {
-        Self {
-            _vram_info,
-            _mem_map_info,
-        }
-    }
-}
-
-const INIT_RSP: usize = 0xffff_ffff_800a_1000 - size_of::<BootInfo>();
-
-pub fn bootx64<'a>(mem_map: &'a mut [boot::MemoryDescriptor], boot_info: BootInfo) -> ! {
+pub fn bootx64<'a>(
+    mem_map: &'a mut [boot::MemoryDescriptor],
+    boot_info: common_items::BootInfo,
+) -> ! {
     disable_interruption();
 
     paging::init(mem_map);
@@ -54,7 +29,7 @@ fn disable_interruption() -> () {
     }
 }
 
-fn jump_to_kernel(boot_info: BootInfo) -> ! {
+fn jump_to_kernel(boot_info: common_items::BootInfo) -> ! {
     save_boot_info(boot_info);
 
     unsafe {
@@ -63,8 +38,8 @@ fn jump_to_kernel(boot_info: BootInfo) -> ! {
     }
 }
 
-fn save_boot_info(boot_info: BootInfo) -> () {
-    unsafe { ptr::write(INIT_RSP as *mut BootInfo, boot_info) }
+fn save_boot_info(boot_info: common_items::BootInfo) -> () {
+    unsafe { ptr::write(INIT_RSP as *mut common_items::BootInfo, boot_info) }
 }
 
 fn fetch_entry_address() -> u64 {

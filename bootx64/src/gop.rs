@@ -4,31 +4,11 @@ use uefi::proto::console::gop;
 use uefi::proto::console::gop::PixelFormat;
 use uefi::ResultExt;
 
-pub struct VramInfo {
-    _bpp: u16,
-    _screen_x: u16,
-    _screen_y: u16,
-    _ptr: u64,
-}
-
-impl VramInfo {
-    fn new_from_gop(gop: &mut gop::GraphicsOutput) -> Self {
-        let (screen_x, screen_y) = gop.current_mode_info().resolution();
-
-        Self {
-            _bpp: 32,
-            _screen_x: screen_x as u16,
-            _screen_y: screen_y as u16,
-            _ptr: gop.frame_buffer().as_mut_ptr() as u64,
-        }
-    }
-}
-
-pub fn init(system_table: &SystemTable<Boot>) -> VramInfo {
+pub fn init(system_table: &SystemTable<Boot>) -> common_items::VramInfo {
     let gop = fetch_gop(system_table);
     set_resolution(gop);
 
-    VramInfo::new_from_gop(gop)
+    common_items::VramInfo::new_from_gop(gop)
 }
 
 fn fetch_gop<'a>(system_table: &'a SystemTable<Boot>) -> &'a mut gop::GraphicsOutput<'a> {
