@@ -14,6 +14,8 @@ extern crate uefi_services;
 #[allow(unused_imports)]
 extern crate debug;
 
+extern crate common_items;
+
 mod exit;
 mod fs;
 mod gop;
@@ -22,7 +24,6 @@ mod mem;
 
 use core::ptr;
 use core::slice;
-use exit::BootInfo;
 use uefi::prelude::{Boot, Handle, SystemTable};
 use uefi::table::boot;
 use uefi::table::boot::MemoryType;
@@ -38,9 +39,12 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     fs::place_kernel(&system_table);
     let mem_map = terminate_boot_services(image, system_table);
 
-    let mem_map_info = exit::MemMapInfo::new_from_slice(mem_map);
+    let mem_map_info = common_items::MemMapInfo::new_from_slice(mem_map);
 
-    exit::bootx64(mem_map, BootInfo::new(vram_info, mem_map_info));
+    exit::bootx64(
+        mem_map,
+        common_items::BootInfo::new(vram_info, mem_map_info),
+    );
 }
 
 fn terminate_boot_services<'a>(

@@ -7,6 +7,8 @@
 #[allow(unused_imports)]
 extern crate debug;
 
+extern crate common_items;
+
 mod asm;
 mod descriptor_table;
 mod gdt;
@@ -17,17 +19,11 @@ mod queue;
 #[macro_use]
 mod graphics;
 
-use core::{mem, ptr};
-
-struct BootInfo {
-    vram_info: graphics::Vram,
-    mem_map_info: memory::MapInfo,
-}
-
 #[no_mangle]
 #[start]
 pub fn os_main() {
-    let vram = get_boot_info().vram_info;
+    let boot_info = common_items::BootInfo::get();
+    let vram = graphics::Vram::new_from_boot_info(&boot_info);
 
     let mut mouse_device: interrupt::mouse::Device = interrupt::mouse::Device::new(&vram);
     let mut mouse_cursor: graphics::screen::MouseCursor = graphics::screen::MouseCursor::new(
@@ -39,12 +35,6 @@ pub fn os_main() {
     initialization(&mut mouse_device, &mut mouse_cursor, &vram);
 
     main_loop(&mut mouse_device, &mut mouse_cursor, &vram)
-}
-
-fn get_boot_info() -> BootInfo {
-    const ADDR_OF_BOOT_INFO: *const BootInfo =
-        (0xffff_ffff_800a_1000 - mem::size_of::<BootInfo>()) as *const _;
-    unsafe { ptr::read(ADDR_OF_BOOT_INFO) }
 }
 
 fn initialization(

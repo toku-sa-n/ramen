@@ -3,6 +3,7 @@ pub mod font;
 #[macro_use]
 pub mod screen;
 
+use crate::common_items;
 use core::ptr;
 
 // Copy trait is needed for constructing MouseCursor struct
@@ -30,6 +31,24 @@ pub struct Vram {
     pub x_len: u16,
     pub y_len: u16,
     pub ptr: *mut u8,
+}
+
+impl Vram {
+    pub fn new_from_boot_info(boot_info: &common_items::BootInfo) -> Self {
+        let common_items::VramInfo {
+            bpp,
+            screen_x,
+            screen_y,
+            ptr,
+        } = boot_info.vram();
+
+        Self {
+            bits_per_pixel: bpp,
+            x_len: screen_x,
+            y_len: screen_y,
+            ptr: ptr as *mut u8,
+        }
+    }
 }
 
 impl Vram {
