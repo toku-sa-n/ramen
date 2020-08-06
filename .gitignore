@@ -1,19 +1,11 @@
 /target
 bootx64/target
+debug/target
 **/*.rs.bk
-Cargo.lock
+**/Cargo.lock
 tags
 build
 **/*.swp
 **/*.efi
 *.fd
 *.img
-
-
-#Added by cargo
-#
-#already existing elements are commented out
-
-#/target
-#**/*.rs.bk
-#Cargo.lock

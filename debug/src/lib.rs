@@ -1,5 +1,6 @@
+#![no_std]
+
 #[macro_export]
-#[allow(unused_macros)]
 macro_rules! watch{
     ($value:expr)=>{
         unsafe{
@@ -10,14 +11,14 @@ macro_rules! watch{
     };
 }
 
-#[allow(unused_macros)]
+#[macro_export]
 macro_rules! stop {
     () => {
         watch!(0x55aa55aa55aa55aa);
     };
 }
 
-#[allow(unused_macros)]
+#[macro_export]
 macro_rules! watch_if {
     ($cond:expr,$value:expr) => {
         if $cond {
@@ -26,7 +27,7 @@ macro_rules! watch_if {
     };
 }
 
-#[allow(unused_macros)]
+#[macro_export]
 macro_rules! stop_if {
     ($condition:expr) => {
         if $condition {
