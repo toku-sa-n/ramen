@@ -37,6 +37,7 @@ enum DevicePhase {
     NoData,
     OneData,
     TwoData,
+    ThreeData,
 }
 
 pub struct Device<'a> {
@@ -101,6 +102,7 @@ impl<'a> Device<'a> {
 
                 true
             }
+            DevicePhase::ThreeData => true,
         }
     }
 
