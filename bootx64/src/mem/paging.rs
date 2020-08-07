@@ -158,7 +158,7 @@ fn get_addr_from_table_entry(entry: usize) -> usize {
 
 fn allocate_page_for_page_table(mem_map: &mut [boot::MemoryDescriptor]) -> usize {
     for descriptor in mem_map.iter_mut() {
-        if descriptor.ty == MemoryType::CONVENTIONAL {
+        if descriptor.ty == MemoryType::CONVENTIONAL && descriptor.page_count > 0 {
             let addr = descriptor.phys_start;
             descriptor.phys_start += BYTES_OF_PAGE as u64;
             descriptor.page_count -= 1;
