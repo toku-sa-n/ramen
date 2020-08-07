@@ -32,11 +32,13 @@ impl MouseButtons {
     }
 }
 
+#[derive(PartialEq, Eq)]
 enum DevicePhase {
     Init,
     NoData,
     OneData,
     TwoData,
+    ThreeData,
 }
 
 pub struct Device<'a> {
@@ -68,39 +70,34 @@ impl<'a> Device<'a> {
         asm::out8(super::PORT_KEYDATA, super::MOUSE_CMD_ENABLE as u8);
     }
 
-    // Return true if three bytes data are sent.
-    // Otherwise return false.
-    pub fn put_data(&mut self, data: u32) -> bool {
+    pub fn data_available(&self) -> bool {
+        self.phase == DevicePhase::ThreeData
+    }
+
+    pub fn put_data(&mut self, data: u32) -> () {
         match self.phase {
             DevicePhase::Init => {
-                self.phase = if data == 0xfa {
-                    DevicePhase::NoData
-                } else {
-                    DevicePhase::Init
-                };
-                false
+                let is_correct_startup = data == 0xfa;
+                if is_correct_startup {
+                    self.phase = DevicePhase::NoData
+                }
             }
 
             DevicePhase::NoData => {
                 if Self::is_correct_first_byte_from_device(data) {
-                    self.phase = DevicePhase::OneData;
                     self.data_from_device[0] = data;
+                    self.phase = DevicePhase::OneData;
                 }
-                false
             }
             DevicePhase::OneData => {
                 self.data_from_device[1] = data;
                 self.phase = DevicePhase::TwoData;
-                false
             }
             DevicePhase::TwoData => {
                 self.data_from_device[2] = data;
-                self.phase = DevicePhase::NoData;
-
-                self.purse_data();
-
-                true
+                self.phase = DevicePhase::ThreeData;
             }
+            DevicePhase::ThreeData => {}
         }
     }
 
@@ -109,7 +106,11 @@ impl<'a> Device<'a> {
         data & 0xC8 == 0x08
     }
 
-    fn purse_data(&mut self) -> () {
+    pub fn clear_stack(&mut self) -> () {
+        self.phase = DevicePhase::NoData;
+    }
+
+    pub fn purse_data(&mut self) -> () {
         self.buttons = MouseButtons::purse_data(self.data_from_device[0]);
         self.speed.x = self.data_from_device[1] as i32;
         self.speed.y = self.data_from_device[2] as i32;
@@ -123,6 +124,8 @@ impl<'a> Device<'a> {
         }
 
         self.speed.y = -self.speed.y;
+
+        self.phase = DevicePhase::NoData;
     }
 
     pub fn get_speed(&self) -> graphics::screen::Coord<isize> {
