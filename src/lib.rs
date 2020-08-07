@@ -127,8 +127,10 @@ fn handle_mouse_data(
         return;
     }
 
-    if !mouse_device.put_data(data.unwrap()) {
-        return;
+    mouse_device.put_data(data.unwrap());
+
+    if mouse_device.data_available() {
+        mouse_device.purse_data();
     }
 
     mouse_device.print_buf_data();

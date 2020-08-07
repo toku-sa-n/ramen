@@ -74,41 +74,30 @@ impl<'a> Device<'a> {
         self.phase == DevicePhase::ThreeData
     }
 
-    // Return true if three bytes data are sent.
-    // Otherwise return false.
-    pub fn put_data(&mut self, data: u32) -> bool {
+    pub fn put_data(&mut self, data: u32) -> () {
         match self.phase {
             DevicePhase::Init => {
                 let is_correct_startup = data == 0xfa;
-                self.phase = if is_correct_startup {
-                    DevicePhase::NoData
-                } else {
-                    DevicePhase::Init
-                };
-                false
+                if is_correct_startup {
+                    self.phase = DevicePhase::NoData
+                }
             }
 
             DevicePhase::NoData => {
                 if Self::is_correct_first_byte_from_device(data) {
-                    self.phase = DevicePhase::OneData;
                     self.data_from_device[0] = data;
+                    self.phase = DevicePhase::OneData;
                 }
-                false
             }
             DevicePhase::OneData => {
                 self.data_from_device[1] = data;
                 self.phase = DevicePhase::TwoData;
-                false
             }
             DevicePhase::TwoData => {
                 self.data_from_device[2] = data;
-                self.phase = DevicePhase::NoData;
-
-                self.purse_data();
-
-                true
+                self.phase = DevicePhase::ThreeData;
             }
-            DevicePhase::ThreeData => true,
+            DevicePhase::ThreeData => {}
         }
     }
 
@@ -117,7 +106,11 @@ impl<'a> Device<'a> {
         data & 0xC8 == 0x08
     }
 
-    fn purse_data(&mut self) -> () {
+    pub fn clear_stack(&mut self) -> () {
+        self.phase = DevicePhase::NoData;
+    }
+
+    pub fn purse_data(&mut self) -> () {
         self.buttons = MouseButtons::purse_data(self.data_from_device[0]);
         self.speed.x = self.data_from_device[1] as i32;
         self.speed.y = self.data_from_device[2] as i32;
