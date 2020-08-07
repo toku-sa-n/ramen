@@ -74,7 +74,8 @@ impl<'a> Device<'a> {
     pub fn put_data(&mut self, data: u32) -> bool {
         match self.phase {
             DevicePhase::Init => {
-                self.phase = if data == 0xfa {
+                let is_correct_startup = data == 0xfa;
+                self.phase = if is_correct_startup {
                     DevicePhase::NoData
                 } else {
                     DevicePhase::Init
