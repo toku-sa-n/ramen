@@ -124,6 +124,8 @@ impl<'a> Device<'a> {
         }
 
         self.speed.y = -self.speed.y;
+
+        self.phase = DevicePhase::NoData;
     }
 
     pub fn get_speed(&self) -> graphics::screen::Coord<isize> {
