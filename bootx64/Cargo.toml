@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 log = "0.4.8"
-uefi = { version = "0.4.7", features = ["logger"] }
+uefi = { version = "0.5.0", features = ["logger"] }
 uefi-services = "0.2.4"
 rlibc = "1.0.0"
 debug = { path = "../debug/" }
