@@ -1,3 +1,4 @@
+pub mod handler;
 pub mod mouse;
 
 use crate::asm;

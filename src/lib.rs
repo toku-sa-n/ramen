@@ -19,6 +19,8 @@ mod queue;
 #[macro_use]
 mod graphics;
 
+use interrupt::handler;
+
 #[no_mangle]
 #[start]
 pub fn os_main() {
@@ -73,69 +75,13 @@ fn main_loop(
     loop {
         asm::cli();
         if interrupt::KEY_QUEUE.lock().size() != 0 {
-            handle_keyboard_data(vram);
+            handler::keyboard_data(vram);
         } else if interrupt::mouse::QUEUE.lock().size() != 0 {
-            handle_mouse_data(mouse_device, mouse_cursor, vram);
+            handler::mouse_data(mouse_device, mouse_cursor, vram);
         } else {
             asm::stihlt();
         }
     }
-}
-
-fn handle_keyboard_data(vram: &graphics::Vram) -> () {
-    let data: Option<u32> = interrupt::KEY_QUEUE.lock().dequeue();
-
-    asm::sti();
-
-    let mut screen: graphics::screen::Screen = graphics::screen::Screen::new(vram);
-
-    screen.draw_rectangle(
-        graphics::RGB::new(0x008484),
-        graphics::screen::Coord::new(0, 16),
-        graphics::screen::Coord::new(15, 31),
-    );
-
-    if let Some(data) = data {
-        print_with_pos!(
-            vram,
-            graphics::screen::Coord::new(0, 16),
-            graphics::RGB::new(0xFFFFFF),
-            "{:X}",
-            data
-        );
-    }
-}
-
-fn handle_mouse_data(
-    mouse_device: &mut interrupt::mouse::Device,
-    mouse_cursor: &mut graphics::screen::MouseCursor,
-    vram: &graphics::Vram,
-) -> () {
-    let data: Option<u32> = interrupt::mouse::QUEUE.lock().dequeue();
-
-    asm::sti();
-
-    let mut screen: graphics::screen::Screen = graphics::screen::Screen::new(vram);
-
-    screen.draw_rectangle(
-        graphics::RGB::new(0x008484),
-        graphics::screen::Coord::new(32, 16),
-        graphics::screen::Coord::new(47, 31),
-    );
-
-    if data == None {
-        return;
-    }
-
-    mouse_device.put_data(data.unwrap());
-
-    if mouse_device.data_available() {
-        mouse_device.purse_data();
-    }
-
-    mouse_device.print_buf_data();
-    mouse_cursor.draw_offset(mouse_device.get_speed());
-    mouse_cursor.print_coord(graphics::screen::Coord::new(16, 32));
 }
 
 #[panic_handler]
