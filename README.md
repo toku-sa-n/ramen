@@ -5,32 +5,47 @@
 A toy OS
 
 ## Requirements
-- A computer supporting UEFI
+- A computer supporting UEFI or QEMU
+- mtools (if you want to run on QEMU)
+- OVMF_VARS.fd and OVMF_CODE.fd (if you want to run on QEMU)
 - nasm
 - Rustup nightly version
-- Cargo
-- xbuild
 
-## Installation
-First of all, you have to install the dependencies:
+## Run on QEMU
+
+### How to get `OVMF_VARS.fd` and `OVMF_CODE.fd`
+
+For Gentoo users:
+
 ```sh
-sudo apt-get install nasm
-sudo cargo install cargo-xbuild
+sudo USE="binary" emerge sys-firmware/edk2-ovmf
+cp /usr/share/edk2-ovmf/{OVMF_VARS.fd,OVMF_CODE.fd} /path/to/ramen
 ```
 
-Next, you have to create an EFI partition.
+### Execution
+
+```sh
+git clone https://github.com/toku-sa-n/ramen
+cd ramen
+rustup override set nightly
+make release && make run
+```
+
+## Run on your computer
+
+You have to create an EFI partition.
 
 Then run the following command:
 ```sh
 git clone https://github.com/toku-sa-n/ramen.git
 cd ramen
-rustup component add rust-src
+rustup override set nightly
 make release
 USB_DEVICE_PATH="/dev/sdx1" make copy_to_usb
 ```
 (/dev/sdx1 is the EFI partition you created.)
 
-## Execution
+### Execution
 Reboot your machine and run Ramen OS.
 
 ---
