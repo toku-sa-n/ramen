@@ -28,8 +28,8 @@ ASMC			:= nasm
 RM				:= rm -rf
 VIEWER			:= qemu-system-x86_64
 
-OVMF_CODE		:= OVMF_CODE-pure-efi.fd
-OVMF_VARS		:= OVMF_VARS-pure-efi.fd
+OVMF_CODE		:= OVMF_CODE.fd
+OVMF_VARS		:= OVMF_VARS.fd
 
 CFLAGS			:= -O3 -pipe -nostdlib -c -ffreestanding
 ASMFLGAS		:= -f elf64
