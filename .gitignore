@@ -1,6 +1,7 @@
 /target
 bootx64/target
 debug/target
+common_items/target
 **/*.rs.bk
 **/Cargo.lock
 tags
