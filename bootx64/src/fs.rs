@@ -62,23 +62,21 @@ fn open_root_dir(system_table: &SystemTable<Boot>) -> file::Directory {
 }
 
 fn open_kernel(system_table: &SystemTable<Boot>, root_dir: &mut file::Directory) -> () {
-    let kernel_handler = get_kernel_handler(root_dir);
-
-    // Kernel file is a regular file, not a directory.
-    // This `new` always succeeds.
-    let mut kernel_handler = unsafe { file::RegularFile::new(kernel_handler) };
+    let mut kernel_handler = get_kernel_handler(root_dir);
     allocate_for_kernel_file(system_table);
     read_kernel_on_memory(&mut kernel_handler);
 }
 
-fn get_kernel_handler(root_dir: &mut file::Directory) -> file::FileHandle {
-    root_dir
+fn get_kernel_handler(root_dir: &mut file::Directory) -> file::RegularFile {
+    let handler = root_dir
         .open(
             KERNEL_FILE.get_filename(),
             FileMode::Read,
             FileAttribute::empty(),
         )
-        .expect_success("Failed to get file handler of the kernel.")
+        .expect_success("Failed to get file handler of the kernel.");
+
+    unsafe { file::RegularFile::new(handler) }
 }
 
 fn allocate_for_kernel_file(system_table: &SystemTable<Boot>) -> () {
