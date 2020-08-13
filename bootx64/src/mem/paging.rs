@@ -1,4 +1,5 @@
 use crate::common_items::addr::{PhysAddr, VirtAddr};
+use crate::common_items::size::{Byte, Size};
 use core::ptr;
 use uefi::table::boot;
 use uefi::table::boot::MemoryType;
@@ -6,11 +7,11 @@ use uefi::table::boot::MemoryType;
 struct PageMapInfo {
     virt: VirtAddr,
     phys: PhysAddr,
-    bytes: usize,
+    bytes: Size<Byte>,
 }
 
 impl PageMapInfo {
-    fn new(virt: VirtAddr, phys: PhysAddr, bytes: usize) -> Self {
+    fn new(virt: VirtAddr, phys: PhysAddr, bytes: Size<Byte>) -> Self {
         Self { virt, phys, bytes }
     }
 
@@ -26,7 +27,7 @@ pub fn init(mem_map: &mut [boot::MemoryDescriptor]) -> () {
         PageMapInfo::new(
             VirtAddr::new(0xffff_ffff_8000_0000),
             PhysAddr::new(0x0020_0000),
-            (512 + 4 + 128) * 1024,
+            Size::new((512 + 4 + 128) * 1024),
         ),
         PageMapInfo::new(
             VirtAddr::new(0xffff_ffff_8020_0000),
@@ -62,22 +63,22 @@ fn get_vram_ptr() -> PhysAddr {
     PhysAddr::new(unsafe { ptr::read(0x0ff8 as *const u64) as usize })
 }
 
-fn calculate_vram_bytes() -> usize {
-    unsafe {
+fn calculate_vram_bytes() -> Size<Byte> {
+    Size::new(unsafe {
         ptr::read(0x0ff2 as *const u8) as usize
             * ptr::read(0x0ff4 as *const u16) as usize
             * ptr::read(0x0ff6 as *const u16) as usize
             / 8
-    }
+    })
 }
 
 fn map_virt_to_phys(
     virt: VirtAddr,
     phys: PhysAddr,
-    bytes: usize,
+    bytes: Size<Byte>,
     mem_map: &mut [boot::MemoryDescriptor],
 ) -> () {
-    let num_of_pages = bytes_to_pages(bytes);
+    let num_of_pages = bytes.as_num_of_pages().as_usize();
 
     for i in 0..num_of_pages {
         virt_points_phys(
@@ -86,10 +87,6 @@ fn map_virt_to_phys(
             mem_map,
         );
     }
-}
-
-fn bytes_to_pages(bytes: usize) -> usize {
-    (bytes + BYTES_OF_PAGE - 1) / BYTES_OF_PAGE
 }
 
 fn virt_points_phys(virt: VirtAddr, phys: PhysAddr, mem_map: &mut [boot::MemoryDescriptor]) -> () {
