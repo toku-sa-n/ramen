@@ -1,9 +1,11 @@
+use crate::common_items::addr::{Addr, Virt};
+use crate::common_items::size::{Byte, Size};
 use core::ptr;
 use uefi::proto::media::file;
 
 struct KernelHeader {
-    _entry_addr: usize,
-    memory_bytes: usize,
+    _entry_addr: Addr<Virt>,
+    memory_bytes: Size<Byte>,
 }
 
 impl KernelHeader {
@@ -17,7 +19,7 @@ impl KernelHeader {
     }
 }
 
-pub fn get(root_dir: &mut file::Directory) -> usize {
+pub fn get(root_dir: &mut file::Directory) -> Size<Byte> {
     let mut handler = super::get_kernel_handler(root_dir);
 
     let mut header = [0u8; 16];

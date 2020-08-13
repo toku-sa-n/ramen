@@ -17,7 +17,7 @@ pub struct Addr<T: AddrType> {
 }
 
 impl<T: AddrType> Addr<T> {
-    pub fn new(addr: usize) -> Self {
+    pub const fn new(addr: usize) -> Self {
         Self {
             addr,
             _marker: PhantomData,
