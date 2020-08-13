@@ -1,6 +1,5 @@
 use crate::common_items;
 use crate::mem::paging;
-use core::mem::size_of;
 use core::ptr;
 use uefi::table::boot;
 
