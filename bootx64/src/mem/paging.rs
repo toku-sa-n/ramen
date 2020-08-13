@@ -118,7 +118,7 @@ fn virt_points_phys_recur(
     let mut entry = unsafe { ptr::read(ptr_to_entry) };
 
     if !entry_exists(entry) {
-        entry = create_table(mem_map) | PAGE_EXISTS;
+        entry = create_table(mem_map).as_usize() | PAGE_EXISTS;
         unsafe { ptr::write(ptr_to_entry, entry) }
     }
 
@@ -153,7 +153,7 @@ fn entry_exists(entry: usize) -> bool {
     entry & PAGE_EXISTS == 1
 }
 
-fn create_table(mem_map: &mut [boot::MemoryDescriptor]) -> usize {
+fn create_table(mem_map: &mut [boot::MemoryDescriptor]) -> PhysAddr {
     let addr = allocate_page_for_page_table(mem_map);
     unsafe { initialize_page_table(addr) }
 
@@ -164,14 +164,14 @@ fn get_addr_from_table_entry(entry: usize) -> PhysAddr {
     PhysAddr::new(entry & 0xffff_ffff_ffff_f000)
 }
 
-fn allocate_page_for_page_table(mem_map: &mut [boot::MemoryDescriptor]) -> usize {
+fn allocate_page_for_page_table(mem_map: &mut [boot::MemoryDescriptor]) -> PhysAddr {
     for descriptor in mem_map.iter_mut() {
         if descriptor.ty == MemoryType::CONVENTIONAL && descriptor.page_count > 0 {
             let addr = descriptor.phys_start;
             descriptor.phys_start += BYTES_OF_PAGE as u64;
             descriptor.page_count -= 1;
 
-            return addr as usize;
+            return PhysAddr::new(addr as _);
         }
     }
 
@@ -179,8 +179,8 @@ fn allocate_page_for_page_table(mem_map: &mut [boot::MemoryDescriptor]) -> usize
     panic!("Failed to allocate memory for a page table.");
 }
 
-unsafe fn initialize_page_table(table_addr: usize) -> () {
-    ptr::write_bytes(table_addr as *mut u8, 0, BYTES_OF_PAGE)
+unsafe fn initialize_page_table(table_addr: PhysAddr) -> () {
+    ptr::write_bytes(table_addr.as_usize() as *mut u8, 0, BYTES_OF_PAGE)
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
