@@ -1,10 +1,10 @@
-use crate::common_items::addr::{Addr, Virt};
+use crate::common_items::addr::VirtAddr;
 use crate::common_items::size::{Byte, Size};
 use core::ptr;
 use uefi::proto::media::file;
 
 struct KernelHeader {
-    _entry_addr: Addr<Virt>,
+    _entry_addr: VirtAddr,
     memory_bytes: Size<Byte>,
 }
 

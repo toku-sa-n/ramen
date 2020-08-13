@@ -32,7 +32,10 @@ impl<T: AddrType> Addr<T> {
     }
 }
 
-impl Addr<Phys> {
+pub type PhysAddr = Addr<Phys>;
+pub type VirtAddr = Addr<Virt>;
+
+impl PhysAddr {
     pub fn as_usize(&self) -> usize {
         self.addr
     }
@@ -42,7 +45,7 @@ impl Addr<Phys> {
     }
 }
 
-impl Addr<Virt> {
+impl VirtAddr {
     pub fn as_usize(&self) -> usize {
         ((self.addr as isize) << 16 >> 16) as _
     }
