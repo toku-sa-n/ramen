@@ -1,4 +1,4 @@
-use crate::common_items::addr::{Addr, Phys};
+use crate::common_items::addr::PhysAddr;
 use crate::common_items::size::{Byte, Size};
 use uefi::prelude::{Boot, SystemTable};
 use uefi::proto::media::file;
@@ -13,11 +13,11 @@ mod kernel_bytes;
 
 struct KernelFileInfo {
     name: &'static str,
-    start_address: Addr<Phys>,
+    start_address: PhysAddr,
 }
 
 impl KernelFileInfo {
-    const fn new(name: &'static str, start_address: Addr<Phys>) -> Self {
+    const fn new(name: &'static str, start_address: PhysAddr) -> Self {
         Self {
             name,
             start_address,
@@ -28,7 +28,7 @@ impl KernelFileInfo {
         self.name
     }
 
-    fn address(&self) -> Addr<Phys> {
+    fn address(&self) -> PhysAddr {
         self.start_address
     }
 }
@@ -36,7 +36,7 @@ impl KernelFileInfo {
 // Using the size of binary as the memory consumption is useless because the size of .bss section
 // is not included in the binary size. Using ELF file may improve effeciency as it might contain
 // the size of memory comsuption.
-const KERNEL_FILE: KernelFileInfo = KernelFileInfo::new("kernel.bin", Addr::new(0x200000));
+const KERNEL_FILE: KernelFileInfo = KernelFileInfo::new("kernel.bin", PhysAddr::new(0x200000));
 
 pub fn place_kernel(system_table: &SystemTable<Boot>) -> () {
     let mut root_dir = open_root_dir(system_table);

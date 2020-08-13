@@ -1,5 +1,5 @@
 use crate::common_items;
-use crate::common_items::addr::{Addr, Virt};
+use crate::common_items::addr::VirtAddr;
 use crate::mem::paging;
 use core::ptr;
 use uefi::table::boot;
@@ -36,6 +36,6 @@ fn jump_to_kernel(boot_info: common_items::BootInfo) -> ! {
     }
 }
 
-fn fetch_entry_address() -> Addr<Virt> {
-    Addr::new(unsafe { ptr::read(0xffff_ffff_8000_0000 as *const u64) } as _)
+fn fetch_entry_address() -> VirtAddr {
+    VirtAddr::new(unsafe { ptr::read(0xffff_ffff_8000_0000 as *const u64) } as _)
 }

@@ -1,16 +1,16 @@
-use crate::common_items::addr::{Addr, Phys, Virt};
+use crate::common_items::addr::{PhysAddr, VirtAddr};
 use core::ptr;
 use uefi::table::boot;
 use uefi::table::boot::MemoryType;
 
 struct PageMapInfo {
-    virt: Addr<Virt>,
-    phys: Addr<Phys>,
+    virt: VirtAddr,
+    phys: PhysAddr,
     bytes: usize,
 }
 
 impl PageMapInfo {
-    fn new(virt: Addr<Virt>, phys: Addr<Phys>, bytes: usize) -> Self {
+    fn new(virt: VirtAddr, phys: PhysAddr, bytes: usize) -> Self {
         Self { virt, phys, bytes }
     }
 
@@ -24,12 +24,12 @@ pub fn init(mem_map: &mut [boot::MemoryDescriptor]) -> () {
 
     let map_info = [
         PageMapInfo::new(
-            Addr::new(0xffff_ffff_8000_0000),
-            Addr::new(0x0020_0000),
+            VirtAddr::new(0xffff_ffff_8000_0000),
+            PhysAddr::new(0x0020_0000),
             (512 + 4 + 128) * 1024,
         ),
         PageMapInfo::new(
-            Addr::new(0xffff_ffff_8020_0000),
+            VirtAddr::new(0xffff_ffff_8020_0000),
             get_vram_ptr(),
             calculate_vram_bytes(),
         ),
@@ -58,8 +58,8 @@ fn update_vram_ptr() -> () {
     }
 }
 
-fn get_vram_ptr() -> Addr<Phys> {
-    Addr::new(unsafe { ptr::read(0x0ff8 as *const u64) as usize })
+fn get_vram_ptr() -> PhysAddr {
+    PhysAddr::new(unsafe { ptr::read(0x0ff8 as *const u64) as usize })
 }
 
 fn calculate_vram_bytes() -> usize {
@@ -72,8 +72,8 @@ fn calculate_vram_bytes() -> usize {
 }
 
 fn map_virt_to_phys(
-    virt: Addr<Virt>,
-    phys: Addr<Phys>,
+    virt: VirtAddr,
+    phys: PhysAddr,
     bytes: usize,
     mem_map: &mut [boot::MemoryDescriptor],
 ) -> () {
@@ -92,27 +92,23 @@ fn bytes_to_pages(bytes: usize) -> usize {
     (bytes + BYTES_OF_PAGE - 1) / BYTES_OF_PAGE
 }
 
-fn virt_points_phys(
-    virt: Addr<Virt>,
-    phys: Addr<Phys>,
-    mem_map: &mut [boot::MemoryDescriptor],
-) -> () {
+fn virt_points_phys(virt: VirtAddr, phys: PhysAddr, mem_map: &mut [boot::MemoryDescriptor]) -> () {
     virt_points_phys_recur(virt, phys, get_pml4_addr(), mem_map, TableType::Pml4);
 }
 
-fn get_pml4_addr() -> Addr<Phys> {
+fn get_pml4_addr() -> PhysAddr {
     let addr;
     unsafe {
         asm!("mov rax, cr3",out("rax") addr,options(nomem, preserves_flags, nostack));
     }
 
-    Addr::new(addr)
+    PhysAddr::new(addr)
 }
 
 fn virt_points_phys_recur(
-    virt: Addr<Virt>,
-    phys: Addr<Phys>,
-    table_addr: Addr<Phys>,
+    virt: VirtAddr,
+    phys: PhysAddr,
+    table_addr: PhysAddr,
     mem_map: &mut [boot::MemoryDescriptor],
     table: TableType,
 ) -> () {
@@ -138,7 +134,7 @@ fn virt_points_phys_recur(
     )
 }
 
-fn get_offset_of_entry(virt_addr: Addr<Virt>, table: TableType) -> usize {
+fn get_offset_of_entry(virt_addr: VirtAddr, table: TableType) -> usize {
     (virt_addr.as_usize()
         >> match table {
             TableType::Pml4 => 39,
@@ -150,7 +146,7 @@ fn get_offset_of_entry(virt_addr: Addr<Virt>, table: TableType) -> usize {
         * TABLE_ENTRY_SIZE
 }
 
-fn ptr_to_entry(virt: Addr<Virt>, table_addr: Addr<Phys>, table: TableType) -> *mut usize {
+fn ptr_to_entry(virt: VirtAddr, table_addr: PhysAddr, table: TableType) -> *mut usize {
     table_addr
         .offset(get_offset_of_entry(virt, table) as isize)
         .as_mut_ptr()
@@ -167,8 +163,8 @@ fn create_table(mem_map: &mut [boot::MemoryDescriptor]) -> usize {
     addr
 }
 
-fn get_addr_from_table_entry(entry: usize) -> Addr<Phys> {
-    Addr::new(entry & 0xffff_ffff_ffff_f000)
+fn get_addr_from_table_entry(entry: usize) -> PhysAddr {
+    PhysAddr::new(entry & 0xffff_ffff_ffff_f000)
 }
 
 fn allocate_page_for_page_table(mem_map: &mut [boot::MemoryDescriptor]) -> usize {
