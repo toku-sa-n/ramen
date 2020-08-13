@@ -1,3 +1,5 @@
+use crate::common_items::addr::{Addr, Phys};
+use crate::common_items::size::{Byte, Size};
 use uefi::prelude::{Boot, SystemTable};
 use uefi::proto::media::file;
 use uefi::proto::media::file::File;
@@ -11,17 +13,11 @@ mod kernel_bytes;
 
 struct KernelFileInfo {
     name: &'static str,
-    start_address: usize,
-}
-
-const BYTES_OF_PAGE: usize = 0x1000;
-
-fn bytes_to_num_of_pages(bytes: usize) -> usize {
-    (bytes + BYTES_OF_PAGE - 1) / BYTES_OF_PAGE
+    start_address: Addr<Phys>,
 }
 
 impl KernelFileInfo {
-    const fn new(name: &'static str, start_address: usize) -> Self {
+    const fn new(name: &'static str, start_address: Addr<Phys>) -> Self {
         Self {
             name,
             start_address,
@@ -32,7 +28,7 @@ impl KernelFileInfo {
         self.name
     }
 
-    fn address(&self) -> usize {
+    fn address(&self) -> Addr<Phys> {
         self.start_address
     }
 }
@@ -40,7 +36,7 @@ impl KernelFileInfo {
 // Using the size of binary as the memory consumption is useless because the size of .bss section
 // is not included in the binary size. Using ELF file may improve effeciency as it might contain
 // the size of memory comsuption.
-const KERNEL_FILE: KernelFileInfo = KernelFileInfo::new("kernel.bin", 0x200000);
+const KERNEL_FILE: KernelFileInfo = KernelFileInfo::new("kernel.bin", Addr::new(0x200000));
 
 pub fn place_kernel(system_table: &SystemTable<Boot>) -> () {
     let mut root_dir = open_root_dir(system_table);
@@ -81,26 +77,29 @@ fn get_kernel_handler(root_dir: &mut file::Directory) -> file::RegularFile {
     unsafe { file::RegularFile::new(handler) }
 }
 
-fn allocate_for_kernel_file(system_table: &SystemTable<Boot>, kernel_bytes: usize) -> () {
+fn allocate_for_kernel_file(system_table: &SystemTable<Boot>, kernel_bytes: Size<Byte>) -> () {
     system_table
         .boot_services()
         .allocate_pages(
-            AllocateType::Address(KERNEL_FILE.address()),
+            AllocateType::Address(KERNEL_FILE.address().as_usize()),
             MemoryType::LOADER_DATA,
-            bytes_to_num_of_pages(kernel_bytes),
+            kernel_bytes.as_num_of_pages().as_usize(),
         )
         .expect_success("Failed to allocate memory for the kernel");
 
     // It is not necessary to return the address as it is fixed.
 }
 
-fn read_kernel_on_memory(handler: &mut file::RegularFile, kernel_bytes: usize) -> () {
+fn read_kernel_on_memory(handler: &mut file::RegularFile, kernel_bytes: Size<Byte>) -> () {
     // Reading should use while statement with the number of bytes which were actually read.
     // However, without while statement previous uefi implementation worked so this uefi
     // implementation also never use it.
     handler
         .read(unsafe {
-            core::slice::from_raw_parts_mut(KERNEL_FILE.address() as *mut u8, kernel_bytes)
+            core::slice::from_raw_parts_mut(
+                KERNEL_FILE.address().as_usize() as *mut u8,
+                kernel_bytes.as_usize(),
+            )
         })
         .expect_success("Failed to read kernel");
 }

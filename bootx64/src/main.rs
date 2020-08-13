@@ -1,5 +1,5 @@
 #![no_std]
-#![feature(lang_items, start, asm)]
+#![feature(start, asm)]
 #![no_main]
 
 extern crate rlibc;
