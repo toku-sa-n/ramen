@@ -1,5 +1,7 @@
 #![no_std]
 
+pub mod addr;
+
 extern crate uefi;
 
 use core::mem::size_of;
