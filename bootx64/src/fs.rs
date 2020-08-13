@@ -63,6 +63,7 @@ fn open_root_dir(system_table: &SystemTable<Boot>) -> file::Directory {
 
 fn open_kernel(system_table: &SystemTable<Boot>, root_dir: &mut file::Directory) -> () {
     let mut kernel_handler = get_kernel_handler(root_dir);
+
     allocate_for_kernel_file(system_table);
     read_kernel_on_memory(&mut kernel_handler);
 }
