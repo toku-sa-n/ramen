@@ -81,8 +81,7 @@ fn main_loop(
         } else if interrupt::mouse::QUEUE.lock().size() != 0 {
             handler::mouse_data(mouse_device, mouse_cursor, vram);
         } else {
-            interrupts::enable();
-            instructions::hlt();
+            interrupts::enable_interrupts_and_hlt();
         }
     }
 }
