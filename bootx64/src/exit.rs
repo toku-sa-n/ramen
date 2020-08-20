@@ -1,6 +1,6 @@
 use crate::common_items;
-use crate::common_items::addr::VirtAddr;
 use crate::mem::paging;
+use crate::x86_64::addr::VirtAddr;
 use core::ptr;
 use uefi::table::boot;
 
@@ -32,7 +32,7 @@ fn jump_to_kernel(boot_info: common_items::BootInfo) -> ! {
 
     unsafe {
         asm!("mov rsp, rax
-        jmp rdi",in("rax") common_items::INIT_RSP,in("rdi") fetch_entry_address().as_usize(),options(nomem, preserves_flags, nostack,noreturn));
+        jmp rdi",in("rax") common_items::INIT_RSP,in("rdi") fetch_entry_address().as_u64(),options(nomem, preserves_flags, nostack,noreturn));
     }
 }
 
