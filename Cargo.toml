@@ -24,7 +24,4 @@ crate-type = ["staticlib"]
 spin = "0.5.2"
 debug = { path = "debug" }
 common_items = { path = "common_items" }
-
-[dependencies.lazy_static]
-version = "1.4.0"
-features = ["spin_no_std"]
+lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
