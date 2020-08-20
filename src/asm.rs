@@ -1,21 +1,3 @@
-pub fn out8(port: u32, data: u8) -> () {
-    unsafe {
-        asm!("out dx, al",in("dx") port,in("al") data,options(nomem, preserves_flags, nostack));
-    }
-}
-
-// It might be true that the first line can be deleted because the lower bits of EDX are DX
-// itself.
-pub fn in8(port: u32) -> u8 {
-    let result: u8;
-    unsafe {
-        asm!("mov edx, {:e}",in(reg) port,options(nomem, preserves_flags, nostack));
-        asm!("mov eax, 0", options(nomem, preserves_flags, nostack));
-        asm!("in al, dx", out("al") result,options(nomem, preserves_flags, nostack));
-    }
-    result
-}
-
 // Don't put these asm! in one! It doesn't work!
 #[macro_export]
 macro_rules! interrupt_handler{

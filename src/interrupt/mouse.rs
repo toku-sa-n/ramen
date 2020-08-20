@@ -1,6 +1,6 @@
-use crate::asm;
 use crate::graphics;
 use crate::queue;
+use crate::x86_64::instructions::port::Port;
 
 extern crate lazy_static;
 
@@ -65,9 +65,9 @@ impl<'a> Device<'a> {
 
     pub fn enable(&self) -> () {
         super::wait_kbc_sendready();
-        asm::out8(super::PORT_KEY_CMD, super::KEY_CMD_SEND_TO_MOUSE as u8);
+        unsafe { Port::new(super::PORT_KEY_CMD).write(super::KEY_CMD_SEND_TO_MOUSE) };
         super::wait_kbc_sendready();
-        asm::out8(super::PORT_KEYDATA, super::MOUSE_CMD_ENABLE as u8);
+        unsafe { Port::new(super::PORT_KEYDATA).write(super::MOUSE_CMD_ENABLE) };
     }
 
     pub fn data_available(&self) -> bool {
