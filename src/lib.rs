@@ -6,8 +6,8 @@
 #[macro_use]
 #[allow(unused_imports)]
 extern crate debug;
-
 extern crate common_items;
+extern crate x86_64;
 
 mod asm;
 mod descriptor_table;
@@ -20,6 +20,8 @@ mod queue;
 mod graphics;
 
 use interrupt::handler;
+use x86_64::instructions;
+use x86_64::instructions::interrupts;
 
 #[no_mangle]
 #[start]
@@ -73,13 +75,14 @@ fn main_loop(
     vram: &graphics::Vram,
 ) -> () {
     loop {
-        asm::cli();
+        interrupts::disable();
         if interrupt::KEY_QUEUE.lock().size() != 0 {
             handler::keyboard_data(vram);
         } else if interrupt::mouse::QUEUE.lock().size() != 0 {
             handler::mouse_data(mouse_device, mouse_cursor, vram);
         } else {
-            asm::stihlt();
+            interrupts::enable();
+            instructions::hlt();
         }
     }
 }
@@ -87,6 +90,6 @@ fn main_loop(
 #[panic_handler]
 fn panic(_info: &core::panic::PanicInfo) -> ! {
     loop {
-        asm::hlt()
+        instructions::hlt();
     }
 }

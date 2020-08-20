@@ -1,31 +1,3 @@
-pub fn hlt() -> () {
-    unsafe {
-        asm!("hlt", options(nomem, preserves_flags, nostack));
-    }
-}
-
-pub fn sti() -> () {
-    unsafe {
-        asm!("sti", options(nomem, preserves_flags, nostack));
-    }
-}
-
-pub fn stihlt() -> () {
-    unsafe {
-        asm!(
-            "sti
-             hlt",
-            options(nomem, preserves_flags, nostack)
-        );
-    }
-}
-
-pub fn cli() -> () {
-    unsafe {
-        asm!("cli", options(nomem, preserves_flags, nostack));
-    }
-}
-
 pub fn out8(port: u32, data: u8) -> () {
     unsafe {
         asm!("out dx, al",in("dx") port,in("al") data,options(nomem, preserves_flags, nostack));

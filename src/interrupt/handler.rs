@@ -1,13 +1,13 @@
 use super::mouse;
-use crate::asm;
 use crate::graphics;
 use crate::graphics::screen;
 use crate::print_with_pos;
+use crate::x86_64::instructions::interrupts;
 
 pub fn keyboard_data(vram: &graphics::Vram) -> () {
     let data: Option<u32> = super::KEY_QUEUE.lock().dequeue();
 
-    asm::sti();
+    interrupts::enable();
 
     let mut screen: graphics::screen::Screen = graphics::screen::Screen::new(vram);
 
@@ -35,7 +35,7 @@ pub fn mouse_data(
 ) -> () {
     let data: Option<u32> = mouse::QUEUE.lock().dequeue();
 
-    asm::sti();
+    interrupts::enable();
 
     let mut screen: graphics::screen::Screen = graphics::screen::Screen::new(vram);
 
