@@ -25,10 +25,6 @@ impl Gdt {
             code_selector,
         }
     }
-
-    pub fn get_cs_index(&self) -> u16 {
-        self.code_selector.index()
-    }
 }
 
 pub fn init() -> () {
