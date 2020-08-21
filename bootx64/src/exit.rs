@@ -1,4 +1,5 @@
 use crate::common_items;
+use crate::common_items::constant::KERNEL_ADDR;
 use crate::mem::paging;
 use crate::x86_64::addr::VirtAddr;
 use core::ptr;
@@ -37,5 +38,5 @@ fn jump_to_kernel(boot_info: common_items::BootInfo) -> ! {
 }
 
 fn fetch_entry_address() -> VirtAddr {
-    VirtAddr::new(unsafe { ptr::read(0xffff_ffff_8000_0000 as *const u64) } as _)
+    VirtAddr::new(unsafe { ptr::read(KERNEL_ADDR.as_ptr::<u64>()) })
 }

@@ -1,3 +1,4 @@
+use crate::common_items::constant::KERNEL_ADDR;
 use crate::common_items::size::{Byte, Size};
 use crate::x86_64::addr::{PhysAddr, VirtAddr};
 use core::ptr;
@@ -25,7 +26,7 @@ pub fn init(mem_map: &mut [boot::MemoryDescriptor], vram: &common_items::VramInf
 
     let map_info = [
         PageMapInfo::new(
-            VirtAddr::new(0xffff_ffff_8000_0000),
+            KERNEL_ADDR,
             PhysAddr::new(0x0020_0000),
             Size::new((512 + 4 + 128) * 1024),
         ),

@@ -1,6 +1,7 @@
 #![no_std]
 #![feature(const_fn)]
 
+pub mod constant;
 pub mod size;
 
 extern crate uefi;
