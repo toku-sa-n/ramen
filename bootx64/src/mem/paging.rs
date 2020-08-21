@@ -30,7 +30,7 @@ pub fn init(mem_map: &mut [boot::MemoryDescriptor], vram: &common_items::VramInf
             PhysAddr::new(0x0020_0000),
             Size::new((512 + 4 + 128) * 1024),
         ),
-        PageMapInfo::new(VRAM_ADDR, vram.ptr(), vram.bytes()),
+        PageMapInfo::new(VRAM_ADDR, vram.phys_ptr(), vram.bytes()),
     ];
 
     for info in &map_info {

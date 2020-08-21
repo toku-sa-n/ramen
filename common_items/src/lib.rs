@@ -19,10 +19,10 @@ pub const INIT_RSP: usize = 0xffff_ffff_800a_1000 - size_of::<BootInfo>();
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VramInfo {
-    pub bpp: u16,
-    pub screen_x: u16,
-    pub screen_y: u16,
-    pub ptr: PhysAddr,
+    bpp: u16,
+    screen_x: u16,
+    screen_y: u16,
+    ptr: PhysAddr,
 }
 
 impl VramInfo {
@@ -37,7 +37,15 @@ impl VramInfo {
         }
     }
 
-    pub fn ptr(&self) -> PhysAddr {
+    pub fn bpp(&self) -> u16 {
+        self.bpp
+    }
+
+    pub fn resolution(&self) -> (u16, u16) {
+        (self.screen_x, self.screen_y)
+    }
+
+    pub fn phys_ptr(&self) -> PhysAddr {
         self.ptr
     }
 
