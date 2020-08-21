@@ -40,8 +40,6 @@ pub fn init(mem_map: &mut [boot::MemoryDescriptor], vram: &common_items::VramInf
     for info in &map_info {
         info.map(mem_map);
     }
-
-    update_vram_ptr();
 }
 
 fn remove_table_protection() -> () {
@@ -51,12 +49,6 @@ fn remove_table_protection() -> () {
         and eax, 0xfffeffff
         mov cr0, rax"
         )
-    }
-}
-
-fn update_vram_ptr() -> () {
-    unsafe {
-        ptr::write(0x0ff8 as *mut u64, 0xffff_ffff_8020_0000u64);
     }
 }
 
