@@ -1,4 +1,4 @@
-use crate::common_items::constant::KERNEL_ADDR;
+use crate::common_items::constant::*;
 use crate::common_items::size::{Byte, Size};
 use crate::x86_64::addr::{PhysAddr, VirtAddr};
 use core::ptr;
@@ -30,11 +30,7 @@ pub fn init(mem_map: &mut [boot::MemoryDescriptor], vram: &common_items::VramInf
             PhysAddr::new(0x0020_0000),
             Size::new((512 + 4 + 128) * 1024),
         ),
-        PageMapInfo::new(
-            VirtAddr::new(0xffff_ffff_8020_0000),
-            vram.ptr(),
-            vram.bytes(),
-        ),
+        PageMapInfo::new(VRAM_ADDR, vram.ptr(), vram.bytes()),
     ];
 
     for info in &map_info {
