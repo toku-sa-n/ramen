@@ -10,11 +10,9 @@ extern crate debug;
 extern crate common_items;
 extern crate x86_64;
 
-mod asm;
 mod gdt;
 mod idt;
 mod interrupt;
-mod memory;
 mod queue;
 
 #[macro_use]
