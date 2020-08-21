@@ -25,3 +25,4 @@ spin = "0.5.2"
 debug = { path = "debug" }
 common_items = { path = "common_items" }
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
+x86_64 = "0.11.2"

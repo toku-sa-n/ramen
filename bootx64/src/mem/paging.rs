@@ -1,5 +1,5 @@
-use crate::common_items::addr::{PhysAddr, VirtAddr};
 use crate::common_items::size::{Byte, Size};
+use crate::x86_64::addr::{PhysAddr, VirtAddr};
 use core::ptr;
 use uefi::table::boot;
 use uefi::table::boot::MemoryType;
@@ -60,7 +60,7 @@ fn update_vram_ptr() -> () {
 }
 
 fn get_vram_ptr() -> PhysAddr {
-    PhysAddr::new(unsafe { ptr::read(0x0ff8 as *const u64) as usize })
+    PhysAddr::new(unsafe { ptr::read(0x0ff8 as *const u64) })
 }
 
 fn calculate_vram_bytes() -> Size<Byte> {
@@ -81,11 +81,7 @@ fn map_virt_to_phys(
     let num_of_pages = bytes.as_num_of_pages().as_usize();
 
     for i in 0..num_of_pages {
-        virt_points_phys(
-            virt.offset((BYTES_OF_PAGE * i) as isize),
-            phys.offset((BYTES_OF_PAGE * i) as isize),
-            mem_map,
-        );
+        virt_points_phys(virt + BYTES_OF_PAGE * i, phys + BYTES_OF_PAGE * i, mem_map);
     }
 }
 
@@ -112,13 +108,13 @@ fn virt_points_phys_recur(
     let ptr_to_entry = ptr_to_entry(virt, table_addr, table);
 
     if let TableType::Pt = table {
-        return unsafe { ptr::write(ptr_to_entry, phys.as_usize() | PAGE_EXISTS) };
+        return unsafe { ptr::write(ptr_to_entry, phys.as_u64() as usize | PAGE_EXISTS) };
     }
 
     let mut entry = unsafe { ptr::read(ptr_to_entry) };
 
     if !entry_exists(entry) {
-        entry = create_table(mem_map).as_usize() | PAGE_EXISTS;
+        entry = create_table(mem_map).as_u64() as usize | PAGE_EXISTS;
         unsafe { ptr::write(ptr_to_entry, entry) }
     }
 
@@ -132,21 +128,19 @@ fn virt_points_phys_recur(
 }
 
 fn get_offset_of_entry(virt_addr: VirtAddr, table: TableType) -> usize {
-    (virt_addr.as_usize()
+    (virt_addr.as_u64()
         >> match table {
             TableType::Pml4 => 39,
             TableType::Pdpt => 30,
             TableType::Pd => 21,
             TableType::Pt => 12,
         }
-        & 0x1ff)
+        & 0x1ff) as usize
         * TABLE_ENTRY_SIZE
 }
 
 fn ptr_to_entry(virt: VirtAddr, table_addr: PhysAddr, table: TableType) -> *mut usize {
-    table_addr
-        .offset(get_offset_of_entry(virt, table) as isize)
-        .as_mut_ptr()
+    (table_addr + get_offset_of_entry(virt, table)).as_u64() as _
 }
 
 fn entry_exists(entry: usize) -> bool {
@@ -161,7 +155,7 @@ fn create_table(mem_map: &mut [boot::MemoryDescriptor]) -> PhysAddr {
 }
 
 fn get_addr_from_table_entry(entry: usize) -> PhysAddr {
-    PhysAddr::new(entry & 0xffff_ffff_ffff_f000)
+    PhysAddr::new(entry as u64 & 0xffff_ffff_ffff_f000)
 }
 
 fn allocate_page_for_page_table(mem_map: &mut [boot::MemoryDescriptor]) -> PhysAddr {
@@ -180,7 +174,7 @@ fn allocate_page_for_page_table(mem_map: &mut [boot::MemoryDescriptor]) -> PhysA
 }
 
 unsafe fn initialize_page_table(table_addr: PhysAddr) -> () {
-    ptr::write_bytes(table_addr.as_usize() as *mut u8, 0, BYTES_OF_PAGE)
+    ptr::write_bytes(table_addr.as_u64() as *mut u8, 0, BYTES_OF_PAGE)
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]

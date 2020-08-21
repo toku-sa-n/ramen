@@ -1,5 +1,5 @@
-use crate::common_items::addr::VirtAddr;
 use crate::common_items::size::{Byte, Size};
+use crate::x86_64::addr::VirtAddr;
 use core::ptr;
 use uefi::proto::media::file;
 

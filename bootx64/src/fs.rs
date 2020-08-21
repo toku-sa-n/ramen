@@ -1,5 +1,5 @@
-use crate::common_items::addr::PhysAddr;
 use crate::common_items::size::{Byte, Size};
+use crate::x86_64::addr::PhysAddr;
 use uefi::prelude::{Boot, SystemTable};
 use uefi::proto::media::file;
 use uefi::proto::media::file::File;
@@ -13,11 +13,11 @@ mod kernel_bytes;
 
 struct KernelFileInfo {
     name: &'static str,
-    start_address: PhysAddr,
+    start_address: u64,
 }
 
 impl KernelFileInfo {
-    const fn new(name: &'static str, start_address: PhysAddr) -> Self {
+    const fn new(name: &'static str, start_address: u64) -> Self {
         Self {
             name,
             start_address,
@@ -29,14 +29,14 @@ impl KernelFileInfo {
     }
 
     fn address(&self) -> PhysAddr {
-        self.start_address
+        PhysAddr::new(self.start_address)
     }
 }
 
 // Using the size of binary as the memory consumption is useless because the size of .bss section
 // is not included in the binary size. Using ELF file may improve effeciency as it might contain
 // the size of memory comsuption.
-const KERNEL_FILE: KernelFileInfo = KernelFileInfo::new("kernel.bin", PhysAddr::new(0x200000));
+const KERNEL_FILE: KernelFileInfo = KernelFileInfo::new("kernel.bin", 0x200000);
 
 pub fn place_kernel(system_table: &SystemTable<Boot>) -> () {
     let mut root_dir = open_root_dir(system_table);
@@ -81,7 +81,7 @@ fn allocate_for_kernel_file(system_table: &SystemTable<Boot>, kernel_bytes: Size
     system_table
         .boot_services()
         .allocate_pages(
-            AllocateType::Address(KERNEL_FILE.address().as_usize()),
+            AllocateType::Address(KERNEL_FILE.address().as_u64() as usize),
             MemoryType::LOADER_DATA,
             kernel_bytes.as_num_of_pages().as_usize(),
         )
@@ -97,7 +97,7 @@ fn read_kernel_on_memory(handler: &mut file::RegularFile, kernel_bytes: Size<Byt
     handler
         .read(unsafe {
             core::slice::from_raw_parts_mut(
-                KERNEL_FILE.address().as_usize() as *mut u8,
+                KERNEL_FILE.address().as_u64() as *mut u8,
                 kernel_bytes.as_usize(),
             )
         })

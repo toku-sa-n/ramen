@@ -16,6 +16,8 @@ extern crate debug;
 
 extern crate common_items;
 
+extern crate x86_64;
+
 mod exit;
 mod fs;
 mod gop;
