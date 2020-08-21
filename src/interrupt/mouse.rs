@@ -106,7 +106,7 @@ impl<'a> Device<'a> {
         data & 0xC8 == 0x08
     }
 
-    pub fn clear_stack(&mut self) -> () {
+    fn clear_stack(&mut self) -> () {
         self.phase = DevicePhase::NoData;
     }
 
@@ -125,7 +125,7 @@ impl<'a> Device<'a> {
 
         self.speed.y = -self.speed.y;
 
-        self.phase = DevicePhase::NoData;
+        self.clear_stack();
     }
 
     pub fn get_speed(&self) -> graphics::screen::Coord<isize> {
