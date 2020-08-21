@@ -4,11 +4,14 @@
 pub mod size;
 
 extern crate uefi;
+extern crate x86_64;
 
 use core::mem::size_of;
 use core::ptr;
+use size::{Byte, Size};
 use uefi::proto::console::gop;
 use uefi::table::boot;
+use x86_64::addr::PhysAddr;
 
 pub const INIT_RSP: usize = 0xffff_ffff_800a_1000 - size_of::<BootInfo>();
 
@@ -18,7 +21,7 @@ pub struct VramInfo {
     pub bpp: u16,
     pub screen_x: u16,
     pub screen_y: u16,
-    pub ptr: u64,
+    pub ptr: PhysAddr,
 }
 
 impl VramInfo {
@@ -29,8 +32,16 @@ impl VramInfo {
             bpp: 32,
             screen_x: screen_x as u16,
             screen_y: screen_y as u16,
-            ptr: gop.frame_buffer().as_mut_ptr() as u64,
+            ptr: PhysAddr::new(gop.frame_buffer().as_mut_ptr() as u64),
         }
+    }
+
+    pub fn ptr(&self) -> PhysAddr {
+        self.ptr
+    }
+
+    pub fn bytes(&self) -> Size<Byte> {
+        Size::new(self.screen_x as usize * self.screen_y as usize * self.bpp as usize / 8)
     }
 }
 

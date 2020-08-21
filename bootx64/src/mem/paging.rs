@@ -20,7 +20,7 @@ impl PageMapInfo {
     }
 }
 
-pub fn init(mem_map: &mut [boot::MemoryDescriptor]) -> () {
+pub fn init(mem_map: &mut [boot::MemoryDescriptor], vram: &common_items::VramInfo) -> () {
     remove_table_protection();
 
     let map_info = [
@@ -31,8 +31,8 @@ pub fn init(mem_map: &mut [boot::MemoryDescriptor]) -> () {
         ),
         PageMapInfo::new(
             VirtAddr::new(0xffff_ffff_8020_0000),
-            get_vram_ptr(),
-            calculate_vram_bytes(),
+            vram.ptr(),
+            vram.bytes(),
         ),
     ];
 
@@ -57,19 +57,6 @@ fn update_vram_ptr() -> () {
     unsafe {
         ptr::write(0x0ff8 as *mut u64, 0xffff_ffff_8020_0000u64);
     }
-}
-
-fn get_vram_ptr() -> PhysAddr {
-    PhysAddr::new(unsafe { ptr::read(0x0ff8 as *const u64) })
-}
-
-fn calculate_vram_bytes() -> Size<Byte> {
-    Size::new(unsafe {
-        ptr::read(0x0ff2 as *const u8) as usize
-            * ptr::read(0x0ff4 as *const u16) as usize
-            * ptr::read(0x0ff6 as *const u16) as usize
-            / 8
-    })
 }
 
 fn map_virt_to_phys(
