@@ -13,7 +13,6 @@ extern crate x86_64;
 mod gdt;
 mod idt;
 mod interrupt;
-mod memory;
 mod queue;
 
 #[macro_use]
