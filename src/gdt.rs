@@ -6,7 +6,6 @@ use lazy_static::lazy_static;
 lazy_static! {
     pub static ref GDT: Gdt = {
         let mut gdt = GlobalDescriptorTable::new();
-        gdt.add_entry(Descriptor::kernel_code_segment());
         let code_selector = gdt.add_entry(Descriptor::kernel_code_segment());
 
         Gdt::new(gdt, code_selector)
