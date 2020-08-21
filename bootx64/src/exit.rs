@@ -10,7 +10,7 @@ pub fn bootx64<'a>(
 ) -> ! {
     disable_interruption();
 
-    paging::init(mem_map);
+    paging::init(mem_map, &boot_info.vram());
     jump_to_kernel(boot_info);
 }
 

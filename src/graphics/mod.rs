@@ -46,7 +46,7 @@ impl Vram {
             bits_per_pixel: bpp,
             x_len: screen_x,
             y_len: screen_y,
-            ptr: ptr as *mut u8,
+            ptr: ptr.as_u64() as _,
         }
     }
 }
