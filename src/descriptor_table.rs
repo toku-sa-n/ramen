@@ -1,5 +1,7 @@
 // See P.114
 
+use crate::gdt::GDT;
+
 const VIRTUAL_ADDRESS_IDT: u64 = 0xFFFFFFFF80080000;
 const LIMIT_INTERRUPT_DESCRIPTOR_TABLE: u16 = 0x000007FF;
 const ACCESS_RIGHT_IDT: u32 = 0x008E;
@@ -56,12 +58,12 @@ fn set_interruption() {
     unsafe {
         (*interrupt_descriptor_table.offset(0x21)).set_gate_descriptor(
             interrupt_handler!(interrupt_handler_21) as u64,
-            2 * 8,
+            GDT.get_cs_index() << 3,
             ACCESS_RIGHT_IDT,
         );
         (*interrupt_descriptor_table.offset(0x2C)).set_gate_descriptor(
             interrupt_handler!(interrupt_handler_2c) as u64,
-            2 * 8,
+            GDT.get_cs_index() << 3,
             ACCESS_RIGHT_IDT,
         );
     }
