@@ -11,8 +11,8 @@ extern crate common_items;
 extern crate x86_64;
 
 mod asm;
-mod descriptor_table;
 mod gdt;
+mod idt;
 mod interrupt;
 mod memory;
 mod queue;
@@ -48,7 +48,7 @@ fn initialization(
     vram: &graphics::Vram,
 ) -> () {
     gdt::init();
-    descriptor_table::init();
+    idt::init();
     interrupt::init_pic();
     // Temporarily disable interruption to see whether desktop is drawn successfully or not.
     // asm::sti();
