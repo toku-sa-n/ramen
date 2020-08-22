@@ -17,7 +17,7 @@ pub struct Size<T: Unit> {
 }
 
 impl<T: Unit> Size<T> {
-    pub fn new(num: usize) -> Self {
+    pub const fn new(num: usize) -> Self {
         Self {
             num,
             _marker: PhantomData,
@@ -38,7 +38,7 @@ impl Size<Byte> {
 }
 
 impl Size<NumOfPages> {
-    pub fn as_byes(&self) -> Size<Byte> {
+    pub fn as_bytes(&self) -> Size<Byte> {
         Size::new(self.num * BYTES_OF_PAGE)
     }
 }

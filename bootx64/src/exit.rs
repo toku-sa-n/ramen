@@ -1,17 +1,19 @@
-use crate::common_items;
-use crate::common_items::constant::KERNEL_ADDR;
 use crate::mem::paging;
-use crate::x86_64::addr::VirtAddr;
+use common_items::constant::{INIT_RSP, KERNEL_ADDR};
+use common_items::size::{Byte, Size};
 use core::ptr;
 use uefi::table::boot;
+use x86_64::{PhysAddr, VirtAddr};
 
 pub fn bootx64<'a>(
     mem_map: &'a mut [boot::MemoryDescriptor],
     boot_info: common_items::BootInfo,
+    bytes_kernel: Size<Byte>,
+    stack_addr: PhysAddr,
 ) -> ! {
     disable_interruption();
 
-    paging::init(mem_map, &boot_info.vram());
+    paging::init(mem_map, &boot_info.vram(), bytes_kernel, stack_addr);
     jump_to_kernel(boot_info);
 }
 
@@ -33,7 +35,7 @@ fn jump_to_kernel(boot_info: common_items::BootInfo) -> ! {
 
     unsafe {
         asm!("mov rsp, rax
-        jmp rdi",in("rax") common_items::INIT_RSP,in("rdi") fetch_entry_address().as_u64(),options(nomem, preserves_flags, nostack,noreturn));
+        jmp rdi",in("rax") INIT_RSP.as_u64(),in("rdi") fetch_entry_address().as_u64(),options(nomem, preserves_flags, nostack,noreturn));
     }
 }
 

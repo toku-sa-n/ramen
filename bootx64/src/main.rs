@@ -26,6 +26,7 @@ mod mem;
 
 use core::ptr;
 use core::slice;
+use mem::stack;
 use uefi::prelude::{Boot, Handle, SystemTable};
 use uefi::table::boot;
 use uefi::table::boot::MemoryType;
@@ -38,7 +39,9 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
 
     let vram_info = gop::init(&system_table);
 
-    fs::place_kernel(&system_table);
+    let bytes_kernel = fs::place_kernel(&system_table);
+
+    let stack_addr = stack::allocate(system_table.boot_services());
     let mem_map = terminate_boot_services(image, system_table);
 
     let mem_map_info = common_items::MemMapInfo::new_from_slice(mem_map);
@@ -46,6 +49,8 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     exit::bootx64(
         mem_map,
         common_items::BootInfo::new(vram_info, mem_map_info),
+        bytes_kernel,
+        stack_addr,
     );
 }
 
