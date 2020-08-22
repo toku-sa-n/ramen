@@ -38,10 +38,10 @@ impl KernelFileInfo {
 // the size of memory comsuption.
 const KERNEL_FILE: KernelFileInfo = KernelFileInfo::new("kernel.bin", 0x200000);
 
-pub fn place_kernel(system_table: &SystemTable<Boot>) -> () {
+pub fn place_kernel(system_table: &SystemTable<Boot>) -> Size<Byte> {
     let mut root_dir = open_root_dir(system_table);
 
-    open_kernel(system_table, &mut root_dir);
+    open_kernel(system_table, &mut root_dir)
 }
 
 fn open_root_dir(system_table: &SystemTable<Boot>) -> file::Directory {
@@ -57,12 +57,14 @@ fn open_root_dir(system_table: &SystemTable<Boot>) -> file::Directory {
         .expect_success("Failed to open the root directory.")
 }
 
-fn open_kernel(system_table: &SystemTable<Boot>, root_dir: &mut file::Directory) -> () {
+fn open_kernel(system_table: &SystemTable<Boot>, root_dir: &mut file::Directory) -> Size<Byte> {
     let kernel_bytes = kernel_bytes::get(root_dir);
     let mut kernel_handler = get_kernel_handler(root_dir);
 
     allocate_for_kernel_file(system_table, kernel_bytes);
     read_kernel_on_memory(&mut kernel_handler, kernel_bytes);
+
+    kernel_bytes
 }
 
 fn get_kernel_handler(root_dir: &mut file::Directory) -> file::RegularFile {

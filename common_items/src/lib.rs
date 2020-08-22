@@ -1,27 +1,26 @@
 #![no_std]
 #![feature(const_fn)]
 
+pub mod constant;
 pub mod size;
 
 extern crate uefi;
 extern crate x86_64;
 
-use core::mem::size_of;
+use crate::constant::INIT_RSP;
 use core::ptr;
 use size::{Byte, Size};
 use uefi::proto::console::gop;
 use uefi::table::boot;
 use x86_64::addr::PhysAddr;
 
-pub const INIT_RSP: usize = 0xffff_ffff_800a_1000 - size_of::<BootInfo>();
-
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VramInfo {
-    pub bpp: u16,
-    pub screen_x: u16,
-    pub screen_y: u16,
-    pub ptr: PhysAddr,
+    bpp: u16,
+    screen_x: u16,
+    screen_y: u16,
+    ptr: PhysAddr,
 }
 
 impl VramInfo {
@@ -36,7 +35,15 @@ impl VramInfo {
         }
     }
 
-    pub fn ptr(&self) -> PhysAddr {
+    pub fn bpp(&self) -> u16 {
+        self.bpp
+    }
+
+    pub fn resolution(&self) -> (u16, u16) {
+        (self.screen_x, self.screen_y)
+    }
+
+    pub fn phys_ptr(&self) -> PhysAddr {
         self.ptr
     }
 
@@ -83,11 +90,11 @@ impl BootInfo {
 
     pub fn set(self) -> () {
         unsafe {
-            ptr::write(INIT_RSP as *mut BootInfo, self);
+            ptr::write(INIT_RSP.as_mut_ptr() as _, self);
         }
     }
 
     pub fn get() -> Self {
-        unsafe { ptr::read(INIT_RSP as *mut BootInfo) }
+        unsafe { ptr::read(INIT_RSP.as_mut_ptr() as _) }
     }
 }

@@ -8,9 +8,10 @@ MEMORY{
 
 SECTIONS
 {
+
     .head 0xffffffff80000000 : {
         QUAD(os_main)
-        QUAD(SIZEOF(.head) + SIZEOF(.text) + SIZEOF(.data))
+        QUAD(tail_addr - ADDR(.head))
     } > kernel
 
     .text : {
@@ -23,5 +24,13 @@ SECTIONS
         *(.bss)
     } > kernel
 
+    .bss : {
+        .start = .;
+        *(.bss)
+        .end = .;
+    } > kernel
+
     /DISCARD/ : { *(.eh_frame) }
+
+    tail_addr = .;
 }
