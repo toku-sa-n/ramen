@@ -1,4 +1,5 @@
 use core::marker::PhantomData;
+use core::ops::Add;
 
 pub trait Unit {}
 
@@ -40,5 +41,37 @@ impl Size<Byte> {
 impl Size<NumOfPages> {
     pub fn as_bytes(&self) -> Size<Byte> {
         Size::new(self.num * BYTES_OF_PAGE)
+    }
+}
+
+impl Add<usize> for Size<Byte> {
+    type Output = Self;
+
+    fn add(self, rhs: usize) -> Self {
+        Self::new(self.as_usize() + rhs)
+    }
+}
+
+impl Add<u64> for Size<Byte> {
+    type Output = Self;
+
+    fn add(self, rhs: u64) -> Self {
+        self + rhs as usize
+    }
+}
+
+impl Add<usize> for Size<NumOfPages> {
+    type Output = Self;
+
+    fn add(self, rhs: usize) -> Self {
+        Self::new(self.as_usize() + rhs)
+    }
+}
+
+impl Add<u64> for Size<NumOfPages> {
+    type Output = Self;
+
+    fn add(self, rhs: u64) -> Self {
+        self + rhs as usize
     }
 }
