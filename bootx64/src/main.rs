@@ -21,7 +21,6 @@ extern crate x86_64;
 mod exit;
 mod fs;
 mod gop;
-mod init;
 mod mem;
 
 use core::ptr;
@@ -36,7 +35,7 @@ use uefi::ResultExt;
 #[start]
 #[no_mangle]
 pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
-    init::uefi(&system_table);
+    uefi(&system_table);
 
     let vram_info = gop::init(system_table.boot_services());
 
@@ -56,6 +55,24 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     );
 }
 
+fn uefi(system_table: &SystemTable<Boot>) -> () {
+    initialize_uefi_utilities(&system_table);
+    reset_console(&system_table);
+    info!("Hello World!");
+}
+
+/// Initialize uefi-rs services. This includes initialization of GlobalAlloc, which enables us to
+/// use Collections defined in alloc module, such as Vec and LinkedList.
+fn initialize_uefi_utilities(system_table: &SystemTable<Boot>) -> () {
+    uefi_services::init(system_table).expect_success("Failed to initialize_uefi_utilities");
+}
+
+fn reset_console(system_table: &SystemTable<Boot>) -> () {
+    system_table
+        .stdout()
+        .reset(false)
+        .expect_success("Failed to reset stdout");
+}
 fn terminate_boot_services<'a>(
     image: Handle,
     system_table: SystemTable<Boot>,
