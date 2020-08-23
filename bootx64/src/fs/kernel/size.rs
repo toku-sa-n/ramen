@@ -20,7 +20,7 @@ impl KernelHeader {
 }
 
 pub fn get(root_dir: &mut file::Directory) -> Size<Byte> {
-    let mut handler = super::get_kernel_handler(root_dir);
+    let mut handler = super::get_handler(root_dir);
 
     let mut header = [0u8; 16];
 

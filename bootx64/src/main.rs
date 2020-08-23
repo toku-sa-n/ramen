@@ -26,6 +26,7 @@ mod mem;
 
 use core::ptr;
 use core::slice;
+use fs::kernel;
 use mem::stack;
 use uefi::prelude::{Boot, Handle, SystemTable};
 use uefi::table::boot;
@@ -39,7 +40,7 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
 
     let vram_info = gop::init(&system_table);
 
-    let (kernel_addr, bytes_kernel) = fs::place_kernel(&system_table);
+    let (kernel_addr, bytes_kernel) = kernel::deploy(&system_table);
 
     let stack_addr = stack::allocate(system_table.boot_services());
     let mem_map = terminate_boot_services(image, system_table);
