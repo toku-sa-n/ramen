@@ -24,13 +24,14 @@ impl PageMapInfo {
 pub fn init(
     mem_map: &mut [boot::MemoryDescriptor],
     vram: &common_items::VramInfo,
+    addr_kernel: PhysAddr,
     bytes_kernel: Size<Byte>,
     stack_addr: PhysAddr,
 ) -> () {
     remove_table_protection();
 
     let map_info = [
-        PageMapInfo::new(KERNEL_ADDR, PhysAddr::new(0x0020_0000), bytes_kernel),
+        PageMapInfo::new(KERNEL_ADDR, addr_kernel, bytes_kernel),
         PageMapInfo::new(VRAM_ADDR, vram.phys_ptr(), vram.bytes()),
         PageMapInfo::new(
             STACK_BASE - NUM_OF_PAGES_STACK.as_bytes().as_usize(),

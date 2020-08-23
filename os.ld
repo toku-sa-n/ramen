@@ -20,17 +20,19 @@ SECTIONS
 
     .data : {
         *(.data)
+    } > kernel
+
+    .rodata : {
         *(.rodata*)
-        *(.bss)
     } > kernel
 
     .bss : {
-        .start = .;
         *(.bss)
-        .end = .;
     } > kernel
 
-    /DISCARD/ : { *(.eh_frame) }
+    .eh_frame : {
+        *(.eh_frame)
+    } > kernel
 
     tail_addr = .;
 }

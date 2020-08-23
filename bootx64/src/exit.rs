@@ -8,12 +8,19 @@ use x86_64::{PhysAddr, VirtAddr};
 pub fn bootx64<'a>(
     mem_map: &'a mut [boot::MemoryDescriptor],
     boot_info: common_items::BootInfo,
+    kernel_addr: PhysAddr,
     bytes_kernel: Size<Byte>,
     stack_addr: PhysAddr,
 ) -> ! {
     disable_interruption();
 
-    paging::init(mem_map, &boot_info.vram(), bytes_kernel, stack_addr);
+    paging::init(
+        mem_map,
+        &boot_info.vram(),
+        kernel_addr,
+        bytes_kernel,
+        stack_addr,
+    );
     jump_to_kernel(boot_info);
 }
 
