@@ -10,3 +10,5 @@ pub const INIT_RSP: VirtAddr =
     VirtAddr::new_truncate(STACK_BASE.as_u64() - size_of::<BootInfo>() as u64);
 
 pub const NUM_OF_PAGES_STACK: Size<NumOfPages> = Size::new(16);
+
+pub const KERNEL_NAME: &'static str = "kernel.bin";

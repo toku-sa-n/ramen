@@ -1,3 +1,4 @@
+use common_items::constant::KERNEL_NAME;
 use common_items::size::{Byte, Size};
 use uefi::prelude::{Boot, SystemTable};
 use uefi::proto::media::file;
@@ -10,25 +11,6 @@ use uefi::ResultExt;
 use x86_64::PhysAddr;
 
 mod kernel_bytes;
-
-struct KernelFileInfo {
-    name: &'static str,
-}
-
-impl KernelFileInfo {
-    const fn new(name: &'static str) -> Self {
-        Self { name }
-    }
-
-    fn get_filename(&self) -> &'static str {
-        self.name
-    }
-}
-
-// Using the size of binary as the memory consumption is useless because the size of .bss section
-// is not included in the binary size. Using ELF file may improve effeciency as it might contain
-// the size of memory comsuption.
-const KERNEL_FILE: KernelFileInfo = KernelFileInfo::new("kernel.bin");
 
 pub fn place_kernel(system_table: &SystemTable<Boot>) -> (PhysAddr, Size<Byte>) {
     let mut root_dir = open_root_dir(system_table);
@@ -64,11 +46,7 @@ fn open_kernel(
 
 fn get_kernel_handler(root_dir: &mut file::Directory) -> file::RegularFile {
     let handler = root_dir
-        .open(
-            KERNEL_FILE.get_filename(),
-            FileMode::Read,
-            FileAttribute::empty(),
-        )
+        .open(KERNEL_NAME, FileMode::Read, FileAttribute::empty())
         .expect_success("Failed to get file handler of the kernel.");
 
     unsafe { file::RegularFile::new(handler) }
