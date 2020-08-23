@@ -1,3 +1,4 @@
+use super::root_dir;
 use common_items::constant::KERNEL_NAME;
 use common_items::size::{Byte, Size};
 use uefi::prelude::{Boot, SystemTable};
@@ -5,46 +6,32 @@ use uefi::proto::media::file;
 use uefi::proto::media::file::File;
 use uefi::proto::media::file::FileAttribute;
 use uefi::proto::media::file::FileMode;
-use uefi::proto::media::fs;
 use uefi::table::boot::{AllocateType, MemoryType};
 use uefi::ResultExt;
 use x86_64::PhysAddr;
 
-mod kernel_bytes;
+mod size;
 
-pub fn place_kernel(system_table: &SystemTable<Boot>) -> (PhysAddr, Size<Byte>) {
-    let mut root_dir = open_root_dir(system_table);
+pub fn deploy(system_table: &SystemTable<Boot>) -> (PhysAddr, Size<Byte>) {
+    let mut root_dir = root_dir::open(system_table);
 
-    open_kernel(system_table, &mut root_dir)
+    locate(system_table, &mut root_dir)
 }
 
-fn open_root_dir(system_table: &SystemTable<Boot>) -> file::Directory {
-    let simple_file_system = system_table
-        .boot_services()
-        .locate_protocol::<fs::SimpleFileSystem>()
-        .expect_success("Failed to prepare simple file system.");
-
-    let simple_file_system = unsafe { &mut *simple_file_system.get() };
-
-    simple_file_system
-        .open_volume()
-        .expect_success("Failed to open the root directory.")
-}
-
-fn open_kernel(
+fn locate(
     system_table: &SystemTable<Boot>,
     root_dir: &mut file::Directory,
 ) -> (PhysAddr, Size<Byte>) {
-    let kernel_bytes = kernel_bytes::get(root_dir);
-    let mut kernel_handler = get_kernel_handler(root_dir);
+    let kernel_bytes = size::get(root_dir);
+    let mut kernel_handler = get_handler(root_dir);
 
-    let addr = allocate_for_kernel_file(system_table, kernel_bytes);
-    read_kernel_on_memory(&mut kernel_handler, addr, kernel_bytes);
+    let addr = allocate(system_table, kernel_bytes);
+    put_on_memory(&mut kernel_handler, addr, kernel_bytes);
 
     (addr, kernel_bytes)
 }
 
-fn get_kernel_handler(root_dir: &mut file::Directory) -> file::RegularFile {
+fn get_handler(root_dir: &mut file::Directory) -> file::RegularFile {
     let handler = root_dir
         .open(KERNEL_NAME, FileMode::Read, FileAttribute::empty())
         .expect_success("Failed to get file handler of the kernel.");
@@ -52,10 +39,7 @@ fn get_kernel_handler(root_dir: &mut file::Directory) -> file::RegularFile {
     unsafe { file::RegularFile::new(handler) }
 }
 
-fn allocate_for_kernel_file(
-    system_table: &SystemTable<Boot>,
-    kernel_bytes: Size<Byte>,
-) -> PhysAddr {
+fn allocate(system_table: &SystemTable<Boot>, kernel_bytes: Size<Byte>) -> PhysAddr {
     PhysAddr::new(
         system_table
             .boot_services()
@@ -68,7 +52,7 @@ fn allocate_for_kernel_file(
     )
 }
 
-fn read_kernel_on_memory(
+fn put_on_memory(
     handler: &mut file::RegularFile,
     kernel_addr: PhysAddr,
     kernel_bytes: Size<Byte>,
