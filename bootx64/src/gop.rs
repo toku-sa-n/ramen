@@ -1,19 +1,18 @@
 use core::mem::MaybeUninit;
-use uefi::prelude::{Boot, SystemTable};
 use uefi::proto::console::gop;
 use uefi::proto::console::gop::PixelFormat;
+use uefi::table::boot;
 use uefi::ResultExt;
 
-pub fn init(system_table: &SystemTable<Boot>) -> common_items::VramInfo {
-    let gop = fetch_gop(system_table);
+pub fn init(boot_services: &boot::BootServices) -> common_items::VramInfo {
+    let gop = fetch_gop(boot_services);
     set_resolution(gop);
 
     common_items::VramInfo::new_from_gop(gop)
 }
 
-fn fetch_gop<'a>(system_table: &'a SystemTable<Boot>) -> &'a mut gop::GraphicsOutput<'a> {
-    let gop = system_table
-        .boot_services()
+fn fetch_gop<'a>(boot_services: &boot::BootServices) -> &'a mut gop::GraphicsOutput<'a> {
+    let gop = boot_services
         .locate_protocol::<gop::GraphicsOutput>()
         .expect_success("Your computer does not support Graphics Output Protocol!");
 

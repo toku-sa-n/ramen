@@ -38,9 +38,9 @@ use uefi::ResultExt;
 pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     init::uefi(&system_table);
 
-    let vram_info = gop::init(&system_table);
+    let vram_info = gop::init(system_table.boot_services());
 
-    let (kernel_addr, bytes_kernel) = kernel::deploy(&system_table);
+    let (kernel_addr, bytes_kernel) = kernel::deploy(system_table.boot_services());
 
     let stack_addr = stack::allocate(system_table.boot_services());
     let mem_map = terminate_boot_services(image, system_table);
