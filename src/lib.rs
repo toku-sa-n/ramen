@@ -48,8 +48,6 @@ fn initialization(
     gdt::init();
     idt::init();
     interrupt::init_pic();
-    // Temporarily disable interruption to see whether desktop is drawn successfully or not.
-    // asm::sti();
 
     graphics::screen::draw_desktop(&vram);
 
