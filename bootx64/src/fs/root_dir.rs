@@ -1,11 +1,10 @@
-use uefi::prelude::{Boot, SystemTable};
 use uefi::proto::media::file;
 use uefi::proto::media::fs;
+use uefi::table::boot;
 use uefi::ResultExt;
 
-pub fn open(system_table: &SystemTable<Boot>) -> file::Directory {
-    let simple_file_system = system_table
-        .boot_services()
+pub fn open(boot_services: &boot::BootServices) -> file::Directory {
+    let simple_file_system = boot_services
         .locate_protocol::<fs::SimpleFileSystem>()
         .expect_success("Failed to prepare simple file system.");
 
