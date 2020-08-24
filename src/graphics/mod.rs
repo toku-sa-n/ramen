@@ -28,9 +28,9 @@ impl RGB {
 
 #[derive(Clone)]
 pub struct Vram {
-    pub bits_per_pixel: u16,
-    pub x_len: u16,
-    pub y_len: u16,
+    pub bits_per_pixel: usize,
+    pub x_len: usize,
+    pub y_len: usize,
     pub ptr: *mut u8,
 }
 
