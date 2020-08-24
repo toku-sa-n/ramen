@@ -19,6 +19,7 @@ extern crate common_items;
 
 extern crate x86_64;
 
+mod elf;
 mod exit;
 mod fs;
 mod gop;
