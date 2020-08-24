@@ -1,6 +1,9 @@
 use super::root_dir;
-use common_items::constant::KERNEL_NAME;
+use common_items::constant::{KERNEL_ADDR, KERNEL_NAME};
 use common_items::size::{Byte, Size};
+use core::cmp;
+use core::slice;
+use elf_rs::Elf;
 use uefi::proto::media::file;
 use uefi::proto::media::file::File;
 use uefi::proto::media::file::FileAttribute;
@@ -8,7 +11,7 @@ use uefi::proto::media::file::FileMode;
 use uefi::table::boot;
 use uefi::table::boot::{AllocateType, MemoryType};
 use uefi::ResultExt;
-use x86_64::PhysAddr;
+use x86_64::{PhysAddr, VirtAddr};
 
 mod size;
 
@@ -29,6 +32,34 @@ fn locate(
     put_on_memory(&mut kernel_handler, addr, kernel_bytes);
 
     (addr, kernel_bytes)
+}
+
+pub fn fetch_entry_address_and_memory_size(
+    addr: PhysAddr,
+    bytes: Size<Byte>,
+) -> (VirtAddr, Size<Byte>) {
+    let elf =
+        Elf::from_bytes(unsafe { slice::from_raw_parts(addr.as_u64() as _, bytes.as_usize()) });
+
+    let elf = match elf {
+        Ok(elf) => elf,
+        Err(e) => panic!("Could not get ELF information from the kernel: {:?}", e),
+    };
+
+    match elf {
+        Elf::Elf32(_) => panic!("32-bit kernel is not supported"),
+        Elf::Elf64(elf) => {
+            let entry_addr = VirtAddr::new(elf.header().entry_point());
+            let memory_size = elf
+                .program_header_iter()
+                .fold(Size::<Byte>::new(0), |acc, x| {
+                    cmp::max(acc, Size::new((x.ph.vaddr() + x.ph.memsz()) as _))
+                })
+                - KERNEL_ADDR.as_u64();
+
+            (entry_addr, memory_size)
+        }
+    }
 }
 
 fn get_handler(root_dir: &mut file::Directory) -> file::RegularFile {

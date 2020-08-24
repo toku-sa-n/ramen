@@ -1,13 +1,13 @@
 use crate::mem::paging;
-use common_items::constant::{INIT_RSP, KERNEL_ADDR};
+use common_items::constant::INIT_RSP;
 use common_items::size::{Byte, Size};
-use core::ptr;
 use uefi::table::boot;
 use x86_64::{PhysAddr, VirtAddr};
 
 pub fn bootx64<'a>(
     mem_map: &'a mut [boot::MemoryDescriptor],
     boot_info: common_items::BootInfo,
+    entry_addr: VirtAddr,
     kernel_addr: PhysAddr,
     bytes_kernel: Size<Byte>,
     stack_addr: PhysAddr,
@@ -21,7 +21,7 @@ pub fn bootx64<'a>(
         bytes_kernel,
         stack_addr,
     );
-    jump_to_kernel(boot_info);
+    jump_to_kernel(boot_info, entry_addr);
 }
 
 fn disable_interruption() -> () {
@@ -37,15 +37,11 @@ fn disable_interruption() -> () {
     }
 }
 
-fn jump_to_kernel(boot_info: common_items::BootInfo) -> ! {
+fn jump_to_kernel(boot_info: common_items::BootInfo, entry_addr: VirtAddr) -> ! {
     boot_info.set();
 
     unsafe {
         asm!("mov rsp, rax
-        jmp rdi",in("rax") INIT_RSP.as_u64(),in("rdi") fetch_entry_address().as_u64(),options(nomem, preserves_flags, nostack,noreturn));
+        jmp rdi",in("rax") INIT_RSP.as_u64(),in("rdi") entry_addr.as_u64(),options(nomem, preserves_flags, nostack,noreturn));
     }
-}
-
-fn fetch_entry_address() -> VirtAddr {
-    VirtAddr::new(unsafe { ptr::read(KERNEL_ADDR.as_ptr::<u64>()) })
 }

@@ -1,35 +1,19 @@
-use crate::common_items::size::{Byte, Size};
-use crate::x86_64::addr::VirtAddr;
-use core::ptr;
+use common_items::size::{Byte, Size};
 use uefi::proto::media::file;
-
-struct KernelHeader {
-    _entry_addr: VirtAddr,
-    memory_bytes: Size<Byte>,
-}
-
-impl KernelHeader {
-    fn new_from_slice(slice: &[u8; 16]) -> Self {
-        unsafe {
-            Self {
-                _entry_addr: ptr::read(slice.as_ptr() as *const _),
-                memory_bytes: ptr::read(slice.as_ptr().offset(8) as *const _),
-            }
-        }
-    }
-}
+use uefi::proto::media::file::RegularFile;
 
 pub fn get(root_dir: &mut file::Directory) -> Size<Byte> {
     let mut handler = super::get_handler(root_dir);
 
-    let mut header = [0u8; 16];
-
     handler
-        .read(&mut header)
-        .expect("Failed to read kernel header")
+        .set_position(RegularFile::END_OF_FILE)
+        .expect("Failed to calculate the size of the kernel.")
         .unwrap();
 
-    let header = KernelHeader::new_from_slice(&header);
-
-    header.memory_bytes
+    Size::new(
+        handler
+            .get_position()
+            .expect("Failed to calculate the size of the kernel.")
+            .unwrap() as _,
+    )
 }

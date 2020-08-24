@@ -14,3 +14,4 @@ rlibc = "1.0.0"
 debug = { path = "../debug/" }
 common_items = { path = "../common_items/" }
 x86_64 = "0.11.2"
+elf_rs = "0.1.3"

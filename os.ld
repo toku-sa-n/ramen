@@ -1,4 +1,4 @@
-OUTPUT_FORMAT(binary);
+OUTPUT_FORMAT(elf64-x86-64);
 
 ENTRY(os_main)
 
@@ -9,12 +9,9 @@ MEMORY{
 SECTIONS
 {
 
-    .head 0xffffffff80000000 : {
-        QUAD(os_main)
-        QUAD(tail_addr - ADDR(.head))
-    } > kernel
+    . += 0xffffffff80000000 + SIZEOF_HEADERS;
 
-    .text : {
+    .text BLOCK(4K) : ALIGN(4K) {
         *(.text*)
     } > kernel
 
@@ -33,6 +30,4 @@ SECTIONS
     .eh_frame : {
         *(.eh_frame)
     } > kernel
-
-    tail_addr = .;
 }
