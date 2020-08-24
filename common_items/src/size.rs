@@ -3,15 +3,15 @@ use core::ops::Add;
 
 pub trait Unit {}
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Byte;
 impl Unit for Byte {}
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct NumOfPages;
 impl Unit for NumOfPages {}
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Size<T: Unit> {
     num: usize,
     _marker: PhantomData<fn() -> T>,
