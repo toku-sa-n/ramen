@@ -7,6 +7,7 @@ extern crate rlibc;
 #[macro_use]
 extern crate log;
 
+extern crate elf_rs;
 extern crate uefi;
 extern crate uefi_services;
 
@@ -18,7 +19,6 @@ extern crate common_items;
 
 extern crate x86_64;
 
-mod elf;
 mod exit;
 mod fs;
 mod gop;
@@ -40,7 +40,12 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
 
     let vram_info = gop::init(system_table.boot_services());
 
-    let (kernel_addr, bytes_kernel) = kernel::deploy(system_table.boot_services());
+    let (phys_kernel_addr, bytes_kernel) = kernel::deploy(system_table.boot_services());
+    let (entry_addr, actual_memory_size) =
+        kernel::fetch_entry_address_and_memory_size(phys_kernel_addr, bytes_kernel);
+
+    info!("Entry point: {:?}", entry_addr);
+    info!("Memory size: {:X?}", actual_memory_size.as_usize());
 
     let stack_addr = stack::allocate(system_table.boot_services());
     let mem_map = terminate_boot_services(image, system_table);
@@ -50,8 +55,9 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     exit::bootx64(
         mem_map,
         common_items::BootInfo::new(vram_info, mem_map_info),
-        kernel_addr,
-        bytes_kernel,
+        entry_addr,
+        phys_kernel_addr,
+        actual_memory_size,
         stack_addr,
     );
 }
