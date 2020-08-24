@@ -17,9 +17,9 @@ use x86_64::addr::PhysAddr;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VramInfo {
-    bpp: u16,
-    screen_x: u16,
-    screen_y: u16,
+    bpp: usize,
+    screen_x: usize,
+    screen_y: usize,
     ptr: PhysAddr,
 }
 
@@ -29,17 +29,17 @@ impl VramInfo {
 
         Self {
             bpp: 32,
-            screen_x: screen_x as u16,
-            screen_y: screen_y as u16,
+            screen_x: screen_x,
+            screen_y: screen_y,
             ptr: PhysAddr::new(gop.frame_buffer().as_mut_ptr() as u64),
         }
     }
 
-    pub fn bpp(&self) -> u16 {
+    pub fn bpp(&self) -> usize {
         self.bpp
     }
 
-    pub fn resolution(&self) -> (u16, u16) {
+    pub fn resolution(&self) -> (usize, usize) {
         (self.screen_x, self.screen_y)
     }
 
