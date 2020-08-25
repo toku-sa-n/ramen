@@ -4,6 +4,7 @@ use core::ptr;
 use uefi::table::boot;
 use uefi::table::boot::MemoryType;
 use x86_64::addr::{PhysAddr, VirtAddr};
+use x86_64::registers::control::{Cr0, Cr0Flags};
 use x86_64::structures::paging::{PageSize, Size4KiB};
 
 struct PageMapInfo {
@@ -64,11 +65,9 @@ fn enable_recursive_mapping(mem_map: &mut [boot::MemoryDescriptor]) -> () {
 
 fn remove_table_protection() -> () {
     unsafe {
-        asm!(
-            "mov rax, cr0
-        and eax, 0xfffeffff
-        mov cr0, rax"
-        )
+        Cr0::update(|flags| {
+            flags.remove(Cr0Flags::WRITE_PROTECT);
+        })
     }
 }
 
