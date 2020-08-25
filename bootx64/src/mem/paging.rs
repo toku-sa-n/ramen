@@ -31,6 +31,8 @@ pub fn init(
 ) -> () {
     remove_table_protection();
 
+    enable_recursive_mapping(mem_map);
+
     let map_info = [
         PageMapInfo::new(KERNEL_ADDR, addr_kernel, bytes_kernel),
         PageMapInfo::new(
@@ -49,6 +51,15 @@ pub fn init(
     for info in &map_info {
         info.map(mem_map);
     }
+}
+
+fn enable_recursive_mapping(mem_map: &mut [boot::MemoryDescriptor]) -> () {
+    PageMapInfo::new(
+        RECUR_PML4_ADDR,
+        get_pml4_addr(),
+        Size::new(Size4KiB::SIZE as usize),
+    )
+    .map(mem_map)
 }
 
 fn remove_table_protection() -> () {
