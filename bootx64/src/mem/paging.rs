@@ -1,9 +1,10 @@
-use crate::common_items::constant::*;
-use crate::common_items::size::{Byte, Size};
-use crate::x86_64::addr::{PhysAddr, VirtAddr};
+use common_items::constant::*;
+use common_items::size::{Byte, Size};
 use core::ptr;
 use uefi::table::boot;
 use uefi::table::boot::MemoryType;
+use x86_64::addr::{PhysAddr, VirtAddr};
+use x86_64::structures::paging::{PageSize, Size4KiB};
 
 struct PageMapInfo {
     virt: VirtAddr,
@@ -32,6 +33,11 @@ pub fn init(
 
     let map_info = [
         PageMapInfo::new(KERNEL_ADDR, addr_kernel, bytes_kernel),
+        PageMapInfo::new(
+            PML4_ADDR,
+            get_pml4_addr(),
+            Size::new(Size4KiB::SIZE as usize),
+        ),
         PageMapInfo::new(VRAM_ADDR, vram.phys_ptr(), vram.bytes()),
         PageMapInfo::new(
             STACK_BASE - NUM_OF_PAGES_STACK.as_bytes().as_usize(),
