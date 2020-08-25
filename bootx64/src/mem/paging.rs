@@ -5,7 +5,7 @@ use uefi::table::boot;
 use uefi::table::boot::MemoryType;
 use x86_64::addr::{PhysAddr, VirtAddr};
 use x86_64::registers::control::{Cr0, Cr0Flags};
-use x86_64::structures::paging::{PageSize, Size4KiB};
+use x86_64::structures::paging::{PageSize, PageTable, PageTableFlags, Size4KiB};
 
 struct PageMapInfo {
     virt: VirtAddr,
@@ -32,7 +32,7 @@ pub fn init(
 ) -> () {
     remove_table_protection();
 
-    enable_recursive_mapping(mem_map);
+    enable_recursive_mapping();
 
     let map_info = [
         PageMapInfo::new(KERNEL_ADDR, addr_kernel, bytes_kernel),
@@ -54,13 +54,10 @@ pub fn init(
     }
 }
 
-fn enable_recursive_mapping(mem_map: &mut [boot::MemoryDescriptor]) -> () {
-    PageMapInfo::new(
-        RECUR_PML4_ADDR,
-        get_pml4_addr(),
-        Size::new(Size4KiB::SIZE as usize),
-    )
-    .map(mem_map)
+fn enable_recursive_mapping() -> () {
+    let p4: &mut PageTable = unsafe { &mut *(get_pml4_addr().as_u64() as *mut _) };
+
+    p4[511].set_addr(get_pml4_addr(), PageTableFlags::PRESENT);
 }
 
 fn remove_table_protection() -> () {
