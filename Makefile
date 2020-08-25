@@ -3,10 +3,15 @@ BUILD_DIR		:= build
 BOOT_DIR		:= bootx64
 EFI_SRC_DIR		:= $(BOOT_DIR)/$(RUST_SRC_DIR)
 CLIB_DIR		:= c_lib
+COMMON_SRC_DIR	:= common_items
+DEBUG_DIR		:= debug
 
 CARGO_JSON		:= cargo_settings
 RUST_SRC		:= $(shell cd $(RUST_SRC_DIR) && ls)
 EFI_SRC			:= $(shell cd $(EFI_SRC_DIR) && ls)
+
+COMMON_SRC		:= $(addprefix $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)/, $(shell ls $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)))
+COMMON_SRC		+= $(addprefix $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)/, $(shell ls $(DEBUG_DIR)/$(RUST_SRC_DIR)))
 
 LD_SRC			:= os.ld
 CLIB_SRC		:= $(CLIB_DIR)/lib.c
@@ -80,7 +85,7 @@ release:
 $(KERNEL_FILE):$(LIB_FILE) $(CLIB_FILE) $(ASMLIB_FILE) $(LD_SRC)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE) $(CLIB_FILE) $(ASMLIB_FILE)
 
-$(LIB_FILE): $(addprefix $(RUST_SRC_DIR)/, $(RUST_SRC))|$(BUILD_DIR)
+$(LIB_FILE): $(addprefix $(RUST_SRC_DIR)/, $(RUST_SRC)) $(COMMON_SRC)|$(BUILD_DIR)
 	$(RUSTCC) build --target-dir $(BUILD_DIR)
 	cp $(BUILD_DIR)/$(CARGO_JSON)/debug/$(shell basename $(LIB_FILE)) $@
 
@@ -98,7 +103,7 @@ $(OVMF_VARS):
 	@echo "$@ not found."
 	exit 1
 
-$(EFI_FILE):$(addprefix $(EFI_SRC_DIR)/, $(EFI_SRC))
+$(EFI_FILE):$(addprefix $(EFI_SRC_DIR)/, $(EFI_SRC)) $(COMMON_SRC)
 	$(RUSTCC) build --target=x86_64-unknown-uefi --manifest-path=$(BOOT_DIR)/Cargo.toml
 
 $(BUILD_DIR):
