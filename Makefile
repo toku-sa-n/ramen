@@ -68,19 +68,13 @@ $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 	mcopy -i $@ $(EFI_FILE) ::/efi/boot
 
 release:
-	make clean
-	$(RUSTCC) build --target-dir $(BUILD_DIR) --release
-	$(RUSTCC) build --target=x86_64-unknown-uefi --manifest-path=$(BOOT_DIR)/Cargo.toml --release
-	cp $(BUILD_DIR)/$(CARGO_JSON)/$@/$(shell basename $(LIB_FILE))  $(LIB_FILE)
-	mkdir -p $(BOOT_DIR)/target/x86_64-unknown-uefi/debug
-	cp $(BOOT_DIR)/target/x86_64-unknown-uefi/$@/bootx64.efi $(BOOT_DIR)/target/x86_64-unknown-uefi/debug/bootx64.efi
-	make
+	make clean && make RELEASE_FLAGS=--release
 
 $(KERNEL_FILE):$(LIB_FILE) $(CLIB_FILE) $(LD_SRC)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE) $(CLIB_FILE)
 
 $(LIB_FILE): $(addprefix $(RUST_SRC_DIR)/, $(RUST_SRC)) $(COMMON_SRC)|$(BUILD_DIR)
-	$(RUSTCC) build --out-dir $(BUILD_DIR) -Z unstable-options
+	$(RUSTCC) build --out-dir $(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
 
 $(CLIB_FILE):$(CLIB_SRC)|$(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $@ $<
@@ -94,7 +88,7 @@ $(OVMF_VARS):
 	exit 1
 
 $(EFI_FILE):$(addprefix $(EFI_SRC_DIR)/, $(EFI_SRC)) $(COMMON_SRC)
-	$(RUSTCC) build --target=x86_64-unknown-uefi --manifest-path=$(BOOT_DIR)/Cargo.toml --out-dir=$(BUILD_DIR) -Z unstable-options
+	$(RUSTCC) build --target=x86_64-unknown-uefi --manifest-path=$(BOOT_DIR)/Cargo.toml --out-dir=$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
 
 $(BUILD_DIR):
 	mkdir $@
