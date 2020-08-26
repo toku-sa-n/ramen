@@ -79,12 +79,8 @@ $(LIB_FILE): $(addprefix $(RUST_SRC_DIR)/, $(RUST_SRC)) $(COMMON_SRC)|$(BUILD_DI
 $(CLIB_FILE):$(CLIB_SRC)|$(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $@ $<
 
-$(OVMF_CODE):
-	@echo "$@ not found."
-	exit 1
-
-$(OVMF_VARS):
-	@echo "$@ not found."
+%.fd:
+	@echo "$@ not found"
 	exit 1
 
 $(EFI_FILE):$(addprefix $(EFI_SRC_DIR)/, $(EFI_SRC)) $(COMMON_SRC)
