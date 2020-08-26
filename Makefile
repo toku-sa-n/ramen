@@ -40,9 +40,9 @@ LDFLAGS			:= -nostdlib -T $(LD_SRC)
 
 .SUFFIXES:
 
-all:$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
+all:$(KERNEL_FILE) $(EFI_FILE)
 
-copy_to_usb:$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
+copy_to_usb:$(KERNEL_FILE) $(EFI_FILE)
 ifeq ($(USB_DEVICE_PATH),)
 	echo 'Specify device path by $$USB_DEVICE_PATH environment variable.' >&2
 else
