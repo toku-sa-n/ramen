@@ -1,5 +1,3 @@
-#![no_std]
-
 #[macro_export]
 macro_rules! watch{
     ($value:expr)=>{

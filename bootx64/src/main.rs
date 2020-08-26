@@ -13,8 +13,6 @@ extern crate uefi_services;
 
 #[macro_use]
 #[allow(unused_imports)]
-extern crate debug;
-
 extern crate common_items;
 
 extern crate x86_64;
