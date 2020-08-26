@@ -7,7 +7,7 @@ COMMON_SRC_DIR	:= common_items
 
 CARGO_JSON		:= cargo_settings
 RUST_SRC		:= $(shell cd $(RUST_SRC_DIR) && ls)
-EFI_SRC			:= $(shell cd $(EFI_SRC_DIR) && ls)
+EFI_SRC			:= $(shell find $(EFI_DIR) -name '*.rs')
 
 COMMON_SRC		:= $(addprefix $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)/, $(shell ls $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)))
 
@@ -83,7 +83,7 @@ $(CLIB_FILE):$(CLIB_SRC)|$(BUILD_DIR)
 	@echo "$@ not found"
 	exit 1
 
-$(EFI_FILE):$(addprefix $(EFI_SRC_DIR)/, $(EFI_SRC)) $(COMMON_SRC)
+$(EFI_FILE):$(EFI_SRC) $(COMMON_SRC)
 	$(RUSTCC) build --target=x86_64-unknown-uefi --manifest-path=$(EFI_DIR)/Cargo.toml --out-dir=$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
 
 $(BUILD_DIR):
