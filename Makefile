@@ -36,7 +36,7 @@ VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive
 
 LDFLAGS			:= -nostdlib -T $(LD_SRC)
 
-.PHONY:all show_kernel_map run release clean
+.PHONY:all copy_to_usb run release clean
 
 .SUFFIXES:
 
