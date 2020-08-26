@@ -14,7 +14,7 @@ COMMON_SRC		:= $(addprefix $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)/, $(shell ls $(COMM
 LD_SRC			:= os.ld
 CLIB_SRC		:= $(CLIB_DIR)/lib.c
 
-EFI_FILE		:= $(BOOT_DIR)/target/x86_64-unknown-uefi/debug/bootx64.efi
+EFI_FILE		:= $(BUILD_DIR)/bootx64.efi
 
 KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
 LIB_FILE		:= $(BUILD_DIR)/libramen_os.a
@@ -94,7 +94,7 @@ $(OVMF_VARS):
 	exit 1
 
 $(EFI_FILE):$(addprefix $(EFI_SRC_DIR)/, $(EFI_SRC)) $(COMMON_SRC)
-	$(RUSTCC) build --target=x86_64-unknown-uefi --manifest-path=$(BOOT_DIR)/Cargo.toml
+	$(RUSTCC) build --target=x86_64-unknown-uefi --manifest-path=$(BOOT_DIR)/Cargo.toml --out-dir=$(BUILD_DIR) -Z unstable-options
 
 $(BUILD_DIR):
 	mkdir $@
