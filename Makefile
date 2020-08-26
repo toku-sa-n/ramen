@@ -2,7 +2,7 @@ RUST_SRC_DIR	:= src
 BUILD_DIR		:= build
 EFI_DIR			:= bootx64
 EFI_SRC_DIR		:= $(EFI_DIR)/$(RUST_SRC_DIR)
-CLIB_DIR		:= c_lib
+MEMLIB_DIR		:= memlib
 COMMON_SRC_DIR	:= common_items
 KERNEL_DIR		:= kernel
 KERNEL_SRC_DIR	:= $(KERNEL_DIR)/$(RUST_SRC_DIR)
@@ -14,14 +14,14 @@ EFI_SRC			:= $(shell find $(EFI_DIR) -name '*.rs')
 COMMON_SRC		:= $(addprefix $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)/, $(shell ls $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)))
 
 LD_SRC			:= $(KERNEL_DIR)/os.ld
-CLIB_SRC		:= $(KERNEL_DIR)/$(CLIB_DIR)/lib.c
+MEMLIB_SRC		:= $(KERNEL_DIR)/$(MEMLIB_DIR)/lib.c
 
 EFI_FILE		:= $(BUILD_DIR)/bootx64.efi
 
 KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
 LIB_FILE		:= $(BUILD_DIR)/libramen_os.a
 IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
-CLIB_FILE		:= $(BUILD_DIR)/clib.o
+MEMLIB_FILE		:= $(BUILD_DIR)/memlib.o
 
 CAT				:= cat
 LD				:= ld
@@ -72,8 +72,8 @@ $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 release:
 	make clean && make RELEASE_FLAGS=--release
 
-$(KERNEL_FILE):$(LIB_FILE) $(CLIB_FILE) $(LD_SRC)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE) $(CLIB_FILE)
+$(KERNEL_FILE):$(LIB_FILE) $(MEMLIB_FILE) $(LD_SRC)|$(BUILD_DIR)
+	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE) $(MEMLIB_FILE)
 
 $(LIB_FILE): $(RUST_SRC) $(COMMON_SRC)|$(BUILD_DIR)
 	# FIXME: Currently `cargo` tries to read `$(pwd)/.cargo/config.toml`, not
@@ -81,7 +81,7 @@ $(LIB_FILE): $(RUST_SRC) $(COMMON_SRC)|$(BUILD_DIR)
 	# See: https://github.com/rust-lang/cargo/issues/2930
 	cd $(KERNEL_DIR) && $(RUSTCC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
 
-$(CLIB_FILE):$(CLIB_SRC)|$(BUILD_DIR)
+$(MEMLIB_FILE):$(MEMLIB_SRC)|$(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $@ $<
 
 %.fd:
