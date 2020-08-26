@@ -80,8 +80,7 @@ $(KERNEL_FILE):$(LIB_FILE) $(CLIB_FILE) $(LD_SRC)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE) $(CLIB_FILE)
 
 $(LIB_FILE): $(addprefix $(RUST_SRC_DIR)/, $(RUST_SRC)) $(COMMON_SRC)|$(BUILD_DIR)
-	$(RUSTCC) build --target-dir $(BUILD_DIR)
-	cp $(BUILD_DIR)/$(CARGO_JSON)/debug/$(shell basename $(LIB_FILE)) $@
+	$(RUSTCC) build --out-dir $(BUILD_DIR) -Z unstable-options
 
 $(CLIB_FILE):$(CLIB_SRC)|$(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $@ $<
