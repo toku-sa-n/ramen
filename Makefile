@@ -1,7 +1,7 @@
 RUST_SRC_DIR	:= src
 BUILD_DIR		:= build
-BOOT_DIR		:= bootx64
-EFI_SRC_DIR		:= $(BOOT_DIR)/$(RUST_SRC_DIR)
+EFI_DIR		:= bootx64
+EFI_SRC_DIR		:= $(EFI_DIR)/$(RUST_SRC_DIR)
 CLIB_DIR		:= c_lib
 COMMON_SRC_DIR	:= common_items
 
@@ -84,7 +84,7 @@ $(CLIB_FILE):$(CLIB_SRC)|$(BUILD_DIR)
 	exit 1
 
 $(EFI_FILE):$(addprefix $(EFI_SRC_DIR)/, $(EFI_SRC)) $(COMMON_SRC)
-	$(RUSTCC) build --target=x86_64-unknown-uefi --manifest-path=$(BOOT_DIR)/Cargo.toml --out-dir=$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
+	$(RUSTCC) build --target=x86_64-unknown-uefi --manifest-path=$(EFI_DIR)/Cargo.toml --out-dir=$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
 
 $(BUILD_DIR):
 	mkdir $@
@@ -92,4 +92,4 @@ $(BUILD_DIR):
 clean:
 	$(RM) build
 	$(RUSTCC) clean
-	$(RUSTCC) clean --manifest-path=$(BOOT_DIR)/Cargo.toml
+	$(RUSTCC) clean --manifest-path=$(EFI_DIR)/Cargo.toml
