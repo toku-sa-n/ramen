@@ -1,6 +1,6 @@
 RUST_SRC_DIR	:= src
 BUILD_DIR		:= build
-EFI_DIR		:= bootx64
+EFI_DIR			:= bootx64
 EFI_SRC_DIR		:= $(EFI_DIR)/$(RUST_SRC_DIR)
 CLIB_DIR		:= c_lib
 COMMON_SRC_DIR	:= common_items
