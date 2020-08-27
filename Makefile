@@ -4,15 +4,17 @@ EFI_DIR			:= bootx64
 EFI_SRC_DIR		:= $(EFI_DIR)/$(RUST_SRC_DIR)
 CLIB_DIR		:= c_lib
 COMMON_SRC_DIR	:= common_items
+KERNEL_DIR		:= kernel
+KERNEL_SRC_DIR	:= $(KERNEL_DIR)/$(RUST_SRC_DIR)
 
 CARGO_JSON		:= cargo_settings
-RUST_SRC		:= $(shell cd $(RUST_SRC_DIR) && ls)
+RUST_SRC		:= $(shell find $(KERNEL_DIR) -name '*.rs')
 EFI_SRC			:= $(shell find $(EFI_DIR) -name '*.rs')
 
 COMMON_SRC		:= $(addprefix $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)/, $(shell ls $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)))
 
-LD_SRC			:= os.ld
-CLIB_SRC		:= $(CLIB_DIR)/lib.c
+LD_SRC			:= $(KERNEL_DIR)/os.ld
+CLIB_SRC		:= $(KERNEL_DIR)/$(CLIB_DIR)/lib.c
 
 EFI_FILE		:= $(BUILD_DIR)/bootx64.efi
 
@@ -73,8 +75,11 @@ release:
 $(KERNEL_FILE):$(LIB_FILE) $(CLIB_FILE) $(LD_SRC)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE) $(CLIB_FILE)
 
-$(LIB_FILE): $(addprefix $(RUST_SRC_DIR)/, $(RUST_SRC)) $(COMMON_SRC)|$(BUILD_DIR)
-	$(RUSTCC) build --out-dir $(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
+$(LIB_FILE): $(RUST_SRC) $(COMMON_SRC)|$(BUILD_DIR)
+	# FIXME: Currently `cargo` tries to read `$(pwd)/.cargo/config.toml`, not
+	# `$(dirname argument_of_--manifest-path)/.cargo/config.toml`.
+	# See: https://github.com/rust-lang/cargo/issues/2930
+	cd $(KERNEL_DIR) && $(RUSTCC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
 
 $(CLIB_FILE):$(CLIB_SRC)|$(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $@ $<
@@ -84,12 +89,12 @@ $(CLIB_FILE):$(CLIB_SRC)|$(BUILD_DIR)
 	exit 1
 
 $(EFI_FILE):$(EFI_SRC) $(COMMON_SRC)
-	$(RUSTCC) build --target=x86_64-unknown-uefi --manifest-path=$(EFI_DIR)/Cargo.toml --out-dir=$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
+	cd $(EFI_DIR) && $(RUSTCC) build --target=x86_64-unknown-uefi --out-dir=../$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
 
 $(BUILD_DIR):
 	mkdir $@
 
 clean:
 	$(RM) build
-	$(RUSTCC) clean
+	$(RUSTCC) clean --manifest-path=$(KERNEL_DIR)/Cargo.toml
 	$(RUSTCC) clean --manifest-path=$(EFI_DIR)/Cargo.toml
