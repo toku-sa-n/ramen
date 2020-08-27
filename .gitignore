@@ -1,5 +1,6 @@
 /target
 bootx64/target
+kernel/target
 debug/target
 common_items/target
 **/*.rs.bk

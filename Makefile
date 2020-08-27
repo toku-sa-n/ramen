@@ -1,25 +1,29 @@
 RUST_SRC_DIR	:= src
 BUILD_DIR		:= build
-BOOT_DIR		:= bootx64
-EFI_SRC_DIR		:= $(BOOT_DIR)/$(RUST_SRC_DIR)
-CLIB_DIR		:= c_lib
+EFI_DIR			:= bootx64
+EFI_SRC_DIR		:= $(EFI_DIR)/$(RUST_SRC_DIR)
+MEMLIB_DIR		:= memlib
 COMMON_SRC_DIR	:= common_items
+KERNEL_DIR		:= kernel
+KERNEL_SRC_DIR	:= $(KERNEL_DIR)/$(RUST_SRC_DIR)
 
-CARGO_JSON		:= cargo_settings
-RUST_SRC		:= $(shell cd $(RUST_SRC_DIR) && ls)
-EFI_SRC			:= $(shell cd $(EFI_SRC_DIR) && ls)
+CARGO_JSON		:= cargo_settings.json
+RUST_SRC		:= $(shell find $(KERNEL_DIR) -name '*.rs')
+EFI_SRC			:= $(shell find $(EFI_DIR) -name '*.rs')
+CARGO_TOML		:= Cargo.toml
+CONFIG_TOML		:= $(KERNEL_DIR)/.cargo/config.toml
 
 COMMON_SRC		:= $(addprefix $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)/, $(shell ls $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)))
 
-LD_SRC			:= os.ld
-CLIB_SRC		:= $(CLIB_DIR)/lib.c
+LD_SRC			:= $(KERNEL_DIR)/os.ld
+MEMLIB_SRC		:= $(KERNEL_DIR)/$(MEMLIB_DIR)/lib.c
 
-EFI_FILE		:= $(BOOT_DIR)/target/x86_64-unknown-uefi/debug/bootx64.efi
+EFI_FILE		:= $(BUILD_DIR)/bootx64.efi
 
 KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
 LIB_FILE		:= $(BUILD_DIR)/libramen_os.a
 IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
-CLIB_FILE		:= $(BUILD_DIR)/clib.o
+MEMLIB_FILE		:= $(BUILD_DIR)/memlib.o
 
 CAT				:= cat
 LD				:= ld
@@ -36,13 +40,13 @@ VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive
 
 LDFLAGS			:= -nostdlib -T $(LD_SRC)
 
-.PHONY:all show_kernel_map run release clean
+.PHONY:all copy_to_usb run release clean
 
 .SUFFIXES:
 
-all:$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
+all:$(KERNEL_FILE) $(EFI_FILE)
 
-copy_to_usb:$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
+copy_to_usb:$(KERNEL_FILE) $(EFI_FILE)
 ifeq ($(USB_DEVICE_PATH),)
 	echo 'Specify device path by $$USB_DEVICE_PATH environment variable.' >&2
 else
@@ -68,39 +72,34 @@ $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 	mcopy -i $@ $(EFI_FILE) ::/efi/boot
 
 release:
-	make clean
-	$(RUSTCC) build --target-dir $(BUILD_DIR) --release
-	$(RUSTCC) build --target=x86_64-unknown-uefi --manifest-path=$(BOOT_DIR)/Cargo.toml --release
-	cp $(BUILD_DIR)/$(CARGO_JSON)/$@/$(shell basename $(LIB_FILE))  $(LIB_FILE)
-	mkdir -p $(BOOT_DIR)/target/x86_64-unknown-uefi/debug
-	cp $(BOOT_DIR)/target/x86_64-unknown-uefi/$@/bootx64.efi $(BOOT_DIR)/target/x86_64-unknown-uefi/debug/bootx64.efi
-	make
+	make clean && make RELEASE_FLAGS=--release
 
-$(KERNEL_FILE):$(LIB_FILE) $(CLIB_FILE) $(LD_SRC)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE) $(CLIB_FILE)
+release_run:
+	make release && make run
 
-$(LIB_FILE): $(addprefix $(RUST_SRC_DIR)/, $(RUST_SRC)) $(COMMON_SRC)|$(BUILD_DIR)
-	$(RUSTCC) build --target-dir $(BUILD_DIR)
-	cp $(BUILD_DIR)/$(CARGO_JSON)/debug/$(shell basename $(LIB_FILE)) $@
+$(KERNEL_FILE):$(LIB_FILE) $(MEMLIB_FILE) $(LD_SRC)|$(BUILD_DIR)
+	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE) $(MEMLIB_FILE)
 
-$(CLIB_FILE):$(CLIB_SRC)|$(BUILD_DIR)
+$(LIB_FILE): $(RUST_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(KERNEL_DIR)/$(CARGO_TOML) $(KERNEL_DIR)/$(CARGO_JSON) $(CONFIG_TOML)|$(BUILD_DIR)
+	# FIXME: Currently `cargo` tries to read `$(pwd)/.cargo/config.toml`, not
+	# `$(dirname argument_of_--manifest-path)/.cargo/config.toml`.
+	# See: https://github.com/rust-lang/cargo/issues/2930
+	cd $(KERNEL_DIR) && $(RUSTCC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
+
+$(MEMLIB_FILE):$(MEMLIB_SRC)|$(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $@ $<
 
-$(OVMF_CODE):
-	@echo "$@ not found."
+%.fd:
+	@echo "$@ not found"
 	exit 1
 
-$(OVMF_VARS):
-	@echo "$@ not found."
-	exit 1
-
-$(EFI_FILE):$(addprefix $(EFI_SRC_DIR)/, $(EFI_SRC)) $(COMMON_SRC)
-	$(RUSTCC) build --target=x86_64-unknown-uefi --manifest-path=$(BOOT_DIR)/Cargo.toml
+$(EFI_FILE):$(EFI_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(EFI_DIR)/$(CARGO_TOML)|$(BUILD_DIR)
+	cd $(EFI_DIR) && $(RUSTCC) build --target=x86_64-unknown-uefi --out-dir=../$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
 
 $(BUILD_DIR):
 	mkdir $@
 
 clean:
 	$(RM) build
-	$(RUSTCC) clean
-	$(RUSTCC) clean --manifest-path=$(BOOT_DIR)/Cargo.toml
+	$(RUSTCC) clean --manifest-path=$(KERNEL_DIR)/Cargo.toml
+	$(RUSTCC) clean --manifest-path=$(EFI_DIR)/Cargo.toml
