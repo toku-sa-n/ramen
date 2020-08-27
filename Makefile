@@ -74,6 +74,9 @@ $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 release:
 	make clean && make RELEASE_FLAGS=--release
 
+release_run:
+	make release && make run
+
 $(KERNEL_FILE):$(LIB_FILE) $(MEMLIB_FILE) $(LD_SRC)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE) $(MEMLIB_FILE)
 
