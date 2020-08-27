@@ -11,7 +11,6 @@ log = "0.4.8"
 uefi = { version = "0.5.0", features = ["logger"] }
 uefi-services = "0.2.4"
 rlibc = "1.0.0"
-debug = { path = "../debug/" }
 common_items = { path = "../common_items/" }
 x86_64 = "0.11.2"
 elf_rs = "0.1.3"

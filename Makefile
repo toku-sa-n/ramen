@@ -4,14 +4,12 @@ BOOT_DIR		:= bootx64
 EFI_SRC_DIR		:= $(BOOT_DIR)/$(RUST_SRC_DIR)
 CLIB_DIR		:= c_lib
 COMMON_SRC_DIR	:= common_items
-DEBUG_DIR		:= debug
 
 CARGO_JSON		:= cargo_settings
 RUST_SRC		:= $(shell cd $(RUST_SRC_DIR) && ls)
 EFI_SRC			:= $(shell cd $(EFI_SRC_DIR) && ls)
 
 COMMON_SRC		:= $(addprefix $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)/, $(shell ls $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)))
-COMMON_SRC		+= $(addprefix $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)/, $(shell ls $(DEBUG_DIR)/$(RUST_SRC_DIR)))
 
 LD_SRC			:= os.ld
 CLIB_SRC		:= $(CLIB_DIR)/lib.c

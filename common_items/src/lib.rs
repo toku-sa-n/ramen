@@ -2,6 +2,7 @@
 #![feature(const_fn)]
 
 pub mod constant;
+pub mod debug;
 pub mod size;
 
 extern crate uefi;
