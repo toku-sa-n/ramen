@@ -7,9 +7,11 @@ COMMON_SRC_DIR	:= common_items
 KERNEL_DIR		:= kernel
 KERNEL_SRC_DIR	:= $(KERNEL_DIR)/$(RUST_SRC_DIR)
 
-CARGO_JSON		:= cargo_settings
+CARGO_JSON		:= cargo_settings.json
 RUST_SRC		:= $(shell find $(KERNEL_DIR) -name '*.rs')
 EFI_SRC			:= $(shell find $(EFI_DIR) -name '*.rs')
+CARGO_TOML		:= Cargo.toml
+CONFIG_TOML		:= $(KERNEL_DIR)/.cargo/config.toml
 
 COMMON_SRC		:= $(addprefix $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)/, $(shell ls $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)))
 
@@ -75,7 +77,7 @@ release:
 $(KERNEL_FILE):$(LIB_FILE) $(MEMLIB_FILE) $(LD_SRC)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE) $(MEMLIB_FILE)
 
-$(LIB_FILE): $(RUST_SRC) $(COMMON_SRC)|$(BUILD_DIR)
+$(LIB_FILE): $(RUST_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(KERNEL_DIR)/$(CARGO_TOML) $(KERNEL_DIR)/$(CARGO_JSON) $(CONFIG_TOML)|$(BUILD_DIR)
 	# FIXME: Currently `cargo` tries to read `$(pwd)/.cargo/config.toml`, not
 	# `$(dirname argument_of_--manifest-path)/.cargo/config.toml`.
 	# See: https://github.com/rust-lang/cargo/issues/2930
@@ -88,7 +90,7 @@ $(MEMLIB_FILE):$(MEMLIB_SRC)|$(BUILD_DIR)
 	@echo "$@ not found"
 	exit 1
 
-$(EFI_FILE):$(EFI_SRC) $(COMMON_SRC)
+$(EFI_FILE):$(EFI_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(EFI_DIR)/$(CARGO_TOML)|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTCC) build --target=x86_64-unknown-uefi --out-dir=../$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
 
 $(BUILD_DIR):
