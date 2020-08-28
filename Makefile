@@ -25,7 +25,6 @@ LIB_FILE		:= $(BUILD_DIR)/libramen_os.a
 IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
 MEMLIB_FILE		:= $(BUILD_DIR)/memlib.o
 
-CAT				:= cat
 LD				:= ld
 CC				:= gcc
 RUSTCC			:= cargo
