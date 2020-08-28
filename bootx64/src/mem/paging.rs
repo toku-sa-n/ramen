@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 use common_items::constant::*;
 use common_items::size::{Byte, Size};
 use uefi::table::boot;

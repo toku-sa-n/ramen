@@ -48,6 +48,10 @@ USB_DEVICE_PATH="/dev/sdx1" make copy_to_usb
 ### Execution
 Reboot your machine and run Ramen OS.
 
+## License
+
+GPL-3.0 or later. See [LICENSE](https://github.com/toku-sa-n/ramen/blob/master/LICENSE).
+
 ---
 <div style="text-align:center;"><img src="images/ramen.jpg"></div>
 

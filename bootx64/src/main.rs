@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #![no_std]
 #![feature(start, asm)]
 #![no_main]

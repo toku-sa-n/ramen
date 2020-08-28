@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 #[macro_export]
 macro_rules! watch{
     ($value:expr)=>{

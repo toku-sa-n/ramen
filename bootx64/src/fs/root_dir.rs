@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 use uefi::proto::media::file;
 use uefi::proto::media::fs;
 use uefi::table::boot;

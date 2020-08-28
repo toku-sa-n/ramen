@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 use crate::size::{NumOfPages, Size};
 use crate::x86_64::VirtAddr;
 use crate::BootInfo;

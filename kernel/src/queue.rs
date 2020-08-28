@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 const QUEUE_SIZE: usize = 128;
 pub struct Queue {
     data: [u32; QUEUE_SIZE],
