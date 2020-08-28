@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+ 
 use core::mem::MaybeUninit;
 use uefi::proto::console::gop;
 use uefi::proto::console::gop::PixelFormat;
