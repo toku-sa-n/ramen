@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
- 
-use crate::mem::paging;
+
 use common_items::constant::INIT_RSP;
 use common_items::size::{Byte, Size};
 use uefi::table::boot;
@@ -16,13 +15,6 @@ pub fn bootx64<'a>(
 ) -> ! {
     disable_interruption();
 
-    paging::init(
-        mem_map,
-        &boot_info.vram(),
-        kernel_addr,
-        bytes_kernel,
-        stack_addr,
-    );
     jump_to_kernel(boot_info, entry_addr);
 }
 

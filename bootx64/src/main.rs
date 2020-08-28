@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
- 
+
 #![no_std]
 #![feature(start, asm)]
 #![no_main]
@@ -27,6 +27,7 @@ mod mem;
 use core::ptr;
 use core::slice;
 use fs::kernel;
+use mem::paging;
 use mem::stack;
 use uefi::prelude::{Boot, Handle, SystemTable};
 use uefi::table::boot;
@@ -48,6 +49,13 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     info!("Memory size: {:X?}", actual_memory_size.as_usize());
 
     let stack_addr = stack::allocate(system_table.boot_services());
+    paging::init(
+        system_table.boot_services(),
+        &vram_info,
+        phys_kernel_addr,
+        bytes_kernel,
+        stack_addr,
+    );
     let mem_map = terminate_boot_services(image, system_table);
 
     let mem_map_info = common_items::MemMapInfo::new_from_slice(mem_map);
