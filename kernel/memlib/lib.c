@@ -20,9 +20,15 @@ void* memcpy(void* dest, const void* src, size_t n)
 
 void* memmove(void* dst, const void* src, size_t n)
 {
-    char buf[n];
-    memcpy(buf, src, n);
-    memcpy(dst, buf, n);
+    if (src < dst) {
+        for (size_t i = 0; i < n; i++) {
+            ((char*)dst)[n - 1 - i] = ((char*)src)[n - 1 - i];
+        }
+    } else {
+        for (size_t i = 0; i < n; i++) {
+            ((char*)dst)[i] = ((char*)src)[i];
+        }
+    }
 
     return dst;
 }
