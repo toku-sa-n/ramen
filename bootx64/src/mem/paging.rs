@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
- 
+
 use common_items::constant::*;
 use common_items::size::{Byte, Size};
 use uefi::table::boot;
-use uefi::table::boot::MemoryType;
+use uefi::table::boot::{AllocateType, MemoryType};
 use x86_64::addr::{PhysAddr, VirtAddr};
 use x86_64::registers::control::{Cr0, Cr0Flags};
 use x86_64::structures::paging::{
@@ -28,33 +28,28 @@ impl PageMapInfo {
 }
 
 struct AllocatorWithEfiMemoryMap<'a> {
-    mem_map: &'a mut [boot::MemoryDescriptor],
+    boot_services: &'a boot::BootServices,
 }
 
 impl<'a> AllocatorWithEfiMemoryMap<'a> {
-    fn new(mem_map: &'a mut [boot::MemoryDescriptor]) -> Self {
-        Self { mem_map }
+    fn new(boot_services: &'a boot::BootServices) -> Self {
+        Self { boot_services }
     }
 }
 
 unsafe impl<'a> FrameAllocator<Size4KiB> for AllocatorWithEfiMemoryMap<'a> {
     fn allocate_frame(&mut self) -> Option<PhysFrame> {
-        for descriptor in self.mem_map.iter_mut() {
-            if descriptor.ty == MemoryType::CONVENTIONAL && descriptor.page_count > 0 {
-                let addr = PhysAddr::new(descriptor.phys_start);
-                descriptor.phys_start += Size4KiB::SIZE as u64;
-                descriptor.page_count -= 1;
-
-                return Some(PhysFrame::containing_address(addr));
-            }
-        }
-
-        None
+        Some(PhysFrame::containing_address(PhysAddr::new(
+            self.boot_services
+                .allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, 1)
+                .ok()?
+                .unwrap(),
+        )))
     }
 }
 
 pub fn init(
-    mem_map: &mut [boot::MemoryDescriptor],
+    boot_services: &boot::BootServices,
     vram: &common_items::VramInfo,
     addr_kernel: PhysAddr,
     bytes_kernel: Size<Byte>,
@@ -64,7 +59,7 @@ pub fn init(
 
     enable_recursive_mapping();
 
-    let mut allocator = AllocatorWithEfiMemoryMap::new(mem_map);
+    let mut allocator = AllocatorWithEfiMemoryMap::new(boot_services);
 
     let map_info = [
         PageMapInfo::new(KERNEL_ADDR, addr_kernel, bytes_kernel),
