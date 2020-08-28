@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+ 
 use crate::mem::paging;
 use common_items::constant::INIT_RSP;
 use common_items::size::{Byte, Size};

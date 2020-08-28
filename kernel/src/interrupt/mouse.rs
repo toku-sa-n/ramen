@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+ 
 use crate::graphics;
 use crate::queue;
 use crate::x86_64::instructions::port::Port;

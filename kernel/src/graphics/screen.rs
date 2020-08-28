@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+ 
 use super::*;
 
 pub const MOUSE_CURSOR_WIDTH: usize = 16;

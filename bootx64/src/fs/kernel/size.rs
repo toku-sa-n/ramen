@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+ 
 use common_items::size::{Byte, Size};
 use uefi::proto::media::file;
 use uefi::proto::media::file::RegularFile;
