@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
- 
+
 #![no_std]
 #![feature(asm)]
 #![feature(start)]
@@ -19,6 +19,7 @@ mod queue;
 #[macro_use]
 mod graphics;
 
+use common::boot;
 use interrupt::handler;
 use x86_64::instructions;
 use x86_64::instructions::interrupts;
@@ -26,7 +27,7 @@ use x86_64::instructions::interrupts;
 #[no_mangle]
 #[start]
 pub fn os_main() {
-    let boot_info = common::BootInfo::get();
+    let boot_info = boot::Info::get();
     let vram = graphics::Vram::new_from_boot_info(&boot_info);
 
     let mut mouse_device: interrupt::mouse::Device = interrupt::mouse::Device::new(&vram);

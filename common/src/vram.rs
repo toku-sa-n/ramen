@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{Byte, Size};
+use crate::size::{Byte, Size};
 use uefi::proto::console::gop;
 use x86_64::PhysAddr;
 

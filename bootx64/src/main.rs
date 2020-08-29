@@ -24,6 +24,7 @@ mod fs;
 mod gop;
 mod mem;
 
+use common::boot as kernelboot;
 use core::ptr;
 use core::slice;
 use fs::kernel;
@@ -62,7 +63,7 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
 
     exit::bootx64(
         mem_map,
-        common::BootInfo::new(vram_info, mem_map_info),
+        kernelboot::Info::new(vram_info, mem_map_info),
         entry_addr,
         phys_kernel_addr,
         actual_memory_size,
