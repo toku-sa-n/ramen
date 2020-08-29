@@ -8,7 +8,7 @@
 
 #[macro_use]
 #[allow(unused_imports)]
-extern crate common_items;
+extern crate common;
 extern crate x86_64;
 
 mod gdt;
@@ -26,7 +26,7 @@ use x86_64::instructions::interrupts;
 #[no_mangle]
 #[start]
 pub fn os_main() {
-    let boot_info = common_items::BootInfo::get();
+    let boot_info = common::BootInfo::get();
     let vram = graphics::Vram::new_from_boot_info(&boot_info);
 
     let mut mouse_device: interrupt::mouse::Device = interrupt::mouse::Device::new(&vram);

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
  
 use super::root_dir;
-use common_items::constant::{KERNEL_ADDR, KERNEL_NAME};
-use common_items::size::{Byte, Size};
+use common::constant::{KERNEL_ADDR, KERNEL_NAME};
+use common::size::{Byte, Size};
 use core::cmp;
 use core::slice;
 use elf_rs::Elf;

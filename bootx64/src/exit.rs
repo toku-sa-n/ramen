@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use common_items::constant::INIT_RSP;
-use common_items::size::{Byte, Size};
+use common::constant::INIT_RSP;
+use common::size::{Byte, Size};
 use uefi::table::boot;
 use x86_64::{PhysAddr, VirtAddr};
 
 pub fn bootx64<'a>(
     mem_map: &'a mut [boot::MemoryDescriptor],
-    boot_info: common_items::BootInfo,
+    boot_info: common::BootInfo,
     entry_addr: VirtAddr,
     kernel_addr: PhysAddr,
     bytes_kernel: Size<Byte>,
@@ -31,7 +31,7 @@ fn disable_interruption() -> () {
     }
 }
 
-fn jump_to_kernel(boot_info: common_items::BootInfo, entry_addr: VirtAddr) -> ! {
+fn jump_to_kernel(boot_info: common::BootInfo, entry_addr: VirtAddr) -> ! {
     boot_info.set();
 
     unsafe {

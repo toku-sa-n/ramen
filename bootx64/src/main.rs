@@ -15,7 +15,7 @@ extern crate uefi_services;
 
 #[macro_use]
 #[allow(unused_imports)]
-extern crate common_items;
+extern crate common;
 
 extern crate x86_64;
 
@@ -58,11 +58,11 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     );
     let mem_map = terminate_boot_services(image, system_table);
 
-    let mem_map_info = common_items::MemMapInfo::new_from_slice(mem_map);
+    let mem_map_info = common::MemMapInfo::new_from_slice(mem_map);
 
     exit::bootx64(
         mem_map,
-        common_items::BootInfo::new(vram_info, mem_map_info),
+        common::BootInfo::new(vram_info, mem_map_info),
         entry_addr,
         phys_kernel_addr,
         actual_memory_size,
