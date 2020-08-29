@@ -17,12 +17,12 @@ use size::{Byte, Size};
 use uefi::table::boot;
 
 #[repr(C)]
-pub struct MemMapInfo {
+pub struct MemMap {
     ptr: *mut boot::MemoryDescriptor,
     num_descriptors: usize,
 }
 
-impl MemMapInfo {
+impl MemMap {
     pub fn new_from_slice(map: &mut [boot::MemoryDescriptor]) -> Self {
         let ptr = map.as_mut_ptr();
         let num_descriptors = map.len();
@@ -37,11 +37,11 @@ impl MemMapInfo {
 #[repr(C)]
 pub struct BootInfo {
     vram_info: vram::Info,
-    mem_map_info: MemMapInfo,
+    mem_map_info: MemMap,
 }
 
 impl BootInfo {
-    pub fn new(vram_info: vram::Info, mem_map_info: MemMapInfo) -> Self {
+    pub fn new(vram_info: vram::Info, mem_map_info: MemMap) -> Self {
         Self {
             vram_info,
             mem_map_info,
