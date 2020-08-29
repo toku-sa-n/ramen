@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
- 
+
+use common_items::vram;
 use core::mem::MaybeUninit;
 use uefi::proto::console::gop;
 use uefi::proto::console::gop::PixelFormat;
 use uefi::table::boot;
 use uefi::ResultExt;
 
-pub fn init(boot_services: &boot::BootServices) -> common_items::VramInfo {
+pub fn init(boot_services: &boot::BootServices) -> vram::Info {
     let gop = fetch_gop(boot_services);
     set_resolution(gop);
 
-    common_items::VramInfo::new_from_gop(gop)
+    vram::Info::new_from_gop(gop)
 }
 
 fn fetch_gop<'a>(boot_services: &boot::BootServices) -> &'a mut gop::GraphicsOutput<'a> {
