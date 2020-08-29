@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use common_items::constant::*;
-use common_items::size::{Byte, Size};
+use common::constant::*;
+use common::size::{Byte, Size};
+use common::vram;
 use uefi::table::boot;
 use uefi::table::boot::{AllocateType, MemoryType};
 use x86_64::addr::{PhysAddr, VirtAddr};
@@ -50,7 +51,7 @@ unsafe impl<'a> FrameAllocator<Size4KiB> for AllocatorWithEfiMemoryMap<'a> {
 
 pub fn init(
     boot_services: &boot::BootServices,
-    vram: &common_items::VramInfo,
+    vram: &vram::Info,
     addr_kernel: PhysAddr,
     bytes_kernel: Size<Byte>,
     stack_addr: PhysAddr,

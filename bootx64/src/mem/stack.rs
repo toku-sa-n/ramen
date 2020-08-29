@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
  
-use common_items::constant::NUM_OF_PAGES_STACK;
+use common::constant::NUM_OF_PAGES_STACK;
 use uefi::table::boot;
 use uefi::table::boot::{AllocateType, MemoryType};
 use uefi::ResultExt;

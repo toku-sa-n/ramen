@@ -3,7 +3,7 @@ BUILD_DIR		:= build
 EFI_DIR			:= bootx64
 EFI_SRC_DIR		:= $(EFI_DIR)/$(RUST_SRC_DIR)
 MEMLIB_DIR		:= memlib
-COMMON_SRC_DIR	:= common_items
+COMMON_SRC_DIR	:= common
 KERNEL_DIR		:= kernel
 KERNEL_SRC_DIR	:= $(KERNEL_DIR)/$(RUST_SRC_DIR)
 
