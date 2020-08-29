@@ -25,6 +25,7 @@ mod gop;
 mod mem;
 
 use common::boot as kernelboot;
+use common::mem::reserved;
 use core::ptr;
 use core::slice;
 use fs::kernel;
@@ -50,20 +51,16 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     info!("Memory size: {:X?}", actual_memory_size.as_usize());
 
     let stack_addr = stack::allocate(system_table.boot_services());
-    paging::init(
-        system_table.boot_services(),
-        &vram_info,
-        phys_kernel_addr,
-        bytes_kernel,
-        stack_addr,
-    );
+    let reserved_regions =
+        reserved::Map::new(phys_kernel_addr, bytes_kernel, stack_addr, &vram_info);
+    paging::init(system_table.boot_services(), &reserved_regions);
     let mem_map = terminate_boot_services(image, system_table);
 
     let mem_map_info = common::mem::Map::new_from_slice(mem_map);
 
     exit::bootx64(
         mem_map,
-        kernelboot::Info::new(vram_info, mem_map_info),
+        kernelboot::Info::new(vram_info, mem_map_info, reserved_regions),
         entry_addr,
         phys_kernel_addr,
         actual_memory_size,

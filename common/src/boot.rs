@@ -2,6 +2,7 @@
 
 use crate::constant::INIT_RSP;
 use crate::mem;
+use crate::mem::reserved;
 use crate::vram;
 use core::ptr;
 
@@ -9,11 +10,16 @@ use core::ptr;
 pub struct Info {
     vram_info: vram::Info,
     mem_map: mem::Map,
+    reserved: reserved::Map,
 }
 
 impl Info {
-    pub fn new(vram_info: vram::Info, mem_map: mem::Map) -> Self {
-        Self { vram_info, mem_map }
+    pub fn new(vram_info: vram::Info, mem_map: mem::Map, reserved: reserved::Map) -> Self {
+        Self {
+            vram_info,
+            mem_map,
+            reserved,
+        }
     }
 
     pub fn vram(&self) -> vram::Info {
