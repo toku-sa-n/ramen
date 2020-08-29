@@ -58,7 +58,7 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     );
     let mem_map = terminate_boot_services(image, system_table);
 
-    let mem_map_info = common::MemMap::new_from_slice(mem_map);
+    let mem_map_info = common::mem::Map::new_from_slice(mem_map);
 
     exit::bootx64(
         mem_map,
