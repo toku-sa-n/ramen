@@ -37,15 +37,12 @@ impl MemMap {
 #[repr(C)]
 pub struct BootInfo {
     vram_info: vram::Info,
-    mem_map_info: MemMap,
+    mem_map: MemMap,
 }
 
 impl BootInfo {
-    pub fn new(vram_info: vram::Info, mem_map_info: MemMap) -> Self {
-        Self {
-            vram_info,
-            mem_map_info,
-        }
+    pub fn new(vram_info: vram::Info, mem_map: MemMap) -> Self {
+        Self { vram_info, mem_map }
     }
 
     pub fn vram(&self) -> vram::Info {
