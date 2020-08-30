@@ -56,11 +56,9 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     paging::init(system_table.boot_services(), &reserved_regions);
     let mem_map = terminate_boot_services(image, system_table);
 
-    let mem_map_info = common::mem::Map::new_from_slice(mem_map);
-
     exit::bootx64(
         entry_addr,
-        kernelboot::Info::new(vram_info, mem_map_info, reserved_regions),
+        kernelboot::Info::new(vram_info, mem_map, reserved_regions),
     );
 }
 
@@ -83,10 +81,7 @@ fn reset_console(system_table: &SystemTable<Boot>) -> () {
         .expect_success("Failed to reset stdout");
 }
 
-fn terminate_boot_services<'a>(
-    image: Handle,
-    system_table: SystemTable<Boot>,
-) -> &'a mut [boot::MemoryDescriptor] {
+fn terminate_boot_services<'a>(image: Handle, system_table: SystemTable<Boot>) -> common::mem::Map {
     let memory_map_buf = system_table
         .boot_services()
         .allocate_pool(
@@ -124,5 +119,5 @@ fn terminate_boot_services<'a>(
         num_descriptors += 1;
     }
 
-    unsafe { slice::from_raw_parts_mut(memory_map_buf, num_descriptors) }
+    common::mem::Map::new(memory_map_buf, num_descriptors)
 }
