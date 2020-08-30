@@ -2,18 +2,9 @@
 
 use common::boot as kernelboot;
 use common::constant::INIT_RSP;
-use common::size::{Byte, Size};
-use uefi::table::boot;
-use x86_64::{PhysAddr, VirtAddr};
+use x86_64::VirtAddr;
 
-pub fn bootx64<'a>(
-    mem_map: &'a mut [boot::MemoryDescriptor],
-    boot_info: kernelboot::Info,
-    entry_addr: VirtAddr,
-    kernel_addr: PhysAddr,
-    bytes_kernel: Size<Byte>,
-    stack_addr: PhysAddr,
-) -> ! {
+pub fn bootx64<'a>(entry_addr: VirtAddr, boot_info: kernelboot::Info) -> ! {
     disable_interruption();
 
     jump_to_kernel(boot_info, entry_addr);

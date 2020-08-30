@@ -59,12 +59,8 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     let mem_map_info = common::mem::Map::new_from_slice(mem_map);
 
     exit::bootx64(
-        mem_map,
-        kernelboot::Info::new(vram_info, mem_map_info, reserved_regions),
         entry_addr,
-        phys_kernel_addr,
-        actual_memory_size,
-        stack_addr,
+        kernelboot::Info::new(vram_info, mem_map_info, reserved_regions),
     );
 }
 
