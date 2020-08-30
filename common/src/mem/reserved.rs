@@ -24,7 +24,7 @@ impl Map {
         }
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &Range> {
+    pub fn iter(&self) -> impl ExactSizeIterator<Item = &Range> {
         self.0.iter()
     }
 }
