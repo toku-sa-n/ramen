@@ -82,6 +82,7 @@ fn reset_console(system_table: &SystemTable<Boot>) -> () {
         .reset(false)
         .expect_success("Failed to reset stdout");
 }
+
 fn terminate_boot_services<'a>(
     image: Handle,
     system_table: SystemTable<Boot>,
