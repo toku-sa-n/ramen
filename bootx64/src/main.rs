@@ -47,9 +47,6 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     let (entry_addr, actual_memory_size) =
         kernel::fetch_entry_address_and_memory_size(phys_kernel_addr, bytes_kernel);
 
-    info!("Entry point: {:?}", entry_addr);
-    info!("Memory size: {:X?}", actual_memory_size.as_usize());
-
     let stack_addr = stack::allocate(system_table.boot_services());
     let reserved_regions =
         reserved::Map::new(phys_kernel_addr, bytes_kernel, stack_addr, &vram_info);

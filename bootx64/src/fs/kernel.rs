@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
- 
+
 use super::root_dir;
 use common::constant::{KERNEL_ADDR, KERNEL_NAME};
 use common::size::{Byte, Size};
@@ -52,14 +52,17 @@ pub fn fetch_entry_address_and_memory_size(
         Elf::Elf32(_) => panic!("32-bit kernel is not supported"),
         Elf::Elf64(elf) => {
             let entry_addr = VirtAddr::new(elf.header().entry_point());
-            let memory_size = elf
+            let mem_size = elf
                 .program_header_iter()
                 .fold(Size::<Byte>::new(0), |acc, x| {
                     cmp::max(acc, Size::new((x.ph.vaddr() + x.ph.memsz()) as _))
                 })
                 - KERNEL_ADDR.as_u64();
 
-            (entry_addr, memory_size)
+            info!("Entry point: {:?}", entry_addr);
+            info!("Memory size: {:X?}", mem_size.as_usize());
+
+            (entry_addr, mem_size)
         }
     }
 }
