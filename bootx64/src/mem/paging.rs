@@ -5,6 +5,7 @@ use common::mem::reserved;
 use uefi::table::boot;
 use uefi::table::boot::{AllocateType, MemoryType};
 use x86_64::addr::PhysAddr;
+use x86_64::registers::control::Cr3;
 use x86_64::registers::control::{Cr0, Cr0Flags};
 use x86_64::structures::paging::{
     FrameAllocator, Mapper, Page, PageSize, PageTable, PageTableFlags, PhysFrame,
@@ -79,10 +80,6 @@ fn map_virt_to_phys(region: &reserved::Range, allocator: &mut AllocatorWithEfiMe
 }
 
 fn get_pml4_addr() -> PhysAddr {
-    let addr;
-    unsafe {
-        asm!("mov rax, cr3",out("rax") addr,options(nomem, preserves_flags, nostack));
-    }
-
-    PhysAddr::new(addr)
+    let (frame, _) = Cr3::read();
+    frame.start_address()
 }
