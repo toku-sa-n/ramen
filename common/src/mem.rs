@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+pub mod reserved;
+
 use uefi::table::boot;
 
 #[repr(C)]
@@ -9,10 +11,7 @@ pub struct Map {
 }
 
 impl Map {
-    pub fn new_from_slice(map: &mut [boot::MemoryDescriptor]) -> Self {
-        let ptr = map.as_mut_ptr();
-        let num_descriptors = map.len();
-
+    pub fn new(ptr: *mut boot::MemoryDescriptor, num_descriptors: usize) -> Self {
         Self {
             ptr,
             num_descriptors,

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
- 
+
 use core::marker::PhantomData;
 use core::ops::{Add, Sub};
 
@@ -27,7 +27,7 @@ impl<T: Unit> Size<T> {
         }
     }
 
-    pub fn as_usize(&self) -> usize {
+    pub const fn as_usize(&self) -> usize {
         self.num
     }
 }
@@ -41,7 +41,7 @@ impl Size<Byte> {
 }
 
 impl Size<NumOfPages> {
-    pub fn as_bytes(&self) -> Size<Byte> {
+    pub const fn as_bytes(&self) -> Size<Byte> {
         Size::new(self.num * BYTES_OF_PAGE)
     }
 }

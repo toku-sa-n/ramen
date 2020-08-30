@@ -25,6 +25,7 @@ mod gop;
 mod mem;
 
 use common::boot as kernelboot;
+use common::mem::reserved;
 use core::ptr;
 use core::slice;
 use fs::kernel;
@@ -38,40 +39,27 @@ use uefi::ResultExt;
 #[start]
 #[no_mangle]
 pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
-    uefi(&system_table);
+    init_libs(&system_table);
 
     let vram_info = gop::init(system_table.boot_services());
 
     let (phys_kernel_addr, bytes_kernel) = kernel::deploy(system_table.boot_services());
-    let (entry_addr, actual_memory_size) =
+    let (entry_addr, actual_mem_size) =
         kernel::fetch_entry_address_and_memory_size(phys_kernel_addr, bytes_kernel);
 
-    info!("Entry point: {:?}", entry_addr);
-    info!("Memory size: {:X?}", actual_memory_size.as_usize());
-
     let stack_addr = stack::allocate(system_table.boot_services());
-    paging::init(
-        system_table.boot_services(),
-        &vram_info,
-        phys_kernel_addr,
-        bytes_kernel,
-        stack_addr,
-    );
+    let reserved_regions =
+        reserved::Map::new(phys_kernel_addr, actual_mem_size, stack_addr, &vram_info);
+    paging::init(system_table.boot_services(), &reserved_regions);
     let mem_map = terminate_boot_services(image, system_table);
 
-    let mem_map_info = common::mem::Map::new_from_slice(mem_map);
-
     exit::bootx64(
-        mem_map,
-        kernelboot::Info::new(vram_info, mem_map_info),
         entry_addr,
-        phys_kernel_addr,
-        actual_memory_size,
-        stack_addr,
+        kernelboot::Info::new(vram_info, mem_map, reserved_regions),
     );
 }
 
-fn uefi(system_table: &SystemTable<Boot>) -> () {
+fn init_libs(system_table: &SystemTable<Boot>) -> () {
     initialize_uefi_utilities(&system_table);
     reset_console(&system_table);
     info!("Hello World!");
@@ -89,10 +77,8 @@ fn reset_console(system_table: &SystemTable<Boot>) -> () {
         .reset(false)
         .expect_success("Failed to reset stdout");
 }
-fn terminate_boot_services<'a>(
-    image: Handle,
-    system_table: SystemTable<Boot>,
-) -> &'a mut [boot::MemoryDescriptor] {
+
+fn terminate_boot_services<'a>(image: Handle, system_table: SystemTable<Boot>) -> common::mem::Map {
     let memory_map_buf = system_table
         .boot_services()
         .allocate_pool(
@@ -130,5 +116,5 @@ fn terminate_boot_services<'a>(
         num_descriptors += 1;
     }
 
-    unsafe { slice::from_raw_parts_mut(memory_map_buf, num_descriptors) }
+    common::mem::Map::new(memory_map_buf, num_descriptors)
 }
