@@ -39,17 +39,17 @@ use uefi::ResultExt;
 #[start]
 #[no_mangle]
 pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
-    uefi(&system_table);
+    init_libs(&system_table);
 
     let vram_info = gop::init(system_table.boot_services());
 
     let (phys_kernel_addr, bytes_kernel) = kernel::deploy(system_table.boot_services());
-    let (entry_addr, actual_memory_size) =
+    let (entry_addr, actual_mem_size) =
         kernel::fetch_entry_address_and_memory_size(phys_kernel_addr, bytes_kernel);
 
     let stack_addr = stack::allocate(system_table.boot_services());
     let reserved_regions =
-        reserved::Map::new(phys_kernel_addr, bytes_kernel, stack_addr, &vram_info);
+        reserved::Map::new(phys_kernel_addr, actual_mem_size, stack_addr, &vram_info);
     paging::init(system_table.boot_services(), &reserved_regions);
     let mem_map = terminate_boot_services(image, system_table);
 
@@ -59,7 +59,7 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     );
 }
 
-fn uefi(system_table: &SystemTable<Boot>) -> () {
+fn init_libs(system_table: &SystemTable<Boot>) -> () {
     initialize_uefi_utilities(&system_table);
     reset_console(&system_table);
     info!("Hello World!");
