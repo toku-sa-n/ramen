@@ -6,8 +6,7 @@ use crate::x86_64::VirtAddr;
 use core::mem::size_of;
 
 pub const KERNEL_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_8000_0000);
-pub const PML4_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_a000_0000);
-pub const VRAM_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_a000_1000);
+pub const VRAM_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_a000_0000);
 pub const STACK_BASE: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_c000_0000);
 pub const STACK_LOWER: VirtAddr =
     VirtAddr::new_truncate(STACK_BASE.as_u64() - NUM_OF_PAGES_STACK.as_bytes().as_usize() as u64);
