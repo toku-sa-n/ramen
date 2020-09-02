@@ -29,5 +29,5 @@ crate-type = ["staticlib"]
 spin = "0.5.2"
 common = { path = "../common" }
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
-qemu-exit = { git = "https://github.com/toku-sa-n/qemu-exit.git" , branch = "update_dependency" }
+qemu-exit = "0.1.3"
 x86_64 = "0.11.4"
