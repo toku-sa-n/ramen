@@ -25,4 +25,4 @@ crate-type = ["staticlib"]
 spin = "0.5.2"
 common = { path = "../common" }
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
-x86_64 = "0.11.2"
+x86_64 = "0.11.4"
