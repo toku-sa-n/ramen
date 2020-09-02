@@ -26,7 +26,7 @@ use x86_64::instructions::interrupts;
 
 #[no_mangle]
 #[start]
-pub fn os_main() {
+pub fn os_main() -> ! {
     let boot_info = boot::Info::get();
     let vram = graphics::Vram::new_from_boot_info(&boot_info);
 
@@ -72,7 +72,7 @@ fn main_loop(
     mouse_device: &mut interrupt::mouse::Device,
     mouse_cursor: &mut graphics::screen::MouseCursor,
     vram: &graphics::Vram,
-) -> () {
+) -> ! {
     loop {
         interrupts::disable();
         if interrupt::KEY_QUEUE.lock().size() != 0 {
