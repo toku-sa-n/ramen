@@ -39,7 +39,7 @@ VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive
 
 LDFLAGS			:= -nostdlib -T $(LD_SRC)
 
-.PHONY:all copy_to_usb run release clean
+.PHONY:all copy_to_usb run test_general test release_test release clean
 
 .SUFFIXES:
 
@@ -58,6 +58,17 @@ endif
 
 run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE)
 	$(VIEWER) $(VIEWERFLAGS) -no-shutdown
+
+test_general:
+	make clean && make $(IMG_FILE) RELEASE_FLAGS=$(RELEASE_FLAGS) TEST_FLAG=--features=qemu_test
+	$(VIEWER) $(VIEWERFLAGS) && (echo "Booting test failed ($(TEST_MODE) mode)"; exit 1)\
+		|| echo "Booting test succeed! ($(TEST_MODE) mode)"
+
+test:
+	make test_general TEST_MODE=debug
+
+release_test:
+	make test_general TEST_MODE=release RELEASE_FLAGS=--release
 
 $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 	dd if=/dev/zero of=$@ bs=1k count=28800
@@ -83,7 +94,7 @@ $(LIB_FILE): $(RUST_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(KERNEL_
 	# FIXME: Currently `cargo` tries to read `$(pwd)/.cargo/config.toml`, not
 	# `$(dirname argument_of_--manifest-path)/.cargo/config.toml`.
 	# See: https://github.com/rust-lang/cargo/issues/2930
-	cd $(KERNEL_DIR) && $(RUSTCC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
+	cd $(KERNEL_DIR) && $(RUSTCC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS) $(TEST_FLAG)
 
 $(MEMLIB_FILE):$(MEMLIB_SRC)|$(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $@ $<
