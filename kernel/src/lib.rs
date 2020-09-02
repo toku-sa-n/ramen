@@ -87,6 +87,7 @@ fn main_loop(
     mouse_cursor: &mut screen::MouseCursor,
     vram: &graphics::Vram,
 ) -> ! {
+    // Because of `hlt` instruction, running `loop_main` many times is impossible.
     loop_main(mouse_device, mouse_cursor, vram);
     qemu_exit::x86::exit::<u32, 0xf4>(0x10);
 }
