@@ -53,10 +53,12 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     paging::init(system_table.boot_services(), &reserved_regions);
     let mem_map = terminate_boot_services(image, system_table);
 
-    exit::bootx64(
+    exit::bootx64(kernelboot::Info::new(
         entry_addr,
-        kernelboot::Info::new(vram_info, mem_map, reserved_regions),
-    );
+        vram_info,
+        mem_map,
+        reserved_regions,
+    ));
 }
 
 fn init_libs(system_table: &SystemTable<Boot>) -> () {

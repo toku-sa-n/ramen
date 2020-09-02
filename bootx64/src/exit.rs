@@ -2,12 +2,19 @@
 
 use common::boot as kernelboot;
 use common::constant::INIT_RSP;
-use x86_64::VirtAddr;
 
-pub fn bootx64<'a>(entry_addr: VirtAddr, boot_info: kernelboot::Info) -> ! {
+macro_rules! change_rsp{
+    ($val:expr)=>{
+        unsafe{
+            asm!("mov rsp, {:r}",in(reg) $val,options(nomem,preserves_flags,nostack));
+        }
+    }
+}
+
+pub fn bootx64<'a>(boot_info: kernelboot::Info) -> ! {
     disable_interruption();
 
-    jump_to_kernel(boot_info, entry_addr);
+    jump_to_kernel(boot_info);
 }
 
 fn disable_interruption() -> () {
@@ -23,11 +30,14 @@ fn disable_interruption() -> () {
     }
 }
 
-fn jump_to_kernel(boot_info: kernelboot::Info, entry_addr: VirtAddr) -> ! {
+fn jump_to_kernel(boot_info: kernelboot::Info) -> ! {
     boot_info.set();
 
+    change_rsp!(INIT_RSP.as_u64());
+
+    let boot_info = kernelboot::Info::get();
+
     unsafe {
-        asm!("mov rsp, rax
-        jmp rdi",in("rax") INIT_RSP.as_u64(),in("rdi") entry_addr.as_u64(),options(nomem, preserves_flags, nostack,noreturn));
+        asm!("jmp rdi",in("rdi") boot_info.entry_addr().as_u64(),options(nomem, preserves_flags, nostack,noreturn));
     }
 }
