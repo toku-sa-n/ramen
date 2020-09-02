@@ -2,6 +2,7 @@
 
 #![no_std]
 #![feature(asm)]
+#![feature(panic_info_message)]
 #![feature(start)]
 #![feature(naked_functions)]
 #![feature(abi_x86_interrupt)]
@@ -14,6 +15,7 @@ extern crate x86_64;
 mod gdt;
 mod idt;
 mod interrupt;
+mod panic;
 mod queue;
 
 #[macro_use]
@@ -23,7 +25,6 @@ use graphics::screen;
 use graphics::VRAM;
 use interrupt::handler;
 use interrupt::mouse;
-use x86_64::instructions;
 use x86_64::instructions::interrupts;
 
 #[no_mangle]
@@ -93,12 +94,5 @@ fn loop_main(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseC
         handler::mouse_data(mouse_device, mouse_cursor);
     } else {
         interrupts::enable_interrupts_and_hlt();
-    }
-}
-
-#[panic_handler]
-fn panic(_info: &core::panic::PanicInfo) -> ! {
-    loop {
-        instructions::hlt();
     }
 }
