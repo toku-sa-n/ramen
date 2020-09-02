@@ -35,7 +35,7 @@ OVMF_CODE		:= OVMF_CODE.fd
 OVMF_VARS		:= OVMF_VARS.fd
 
 CFLAGS			:= -O3 -pipe -nostdlib -c -ffreestanding
-VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -monitor stdio -no-reboot -m 4G -d int -device isa-debug-exit,iobase=0xf4,iosize=0x04
+VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -no-reboot -m 4G -d int -device isa-debug-exit,iobase=0xf4,iosize=0x04
 
 LDFLAGS			:= -nostdlib -T $(LD_SRC)
 
@@ -57,7 +57,7 @@ else
 endif
 
 run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE)
-	$(VIEWER) $(VIEWERFLAGS) -no-shutdown
+	$(VIEWER) $(VIEWERFLAGS) -no-shutdown -monitor stdio
 
 test_general:
 	make clean && make $(IMG_FILE) RELEASE_FLAGS=$(RELEASE_FLAGS) TEST_FLAG=--features=qemu_test
