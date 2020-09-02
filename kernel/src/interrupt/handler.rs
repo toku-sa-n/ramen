@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
- 
+
 use super::mouse;
 use crate::graphics;
 use crate::graphics::screen;
+use crate::graphics::screen::Screen;
 use crate::print_with_pos;
 use crate::x86_64::instructions::interrupts;
 
-pub fn keyboard_data(vram: &graphics::Vram) -> () {
+pub fn keyboard_data() -> () {
     let data: Option<u32> = super::KEY_QUEUE.lock().dequeue();
 
     interrupts::enable();
 
-    let mut screen: graphics::screen::Screen = graphics::screen::Screen::new(vram);
+    let mut screen = Screen;
 
     screen.draw_rectangle(
         graphics::RGB::new(0x008484),
@@ -21,7 +22,6 @@ pub fn keyboard_data(vram: &graphics::Vram) -> () {
 
     if let Some(data) = data {
         print_with_pos!(
-            vram,
             graphics::screen::Coord::new(0, 16),
             graphics::RGB::new(0xFFFFFF),
             "{:X}",
@@ -33,13 +33,12 @@ pub fn keyboard_data(vram: &graphics::Vram) -> () {
 pub fn mouse_data(
     mouse_device: &mut super::mouse::Device,
     mouse_cursor: &mut screen::MouseCursor,
-    vram: &graphics::Vram,
 ) -> () {
     let data: Option<u32> = mouse::QUEUE.lock().dequeue();
 
     interrupts::enable();
 
-    let mut screen: graphics::screen::Screen = graphics::screen::Screen::new(vram);
+    let mut screen = Screen;
 
     screen.draw_rectangle(
         graphics::RGB::new(0x008484),

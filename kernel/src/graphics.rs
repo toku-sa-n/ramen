@@ -6,9 +6,20 @@ pub mod font;
 pub mod screen;
 
 use crate::common;
-use crate::common::constant::VRAM_ADDR;
 use common::boot;
+use common::constant::VRAM_ADDR;
 use core::ptr;
+use lazy_static::lazy_static;
+use x86_64::VirtAddr;
+
+lazy_static! {
+    pub static ref VRAM: Vram = {
+        let boot_info = boot::Info::get();
+        let (x_len, y_len) = boot_info.vram().resolution();
+
+        Vram::new(boot_info.vram().bpp(), x_len, y_len, VRAM_ADDR)
+    };
+}
 
 // Copy trait is needed for constructing MouseCursor struct
 // If you are unsure, remove Copy trait from this struct and see the error messages.
@@ -31,29 +42,38 @@ impl RGB {
 
 #[derive(Clone)]
 pub struct Vram {
-    pub bits_per_pixel: usize,
-    pub x_len: usize,
-    pub y_len: usize,
-    pub ptr: *mut u8,
+    bits_per_pixel: usize,
+    x_len: usize,
+    y_len: usize,
+    ptr: VirtAddr,
 }
 
 impl Vram {
-    pub fn new_from_boot_info(boot_info: &boot::Info) -> Self {
-        let (x_len, y_len) = boot_info.vram().resolution();
-
+    fn new(bits_per_pixel: usize, x_len: usize, y_len: usize, ptr: VirtAddr) -> Self {
         Self {
-            bits_per_pixel: boot_info.vram().bpp(),
+            bits_per_pixel,
             x_len,
             y_len,
-            ptr: VRAM_ADDR.as_mut_ptr(),
+            ptr,
         }
+    }
+
+    pub fn x_len(&self) -> usize {
+        self.x_len
+    }
+
+    pub fn y_len(&self) -> usize {
+        self.y_len
+    }
+
+    pub fn ptr(&self) -> VirtAddr {
+        self.ptr
     }
 }
 
 impl Vram {
     pub unsafe fn set_color(&self, coord: screen::Coord<isize>, rgb: RGB) -> () {
-        let base_ptr: *mut u8 = self
-            .ptr
+        let base_ptr: *mut u8 = (self.ptr.as_mut_ptr() as *mut u8)
             .offset((coord.y * self.x_len as isize + coord.x) * self.bits_per_pixel as isize / 8);
 
         // The order of `RGB` is right.
