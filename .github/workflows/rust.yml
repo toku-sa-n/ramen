@@ -25,7 +25,7 @@ jobs:
         override: true
 
     - name: Install dependencies
-      run: sudo apt-get install nasm mtools
+      run: sudo apt-get install nasm mtools qemu
 
     - name: Test on debug mode
       run: make test

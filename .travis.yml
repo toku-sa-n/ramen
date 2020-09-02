@@ -12,6 +12,7 @@ addons:
 
 install:
   - rustup component add rust-src
+  - sudo apt install qemu
 
 script:
   - make test
