@@ -29,7 +29,7 @@ jobs:
         override: true
 
     - name: Install dependencies
-      run: sudo apt-get install nasm mtools qemu
+      run: sudo apt-get install nasm mtools qemu ovmf
 
     - name: Copy OVMF_*
       run: cp /usr/share/OVMF/OVMF_* .
