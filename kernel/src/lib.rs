@@ -88,7 +88,7 @@ fn main_loop(
     vram: &graphics::Vram,
 ) -> ! {
     loop_main(mouse_device, mouse_cursor, vram);
-    qemu_exit::x86::exit::<u32, 0xf4>(0);
+    qemu_exit::x86::exit::<u32, 0xf4>(0x10);
 }
 
 fn loop_main(
