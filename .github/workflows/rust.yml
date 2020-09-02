@@ -27,11 +27,8 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get install nasm mtools
 
-    - name: Build debug version
-      run: make
+    - name: Test on debug mode
+      run: make test
 
-    - name: Build release version
-      run: make release
-
-    - name: Create image file
-      run: make build/ramen_os.img
+    - name: Test on release mode
+      run: make release_test
