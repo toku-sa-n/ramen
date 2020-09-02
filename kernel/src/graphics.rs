@@ -65,10 +65,6 @@ impl Vram {
     pub fn y_len(&self) -> usize {
         self.y_len
     }
-
-    pub fn ptr(&self) -> VirtAddr {
-        self.ptr
-    }
 }
 
 impl Vram {
