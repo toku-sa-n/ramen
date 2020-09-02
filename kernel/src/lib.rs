@@ -89,6 +89,9 @@ fn main_loop(
 ) -> ! {
     // Because of `hlt` instruction, running `loop_main` many times is impossible.
     loop_main(mouse_device, mouse_cursor, vram);
+
+    // If you change the value `0xf4` and `0x10`, don't forget to change the correspond values in
+    // `Makefile`!
     qemu_exit::x86::exit::<u32, 0xf4>(0x10);
 }
 
