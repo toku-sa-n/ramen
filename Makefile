@@ -35,7 +35,7 @@ OVMF_CODE		:= OVMF_CODE.fd
 OVMF_VARS		:= OVMF_VARS.fd
 
 CFLAGS			:= -O3 -pipe -nostdlib -c -ffreestanding
-VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -monitor stdio -no-reboot -no-shutdown -m 4G -d int
+VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -monitor stdio -no-reboot -m 4G -d int -device isa-debug-exit,iobase=0xf4,iosize=0x04
 
 LDFLAGS			:= -nostdlib -T $(LD_SRC)
 
@@ -57,7 +57,7 @@ else
 endif
 
 run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE)
-	$(VIEWER) $(VIEWERFLAGS)
+	$(VIEWER) $(VIEWERFLAGS) -no-shutdown
 
 $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 	dd if=/dev/zero of=$@ bs=1k count=28800
