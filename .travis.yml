@@ -14,5 +14,5 @@ install:
   - rustup component add rust-src
 
 script:
-  - make
-  - make release
+  - make test
+  - make release_test
