@@ -73,13 +73,9 @@ fn main_loop(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseC
 }
 
 #[cfg(feature = "qemu_test")]
-fn main_loop(
-    mouse_device: &mut mouse::Device,
-    mouse_cursor: &mut screen::MouseCursor,
-    vram: &graphics::Vram,
-) -> ! {
+fn main_loop(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseCursor) -> ! {
     // Because of `hlt` instruction, running `loop_main` many times is impossible.
-    loop_main(mouse_device, mouse_cursor, vram);
+    loop_main(mouse_device, mouse_cursor);
 
     // If you change the value `0xf4` and `0x10`, don't forget to change the correspond values in
     // `Makefile`!
