@@ -1,3 +1,5 @@
+SHELL			:= /bin/bash
+
 RUST_SRC_DIR	:= src
 BUILD_DIR		:= build
 EFI_DIR			:= bootx64
