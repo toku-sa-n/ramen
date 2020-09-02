@@ -12,7 +12,8 @@ addons:
 
 install:
   - rustup component add rust-src
-  - sudo apt install qemu
+  - sudo apt install qemu ovmf
+  - cp /usr/share/OVMF/OVMF_* .
 
 script:
   - make test

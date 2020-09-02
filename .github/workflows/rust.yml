@@ -31,6 +31,9 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get install nasm mtools qemu
 
+    - name: Copy OVMF_*
+      run: cp /usr/share/OVMF/OVMF_* .
+
     - name: Test on debug mode
       run: make test
 
