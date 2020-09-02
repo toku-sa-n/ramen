@@ -14,6 +14,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        shell: bash
+
     steps:
     - uses: actions/checkout@v2
 
@@ -25,13 +29,13 @@ jobs:
         override: true
 
     - name: Install dependencies
-      run: sudo apt-get install nasm mtools
+      run: sudo apt-get install nasm mtools qemu ovmf
 
-    - name: Build debug version
-      run: make
+    - name: Copy OVMF_*
+      run: cp /usr/share/OVMF/OVMF_* .
 
-    - name: Build release version
-      run: make release
+    - name: Test on debug mode
+      run: make test
 
-    - name: Create image file
-      run: make build/ramen_os.img
+    - name: Test on release mode
+      run: make release_test

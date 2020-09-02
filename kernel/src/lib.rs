@@ -20,7 +20,9 @@ mod queue;
 mod graphics;
 
 use common::boot;
+use graphics::screen;
 use interrupt::handler;
+use interrupt::mouse;
 use x86_64::instructions;
 use x86_64::instructions::interrupts;
 
@@ -68,20 +70,43 @@ fn initialization(
     mouse_cursor.draw_offset(graphics::screen::Coord::new(300, 300))
 }
 
+#[cfg(not(feature = "qemu_test"))]
 fn main_loop(
-    mouse_device: &mut interrupt::mouse::Device,
-    mouse_cursor: &mut graphics::screen::MouseCursor,
+    mouse_device: &mut mouse::Device,
+    mouse_cursor: &mut screen::MouseCursor,
     vram: &graphics::Vram,
 ) -> ! {
     loop {
-        interrupts::disable();
-        if interrupt::KEY_QUEUE.lock().size() != 0 {
-            handler::keyboard_data(vram);
-        } else if interrupt::mouse::QUEUE.lock().size() != 0 {
-            handler::mouse_data(mouse_device, mouse_cursor, vram);
-        } else {
-            interrupts::enable_interrupts_and_hlt();
-        }
+        loop_main(mouse_device, mouse_cursor, vram)
+    }
+}
+
+#[cfg(feature = "qemu_test")]
+fn main_loop(
+    mouse_device: &mut mouse::Device,
+    mouse_cursor: &mut screen::MouseCursor,
+    vram: &graphics::Vram,
+) -> ! {
+    // Because of `hlt` instruction, running `loop_main` many times is impossible.
+    loop_main(mouse_device, mouse_cursor, vram);
+
+    // If you change the value `0xf4` and `0x10`, don't forget to change the correspond values in
+    // `Makefile`!
+    qemu_exit::x86::exit::<u32, 0xf4>(0x10);
+}
+
+fn loop_main(
+    mouse_device: &mut mouse::Device,
+    mouse_cursor: &mut screen::MouseCursor,
+    vram: &graphics::Vram,
+) {
+    interrupts::disable();
+    if interrupt::KEY_QUEUE.lock().size() != 0 {
+        handler::keyboard_data(vram);
+    } else if interrupt::mouse::QUEUE.lock().size() != 0 {
+        handler::mouse_data(mouse_device, mouse_cursor, vram);
+    } else {
+        interrupts::enable_interrupts_and_hlt();
     }
 }
 
