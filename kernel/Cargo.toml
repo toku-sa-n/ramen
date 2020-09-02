@@ -5,6 +5,10 @@ authors = ["toku-sa-n <tokusan441@gmail.com>"]
 edition = "2018"
 license = "GPL-3.0-or-later"
 
+[features]
+default = []
+qemu_test = []
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [profile.dev]

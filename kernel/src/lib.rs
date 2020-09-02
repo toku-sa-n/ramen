@@ -70,14 +70,25 @@ fn initialization(
     mouse_cursor.draw_offset(graphics::screen::Coord::new(300, 300))
 }
 
+#[cfg(not(feature = "qemu_test"))]
 fn main_loop(
     mouse_device: &mut mouse::Device,
     mouse_cursor: &mut screen::MouseCursor,
     vram: &graphics::Vram,
-) -> () {
+) -> ! {
     loop {
         loop_main(mouse_device, mouse_cursor, vram)
     }
+}
+
+#[cfg(feature = "qemu_test")]
+fn main_loop(
+    mouse_device: &mut mouse::Device,
+    mouse_cursor: &mut screen::MouseCursor,
+    vram: &graphics::Vram,
+) -> ! {
+    loop_main(mouse_device, mouse_cursor, vram);
+    qemu_exit::x86::exit::<u32, 0xf4>(0);
 }
 
 fn loop_main(
