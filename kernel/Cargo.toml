@@ -26,4 +26,4 @@ spin = "0.5.2"
 common = { path = "../common" }
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
 x86_64 = "0.11.2"
-qemu-exit = "0.1.2"
+qemu-exit = { git = "https://github.com/toku-sa-n/qemu-exit.git" , branch = "update_dependency" }
