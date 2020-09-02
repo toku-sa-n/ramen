@@ -62,7 +62,7 @@ run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE)
 test_general:
 	make clean && make $(IMG_FILE) RELEASE_FLAGS=$(RELEASE_FLAGS) TEST_FLAG=--features=qemu_test
 	$(VIEWER) $(VIEWERFLAGS) && (echo "Booting test failed ($(TEST_MODE) mode)"; exit 1)\
-		|| @echo "Booting test succeed! ($(TEST_MODE) mode)"
+		|| echo "Booting test succeed! ($(TEST_MODE) mode)"
 
 test:
 	make test_general TEST_MODE=debug
