@@ -61,10 +61,7 @@ run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE)
 
 test_general:
 	make clean && make $(IMG_FILE) RELEASE_FLAGS=$(RELEASE_FLAGS) TEST_FLAG=--features=qemu_test
-	# QEMU's exit status is very odd.
-	# It returns zero if it unexpectedly exited (triple fault, etc.)
-	# It returns non-zero if it exited successfully.
-	$(VIEWER) $(VIEWERFLAGS); if [[ $$? -ne 0 ]];\
+	$(VIEWER) $(VIEWERFLAGS) -nographic; if [[ $$? -eq 33 ]];\
 		then echo "Booting test succeed! ($(TEST_MODE) mode)"; exit 0;\
 		else echo "Booting test failed ($(TEST_MODE) mode)"; exit 1;fi
 
