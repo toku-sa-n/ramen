@@ -20,7 +20,9 @@ mod queue;
 mod graphics;
 
 use common::boot;
+use graphics::screen;
 use interrupt::handler;
+use interrupt::mouse;
 use x86_64::instructions;
 use x86_64::instructions::interrupts;
 
@@ -69,19 +71,27 @@ fn initialization(
 }
 
 fn main_loop(
-    mouse_device: &mut interrupt::mouse::Device,
-    mouse_cursor: &mut graphics::screen::MouseCursor,
+    mouse_device: &mut mouse::Device,
+    mouse_cursor: &mut screen::MouseCursor,
     vram: &graphics::Vram,
 ) -> () {
     loop {
-        interrupts::disable();
-        if interrupt::KEY_QUEUE.lock().size() != 0 {
-            handler::keyboard_data(vram);
-        } else if interrupt::mouse::QUEUE.lock().size() != 0 {
-            handler::mouse_data(mouse_device, mouse_cursor, vram);
-        } else {
-            interrupts::enable_interrupts_and_hlt();
-        }
+        loop_main(mouse_device, mouse_cursor, vram)
+    }
+}
+
+fn loop_main(
+    mouse_device: &mut mouse::Device,
+    mouse_cursor: &mut screen::MouseCursor,
+    vram: &graphics::Vram,
+) {
+    interrupts::disable();
+    if interrupt::KEY_QUEUE.lock().size() != 0 {
+        handler::keyboard_data(vram);
+    } else if interrupt::mouse::QUEUE.lock().size() != 0 {
+        handler::mouse_data(mouse_device, mouse_cursor, vram);
+    } else {
+        interrupts::enable_interrupts_and_hlt();
     }
 }
 
