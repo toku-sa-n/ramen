@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
- 
+
 use super::*;
+use crate::graphics::VRAM;
 
 pub const MOUSE_CURSOR_WIDTH: usize = 16;
 pub const MOUSE_CURSOR_HEIGHT: usize = 16;
@@ -58,9 +59,9 @@ pub const MOUSE_GRAPHIC: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] = [
 
 #[macro_export]
 macro_rules! print_with_pos {
-    ($vram:expr,$coord:expr,$color:expr,$text:expr,$($args:expr),*) => {
+    ($coord:expr,$color:expr,$text:expr,$($args:expr),*) => {
         let mut screen_write =
-            crate::graphics::screen::ScreenWrite::new($vram, $coord, $color);
+            crate::graphics::screen::ScreenWrite::new($coord, $color);
 
         // To narrow the scope of `use core::fmt::Write;`, enclose sentences by curly braces.
         {
@@ -70,15 +71,9 @@ macro_rules! print_with_pos {
     };
 }
 
-pub struct Screen<'a> {
-    vram: &'a Vram,
-}
+pub struct Screen;
 
-impl<'a> Screen<'a> {
-    pub fn new(vram: &'a Vram) -> Self {
-        Self { vram }
-    }
-
+impl Screen {
     // TODO: Specify top left coordinate and length, rather than two coordinates.
     pub fn draw_rectangle(
         &mut self,
@@ -89,7 +84,7 @@ impl<'a> Screen<'a> {
         for y in top_left.y..=bottom_right.y {
             for x in top_left.x..=bottom_right.x {
                 unsafe {
-                    self.vram.set_color(Coord::new(x, y), color.clone());
+                    VRAM.set_color(Coord::new(x, y), color.clone());
                 }
             }
         }
@@ -143,38 +138,34 @@ impl<T: core::cmp::PartialOrd> Coord<T> {
     }
 }
 
-pub struct ScreenWrite<'a> {
-    vram: &'a Vram,
+pub struct ScreenWrite {
     coord: Coord<isize>,
     color: RGB,
 }
 
-impl<'a> ScreenWrite<'a> {
-    pub fn new(vram: &'a Vram, coord: Coord<isize>, color: RGB) -> Self {
-        Self { vram, coord, color }
+impl ScreenWrite {
+    pub fn new(coord: Coord<isize>, color: RGB) -> Self {
+        Self { coord, color }
     }
 }
 
-impl<'a> core::fmt::Write for ScreenWrite<'a> {
+impl core::fmt::Write for ScreenWrite {
     fn write_str(&mut self, s: &str) -> core::result::Result<(), core::fmt::Error> {
-        print_str(&self.vram, &self.coord, self.color, s);
+        print_str(&VRAM, &self.coord, self.color, s);
         self.coord.x += (s.len() * font::FONT_WIDTH) as isize;
         Ok(())
     }
 }
 
-pub struct MouseCursor<'a> {
+pub struct MouseCursor {
     coord: Coord<isize>,
-
-    vram: &'a Vram,
     image: [[RGB; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
 }
 
-impl<'a> MouseCursor<'a> {
+impl MouseCursor {
     pub fn new(
         background_color: RGB,
         image: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
-        vram: &'a Vram,
     ) -> Self {
         let mut colored_dots: [[RGB; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] =
             [[background_color; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_WIDTH];
@@ -192,12 +183,11 @@ impl<'a> MouseCursor<'a> {
         Self {
             coord: Coord::new(0, 0),
             image: colored_dots,
-            vram,
         }
     }
 
     pub fn print_coord(&mut self, coord: Coord<isize>) -> () {
-        let mut screen: Screen = Screen::new(self.vram);
+        let mut screen = Screen;
 
         screen.draw_rectangle(
             RGB::new(0x008484),
@@ -206,7 +196,6 @@ impl<'a> MouseCursor<'a> {
         );
 
         print_with_pos!(
-            self.vram,
             coord,
             RGB::new(0xFFFFFF),
             "({}, {})",
@@ -226,15 +215,15 @@ impl<'a> MouseCursor<'a> {
         let adjusted_coord = coord.put_in(
             Coord::new(0, 0),
             Coord::new(
-                (self.vram.x_len - MOUSE_CURSOR_WIDTH - 1) as isize,
-                (self.vram.y_len - MOUSE_CURSOR_HEIGHT - 1) as isize,
+                (VRAM.x_len - MOUSE_CURSOR_WIDTH - 1) as isize,
+                (VRAM.y_len - MOUSE_CURSOR_HEIGHT - 1) as isize,
             ),
         );
 
         for y in 0..MOUSE_CURSOR_HEIGHT {
             for x in 0..MOUSE_CURSOR_WIDTH {
                 unsafe {
-                    self.vram.set_color(
+                    VRAM.set_color(
                         adjusted_coord.clone() + Coord::new(x as isize, y as isize),
                         self.image[y][x],
                     );
@@ -246,7 +235,7 @@ impl<'a> MouseCursor<'a> {
     }
 
     fn remove_previous_cursor(&self) -> () {
-        let mut screen: Screen = Screen::new(self.vram);
+        let mut screen = Screen;
 
         screen.draw_rectangle(
             RGB::new(0x008484),
@@ -260,14 +249,14 @@ impl<'a> MouseCursor<'a> {
 }
 
 #[rustfmt::skip]
-pub fn draw_desktop(vram: &Vram) -> () {
-    let x_len:isize  = vram.x_len as isize;
-    let y_len:isize  = vram.y_len as isize;
+pub fn draw_desktop() -> () {
+    let x_len:isize  = VRAM.x_len as isize;
+    let y_len:isize  = VRAM.y_len as isize;
 
     // It seems that changing the arguments as `color, coord_1, coord_2` actually makes the code
     // dirty because by doing it lots of `Coord::new(x1, x2)` appear on below.
     let draw_desktop_part = |color, x0, y0, x1, y1| {
-        let mut screen:screen::Screen = screen::Screen::new(vram);
+        let mut screen:screen::Screen = Screen;
         screen.draw_rectangle(RGB::new(color), Coord::new(x0, y0), Coord::new(x1, y1));
     };
 

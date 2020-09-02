@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
- 
+
 use crate::graphics;
+use crate::graphics::screen::Screen;
 use crate::queue;
 use crate::x86_64::instructions::port::Port;
 
@@ -43,25 +44,22 @@ enum DevicePhase {
     ThreeData,
 }
 
-pub struct Device<'a> {
+pub struct Device {
     data_from_device: [u32; 3],
     phase: DevicePhase,
 
     speed: graphics::screen::TwoDimensionalVec<i32>,
 
     buttons: MouseButtons,
-
-    vram: &'a graphics::Vram,
 }
 
-impl<'a> Device<'a> {
-    pub fn new(vram: &'a graphics::Vram) -> Self {
+impl Device {
+    pub fn new() -> Self {
         Self {
             data_from_device: [0; 3],
             phase: DevicePhase::Init,
             speed: graphics::screen::TwoDimensionalVec::new(0, 0),
             buttons: MouseButtons::new(),
-            vram,
         }
     }
 
@@ -136,7 +134,7 @@ impl<'a> Device<'a> {
 
     pub fn print_buf_data(&mut self) -> () {
         use crate::print_with_pos;
-        let mut screen: graphics::screen::Screen = graphics::screen::Screen::new(self.vram);
+        let mut screen = Screen;
 
         screen.draw_rectangle(
             graphics::RGB::new(0x008484),
@@ -145,7 +143,6 @@ impl<'a> Device<'a> {
         );
 
         print_with_pos!(
-            self.vram,
             graphics::screen::Coord::new(32, 16),
             graphics::RGB::new(0xFFFFFF),
             "[{}{}{} {:4}{:4}]",
