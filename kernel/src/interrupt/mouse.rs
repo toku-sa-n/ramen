@@ -5,10 +5,10 @@ use crate::graphics::screen::Screen;
 use crate::queue;
 use crate::x86_64::instructions::port::Port;
 
-extern crate lazy_static;
+use lazy_static::lazy_static;
 
-lazy_static::lazy_static! {
-    pub static ref QUEUE:spin::Mutex<queue::Queue> = spin::Mutex::new(queue::Queue::new());
+lazy_static! {
+    pub static ref QUEUE: spin::Mutex<queue::Queue> = spin::Mutex::new(queue::Queue::new());
 }
 
 struct MouseButtons {
