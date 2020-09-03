@@ -2,8 +2,8 @@
 
 use crate::graphics::screen::Coord;
 use crate::graphics::screen::Screen;
+use crate::graphics::Vram;
 use crate::graphics::RGB;
-use crate::graphics::VRAM;
 use crate::print_with_pos;
 
 #[panic_handler]
@@ -13,7 +13,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
     screen.draw_rectangle(
         RGB::new(0xff0000),
         Coord::new(0, 0),
-        Coord::new(VRAM.x_len() as isize - 1, VRAM.y_len() as isize - 1),
+        Coord::new(Vram::x_len() as isize - 1, Vram::y_len() as isize - 1),
     );
 
     if let Some(location) = info.location() {

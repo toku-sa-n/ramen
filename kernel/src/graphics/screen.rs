@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::*;
-use crate::graphics::VRAM;
 
 pub const MOUSE_CURSOR_WIDTH: usize = 16;
 pub const MOUSE_CURSOR_HEIGHT: usize = 16;
@@ -84,7 +83,7 @@ impl Screen {
         for y in top_left.y..=bottom_right.y {
             for x in top_left.x..=bottom_right.x {
                 unsafe {
-                    VRAM.set_color(Coord::new(x, y), color.clone());
+                    Vram::set_color(Coord::new(x, y), color.clone());
                 }
             }
         }
@@ -151,7 +150,7 @@ impl ScreenWrite {
 
 impl core::fmt::Write for ScreenWrite {
     fn write_str(&mut self, s: &str) -> core::result::Result<(), core::fmt::Error> {
-        print_str(&VRAM, &self.coord, self.color, s);
+        print_str(&self.coord, self.color, s);
         self.coord.x += (s.len() * font::FONT_WIDTH) as isize;
         Ok(())
     }
@@ -215,15 +214,15 @@ impl MouseCursor {
         let adjusted_coord = coord.put_in(
             Coord::new(0, 0),
             Coord::new(
-                (VRAM.x_len - MOUSE_CURSOR_WIDTH - 1) as isize,
-                (VRAM.y_len - MOUSE_CURSOR_HEIGHT - 1) as isize,
+                (Vram::x_len() - MOUSE_CURSOR_WIDTH - 1) as isize,
+                (Vram::y_len() - MOUSE_CURSOR_HEIGHT - 1) as isize,
             ),
         );
 
         for y in 0..MOUSE_CURSOR_HEIGHT {
             for x in 0..MOUSE_CURSOR_WIDTH {
                 unsafe {
-                    VRAM.set_color(
+                    Vram::set_color(
                         adjusted_coord.clone() + Coord::new(x as isize, y as isize),
                         self.image[y][x],
                     );
@@ -250,8 +249,8 @@ impl MouseCursor {
 
 #[rustfmt::skip]
 pub fn draw_desktop() -> () {
-    let x_len:isize  = VRAM.x_len as isize;
-    let y_len:isize  = VRAM.y_len as isize;
+    let x_len:isize  = Vram::x_len() as isize;
+    let y_len:isize  = Vram::y_len() as isize;
 
     // It seems that changing the arguments as `color, coord_1, coord_2` actually makes the code
     // dirty because by doing it lots of `Coord::new(x1, x2)` appear on below.
@@ -278,11 +277,10 @@ pub fn draw_desktop() -> () {
     draw_desktop_part(0xFFFFFF, x_len -  3, y_len - 24, x_len -  3, y_len -  3);
 }
 
-fn print_str(vram: &Vram, coord: &Coord<isize>, color: RGB, str: &str) -> () {
+fn print_str(coord: &Coord<isize>, color: RGB, str: &str) -> () {
     let mut char_x_pos = coord.x;
     for c in str.chars() {
         print_char(
-            vram,
             Coord::new(char_x_pos, coord.y),
             color,
             font::FONTS[c as usize],
@@ -292,7 +290,6 @@ fn print_str(vram: &Vram, coord: &Coord<isize>, color: RGB, str: &str) -> () {
 }
 
 fn print_char(
-    vram: &Vram,
     coord: Coord<isize>,
     color: RGB,
     font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT],
@@ -301,7 +298,7 @@ fn print_char(
         for j in 0..font::FONT_WIDTH {
             if font[i][j] {
                 unsafe {
-                    vram.set_color(coord.clone() + Coord::new(j as isize, i as isize), color);
+                    Vram::set_color(coord.clone() + Coord::new(j as isize, i as isize), color);
                 }
             }
         }

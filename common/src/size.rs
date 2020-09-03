@@ -13,6 +13,7 @@ impl Unit for Byte {}
 pub struct NumOfPages;
 impl Unit for NumOfPages {}
 
+#[repr(transparent)]
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Size<T: Unit> {
     num: usize,

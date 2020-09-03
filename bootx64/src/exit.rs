@@ -17,7 +17,7 @@ pub fn bootx64<'a>(boot_info: kernelboot::Info) -> ! {
     jump_to_kernel(boot_info);
 }
 
-fn disable_interruption() -> () {
+fn disable_interruption() {
     // Use `nop` because some machines go wrong when continuously doing `out`.
     unsafe {
         asm!(
@@ -37,7 +37,9 @@ fn jump_to_kernel(boot_info: kernelboot::Info) -> ! {
 
     let boot_info = kernelboot::Info::get();
 
-    unsafe {
-        asm!("jmp rdi",in("rdi") boot_info.entry_addr().as_u64(),options(nomem, preserves_flags, nostack,noreturn));
-    }
+    let kernel = unsafe {
+        core::mem::transmute::<u64, fn(kernelboot::Info) -> !>(boot_info.entry_addr().as_u64())
+    };
+
+    kernel(boot_info)
 }

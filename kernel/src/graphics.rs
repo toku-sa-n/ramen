@@ -10,15 +10,11 @@ use common::boot;
 use common::constant::VRAM_ADDR;
 use core::ptr;
 use lazy_static::lazy_static;
+use spin::Once;
 use x86_64::VirtAddr;
 
 lazy_static! {
-    pub static ref VRAM: Vram = {
-        let boot_info = boot::Info::get();
-        let (x_len, y_len) = boot_info.vram().resolution();
-
-        Vram::new(boot_info.vram().bpp(), x_len, y_len, VRAM_ADDR)
-    };
+    static ref VRAM: Once<Vram> = Once::new();
 }
 
 // Copy trait is needed for constructing MouseCursor struct
@@ -40,7 +36,7 @@ impl RGB {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Vram {
     bits_per_pixel: usize,
     x_len: usize,
@@ -49,6 +45,18 @@ pub struct Vram {
 }
 
 impl Vram {
+    pub fn init(boot_info: &boot::Info) {
+        VRAM.call_once(|| Self::new_from_boot_info(boot_info));
+    }
+
+    fn new_from_boot_info(boot_info: &boot::Info) -> Self {
+        let vram = boot_info.vram();
+
+        let (x_len, y_len) = vram.resolution();
+
+        Self::new(vram.bpp(), x_len, y_len, VRAM_ADDR)
+    }
+
     fn new(bits_per_pixel: usize, x_len: usize, y_len: usize, ptr: VirtAddr) -> Self {
         Self {
             bits_per_pixel,
@@ -58,19 +66,23 @@ impl Vram {
         }
     }
 
-    pub fn x_len(&self) -> usize {
-        self.x_len
+    fn get() -> &'static Vram {
+        VRAM.r#try().expect("VRAM not initialized")
     }
 
-    pub fn y_len(&self) -> usize {
-        self.y_len
+    pub fn x_len() -> usize {
+        Self::get().x_len
     }
-}
 
-impl Vram {
-    pub unsafe fn set_color(&self, coord: screen::Coord<isize>, rgb: RGB) -> () {
-        let base_ptr: *mut u8 = (self.ptr.as_mut_ptr() as *mut u8)
-            .offset((coord.y * self.x_len as isize + coord.x) * self.bits_per_pixel as isize / 8);
+    pub fn y_len() -> usize {
+        Self::get().y_len
+    }
+
+    pub unsafe fn set_color(coord: screen::Coord<isize>, rgb: RGB) -> () {
+        let vram = Self::get();
+
+        let base_ptr: *mut u8 = (vram.ptr.as_mut_ptr() as *mut u8)
+            .offset((coord.y * vram.x_len as isize + coord.x) * vram.bits_per_pixel as isize / 8);
 
         // The order of `RGB` is right.
         // See: https://wiki.osdev.org/Drawing_In_Protected_Mode
