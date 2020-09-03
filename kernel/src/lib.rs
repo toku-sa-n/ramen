@@ -22,6 +22,7 @@ mod queue;
 mod graphics;
 
 use graphics::screen;
+use graphics::RGB;
 use graphics::VRAM;
 use interrupt::handler;
 use interrupt::mouse;
@@ -31,10 +32,7 @@ use x86_64::instructions::interrupts;
 #[start]
 pub fn os_main() -> ! {
     let mut mouse_device = mouse::Device::new();
-    let mut mouse_cursor = screen::MouseCursor::new(
-        graphics::RGB::new(0x008484),
-        graphics::screen::MOUSE_GRAPHIC,
-    );
+    let mut mouse_cursor = screen::MouseCursor::new(RGB::new(0x008484), screen::MOUSE_GRAPHIC);
 
     initialization(&mut mouse_device, &mut mouse_cursor);
 
