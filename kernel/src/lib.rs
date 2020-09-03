@@ -23,8 +23,8 @@ mod graphics;
 
 use common::boot;
 use graphics::screen;
+use graphics::Vram;
 use graphics::RGB;
-use graphics::VRAM;
 use interrupt::handler;
 use interrupt::mouse;
 use x86_64::instructions::interrupts;
@@ -32,6 +32,7 @@ use x86_64::instructions::interrupts;
 #[no_mangle]
 #[start]
 pub extern "win64" fn os_main(boot_info: boot::Info) -> ! {
+    Vram::init(&boot_info);
     let mut mouse_device = mouse::Device::new();
     let mut mouse_cursor = screen::MouseCursor::new(RGB::new(0x008484), screen::MOUSE_GRAPHIC);
 
@@ -54,7 +55,7 @@ fn initialization(
         graphics::screen::Coord::new(16, 64),
         graphics::RGB::new(0xFFFFFF),
         "x_len = {}",
-        VRAM.x_len()
+        Vram::x_len()
     );
 
     interrupt::set_init_pic_bits();
