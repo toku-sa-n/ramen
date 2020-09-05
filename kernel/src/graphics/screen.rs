@@ -79,7 +79,7 @@ impl Screen {
         color: RGB,
         top_left: Coord<isize>,
         bottom_right: Coord<isize>,
-    ) -> () {
+    ) {
         for y in top_left.y..=bottom_right.y {
             for x in top_left.x..=bottom_right.x {
                 unsafe {
