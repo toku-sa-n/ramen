@@ -106,7 +106,7 @@ impl Device {
         data & 0xC8 == 0x08
     }
 
-    fn clear_stack(&mut self) -> () {
+    fn clear_stack(&mut self) {
         self.phase = DevicePhase::NoData;
     }
 
