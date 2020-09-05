@@ -33,7 +33,7 @@ const KEY_CMD_SEND_TO_MOUSE: u8 = 0xD4;
 const MOUSE_CMD_ENABLE: u8 = 0xF4;
 
 lazy_static::lazy_static! {
-    pub static ref KEY_QUEUE: spin::Mutex<queue::Queue> = spin::Mutex::new(queue::Queue::new());
+    pub static ref KEY_QUEUE: spin::Mutex<queue::Queue<u32>> = spin::Mutex::new(queue::Queue::new(0));
 }
 
 // See P.128.
@@ -118,5 +118,5 @@ pub extern "x86-interrupt" fn handler_2c(_stack_frame: &mut idt::InterruptStackF
     }
     mouse::QUEUE
         .lock()
-        .enqueue(unsafe { u32::from(Port::<u8>::new(PORT_KEYDATA).read()) });
+        .enqueue(unsafe { Port::<u8>::new(PORT_KEYDATA).read() });
 }
