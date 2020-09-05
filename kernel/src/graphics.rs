@@ -78,8 +78,10 @@ impl Vram {
     pub unsafe fn set_color(coord: &screen::Coord<isize>, rgb: RGB) {
         let vram = Self::get();
 
-        let base_ptr = (vram.ptr.as_u64() as usize
-            + (coord.y as usize * Vram::resolution().x + coord.x as usize) * vram.bits_per_pixel
+        let base_ptr = (usize::try_from(vram.ptr.as_u64()).unwrap()
+            + (usize::try_from(coord.y).unwrap() * Vram::resolution().x
+                + usize::try_from(coord.x).unwrap())
+                * vram.bits_per_pixel
                 / 8) as *mut u8;
 
         // The order of `RGB` is right.
