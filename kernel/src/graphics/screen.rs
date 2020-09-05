@@ -294,9 +294,9 @@ fn print_char(
     color: RGB,
     font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT],
 ) {
-    for i in 0..font::FONT_HEIGHT {
-        for j in 0..font::FONT_WIDTH {
-            if font[i][j] {
+    for (i, line) in font.iter().enumerate().take(font::FONT_HEIGHT) {
+        for (j, cell) in line.iter().enumerate().take(font::FONT_WIDTH) {
+            if *cell {
                 unsafe {
                     Vram::set_color(coord.clone() + Coord::new(j as isize, i as isize), color);
                 }
