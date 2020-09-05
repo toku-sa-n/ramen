@@ -25,18 +25,22 @@ impl Info {
         }
     }
 
+    #[must_use]
     pub fn bpp(&self) -> usize {
         self.bpp
     }
 
+    #[must_use]
     pub fn resolution(&self) -> (usize, usize) {
         (self.screen_x, self.screen_y)
     }
 
+    #[must_use]
     pub fn phys_ptr(&self) -> PhysAddr {
         self.ptr
     }
 
+    #[must_use]
     pub fn bytes(&self) -> Size<Byte> {
         Size::new(self.screen_x as usize * self.screen_y as usize * self.bpp as usize / 8)
     }
