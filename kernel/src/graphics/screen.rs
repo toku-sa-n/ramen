@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{RGB, Vram, font, screen};
+use super::{font, screen, Vram, RGB};
 
 pub const MOUSE_CURSOR_WIDTH: usize = 16;
 pub const MOUSE_CURSOR_HEIGHT: usize = 16;
@@ -60,7 +60,7 @@ pub const MOUSE_GRAPHIC: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] = [
 macro_rules! print_with_pos {
     ($coord:expr,$color:expr,$text:expr,$($args:expr),*) => {
         let mut screen_write =
-            crate::graphics::screen::ScreenWrite::new($coord, $color);
+            crate::graphics::screen::Writer::new($coord, $color);
 
         // To narrow the scope of `use core::fmt::Write;`, enclose sentences by curly braces.
         {
@@ -137,18 +137,18 @@ impl<T: core::cmp::PartialOrd> Coord<T> {
     }
 }
 
-pub struct ScreenWrite {
+pub struct Writer {
     coord: Coord<isize>,
     color: RGB,
 }
 
-impl ScreenWrite {
+impl Writer {
     pub fn new(coord: Coord<isize>, color: RGB) -> Self {
         Self { coord, color }
     }
 }
 
-impl core::fmt::Write for ScreenWrite {
+impl core::fmt::Write for Writer {
     fn write_str(&mut self, s: &str) -> core::result::Result<(), core::fmt::Error> {
         print_str(&self.coord, self.color, s);
         self.coord.x += (s.len() * font::FONT_WIDTH) as isize;
