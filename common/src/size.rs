@@ -36,7 +36,7 @@ impl<T: Unit> Size<T> {
 const BYTES_OF_PAGE: usize = 0x1000;
 
 impl Size<Byte> {
-    pub fn as_num_of_pages(&self) -> Size<NumOfPages> {
+    pub fn as_num_of_pages(self) -> Size<NumOfPages> {
         Size::new((self.num + BYTES_OF_PAGE - 1) / BYTES_OF_PAGE)
     }
 }
