@@ -21,6 +21,7 @@ pub struct Size<T: Unit> {
 }
 
 impl<T: Unit> Size<T> {
+    #[must_use]
     pub const fn new(num: usize) -> Self {
         Self {
             num,
@@ -28,6 +29,7 @@ impl<T: Unit> Size<T> {
         }
     }
 
+    #[must_use]
     pub const fn as_usize(&self) -> usize {
         self.num
     }
@@ -36,6 +38,7 @@ impl<T: Unit> Size<T> {
 const BYTES_OF_PAGE: usize = 0x1000;
 
 impl Size<Byte> {
+    #[must_use]
     pub fn as_num_of_pages(self) -> Size<NumOfPages> {
         Size::new((self.num + BYTES_OF_PAGE - 1) / BYTES_OF_PAGE)
     }
