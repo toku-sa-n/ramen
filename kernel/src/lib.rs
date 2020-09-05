@@ -86,9 +86,9 @@ fn main_loop(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseC
 
 fn loop_main(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseCursor) {
     interrupts::disable();
-    if interrupt::KEY_QUEUE.lock().size() != 0 {
+    if interrupt::KEY_QUEUE.lock().size() > 0 {
         handler::keyboard_data();
-    } else if mouse::QUEUE.lock().size() != 0 {
+    } else if mouse::QUEUE.lock().size() > 0 {
         handler::mouse_data(mouse_device, mouse_cursor);
     } else {
         interrupts::enable_interrupts_and_hlt();
