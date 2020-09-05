@@ -11,6 +11,7 @@ pub struct KernelPhysRange {
 }
 
 impl KernelPhysRange {
+    #[must_use]
     pub fn new(start: PhysAddr, bytes: Size<Byte>) -> Self {
         Self { start, bytes }
     }
@@ -20,6 +21,7 @@ impl KernelPhysRange {
 #[derive(Copy, Clone)]
 pub struct Map([Range; 3]);
 impl Map {
+    #[must_use]
     pub fn new(kernel: &KernelPhysRange, phys_addr_stack: PhysAddr, vram: &vram::Info) -> Self {
         Self {
             0: [

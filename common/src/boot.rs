@@ -30,10 +30,12 @@ impl Info {
         }
     }
 
+    #[must_use]
     pub fn entry_addr(&self) -> VirtAddr {
         self.entry_addr
     }
 
+    #[must_use]
     pub fn vram(&self) -> vram::Info {
         self.vram_info
     }
@@ -44,6 +46,7 @@ impl Info {
         }
     }
 
+    #[must_use]
     pub fn get() -> Self {
         unsafe { ptr::read(INIT_RSP.as_mut_ptr() as _) }
     }
