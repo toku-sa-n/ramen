@@ -54,7 +54,7 @@ fn initialization(mouse_cursor: &mut graphics::screen::MouseCursor) {
         graphics::screen::Coord::new(16, 64),
         graphics::RGB::new(0x00FF_FFFF),
         "x_len = {}",
-        Vram::x_len()
+        Vram::resolution().x
     );
 
     interrupt::set_init_pic_bits();

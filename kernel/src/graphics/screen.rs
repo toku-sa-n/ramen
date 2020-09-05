@@ -214,8 +214,8 @@ impl MouseCursor {
         let adjusted_coord = coord.put_in(
             Coord::new(0, 0),
             Coord::new(
-                (Vram::x_len() - MOUSE_CURSOR_WIDTH - 1) as isize,
-                (Vram::y_len() - MOUSE_CURSOR_HEIGHT - 1) as isize,
+                (Vram::resolution().x - MOUSE_CURSOR_WIDTH - 1) as isize,
+                (Vram::resolution().y - MOUSE_CURSOR_HEIGHT - 1) as isize,
             ),
         );
 
@@ -249,8 +249,8 @@ impl MouseCursor {
 
 #[rustfmt::skip]
 pub fn draw_desktop()  {
-    let x_len:isize  = Vram::x_len() as isize;
-    let y_len:isize  = Vram::y_len() as isize;
+    let x_len:isize  = Vram::resolution().x as isize;
+    let y_len:isize  = Vram::resolution().y as isize;
 
     // It seems that changing the arguments as `color, coord_1, coord_2` actually makes the code
     // dirty because by doing it lots of `Coord::new(x1, x2)` appear on below.
