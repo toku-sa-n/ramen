@@ -224,7 +224,8 @@ impl MouseCursor {
             for x in 0..MOUSE_CURSOR_WIDTH {
                 unsafe {
                     Vram::set_color(
-                        &(adjusted_coord.clone() + Coord::new(x as isize, y as isize)),
+                        &(adjusted_coord.clone()
+                            + Coord::new(isize::try_from(x).unwrap(), isize::try_from(y).unwrap())),
                         self.image[y][x],
                     );
                 }
@@ -241,8 +242,8 @@ impl MouseCursor {
             RGB::new(0x0000_8484),
             Coord::new(self.coord.x, self.coord.y),
             Coord::new(
-                self.coord.x + MOUSE_CURSOR_WIDTH as isize,
-                self.coord.y + MOUSE_CURSOR_HEIGHT as isize,
+                self.coord.x + isize::try_from(MOUSE_CURSOR_WIDTH).unwrap(),
+                self.coord.y + isize::try_from(MOUSE_CURSOR_HEIGHT).unwrap(),
             ),
         );
     }
@@ -250,8 +251,8 @@ impl MouseCursor {
 
 #[rustfmt::skip]
 pub fn draw_desktop()  {
-    let x_len:isize  = Vram::resolution().x as isize;
-    let y_len:isize  = Vram::resolution().y as isize;
+    let x_len:isize  = isize::try_from(Vram::resolution().x).unwrap();
+    let y_len:isize  = isize::try_from(Vram::resolution().y).unwrap();
 
     // It seems that changing the arguments as `color, coord_1, coord_2` actually makes the code
     // dirty because by doing it lots of `Coord::new(x1, x2)` appear on below.
@@ -286,7 +287,7 @@ fn print_str(coord: &Coord<isize>, color: RGB, str: &str) {
             color,
             font::FONTS[c as usize],
         );
-        char_x_pos += font::FONT_WIDTH as isize;
+        char_x_pos += isize::try_from(font::FONT_WIDTH).unwrap();
     }
 }
 
