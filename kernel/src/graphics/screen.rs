@@ -208,7 +208,7 @@ impl MouseCursor {
         self.draw(new_coord)
     }
 
-    pub fn draw(&mut self, coord: Coord<isize>) -> () {
+    pub fn draw(&mut self, coord: Coord<isize>) {
         self.remove_previous_cursor();
 
         let adjusted_coord = coord.put_in(
