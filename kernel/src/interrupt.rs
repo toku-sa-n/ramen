@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
- 
+
 pub mod handler;
 pub mod mouse;
 
@@ -37,7 +37,7 @@ lazy_static::lazy_static! {
 }
 
 // See P.128.
-pub fn init_pic() -> () {
+pub fn init_pic() {
     enable_interrupts_from_only_mouse_and_keyboard();
     enable_edge_trigger_mode();
     set_irq_receiver();
@@ -82,21 +82,21 @@ fn enable_nonbuffer_mode() {
     }
 }
 
-pub fn set_init_pic_bits() -> () {
+pub fn set_init_pic_bits() {
     unsafe {
         Port::new(PIC0_IMR).write(0xF9 as u8);
         Port::new(PIC1_IMR).write(0xEF as u8);
     }
 }
 
-pub fn init_keyboard() -> () {
+pub fn init_keyboard() {
     wait_kbc_sendready();
     unsafe { Port::new(PORT_KEY_CMD).write(KEY_CMD_WRITE_MODE as u8) };
     wait_kbc_sendready();
     unsafe { Port::new(PORT_KEYDATA).write(KEY_CMD_MODE as u8) };
 }
 
-fn wait_kbc_sendready() -> () {
+fn wait_kbc_sendready() {
     loop {
         if unsafe { Port::<u8>::new(PORT_KEY_STATUS).read() } & KEY_STATUS_SEND_NOT_READY == 0 {
             break;
@@ -104,18 +104,14 @@ fn wait_kbc_sendready() -> () {
     }
 }
 
-pub extern "x86-interrupt" fn interrupt_handler_21(
-    _stack_frame: &mut idt::InterruptStackFrame,
-) -> () {
+pub extern "x86-interrupt" fn interrupt_handler_21(_stack_frame: &mut idt::InterruptStackFrame) {
     unsafe { Port::new(PIC0_OCW2).write(0x61 as u8) };
     KEY_QUEUE
         .lock()
         .enqueue(unsafe { Port::<u8>::new(PORT_KEYDATA).read() as u32 });
 }
 
-pub extern "x86-interrupt" fn interrupt_handler_2c(
-    _stack_frame: &mut idt::InterruptStackFrame,
-) -> () {
+pub extern "x86-interrupt" fn interrupt_handler_2c(_stack_frame: &mut idt::InterruptStackFrame) {
     unsafe {
         Port::new(PIC1_OCW2).write(0x64 as u8);
         Port::new(PIC0_OCW2).write(0x62 as u8);

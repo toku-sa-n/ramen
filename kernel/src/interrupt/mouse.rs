@@ -63,7 +63,7 @@ impl Device {
         }
     }
 
-    pub fn enable(&self) -> () {
+    pub fn enable(&self) {
         super::wait_kbc_sendready();
         unsafe { Port::new(super::PORT_KEY_CMD).write(super::KEY_CMD_SEND_TO_MOUSE) };
         super::wait_kbc_sendready();
@@ -74,7 +74,7 @@ impl Device {
         self.phase == DevicePhase::ThreeData
     }
 
-    pub fn put_data(&mut self, data: u32) -> () {
+    pub fn put_data(&mut self, data: u32) {
         match self.phase {
             DevicePhase::Init => {
                 let is_correct_startup = data == 0xfa;
@@ -106,11 +106,11 @@ impl Device {
         data & 0xC8 == 0x08
     }
 
-    fn clear_stack(&mut self) -> () {
+    fn clear_stack(&mut self) {
         self.phase = DevicePhase::NoData;
     }
 
-    pub fn purse_data(&mut self) -> () {
+    pub fn purse_data(&mut self) {
         self.buttons = MouseButtons::purse_data(self.data_from_device[0]);
         self.speed.x = self.data_from_device[1] as i32;
         self.speed.y = self.data_from_device[2] as i32;
@@ -132,7 +132,7 @@ impl Device {
         graphics::screen::Coord::new(self.speed.x as isize, self.speed.y as isize)
     }
 
-    pub fn print_buf_data(&mut self) -> () {
+    pub fn print_buf_data(&mut self) {
         use crate::print_with_pos;
         let mut screen = Screen;
 

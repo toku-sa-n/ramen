@@ -44,7 +44,7 @@ pub extern "win64" fn os_main(boot_info: boot::Info) -> ! {
 fn initialization(
     mouse_device: &mut interrupt::mouse::Device,
     mouse_cursor: &mut graphics::screen::MouseCursor,
-) -> () {
+) {
     gdt::init();
     idt::init();
     interrupt::init_pic();
