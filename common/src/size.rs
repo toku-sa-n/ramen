@@ -55,27 +55,11 @@ impl Add<usize> for Size<Byte> {
     }
 }
 
-impl Add<u64> for Size<Byte> {
-    type Output = Self;
-
-    fn add(self, rhs: u64) -> Self {
-        self + rhs as usize
-    }
-}
-
 impl Add<usize> for Size<NumOfPages> {
     type Output = Self;
 
     fn add(self, rhs: usize) -> Self {
         Self::new(self.as_usize() + rhs)
-    }
-}
-
-impl Add<u64> for Size<NumOfPages> {
-    type Output = Self;
-
-    fn add(self, rhs: u64) -> Self {
-        self + rhs as usize
     }
 }
 
@@ -87,26 +71,10 @@ impl Sub<usize> for Size<Byte> {
     }
 }
 
-impl Sub<u64> for Size<Byte> {
-    type Output = Self;
-
-    fn sub(self, rhs: u64) -> Self {
-        self - rhs as usize
-    }
-}
-
 impl Sub<usize> for Size<NumOfPages> {
     type Output = Self;
 
     fn sub(self, rhs: usize) -> Self {
         Self::new(self.as_usize() - rhs)
-    }
-}
-
-impl Sub<u64> for Size<NumOfPages> {
-    type Output = Self;
-
-    fn sub(self, rhs: u64) -> Self {
-        self - rhs as usize
     }
 }

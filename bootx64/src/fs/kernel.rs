@@ -57,7 +57,7 @@ pub fn fetch_entry_address_and_memory_size(
                 .fold(Size::<Byte>::new(0), |acc, x| {
                     cmp::max(acc, Size::new((x.ph.vaddr() + x.ph.memsz()) as _))
                 })
-                - KERNEL_ADDR.as_u64();
+                - KERNEL_ADDR.as_u64() as _;
 
             info!("Entry point: {:?}", entry_addr);
             info!("Memory size: {:X?}", mem_size.as_usize());
