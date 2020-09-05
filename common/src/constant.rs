@@ -14,4 +14,4 @@ pub const RECUR_PML4_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_ffff_f0
 
 pub const NUM_OF_PAGES_STACK: Size<NumOfPages> = Size::new(16);
 
-pub const KERNEL_NAME: &'static str = "kernel.bin";
+pub const KERNEL_NAME: &str = "kernel.bin";
