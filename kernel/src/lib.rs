@@ -38,15 +38,12 @@ pub extern "win64" fn os_main(boot_info: boot::Info) -> ! {
     let mut mouse_device = mouse::Device::new();
     let mut mouse_cursor = screen::MouseCursor::new(RGB::new(0x0000_8484), screen::MOUSE_GRAPHIC);
 
-    initialization(&mut mouse_device, &mut mouse_cursor);
+    initialization(&mut mouse_cursor);
 
     main_loop(&mut mouse_device, &mut mouse_cursor)
 }
 
-fn initialization(
-    mouse_device: &mut interrupt::mouse::Device,
-    mouse_cursor: &mut graphics::screen::MouseCursor,
-) {
+fn initialization(mouse_cursor: &mut graphics::screen::MouseCursor) {
     gdt::init();
     idt::init();
     interrupt::init_pic();
@@ -62,7 +59,7 @@ fn initialization(
 
     interrupt::set_init_pic_bits();
     interrupt::init_keyboard();
-    mouse_device.enable();
+    mouse::Device::enable();
 
     mouse_cursor.draw_offset(graphics::screen::Coord::new(300, 300))
 }
