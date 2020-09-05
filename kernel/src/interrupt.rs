@@ -104,18 +104,14 @@ fn wait_kbc_sendready() {
     }
 }
 
-pub extern "x86-interrupt" fn interrupt_handler_21(
-    _stack_frame: &mut idt::InterruptStackFrame,
-) -> () {
+pub extern "x86-interrupt" fn interrupt_handler_21(_stack_frame: &mut idt::InterruptStackFrame) {
     unsafe { Port::new(PIC0_OCW2).write(0x61 as u8) };
     KEY_QUEUE
         .lock()
         .enqueue(unsafe { Port::<u8>::new(PORT_KEYDATA).read() as u32 });
 }
 
-pub extern "x86-interrupt" fn interrupt_handler_2c(
-    _stack_frame: &mut idt::InterruptStackFrame,
-) -> () {
+pub extern "x86-interrupt" fn interrupt_handler_2c(_stack_frame: &mut idt::InterruptStackFrame) {
     unsafe {
         Port::new(PIC1_OCW2).write(0x64 as u8);
         Port::new(PIC0_OCW2).write(0x62 as u8);
