@@ -30,10 +30,7 @@ pub fn keyboard_data() {
     }
 }
 
-pub fn mouse_data(
-    mouse_device: &mut super::mouse::Device,
-    mouse_cursor: &mut screen::MouseCursor,
-) -> () {
+pub fn mouse_data(mouse_device: &mut super::mouse::Device, mouse_cursor: &mut screen::MouseCursor) {
     let data: Option<u32> = mouse::QUEUE.lock().dequeue();
 
     interrupts::enable();
