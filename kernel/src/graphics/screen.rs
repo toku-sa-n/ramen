@@ -83,7 +83,7 @@ impl Screen {
         for y in top_left.y..=bottom_right.y {
             for x in top_left.x..=bottom_right.x {
                 unsafe {
-                    Vram::set_color(Coord::new(x, y), color.clone());
+                    Vram::set_color(Coord::new(x, y), color);
                 }
             }
         }
