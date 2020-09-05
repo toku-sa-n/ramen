@@ -2,6 +2,7 @@
 
 #![no_std]
 #![feature(const_fn)]
+#![deny(clippy::pedantic)]
 
 pub mod boot;
 pub mod constant;

@@ -3,6 +3,7 @@
 #![no_std]
 #![feature(start, asm)]
 #![no_main]
+#![deny(clippy::pedantic)]
 
 extern crate rlibc;
 
