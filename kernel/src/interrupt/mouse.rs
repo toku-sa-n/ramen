@@ -113,8 +113,8 @@ impl Device {
 
     pub fn purse_data(&mut self) {
         self.buttons = MouseButtons::purse_data(self.data_from_device[0]);
-        self.speed.x = self.data_from_device[1] as i16;
-        self.speed.y = self.data_from_device[2] as i16;
+        self.speed.x = i16::from(self.data_from_device[1]);
+        self.speed.y = i16::from(self.data_from_device[2]);
 
         if self.data_from_device[0] & 0x10 != 0 {
             self.speed.x -= 256;
