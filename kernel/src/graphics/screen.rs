@@ -277,7 +277,7 @@ pub fn draw_desktop()  {
     draw_desktop_part(0xFFFFFF, x_len -  3, y_len - 24, x_len -  3, y_len -  3);
 }
 
-fn print_str(coord: &Coord<isize>, color: RGB, str: &str) -> () {
+fn print_str(coord: &Coord<isize>, color: RGB, str: &str) {
     let mut char_x_pos = coord.x;
     for c in str.chars() {
         print_char(
