@@ -281,7 +281,7 @@ fn print_str(coord: &Coord<isize>, color: RGB, str: &str) {
     let mut char_x_pos = coord.x;
     for c in str.chars() {
         print_char(
-            Coord::new(char_x_pos, coord.y),
+            &Coord::new(char_x_pos, coord.y),
             color,
             font::FONTS[c as usize],
         );
@@ -290,7 +290,7 @@ fn print_str(coord: &Coord<isize>, color: RGB, str: &str) {
 }
 
 fn print_char(
-    coord: Coord<isize>,
+    coord: &Coord<isize>,
     color: RGB,
     font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT],
 ) {
