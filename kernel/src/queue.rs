@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
- 
+
 const QUEUE_SIZE: usize = 128;
 pub struct Queue {
     data: [u32; QUEUE_SIZE],
@@ -18,7 +18,7 @@ impl Queue {
         }
     }
 
-    pub fn enqueue(&mut self, element: u32) -> () {
+    pub fn enqueue(&mut self, element: u32) {
         if self.size == QUEUE_SIZE {
             return;
         }
