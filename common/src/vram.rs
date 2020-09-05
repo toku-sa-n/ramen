@@ -19,8 +19,8 @@ impl Info {
 
         Self {
             bpp: 32,
-            screen_x: screen_x,
-            screen_y: screen_y,
+            screen_x,
+            screen_y,
             ptr: PhysAddr::new(gop.frame_buffer().as_mut_ptr() as u64),
         }
     }
