@@ -78,7 +78,7 @@ impl Vram {
         Self::get().y_len
     }
 
-    pub unsafe fn set_color(coord: screen::Coord<isize>, rgb: RGB) -> () {
+    pub unsafe fn set_color(coord: screen::Coord<isize>, rgb: RGB) {
         let vram = Self::get();
 
         let base_ptr: *mut u8 = (vram.ptr.as_mut_ptr() as *mut u8)

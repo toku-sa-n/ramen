@@ -79,11 +79,11 @@ impl Screen {
         color: RGB,
         top_left: Coord<isize>,
         bottom_right: Coord<isize>,
-    ) -> () {
+    ) {
         for y in top_left.y..=bottom_right.y {
             for x in top_left.x..=bottom_right.x {
                 unsafe {
-                    Vram::set_color(Coord::new(x, y), color.clone());
+                    Vram::set_color(Coord::new(x, y), color);
                 }
             }
         }
@@ -185,7 +185,7 @@ impl MouseCursor {
         }
     }
 
-    pub fn print_coord(&mut self, coord: Coord<isize>) -> () {
+    pub fn print_coord(&mut self, coord: Coord<isize>) {
         let mut screen = Screen;
 
         screen.draw_rectangle(
@@ -203,12 +203,12 @@ impl MouseCursor {
         );
     }
 
-    pub fn draw_offset(&mut self, offset: TwoDimensionalVec<isize>) -> () {
+    pub fn draw_offset(&mut self, offset: TwoDimensionalVec<isize>) {
         let new_coord = self.coord.clone() + offset;
         self.draw(new_coord)
     }
 
-    pub fn draw(&mut self, coord: Coord<isize>) -> () {
+    pub fn draw(&mut self, coord: Coord<isize>) {
         self.remove_previous_cursor();
 
         let adjusted_coord = coord.put_in(
@@ -233,7 +233,7 @@ impl MouseCursor {
         self.coord = adjusted_coord;
     }
 
-    fn remove_previous_cursor(&self) -> () {
+    fn remove_previous_cursor(&self) {
         let mut screen = Screen;
 
         screen.draw_rectangle(
@@ -248,7 +248,7 @@ impl MouseCursor {
 }
 
 #[rustfmt::skip]
-pub fn draw_desktop() -> () {
+pub fn draw_desktop()  {
     let x_len:isize  = Vram::x_len() as isize;
     let y_len:isize  = Vram::y_len() as isize;
 
@@ -277,7 +277,7 @@ pub fn draw_desktop() -> () {
     draw_desktop_part(0xFFFFFF, x_len -  3, y_len - 24, x_len -  3, y_len -  3);
 }
 
-fn print_str(coord: &Coord<isize>, color: RGB, str: &str) -> () {
+fn print_str(coord: &Coord<isize>, color: RGB, str: &str) {
     let mut char_x_pos = coord.x;
     for c in str.chars() {
         print_char(
@@ -293,10 +293,10 @@ fn print_char(
     coord: Coord<isize>,
     color: RGB,
     font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT],
-) -> () {
-    for i in 0..font::FONT_HEIGHT {
-        for j in 0..font::FONT_WIDTH {
-            if font[i][j] {
+) {
+    for (i, line) in font.iter().enumerate().take(font::FONT_HEIGHT) {
+        for (j, cell) in line.iter().enumerate().take(font::FONT_WIDTH) {
+            if *cell {
                 unsafe {
                     Vram::set_color(coord.clone() + Coord::new(j as isize, i as isize), color);
                 }

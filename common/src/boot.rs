@@ -38,7 +38,7 @@ impl Info {
         self.vram_info
     }
 
-    pub fn set(self) -> () {
+    pub fn set(self) {
         unsafe {
             ptr::write(INIT_RSP.as_mut_ptr() as _, self);
         }
