@@ -5,19 +5,25 @@ use crate::size::{Byte, Size};
 use crate::vram;
 use x86_64::{PhysAddr, VirtAddr};
 
+pub struct KernelPhysRange {
+    start: PhysAddr,
+    bytes: Size<Byte>,
+}
+
+impl KernelPhysRange {
+    pub fn new(start: PhysAddr, bytes: Size<Byte>) -> Self {
+        Self { start, bytes }
+    }
+}
+
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct Map([Range; 3]);
 impl Map {
-    pub fn new(
-        phys_addr_kernel: PhysAddr,
-        bytes_kernel: Size<Byte>,
-        phys_addr_stack: PhysAddr,
-        vram: &vram::Info,
-    ) -> Self {
+    pub fn new(kernel: KernelPhysRange, phys_addr_stack: PhysAddr, vram: &vram::Info) -> Self {
         Self {
             0: [
-                Range::kernel(phys_addr_kernel, bytes_kernel),
+                Range::kernel(kernel),
                 Range::stack(phys_addr_stack),
                 Range::vram(vram),
             ],
@@ -40,11 +46,11 @@ pub struct Range {
 
 impl Range {
     #[must_use]
-    pub fn kernel(phys: PhysAddr, bytes: Size<Byte>) -> Self {
+    pub fn kernel(kernel: KernelPhysRange) -> Self {
         Self {
             virt: KERNEL_ADDR,
-            phys,
-            bytes,
+            phys: kernel.start,
+            bytes: kernel.bytes,
         }
     }
 

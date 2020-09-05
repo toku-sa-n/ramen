@@ -50,8 +50,11 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
         kernel::fetch_entry_address_and_memory_size(phys_kernel_addr, bytes_kernel);
 
     let stack_addr = stack::allocate(system_table.boot_services());
-    let reserved_regions =
-        reserved::Map::new(phys_kernel_addr, actual_mem_size, stack_addr, &vram_info);
+    let reserved_regions = reserved::Map::new(
+        reserved::KernelPhysRange::new(phys_kernel_addr, actual_mem_size),
+        stack_addr,
+        &vram_info,
+    );
     paging::init(system_table.boot_services(), &reserved_regions);
     let mem_map = terminate_boot_services(image, system_table);
 
