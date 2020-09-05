@@ -203,7 +203,7 @@ impl MouseCursor {
         );
     }
 
-    pub fn draw_offset(&mut self, offset: TwoDimensionalVec<isize>) -> () {
+    pub fn draw_offset(&mut self, offset: TwoDimensionalVec<isize>) {
         let new_coord = self.coord.clone() + offset;
         self.draw(new_coord)
     }
