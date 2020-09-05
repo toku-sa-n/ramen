@@ -42,6 +42,7 @@ impl Size<Byte> {
 }
 
 impl Size<NumOfPages> {
+    #[must_use]
     pub const fn as_bytes(self) -> Size<Byte> {
         Size::new(self.num * BYTES_OF_PAGE)
     }
