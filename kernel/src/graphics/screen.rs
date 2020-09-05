@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{font, screen, Vram, RGB};
+use core::convert::TryFrom;
 
 pub const MOUSE_CURSOR_WIDTH: usize = 16;
 pub const MOUSE_CURSOR_HEIGHT: usize = 16;
@@ -298,7 +299,11 @@ fn print_char(
         for (j, cell) in line.iter().enumerate().take(font::FONT_WIDTH) {
             if *cell {
                 unsafe {
-                    Vram::set_color(&(coord.clone() + Coord::new(j as isize, i as isize)), color);
+                    Vram::set_color(
+                        &(coord.clone()
+                            + Coord::new(isize::try_from(j).unwrap(), isize::try_from(i).unwrap())),
+                        color,
+                    );
                 }
             }
         }
