@@ -116,11 +116,11 @@ impl Device {
         self.speed.y = self.data_from_device[2] as i32;
 
         if self.data_from_device[0] & 0x10 != 0 {
-            self.speed.x = (self.speed.x as u32 | 0xFFFFFF00) as i32;
+            self.speed.x = (self.speed.x as u32 | 0xFFFF_FF00) as i32;
         }
 
         if self.data_from_device[0] & 0x20 != 0 {
-            self.speed.y = (self.speed.y as u32 | 0xFFFFFF00) as i32;
+            self.speed.y = (self.speed.y as u32 | 0xFFFF_FF00) as i32;
         }
 
         self.speed.y = -self.speed.y;
@@ -137,14 +137,14 @@ impl Device {
         let mut screen = Screen;
 
         screen.draw_rectangle(
-            graphics::RGB::new(0x008484),
+            graphics::RGB::new(0x0000_8484),
             graphics::screen::Coord::new(32, 16),
             graphics::screen::Coord::new(32 + 15 * 8 - 1, 31),
         );
 
         print_with_pos!(
             graphics::screen::Coord::new(32, 16),
-            graphics::RGB::new(0xFFFFFF),
+            graphics::RGB::new(0x00FF_FFFF),
             "[{}{}{} {:4}{:4}]",
             if self.buttons.left { 'L' } else { 'l' },
             if self.buttons.center { 'C' } else { 'c' },

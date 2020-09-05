@@ -36,7 +36,7 @@ use x86_64::instructions::interrupts;
 pub extern "win64" fn os_main(boot_info: boot::Info) -> ! {
     Vram::init(&boot_info);
     let mut mouse_device = mouse::Device::new();
-    let mut mouse_cursor = screen::MouseCursor::new(RGB::new(0x008484), screen::MOUSE_GRAPHIC);
+    let mut mouse_cursor = screen::MouseCursor::new(RGB::new(0x0000_8484), screen::MOUSE_GRAPHIC);
 
     initialization(&mut mouse_device, &mut mouse_cursor);
 
@@ -55,7 +55,7 @@ fn initialization(
 
     print_with_pos!(
         graphics::screen::Coord::new(16, 64),
-        graphics::RGB::new(0xFFFFFF),
+        graphics::RGB::new(0x00FF_FFFF),
         "x_len = {}",
         Vram::x_len()
     );

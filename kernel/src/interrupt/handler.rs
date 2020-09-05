@@ -15,7 +15,7 @@ pub fn keyboard_data() {
     let mut screen = Screen;
 
     screen.draw_rectangle(
-        graphics::RGB::new(0x008484),
+        graphics::RGB::new(0x0000_8484),
         graphics::screen::Coord::new(0, 16),
         graphics::screen::Coord::new(15, 31),
     );
@@ -23,7 +23,7 @@ pub fn keyboard_data() {
     if let Some(data) = data {
         print_with_pos!(
             graphics::screen::Coord::new(0, 16),
-            graphics::RGB::new(0xFFFFFF),
+            graphics::RGB::new(0x00FF_FFFF),
             "{:X}",
             data
         );
@@ -38,7 +38,7 @@ pub fn mouse_data(mouse_device: &mut super::mouse::Device, mouse_cursor: &mut sc
     let mut screen = Screen;
 
     screen.draw_rectangle(
-        graphics::RGB::new(0x008484),
+        graphics::RGB::new(0x0000_8484),
         graphics::screen::Coord::new(32, 16),
         graphics::screen::Coord::new(47, 31),
     );

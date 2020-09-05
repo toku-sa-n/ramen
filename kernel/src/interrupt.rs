@@ -108,7 +108,7 @@ pub extern "x86-interrupt" fn interrupt_handler_21(_stack_frame: &mut idt::Inter
     unsafe { Port::new(PIC0_OCW2).write(0x61 as u8) };
     KEY_QUEUE
         .lock()
-        .enqueue(unsafe { Port::<u8>::new(PORT_KEYDATA).read() as u32 });
+        .enqueue(unsafe { u32::from(Port::<u8>::new(PORT_KEYDATA).read()) });
 }
 
 pub extern "x86-interrupt" fn interrupt_handler_2c(_stack_frame: &mut idt::InterruptStackFrame) {
@@ -118,5 +118,5 @@ pub extern "x86-interrupt" fn interrupt_handler_2c(_stack_frame: &mut idt::Inter
     }
     mouse::QUEUE
         .lock()
-        .enqueue(unsafe { Port::<u8>::new(PORT_KEYDATA).read() as u32 });
+        .enqueue(unsafe { u32::from(Port::<u8>::new(PORT_KEYDATA).read()) });
 }

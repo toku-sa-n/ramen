@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::*;
+use super::{RGB, Vram, font, screen};
 
 pub const MOUSE_CURSOR_WIDTH: usize = 16;
 pub const MOUSE_CURSOR_HEIGHT: usize = 16;
@@ -172,8 +172,8 @@ impl MouseCursor {
         for y in 0..MOUSE_CURSOR_HEIGHT {
             for x in 0..MOUSE_CURSOR_WIDTH {
                 colored_dots[y][x] = match image[y][x] {
-                    '*' => RGB::new(0x000000),
-                    '0' => RGB::new(0xFFFFFF),
+                    '*' => RGB::new(0x0000_0000),
+                    '0' => RGB::new(0x00FF_FFFF),
                     _ => background_color,
                 }
             }
@@ -189,14 +189,14 @@ impl MouseCursor {
         let mut screen = Screen;
 
         screen.draw_rectangle(
-            RGB::new(0x008484),
+            RGB::new(0x0000_8484),
             Coord::new(16, 32),
             Coord::new(16 + 8 * 12 - 1, 32 + 15),
         );
 
         print_with_pos!(
             coord,
-            RGB::new(0xFFFFFF),
+            RGB::new(0x00FF_FFFF),
             "({}, {})",
             self.coord.x,
             self.coord.y
@@ -237,7 +237,7 @@ impl MouseCursor {
         let mut screen = Screen;
 
         screen.draw_rectangle(
-            RGB::new(0x008484),
+            RGB::new(0x0000_8484),
             Coord::new(self.coord.x, self.coord.y),
             Coord::new(
                 self.coord.x + MOUSE_CURSOR_WIDTH as isize,
@@ -259,22 +259,22 @@ pub fn draw_desktop()  {
         screen.draw_rectangle(RGB::new(color), Coord::new(x0, y0), Coord::new(x1, y1));
     };
 
-    draw_desktop_part(0x008484,          0,          0, x_len -  1, y_len - 29);
-    draw_desktop_part(0xC6C6C6,          0, y_len - 28, x_len -  1, y_len - 28);
-    draw_desktop_part(0xFFFFFF,          0, y_len - 27, x_len -  1, y_len - 27);
-    draw_desktop_part(0xC6C6C6,          0, y_len - 26, x_len -  1, y_len -  1);
+    draw_desktop_part(0x0000_8484,          0,          0, x_len -  1, y_len - 29);
+    draw_desktop_part(0x00C6_C6C6,          0, y_len - 28, x_len -  1, y_len - 28);
+    draw_desktop_part(0x00FF_FFFF,          0, y_len - 27, x_len -  1, y_len - 27);
+    draw_desktop_part(0x00C6_C6C6,          0, y_len - 26, x_len -  1, y_len -  1);
 
-    draw_desktop_part(0xFFFFFF,          3, y_len - 24,         59, y_len - 24);
-    draw_desktop_part(0xFFFFFF,          2, y_len - 24,          2, y_len -  4);
-    draw_desktop_part(0x848484,          3, y_len -  4,         59, y_len -  4);
-    draw_desktop_part(0x848484,         59, y_len - 23,         59, y_len -  5);
-    draw_desktop_part(0x000000,          2, y_len -  3,         59, y_len -  3);
-    draw_desktop_part(0x000000,         60, y_len - 24,         60, y_len -  3);
+    draw_desktop_part(0x00FF_FFFF,          3, y_len - 24,         59, y_len - 24);
+    draw_desktop_part(0x00FF_FFFF,          2, y_len - 24,          2, y_len -  4);
+    draw_desktop_part(0x0084_8484,          3, y_len -  4,         59, y_len -  4);
+    draw_desktop_part(0x0084_8484,         59, y_len - 23,         59, y_len -  5);
+    draw_desktop_part(0x0000_0000,          2, y_len -  3,         59, y_len -  3);
+    draw_desktop_part(0x0000_0000,         60, y_len - 24,         60, y_len -  3);
 
-    draw_desktop_part(0x848484, x_len - 47, y_len - 24, x_len -  4, y_len - 24);
-    draw_desktop_part(0x848484, x_len - 47, y_len - 23, x_len - 47, y_len -  4);
-    draw_desktop_part(0xFFFFFF, x_len - 47, y_len -  3, x_len -  4, y_len -  3);
-    draw_desktop_part(0xFFFFFF, x_len -  3, y_len - 24, x_len -  3, y_len -  3);
+    draw_desktop_part(0x0084_8484, x_len - 47, y_len - 24, x_len -  4, y_len - 24);
+    draw_desktop_part(0x0084_8484, x_len - 47, y_len - 23, x_len - 47, y_len -  4);
+    draw_desktop_part(0x00FF_FFFF, x_len - 47, y_len -  3, x_len -  4, y_len -  3);
+    draw_desktop_part(0x00FF_FFFF, x_len -  3, y_len - 24, x_len -  3, y_len -  3);
 }
 
 fn print_str(coord: &Coord<isize>, color: RGB, str: &str) {
