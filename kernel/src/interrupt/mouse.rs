@@ -132,7 +132,7 @@ impl Device {
         graphics::screen::Coord::new(self.speed.x as isize, self.speed.y as isize)
     }
 
-    pub fn print_buf_data(&mut self) -> () {
+    pub fn print_buf_data(&mut self) {
         use crate::print_with_pos;
         let mut screen = Screen;
 
