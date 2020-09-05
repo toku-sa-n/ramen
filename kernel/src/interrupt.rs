@@ -96,7 +96,7 @@ pub fn init_keyboard() {
     unsafe { Port::new(PORT_KEYDATA).write(KEY_CMD_MODE as u8) };
 }
 
-fn wait_kbc_sendready() -> () {
+fn wait_kbc_sendready() {
     loop {
         if unsafe { Port::<u8>::new(PORT_KEY_STATUS).read() } & KEY_STATUS_SEND_NOT_READY == 0 {
             break;
