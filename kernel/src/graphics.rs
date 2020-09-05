@@ -8,6 +8,7 @@ pub mod screen;
 use crate::common;
 use common::boot;
 use common::constant::VRAM_ADDR;
+use core::convert::TryFrom;
 use core::ptr;
 use lazy_static::lazy_static;
 use screen::TwoDimensionalVec;
@@ -30,9 +31,9 @@ pub struct RGB {
 impl RGB {
     pub fn new(hex: u32) -> Self {
         Self {
-            r: ((hex & 0x00FF_0000) >> 16) as u8,
-            g: ((hex & 0x0000_FF00) >> 8) as u8,
-            b: (hex & 0x0000_00FF) as u8,
+            r: u8::try_from((hex & 0x00FF_0000) >> 16).unwrap(),
+            g: u8::try_from((hex & 0x0000_FF00) >> 8).unwrap(),
+            b: u8::try_from(hex & 0x0000_00FF).unwrap(),
         }
     }
 }
