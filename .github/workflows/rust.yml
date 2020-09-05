@@ -38,6 +38,10 @@ jobs:
       run: |
         cd bootx64 && cargo clippy
 
+    - name: Run clippy for common crate
+      run: |
+        cd bootx64 && cargo clippy
+
     - name: Install dependencies
       run: |
         sudo apt-get update

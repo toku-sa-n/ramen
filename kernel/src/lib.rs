@@ -7,6 +7,7 @@
 #![feature(naked_functions)]
 #![feature(abi_x86_interrupt)]
 #![deny(clippy::pedantic)]
+#![deny(clippy::all)]
 
 #[macro_use]
 #[allow(unused_imports)]

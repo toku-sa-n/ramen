@@ -4,6 +4,7 @@
 #![feature(start, asm)]
 #![no_main]
 #![deny(clippy::pedantic)]
+#![deny(clippy::all)]
 
 extern crate rlibc;
 
