@@ -110,7 +110,7 @@ impl Device {
         self.phase = DevicePhase::NoData;
     }
 
-    pub fn purse_data(&mut self) -> () {
+    pub fn purse_data(&mut self) {
         self.buttons = MouseButtons::purse_data(self.data_from_device[0]);
         self.speed.x = self.data_from_device[1] as i32;
         self.speed.y = self.data_from_device[2] as i32;
