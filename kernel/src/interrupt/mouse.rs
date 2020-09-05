@@ -74,7 +74,7 @@ impl Device {
         self.phase == DevicePhase::ThreeData
     }
 
-    pub fn put_data(&mut self, data: u32) -> () {
+    pub fn put_data(&mut self, data: u32) {
         match self.phase {
             DevicePhase::Init => {
                 let is_correct_startup = data == 0xfa;
