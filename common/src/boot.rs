@@ -17,6 +17,7 @@ pub struct Info {
 
 impl Info {
     #[allow(clippy::too_many_arguments)]
+    #[must_use]
     pub fn new(
         entry_addr: VirtAddr,
         vram_info: vram::Info,
