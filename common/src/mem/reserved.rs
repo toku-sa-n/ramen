@@ -24,6 +24,7 @@ impl Map {
         }
     }
 
+    #[must_use]
     pub fn iter(&self) -> impl ExactSizeIterator<Item = &Range> {
         self.0.iter()
     }
@@ -38,6 +39,7 @@ pub struct Range {
 }
 
 impl Range {
+    #[must_use]
     pub fn kernel(phys: PhysAddr, bytes: Size<Byte>) -> Self {
         Self {
             virt: KERNEL_ADDR,
@@ -46,6 +48,7 @@ impl Range {
         }
     }
 
+    #[must_use]
     pub fn vram(vram: &vram::Info) -> Self {
         Self {
             virt: VRAM_ADDR,
@@ -54,6 +57,7 @@ impl Range {
         }
     }
 
+    #[must_use]
     pub fn stack(phys: PhysAddr) -> Self {
         Self {
             virt: STACK_LOWER,
@@ -62,14 +66,17 @@ impl Range {
         }
     }
 
+    #[must_use]
     pub fn virt(&self) -> VirtAddr {
         self.virt
     }
 
+    #[must_use]
     pub fn phys(&self) -> PhysAddr {
         self.phys
     }
 
+    #[must_use]
     pub fn bytes(&self) -> Size<Byte> {
         self.bytes
     }
