@@ -82,7 +82,7 @@ fn enable_nonbuffer_mode() {
     }
 }
 
-pub fn set_init_pic_bits() -> () {
+pub fn set_init_pic_bits() {
     unsafe {
         Port::new(PIC0_IMR).write(0xF9 as u8);
         Port::new(PIC1_IMR).write(0xEF as u8);
