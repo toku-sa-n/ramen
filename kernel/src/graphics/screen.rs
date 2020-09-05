@@ -248,7 +248,7 @@ impl MouseCursor {
 }
 
 #[rustfmt::skip]
-pub fn draw_desktop() -> () {
+pub fn draw_desktop()  {
     let x_len:isize  = Vram::x_len() as isize;
     let y_len:isize  = Vram::y_len() as isize;
 
