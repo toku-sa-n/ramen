@@ -293,7 +293,7 @@ fn print_char(
     coord: Coord<isize>,
     color: RGB,
     font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT],
-) -> () {
+) {
     for i in 0..font::FONT_HEIGHT {
         for j in 0..font::FONT_WIDTH {
             if font[i][j] {
