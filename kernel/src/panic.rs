@@ -5,6 +5,7 @@ use crate::graphics::screen::Screen;
 use crate::graphics::Vram;
 use crate::graphics::RGB;
 use crate::print_with_pos;
+use core::convert::TryFrom;
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
@@ -12,8 +13,8 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
         RGB::new(0x00ff_0000),
         &Coord::new(0, 0),
         &Coord::new(
-            Vram::resolution().x as isize - 1,
-            Vram::resolution().y as isize - 1,
+            isize::try_from(Vram::resolution().x - 1).unwrap(),
+            isize::try_from(Vram::resolution().y - 1).unwrap(),
         ),
     );
 
