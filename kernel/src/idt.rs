@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
- 
+
 // See P.114
 
 use crate::interrupt::interrupt_handler_21;
@@ -17,6 +17,6 @@ lazy_static! {
     };
 }
 
-pub fn init() -> () {
+pub fn init() {
     IDT.load();
 }
