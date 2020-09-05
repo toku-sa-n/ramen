@@ -185,7 +185,7 @@ impl MouseCursor {
         }
     }
 
-    pub fn print_coord(&mut self, coord: Coord<isize>) -> () {
+    pub fn print_coord(&mut self, coord: Coord<isize>) {
         let mut screen = Screen;
 
         screen.draw_rectangle(
