@@ -89,7 +89,7 @@ pub fn set_init_pic_bits() {
     }
 }
 
-pub fn init_keyboard() -> () {
+pub fn init_keyboard() {
     wait_kbc_sendready();
     unsafe { Port::new(PORT_KEY_CMD).write(KEY_CMD_WRITE_MODE as u8) };
     wait_kbc_sendready();
