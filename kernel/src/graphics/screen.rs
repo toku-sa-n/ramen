@@ -233,7 +233,7 @@ impl MouseCursor {
         self.coord = adjusted_coord;
     }
 
-    fn remove_previous_cursor(&self) -> () {
+    fn remove_previous_cursor(&self) {
         let mut screen = Screen;
 
         screen.draw_rectangle(
