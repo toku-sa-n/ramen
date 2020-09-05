@@ -20,10 +20,10 @@ impl KernelPhysRange {
 #[derive(Copy, Clone)]
 pub struct Map([Range; 3]);
 impl Map {
-    pub fn new(kernel: KernelPhysRange, phys_addr_stack: PhysAddr, vram: &vram::Info) -> Self {
+    pub fn new(kernel: &KernelPhysRange, phys_addr_stack: PhysAddr, vram: &vram::Info) -> Self {
         Self {
             0: [
-                Range::kernel(kernel),
+                Range::kernel(&kernel),
                 Range::stack(phys_addr_stack),
                 Range::vram(vram),
             ],
@@ -46,7 +46,7 @@ pub struct Range {
 
 impl Range {
     #[must_use]
-    pub fn kernel(kernel: KernelPhysRange) -> Self {
+    pub fn kernel(kernel: &KernelPhysRange) -> Self {
         Self {
             virt: KERNEL_ADDR,
             phys: kernel.start,
