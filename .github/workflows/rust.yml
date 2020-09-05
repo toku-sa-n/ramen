@@ -37,7 +37,9 @@ jobs:
       run: cp /usr/share/OVMF/OVMF_* .
 
     - name: Test on debug mode
+      timeout-minutes: 5
       run: make test
 
     - name: Test on release mode
+      timeout-minutes: 5
       run: make release_test
