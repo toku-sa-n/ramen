@@ -83,7 +83,7 @@ impl Screen {
         for y in top_left.y..=bottom_right.y {
             for x in top_left.x..=bottom_right.x {
                 unsafe {
-                    Vram::set_color(Coord::new(x, y), color);
+                    Vram::set_color(&Coord::new(x, y), color);
                 }
             }
         }
@@ -223,7 +223,7 @@ impl MouseCursor {
             for x in 0..MOUSE_CURSOR_WIDTH {
                 unsafe {
                     Vram::set_color(
-                        adjusted_coord.clone() + Coord::new(x as isize, y as isize),
+                        &(adjusted_coord.clone() + Coord::new(x as isize, y as isize)),
                         self.image[y][x],
                     );
                 }
@@ -298,7 +298,7 @@ fn print_char(
         for (j, cell) in line.iter().enumerate().take(font::FONT_WIDTH) {
             if *cell {
                 unsafe {
-                    Vram::set_color(coord.clone() + Coord::new(j as isize, i as isize), color);
+                    Vram::set_color(&(coord.clone() + Coord::new(j as isize, i as isize)), color);
                 }
             }
         }
