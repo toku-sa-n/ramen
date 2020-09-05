@@ -24,6 +24,8 @@ lto = true
 [lib]
 name = "ramen_os"
 crate-type = ["staticlib"]
+test = false
+bench = false
 
 [dependencies]
 spin = "0.5.2"
