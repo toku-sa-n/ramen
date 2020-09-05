@@ -39,7 +39,9 @@ jobs:
         cd bootx64 && cargo clippy
 
     - name: Install dependencies
-      run: sudo apt-get install nasm mtools qemu ovmf
+      run: |
+        sudo apt-get update
+        sudo apt-get install nasm mtools qemu ovmf
 
     - name: Copy OVMF_*
       run: cp /usr/share/OVMF/OVMF_* .
