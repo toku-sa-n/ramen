@@ -8,9 +8,7 @@ use crate::print_with_pos;
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
-    let mut screen = Screen;
-
-    screen.draw_rectangle(
+    Screen::draw_rectangle(
         RGB::new(0x00ff_0000),
         &Coord::new(0, 0),
         &Coord::new(

@@ -12,9 +12,7 @@ pub fn keyboard_data() {
 
     interrupts::enable();
 
-    let mut screen = Screen;
-
-    screen.draw_rectangle(
+    Screen::draw_rectangle(
         graphics::RGB::new(0x0000_8484),
         &graphics::screen::Coord::new(0, 16),
         &graphics::screen::Coord::new(15, 31),
@@ -35,9 +33,7 @@ pub fn mouse_data(mouse_device: &mut super::mouse::Device, mouse_cursor: &mut sc
 
     interrupts::enable();
 
-    let mut screen = Screen;
-
-    screen.draw_rectangle(
+    Screen::draw_rectangle(
         graphics::RGB::new(0x0000_8484),
         &graphics::screen::Coord::new(32, 16),
         &graphics::screen::Coord::new(47, 31),

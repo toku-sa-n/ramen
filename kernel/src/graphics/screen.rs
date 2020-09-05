@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{font, screen, Vram, RGB};
+use super::{font, Vram, RGB};
 use core::convert::TryFrom;
 
 pub const MOUSE_CURSOR_WIDTH: usize = 16;
@@ -75,12 +75,7 @@ pub struct Screen;
 
 impl Screen {
     // TODO: Specify top left coordinate and length, rather than two coordinates.
-    pub fn draw_rectangle(
-        &mut self,
-        color: RGB,
-        top_left: &Coord<isize>,
-        bottom_right: &Coord<isize>,
-    ) {
+    pub fn draw_rectangle(color: RGB, top_left: &Coord<isize>, bottom_right: &Coord<isize>) {
         for y in top_left.y..=bottom_right.y {
             for x in top_left.x..=bottom_right.x {
                 unsafe {
@@ -187,9 +182,7 @@ impl MouseCursor {
     }
 
     pub fn print_coord(&mut self, coord: Coord<isize>) {
-        let mut screen = Screen;
-
-        screen.draw_rectangle(
+        Screen::draw_rectangle(
             RGB::new(0x0000_8484),
             &Coord::new(16, 32),
             &Coord::new(16 + 8 * 12 - 1, 32 + 15),
@@ -236,9 +229,7 @@ impl MouseCursor {
     }
 
     fn remove_previous_cursor(&self) {
-        let mut screen = Screen;
-
-        screen.draw_rectangle(
+        Screen::draw_rectangle(
             RGB::new(0x0000_8484),
             &Coord::new(self.coord.x, self.coord.y),
             &Coord::new(
@@ -256,10 +247,7 @@ pub fn draw_desktop()  {
 
     // It seems that changing the arguments as `color, coord_1, coord_2` actually makes the code
     // dirty because by doing it lots of `Coord::new(x1, x2)` appear on below.
-    let draw_desktop_part = |color, x0, y0, x1, y1| {
-        let mut screen:screen::Screen = Screen;
-        screen.draw_rectangle(RGB::new(color), &Coord::new(x0, y0), &Coord::new(x1, y1));
-    };
+    let draw_desktop_part = |color, x0, y0, x1, y1| Screen::draw_rectangle(RGB::new(color), &Coord::new(x0, y0), &Coord::new(x1, y1));
 
     draw_desktop_part(0x0000_8484,          0,          0, x_len -  1, y_len - 29);
     draw_desktop_part(0x00C6_C6C6,          0, y_len - 28, x_len -  1, y_len - 28);
