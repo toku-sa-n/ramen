@@ -27,8 +27,12 @@ jobs:
       uses: actions-rs/toolchain@v1.0.6
       with:
         toolchain: nightly
-        components: rust-src
+        components: rust-src, clippy
         override: true
+
+    - name: action-rs/clippy-check@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Install dependencies
       run: sudo apt-get install nasm mtools qemu ovmf
