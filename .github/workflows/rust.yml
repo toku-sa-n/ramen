@@ -30,9 +30,13 @@ jobs:
         components: rust-src, clippy
         override: true
 
-    - name: action-rs/clippy-check@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Run clippy for the kernel code
+      run: |
+        cd kernel && cargo clippy
+
+    - name: Run clippy for bootx64.efi code
+      run: |
+        cd bootx64 && cargo clippy
 
     - name: Install dependencies
       run: sudo apt-get install nasm mtools qemu ovmf
