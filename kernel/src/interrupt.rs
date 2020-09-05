@@ -70,8 +70,8 @@ fn set_irq_receiver() {
 
 fn set_connection() {
     unsafe {
-        Port::new(PIC0_ICW3).write(4u8);
-        Port::new(PIC1_ICW3).write(2u8);
+        Port::new(PIC0_ICW3).write(4_u8);
+        Port::new(PIC1_ICW3).write(2_u8);
     }
 }
 
