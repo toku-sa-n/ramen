@@ -63,7 +63,7 @@ impl Device {
         }
     }
 
-    pub fn enable(&self) -> () {
+    pub fn enable(&self) {
         super::wait_kbc_sendready();
         unsafe { Port::new(super::PORT_KEY_CMD).write(super::KEY_CMD_SEND_TO_MOUSE) };
         super::wait_kbc_sendready();
