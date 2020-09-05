@@ -78,8 +78,8 @@ impl Screen {
     pub fn draw_rectangle(
         &mut self,
         color: RGB,
-        top_left: Coord<isize>,
-        bottom_right: Coord<isize>,
+        top_left: &Coord<isize>,
+        bottom_right: &Coord<isize>,
     ) {
         for y in top_left.y..=bottom_right.y {
             for x in top_left.x..=bottom_right.x {
@@ -152,7 +152,7 @@ impl Writer {
 impl core::fmt::Write for Writer {
     fn write_str(&mut self, s: &str) -> core::result::Result<(), core::fmt::Error> {
         print_str(&self.coord, self.color, s);
-        self.coord.x += (s.len() * font::FONT_WIDTH) as isize;
+        self.coord.x += isize::try_from(s.len() * font::FONT_WIDTH).unwrap();
         Ok(())
     }
 }
@@ -191,8 +191,8 @@ impl MouseCursor {
 
         screen.draw_rectangle(
             RGB::new(0x0000_8484),
-            Coord::new(16, 32),
-            Coord::new(16 + 8 * 12 - 1, 32 + 15),
+            &Coord::new(16, 32),
+            &Coord::new(16 + 8 * 12 - 1, 32 + 15),
         );
 
         print_with_pos!(
@@ -215,8 +215,8 @@ impl MouseCursor {
         let adjusted_coord = coord.put_in(
             Coord::new(0, 0),
             Coord::new(
-                (Vram::resolution().x - MOUSE_CURSOR_WIDTH - 1) as isize,
-                (Vram::resolution().y - MOUSE_CURSOR_HEIGHT - 1) as isize,
+                isize::try_from(Vram::resolution().x - MOUSE_CURSOR_WIDTH - 1).unwrap(),
+                isize::try_from(Vram::resolution().y - MOUSE_CURSOR_HEIGHT - 1).unwrap(),
             ),
         );
 
@@ -240,8 +240,8 @@ impl MouseCursor {
 
         screen.draw_rectangle(
             RGB::new(0x0000_8484),
-            Coord::new(self.coord.x, self.coord.y),
-            Coord::new(
+            &Coord::new(self.coord.x, self.coord.y),
+            &Coord::new(
                 self.coord.x + isize::try_from(MOUSE_CURSOR_WIDTH).unwrap(),
                 self.coord.y + isize::try_from(MOUSE_CURSOR_HEIGHT).unwrap(),
             ),
@@ -258,7 +258,7 @@ pub fn draw_desktop()  {
     // dirty because by doing it lots of `Coord::new(x1, x2)` appear on below.
     let draw_desktop_part = |color, x0, y0, x1, y1| {
         let mut screen:screen::Screen = Screen;
-        screen.draw_rectangle(RGB::new(color), Coord::new(x0, y0), Coord::new(x1, y1));
+        screen.draw_rectangle(RGB::new(color), &Coord::new(x0, y0), &Coord::new(x1, y1));
     };
 
     draw_desktop_part(0x0000_8484,          0,          0, x_len -  1, y_len - 29);

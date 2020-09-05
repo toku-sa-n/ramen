@@ -138,8 +138,8 @@ impl Device {
 
         screen.draw_rectangle(
             graphics::RGB::new(0x0000_8484),
-            graphics::screen::Coord::new(32, 16),
-            graphics::screen::Coord::new(32 + 15 * 8 - 1, 31),
+            &graphics::screen::Coord::new(32, 16),
+            &graphics::screen::Coord::new(32 + 15 * 8 - 1, 31),
         );
 
         print_with_pos!(
