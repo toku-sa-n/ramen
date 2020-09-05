@@ -117,11 +117,11 @@ impl Device {
         self.speed.y = self.data_from_device[2] as i16;
 
         if self.data_from_device[0] & 0x10 != 0 {
-            self.speed.x = (self.speed.x as u16 | 0xFF00) as i16;
+            self.speed.x -= 256;
         }
 
         if self.data_from_device[0] & 0x20 != 0 {
-            self.speed.y = (self.speed.y as u16 | 0xFF00) as i16;
+            self.speed.y -= 256;
         }
 
         self.speed.y = -self.speed.y;
