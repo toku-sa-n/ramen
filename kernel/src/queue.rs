@@ -36,7 +36,7 @@ impl Queue {
         let return_value: u32 = self.data[self.next_idx_read];
         self.next_idx_read = (self.next_idx_read + 1) % QUEUE_SIZE;
         self.size -= 1;
-        return Some(return_value);
+        Some(return_value)
     }
 
     pub fn size(&self) -> usize {
