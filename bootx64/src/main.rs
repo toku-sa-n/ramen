@@ -3,6 +3,8 @@
 #![no_std]
 #![feature(start, asm)]
 #![no_main]
+#![deny(clippy::pedantic)]
+#![deny(clippy::all)]
 
 extern crate rlibc;
 
@@ -26,7 +28,9 @@ mod mem;
 
 use common::boot as kernelboot;
 use common::mem::reserved;
+use core::convert::TryFrom;
 use core::ptr;
+use core::ptr::NonNull;
 use core::slice;
 use fs::kernel;
 use mem::paging;
@@ -48,8 +52,11 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
         kernel::fetch_entry_address_and_memory_size(phys_kernel_addr, bytes_kernel);
 
     let stack_addr = stack::allocate(system_table.boot_services());
-    let reserved_regions =
-        reserved::Map::new(phys_kernel_addr, actual_mem_size, stack_addr, &vram_info);
+    let reserved_regions = reserved::Map::new(
+        &reserved::KernelPhysRange::new(phys_kernel_addr, actual_mem_size),
+        stack_addr,
+        &vram_info,
+    );
     paging::init(system_table.boot_services(), &reserved_regions);
     let mem_map = terminate_boot_services(image, system_table);
 
@@ -61,34 +68,35 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     ));
 }
 
-fn init_libs(system_table: &SystemTable<Boot>) -> () {
+fn init_libs(system_table: &SystemTable<Boot>) {
     initialize_uefi_utilities(&system_table);
     reset_console(&system_table);
     info!("Hello World!");
 }
 
-/// Initialize uefi-rs services. This includes initialization of GlobalAlloc, which enables us to
-/// use Collections defined in alloc module, such as Vec and LinkedList.
-fn initialize_uefi_utilities(system_table: &SystemTable<Boot>) -> () {
+fn initialize_uefi_utilities(system_table: &SystemTable<Boot>) {
     uefi_services::init(system_table).expect_success("Failed to initialize_uefi_utilities");
 }
 
-fn reset_console(system_table: &SystemTable<Boot>) -> () {
+fn reset_console(system_table: &SystemTable<Boot>) {
     system_table
         .stdout()
         .reset(false)
         .expect_success("Failed to reset stdout");
 }
 
-fn terminate_boot_services<'a>(image: Handle, system_table: SystemTable<Boot>) -> common::mem::Map {
-    let memory_map_buf = system_table
-        .boot_services()
-        .allocate_pool(
-            MemoryType::LOADER_DATA,
-            system_table.boot_services().memory_map_size(),
-        )
-        .expect_success("Failed to allocate memory for memory map")
-        as *mut boot::MemoryDescriptor;
+fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> common::mem::Map {
+    let memory_map_buf = NonNull::new(
+        system_table
+            .boot_services()
+            .allocate_pool(
+                MemoryType::LOADER_DATA,
+                system_table.boot_services().memory_map_size(),
+            )
+            .expect_success("Failed to allocate memory for memory map"),
+    )
+    .unwrap()
+    .cast::<boot::MemoryDescriptor>();
 
     let buf_for_exiting = system_table
         .boot_services()
@@ -112,11 +120,16 @@ fn terminate_boot_services<'a>(image: Handle, system_table: SystemTable<Boot>) -
     let mut num_descriptors = 0;
     for (index, descriptor) in descriptors_iter.enumerate() {
         unsafe {
-            ptr::write(memory_map_buf.offset(index as isize), *descriptor);
+            ptr::write(
+                memory_map_buf
+                    .as_ptr()
+                    .offset(isize::try_from(index).unwrap()),
+                *descriptor,
+            );
         }
 
         num_descriptors += 1;
     }
 
-    common::mem::Map::new(memory_map_buf, num_descriptors)
+    common::mem::Map::new(memory_map_buf.as_ptr(), num_descriptors)
 }

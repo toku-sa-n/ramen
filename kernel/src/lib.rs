@@ -6,6 +6,8 @@
 #![feature(start)]
 #![feature(naked_functions)]
 #![feature(abi_x86_interrupt)]
+#![deny(clippy::pedantic)]
+#![deny(clippy::all)]
 
 #[macro_use]
 #[allow(unused_imports)]
@@ -34,17 +36,14 @@ use x86_64::instructions::interrupts;
 pub extern "win64" fn os_main(boot_info: boot::Info) -> ! {
     Vram::init(&boot_info);
     let mut mouse_device = mouse::Device::new();
-    let mut mouse_cursor = screen::MouseCursor::new(RGB::new(0x008484), screen::MOUSE_GRAPHIC);
+    let mut mouse_cursor = screen::MouseCursor::new(RGB::new(0x0000_8484), screen::MOUSE_GRAPHIC);
 
-    initialization(&mut mouse_device, &mut mouse_cursor);
+    initialization(&mut mouse_cursor);
 
     main_loop(&mut mouse_device, &mut mouse_cursor)
 }
 
-fn initialization(
-    mouse_device: &mut interrupt::mouse::Device,
-    mouse_cursor: &mut graphics::screen::MouseCursor,
-) {
+fn initialization(mouse_cursor: &mut graphics::screen::MouseCursor) {
     gdt::init();
     idt::init();
     interrupt::init_pic();
@@ -53,14 +52,14 @@ fn initialization(
 
     print_with_pos!(
         graphics::screen::Coord::new(16, 64),
-        graphics::RGB::new(0xFFFFFF),
+        graphics::RGB::new(0x00FF_FFFF),
         "x_len = {}",
-        Vram::x_len()
+        Vram::resolution().x
     );
 
     interrupt::set_init_pic_bits();
     interrupt::init_keyboard();
-    mouse_device.enable();
+    mouse::Device::enable();
 
     mouse_cursor.draw_offset(graphics::screen::Coord::new(300, 300))
 }
@@ -84,9 +83,9 @@ fn main_loop(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseC
 
 fn loop_main(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseCursor) {
     interrupts::disable();
-    if interrupt::KEY_QUEUE.lock().size() != 0 {
+    if interrupt::KEY_QUEUE.lock().size() > 0 {
         handler::keyboard_data();
-    } else if interrupt::mouse::QUEUE.lock().size() != 0 {
+    } else if mouse::QUEUE.lock().size() > 0 {
         handler::mouse_data(mouse_device, mouse_cursor);
     } else {
         interrupts::enable_interrupts_and_hlt();

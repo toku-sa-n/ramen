@@ -2,13 +2,14 @@
 
 use crate::graphics;
 use crate::graphics::screen::Screen;
+use crate::graphics::screen::TwoDimensionalVec;
 use crate::queue;
 use crate::x86_64::instructions::port::Port;
 
 use lazy_static::lazy_static;
 
 lazy_static! {
-    pub static ref QUEUE: spin::Mutex<queue::Queue> = spin::Mutex::new(queue::Queue::new());
+    pub static ref QUEUE: spin::Mutex<queue::Queue<u8>> = spin::Mutex::new(queue::Queue::new(0));
 }
 
 struct MouseButtons {
@@ -26,7 +27,7 @@ impl MouseButtons {
         }
     }
 
-    fn purse_data(data: u32) -> Self {
+    fn purse_data(data: u8) -> Self {
         Self {
             left: data & 0x01 != 0,
             right: data & 0x02 != 0,
@@ -45,10 +46,10 @@ enum DevicePhase {
 }
 
 pub struct Device {
-    data_from_device: [u32; 3],
+    data_from_device: [u8; 3],
     phase: DevicePhase,
 
-    speed: graphics::screen::TwoDimensionalVec<i32>,
+    speed: TwoDimensionalVec<i16>,
 
     buttons: MouseButtons,
 }
@@ -63,7 +64,7 @@ impl Device {
         }
     }
 
-    pub fn enable(&self) {
+    pub fn enable() {
         super::wait_kbc_sendready();
         unsafe { Port::new(super::PORT_KEY_CMD).write(super::KEY_CMD_SEND_TO_MOUSE) };
         super::wait_kbc_sendready();
@@ -74,7 +75,7 @@ impl Device {
         self.phase == DevicePhase::ThreeData
     }
 
-    pub fn put_data(&mut self, data: u32) {
+    pub fn put_data(&mut self, data: u8) {
         match self.phase {
             DevicePhase::Init => {
                 let is_correct_startup = data == 0xfa;
@@ -102,7 +103,7 @@ impl Device {
     }
 
     // To sync phase, and data sent from mouse device
-    fn is_correct_first_byte_from_device(data: u32) -> bool {
+    fn is_correct_first_byte_from_device(data: u8) -> bool {
         data & 0xC8 == 0x08
     }
 
@@ -112,15 +113,15 @@ impl Device {
 
     pub fn purse_data(&mut self) {
         self.buttons = MouseButtons::purse_data(self.data_from_device[0]);
-        self.speed.x = self.data_from_device[1] as i32;
-        self.speed.y = self.data_from_device[2] as i32;
+        self.speed.x = i16::from(self.data_from_device[1]);
+        self.speed.y = i16::from(self.data_from_device[2]);
 
         if self.data_from_device[0] & 0x10 != 0 {
-            self.speed.x = (self.speed.x as u32 | 0xFFFFFF00) as i32;
+            self.speed.x -= 256;
         }
 
         if self.data_from_device[0] & 0x20 != 0 {
-            self.speed.y = (self.speed.y as u32 | 0xFFFFFF00) as i32;
+            self.speed.y -= 256;
         }
 
         self.speed.y = -self.speed.y;
@@ -134,17 +135,16 @@ impl Device {
 
     pub fn print_buf_data(&mut self) {
         use crate::print_with_pos;
-        let mut screen = Screen;
 
-        screen.draw_rectangle(
-            graphics::RGB::new(0x008484),
-            graphics::screen::Coord::new(32, 16),
-            graphics::screen::Coord::new(32 + 15 * 8 - 1, 31),
+        Screen::draw_rectangle(
+            graphics::RGB::new(0x0000_8484),
+            &graphics::screen::Coord::new(32, 16),
+            &graphics::screen::Coord::new(32 + 15 * 8 - 1, 31),
         );
 
         print_with_pos!(
             graphics::screen::Coord::new(32, 16),
-            graphics::RGB::new(0xFFFFFF),
+            graphics::RGB::new(0x00FF_FFFF),
             "[{}{}{} {:4}{:4}]",
             if self.buttons.left { 'L' } else { 'l' },
             if self.buttons.center { 'C' } else { 'c' },

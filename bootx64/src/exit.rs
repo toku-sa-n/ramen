@@ -11,7 +11,7 @@ macro_rules! change_rsp{
     }
 }
 
-pub fn bootx64<'a>(boot_info: kernelboot::Info) -> ! {
+pub fn bootx64(boot_info: kernelboot::Info) -> ! {
     disable_interruption();
 
     jump_to_kernel(boot_info);

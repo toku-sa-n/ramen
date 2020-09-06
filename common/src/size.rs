@@ -21,6 +21,7 @@ pub struct Size<T: Unit> {
 }
 
 impl<T: Unit> Size<T> {
+    #[must_use]
     pub const fn new(num: usize) -> Self {
         Self {
             num,
@@ -28,6 +29,7 @@ impl<T: Unit> Size<T> {
         }
     }
 
+    #[must_use]
     pub const fn as_usize(&self) -> usize {
         self.num
     }
@@ -36,13 +38,15 @@ impl<T: Unit> Size<T> {
 const BYTES_OF_PAGE: usize = 0x1000;
 
 impl Size<Byte> {
-    pub fn as_num_of_pages(&self) -> Size<NumOfPages> {
+    #[must_use]
+    pub fn as_num_of_pages(self) -> Size<NumOfPages> {
         Size::new((self.num + BYTES_OF_PAGE - 1) / BYTES_OF_PAGE)
     }
 }
 
 impl Size<NumOfPages> {
-    pub const fn as_bytes(&self) -> Size<Byte> {
+    #[must_use]
+    pub const fn as_bytes(self) -> Size<Byte> {
         Size::new(self.num * BYTES_OF_PAGE)
     }
 }
@@ -55,27 +59,11 @@ impl Add<usize> for Size<Byte> {
     }
 }
 
-impl Add<u64> for Size<Byte> {
-    type Output = Self;
-
-    fn add(self, rhs: u64) -> Self {
-        self + rhs as usize
-    }
-}
-
 impl Add<usize> for Size<NumOfPages> {
     type Output = Self;
 
     fn add(self, rhs: usize) -> Self {
         Self::new(self.as_usize() + rhs)
-    }
-}
-
-impl Add<u64> for Size<NumOfPages> {
-    type Output = Self;
-
-    fn add(self, rhs: u64) -> Self {
-        self + rhs as usize
     }
 }
 
@@ -87,26 +75,10 @@ impl Sub<usize> for Size<Byte> {
     }
 }
 
-impl Sub<u64> for Size<Byte> {
-    type Output = Self;
-
-    fn sub(self, rhs: u64) -> Self {
-        self - rhs as usize
-    }
-}
-
 impl Sub<usize> for Size<NumOfPages> {
     type Output = Self;
 
     fn sub(self, rhs: usize) -> Self {
         Self::new(self.as_usize() - rhs)
-    }
-}
-
-impl Sub<u64> for Size<NumOfPages> {
-    type Output = Self;
-
-    fn sub(self, rhs: u64) -> Self {
-        self - rhs as usize
     }
 }

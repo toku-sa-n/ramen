@@ -27,8 +27,20 @@ jobs:
       uses: actions-rs/toolchain@v1.0.6
       with:
         toolchain: nightly
-        components: rust-src
+        components: rust-src, clippy
         override: true
+
+    - name: Run clippy for the kernel code
+      run: |
+        cd kernel && cargo clippy
+
+    - name: Run clippy for bootx64.efi code
+      run: |
+        cd bootx64 && cargo clippy
+
+    - name: Run clippy for common crate
+      run: |
+        cd bootx64 && cargo clippy
 
     - name: Install dependencies
       run: |

@@ -4,6 +4,7 @@ use super::root_dir;
 use common::constant::{KERNEL_ADDR, KERNEL_NAME};
 use common::size::{Byte, Size};
 use core::cmp;
+use core::convert::TryFrom;
 use core::slice;
 use elf_rs::Elf;
 use uefi::proto::media::file;
@@ -55,9 +56,12 @@ pub fn fetch_entry_address_and_memory_size(
             let mem_size = elf
                 .program_header_iter()
                 .fold(Size::<Byte>::new(0), |acc, x| {
-                    cmp::max(acc, Size::new((x.ph.vaddr() + x.ph.memsz()) as _))
+                    cmp::max(
+                        acc,
+                        Size::new(usize::try_from(x.ph.vaddr() + x.ph.memsz()).unwrap()),
+                    )
                 })
-                - KERNEL_ADDR.as_u64();
+                - usize::try_from(KERNEL_ADDR.as_u64()).unwrap();
 
             info!("Entry point: {:?}", entry_addr);
             info!("Memory size: {:X?}", mem_size.as_usize());
@@ -87,11 +91,7 @@ fn allocate(boot_services: &boot::BootServices, kernel_bytes: Size<Byte>) -> Phy
     )
 }
 
-fn put_on_memory(
-    handler: &mut file::RegularFile,
-    kernel_addr: PhysAddr,
-    kernel_bytes: Size<Byte>,
-) -> () {
+fn put_on_memory(handler: &mut file::RegularFile, kernel_addr: PhysAddr, kernel_bytes: Size<Byte>) {
     // Reading should use while statement with the number of bytes which were actually read.
     // However, without while statement previous uefi implementation worked so this uefi
     // implementation also never use it.

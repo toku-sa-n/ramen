@@ -16,6 +16,8 @@ pub struct Info {
 }
 
 impl Info {
+    #[allow(clippy::too_many_arguments)]
+    #[must_use]
     pub fn new(
         entry_addr: VirtAddr,
         vram_info: vram::Info,
@@ -30,10 +32,12 @@ impl Info {
         }
     }
 
+    #[must_use]
     pub fn entry_addr(&self) -> VirtAddr {
         self.entry_addr
     }
 
+    #[must_use]
     pub fn vram(&self) -> vram::Info {
         self.vram_info
     }
@@ -44,6 +48,7 @@ impl Info {
         }
     }
 
+    #[must_use]
     pub fn get() -> Self {
         unsafe { ptr::read(INIT_RSP.as_mut_ptr() as _) }
     }

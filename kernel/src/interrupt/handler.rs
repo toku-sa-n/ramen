@@ -12,18 +12,16 @@ pub fn keyboard_data() {
 
     interrupts::enable();
 
-    let mut screen = Screen;
-
-    screen.draw_rectangle(
-        graphics::RGB::new(0x008484),
-        graphics::screen::Coord::new(0, 16),
-        graphics::screen::Coord::new(15, 31),
+    Screen::draw_rectangle(
+        graphics::RGB::new(0x0000_8484),
+        &graphics::screen::Coord::new(0, 16),
+        &graphics::screen::Coord::new(15, 31),
     );
 
     if let Some(data) = data {
         print_with_pos!(
             graphics::screen::Coord::new(0, 16),
-            graphics::RGB::new(0xFFFFFF),
+            graphics::RGB::new(0x00FF_FFFF),
             "{:X}",
             data
         );
@@ -31,16 +29,14 @@ pub fn keyboard_data() {
 }
 
 pub fn mouse_data(mouse_device: &mut super::mouse::Device, mouse_cursor: &mut screen::MouseCursor) {
-    let data: Option<u32> = mouse::QUEUE.lock().dequeue();
+    let data = mouse::QUEUE.lock().dequeue();
 
     interrupts::enable();
 
-    let mut screen = Screen;
-
-    screen.draw_rectangle(
-        graphics::RGB::new(0x008484),
-        graphics::screen::Coord::new(32, 16),
-        graphics::screen::Coord::new(47, 31),
+    Screen::draw_rectangle(
+        graphics::RGB::new(0x0000_8484),
+        &graphics::screen::Coord::new(32, 16),
+        &graphics::screen::Coord::new(47, 31),
     );
 
     if data == None {

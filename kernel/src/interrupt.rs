@@ -33,7 +33,7 @@ const KEY_CMD_SEND_TO_MOUSE: u8 = 0xD4;
 const MOUSE_CMD_ENABLE: u8 = 0xF4;
 
 lazy_static::lazy_static! {
-    pub static ref KEY_QUEUE: spin::Mutex<queue::Queue> = spin::Mutex::new(queue::Queue::new());
+    pub static ref KEY_QUEUE: spin::Mutex<queue::Queue<u32>> = spin::Mutex::new(queue::Queue::new(0));
 }
 
 // See P.128.
@@ -70,8 +70,8 @@ fn set_irq_receiver() {
 
 fn set_connection() {
     unsafe {
-        Port::new(PIC0_ICW3).write((1 << 2) as u8);
-        Port::new(PIC1_ICW3).write(2 as u8);
+        Port::new(PIC0_ICW3).write(4_u8);
+        Port::new(PIC1_ICW3).write(2_u8);
     }
 }
 
@@ -104,19 +104,19 @@ fn wait_kbc_sendready() {
     }
 }
 
-pub extern "x86-interrupt" fn interrupt_handler_21(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_21(_stack_frame: &mut idt::InterruptStackFrame) {
     unsafe { Port::new(PIC0_OCW2).write(0x61 as u8) };
     KEY_QUEUE
         .lock()
-        .enqueue(unsafe { Port::<u8>::new(PORT_KEYDATA).read() as u32 });
+        .enqueue(unsafe { u32::from(Port::<u8>::new(PORT_KEYDATA).read()) });
 }
 
-pub extern "x86-interrupt" fn interrupt_handler_2c(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_2c(_stack_frame: &mut idt::InterruptStackFrame) {
     unsafe {
         Port::new(PIC1_OCW2).write(0x64 as u8);
         Port::new(PIC0_OCW2).write(0x62 as u8);
     }
     mouse::QUEUE
         .lock()
-        .enqueue(unsafe { Port::<u8>::new(PORT_KEYDATA).read() as u32 });
+        .enqueue(unsafe { Port::<u8>::new(PORT_KEYDATA).read() });
 }

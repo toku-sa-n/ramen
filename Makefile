@@ -109,7 +109,7 @@ $(MEMLIB_FILE):$(MEMLIB_SRC)|$(BUILD_DIR)
 	exit 1
 
 $(EFI_FILE):$(EFI_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(EFI_DIR)/$(CARGO_TOML)|$(BUILD_DIR)
-	cd $(EFI_DIR) && $(RUSTCC) build --target=x86_64-unknown-uefi --out-dir=../$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
+	cd $(EFI_DIR) && $(RUSTCC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
 
 $(BUILD_DIR):
 	mkdir $@

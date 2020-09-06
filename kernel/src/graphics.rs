@@ -8,8 +8,10 @@ pub mod screen;
 use crate::common;
 use common::boot;
 use common::constant::VRAM_ADDR;
+use core::convert::TryFrom;
 use core::ptr;
 use lazy_static::lazy_static;
+use screen::TwoDimensionalVec;
 use spin::Once;
 use x86_64::VirtAddr;
 
@@ -29,18 +31,17 @@ pub struct RGB {
 impl RGB {
     pub fn new(hex: u32) -> Self {
         Self {
-            r: ((hex & 0xFF0000) >> 16) as u8,
-            g: ((hex & 0x00FF00) >> 8) as u8,
-            b: (hex & 0x0000FF) as u8,
+            r: u8::try_from((hex & 0x00FF_0000) >> 16).unwrap(),
+            g: u8::try_from((hex & 0x0000_FF00) >> 8).unwrap(),
+            b: u8::try_from(hex & 0x0000_00FF).unwrap(),
         }
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Vram {
     bits_per_pixel: usize,
-    x_len: usize,
-    y_len: usize,
+    resolution: TwoDimensionalVec<usize>,
     ptr: VirtAddr,
 }
 
@@ -53,15 +54,15 @@ impl Vram {
         let vram = boot_info.vram();
 
         let (x_len, y_len) = vram.resolution();
+        let resolution = TwoDimensionalVec::new(x_len, y_len);
 
-        Self::new(vram.bpp(), x_len, y_len, VRAM_ADDR)
+        Self::new(vram.bpp(), resolution, VRAM_ADDR)
     }
 
-    fn new(bits_per_pixel: usize, x_len: usize, y_len: usize, ptr: VirtAddr) -> Self {
+    fn new(bits_per_pixel: usize, resolution: TwoDimensionalVec<usize>, ptr: VirtAddr) -> Self {
         Self {
             bits_per_pixel,
-            x_len,
-            y_len,
+            resolution,
             ptr,
         }
     }
@@ -70,19 +71,18 @@ impl Vram {
         VRAM.r#try().expect("VRAM not initialized")
     }
 
-    pub fn x_len() -> usize {
-        Self::get().x_len
+    pub fn resolution() -> &'static TwoDimensionalVec<usize> {
+        &Vram::get().resolution
     }
 
-    pub fn y_len() -> usize {
-        Self::get().y_len
-    }
-
-    pub unsafe fn set_color(coord: screen::Coord<isize>, rgb: RGB) {
+    pub unsafe fn set_color(coord: &screen::Coord<isize>, rgb: RGB) {
         let vram = Self::get();
 
-        let base_ptr: *mut u8 = (vram.ptr.as_mut_ptr() as *mut u8)
-            .offset((coord.y * vram.x_len as isize + coord.x) * vram.bits_per_pixel as isize / 8);
+        let base_ptr = (usize::try_from(vram.ptr.as_u64()).unwrap()
+            + (usize::try_from(coord.y).unwrap() * Vram::resolution().x
+                + usize::try_from(coord.x).unwrap())
+                * vram.bits_per_pixel
+                / 8) as *mut u8;
 
         // The order of `RGB` is right.
         // See: https://wiki.osdev.org/Drawing_In_Protected_Mode

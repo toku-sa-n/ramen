@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use common::constant::*;
+use common::constant::RECUR_PML4_ADDR;
 use common::mem::reserved;
+use core::convert::TryFrom;
 use uefi::table::boot;
 use uefi::table::boot::{AllocateType, MemoryType};
 use x86_64::addr::PhysAddr;
@@ -33,7 +34,7 @@ unsafe impl<'a> FrameAllocator<Size4KiB> for AllocatorWithEfiMemoryMap<'a> {
     }
 }
 
-pub fn init(boot_services: &boot::BootServices, reserved_regions: &reserved::Map) -> () {
+pub fn init(boot_services: &boot::BootServices, reserved_regions: &reserved::Map) {
     remove_table_protection();
 
     enable_recursive_mapping();
@@ -45,13 +46,13 @@ pub fn init(boot_services: &boot::BootServices, reserved_regions: &reserved::Map
     }
 }
 
-fn enable_recursive_mapping() -> () {
+fn enable_recursive_mapping() {
     let p4: &mut PageTable = unsafe { &mut *(get_pml4_addr().as_u64() as *mut _) };
 
     p4[511].set_addr(get_pml4_addr(), PageTableFlags::PRESENT);
 }
 
-fn remove_table_protection() -> () {
+fn remove_table_protection() {
     unsafe {
         Cr0::update(|flags| {
             flags.remove(Cr0Flags::WRITE_PROTECT);
@@ -59,7 +60,7 @@ fn remove_table_protection() -> () {
     }
 }
 
-fn map_virt_to_phys(region: &reserved::Range, allocator: &mut AllocatorWithEfiMemoryMap) -> () {
+fn map_virt_to_phys(region: &reserved::Range, allocator: &mut AllocatorWithEfiMemoryMap) {
     let p4 = unsafe { &mut *(RECUR_PML4_ADDR.as_mut_ptr()) };
     let mut p4 = RecursivePageTable::new(p4).unwrap();
 
@@ -67,8 +68,12 @@ fn map_virt_to_phys(region: &reserved::Range, allocator: &mut AllocatorWithEfiMe
     for i in 0..num_of_pages {
         unsafe {
             p4.map_to_with_table_flags::<AllocatorWithEfiMemoryMap>(
-                Page::<Size4KiB>::containing_address(region.virt() + Size4KiB::SIZE as usize * i),
-                PhysFrame::containing_address(region.phys() + Size4KiB::SIZE as usize * i),
+                Page::<Size4KiB>::containing_address(
+                    region.virt() + usize::try_from(Size4KiB::SIZE).unwrap() * i,
+                ),
+                PhysFrame::containing_address(
+                    region.phys() + usize::try_from(Size4KiB::SIZE).unwrap() * i,
+                ),
                 PageTableFlags::PRESENT,
                 PageTableFlags::PRESENT,
                 allocator,
