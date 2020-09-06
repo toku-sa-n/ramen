@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::size::{Byte, Size};
+use os_units::{Bytes, Size};
 use uefi::proto::console::gop;
 use x86_64::PhysAddr;
 
@@ -41,7 +41,7 @@ impl Info {
     }
 
     #[must_use]
-    pub fn bytes(&self) -> Size<Byte> {
+    pub fn bytes(&self) -> Size<Bytes> {
         Size::new(self.screen_x as usize * self.screen_y as usize * self.bpp as usize / 8)
     }
 }

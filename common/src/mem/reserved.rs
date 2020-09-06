@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::constant::{KERNEL_ADDR, NUM_OF_PAGES_STACK, STACK_LOWER, VRAM_ADDR};
-use crate::size::{Byte, Size};
 use crate::vram;
+use os_units::{Bytes, Size};
 use x86_64::{PhysAddr, VirtAddr};
 
 pub struct KernelPhysRange {
     start: PhysAddr,
-    bytes: Size<Byte>,
+    bytes: Size<Bytes>,
 }
 
 impl KernelPhysRange {
     #[must_use]
-    pub fn new(start: PhysAddr, bytes: Size<Byte>) -> Self {
+    pub fn new(start: PhysAddr, bytes: Size<Bytes>) -> Self {
         Self { start, bytes }
     }
 }
@@ -43,7 +43,7 @@ impl Map {
 pub struct Range {
     virt: VirtAddr,
     phys: PhysAddr,
-    bytes: Size<Byte>,
+    bytes: Size<Bytes>,
 }
 
 impl Range {
@@ -85,7 +85,7 @@ impl Range {
     }
 
     #[must_use]
-    pub fn bytes(&self) -> Size<Byte> {
+    pub fn bytes(&self) -> Size<Bytes> {
         self.bytes
     }
 }
