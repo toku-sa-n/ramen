@@ -18,7 +18,7 @@ jobs:
 
     defaults:
       run:
-        shell: zsh
+        shell: bash
 
     steps:
       - uses: actions/checkout@v2
@@ -28,8 +28,10 @@ jobs:
         with:
           toolchain: nightly
           components: rust-src, rustfmt
-          override: tru
+          override: true
 
       - name: Run rustfmt with check mode
-        run: rustfmt **/*.rs --check
+        run: |
+          shopt -s globstar
+          rustfmt **/*.rs --check
 
