@@ -15,7 +15,7 @@ use core::ptr;
 use screen::TwoDimensionalVec;
 use x86_64::VirtAddr;
 
-static VRAM: Lazy<OnceCell<Vram>> = Lazy::new(|| OnceCell::uninit());
+static VRAM: Lazy<OnceCell<Vram>> = Lazy::new(OnceCell::uninit);
 
 // Copy trait is needed for constructing MouseCursor struct
 // If you are unsure, remove Copy trait from this struct and see the error messages.
