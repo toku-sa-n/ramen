@@ -87,11 +87,7 @@ fn allocate(boot_services: &boot::BootServices, kernel_bytes: Size<Byte>) -> Phy
     )
 }
 
-fn put_on_memory(
-    handler: &mut file::RegularFile,
-    kernel_addr: PhysAddr,
-    kernel_bytes: Size<Byte>,
-) -> () {
+fn put_on_memory(handler: &mut file::RegularFile, kernel_addr: PhysAddr, kernel_bytes: Size<Byte>) {
     // Reading should use while statement with the number of bytes which were actually read.
     // However, without while statement previous uefi implementation worked so this uefi
     // implementation also never use it.

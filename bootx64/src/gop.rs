@@ -22,7 +22,7 @@ fn fetch_gop<'a>(boot_services: &boot::BootServices) -> &'a mut gop::GraphicsOut
     unsafe { &mut *gop.get() }
 }
 
-fn set_resolution(gop: &mut gop::GraphicsOutput) -> () {
+fn set_resolution(gop: &mut gop::GraphicsOutput) {
     let (width, height, mode) = get_the_maximum_resolution_and_mode(gop);
 
     gop.set_mode(&mode)
