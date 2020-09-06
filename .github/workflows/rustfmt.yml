@@ -1,0 +1,37 @@
+name: rustfmt
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install rust nightly
+        uses: actions-rs/toolchain@v1.0.6
+        with:
+          toolchain: nightly
+          components: rust-src, rustfmt
+          override: true
+
+      - name: Run rustfmt with check mode
+        run: |
+          shopt -s globstar
+          rustfmt **/*.rs --check
+
