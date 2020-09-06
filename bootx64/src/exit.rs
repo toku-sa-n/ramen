@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use common::boot as kernelboot;
 use common::constant::INIT_RSP;
+use common::kernelboot;
 
 macro_rules! change_rsp{
     ($val:expr)=>{

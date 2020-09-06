@@ -5,9 +5,9 @@
 #![deny(clippy::pedantic)]
 #![deny(clippy::all)]
 
-pub mod boot;
 pub mod constant;
 pub mod debug;
+pub mod kernelboot;
 pub mod mem;
 pub mod vram;
 
