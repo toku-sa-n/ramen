@@ -74,8 +74,6 @@ fn init_libs(system_table: &SystemTable<Boot>) {
     info!("Hello World!");
 }
 
-/// Initialize uefi-rs services. This includes initialization of GlobalAlloc, which enables us to
-/// use Collections defined in alloc module, such as Vec and LinkedList.
 fn initialize_uefi_utilities(system_table: &SystemTable<Boot>) {
     uefi_services::init(system_table).expect_success("Failed to initialize_uefi_utilities");
 }
