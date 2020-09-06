@@ -31,6 +31,5 @@ bench = false
 common = { path = "../common" }
 conquer-once = { version = "0.2.1", default-features = false }
 spinning_top = "0.2.2"
-lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
 qemu-exit = "0.1.3"
 x86_64 = "0.11.4"
