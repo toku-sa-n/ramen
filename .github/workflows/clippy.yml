@@ -25,17 +25,5 @@ jobs:
           components: clippy, rust-src
           override: true
 
-      - name: Run clippy for the kernel code
-        run: |
-          cd kernel
-          cargo clippy
-
-      - name: Run clippy for bootx64.efi code
-        run: |
-          cd bootx64
-          cargo clippy
-
-      - name: Run clippy for common crate
-        run: |
-          cd common
-          cargo clippy
+      - name: Run clippy
+        run: make clippy
