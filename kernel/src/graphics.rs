@@ -8,15 +8,15 @@ pub mod screen;
 use crate::common;
 use common::constant::VRAM_ADDR;
 use common::kernelboot;
+use conquer_once::spin::OnceCell;
 use core::convert::TryFrom;
 use core::ptr;
 use lazy_static::lazy_static;
 use screen::TwoDimensionalVec;
-use spin::Once;
 use x86_64::VirtAddr;
 
 lazy_static! {
-    static ref VRAM: Once<Vram> = Once::new();
+    static ref VRAM: OnceCell<Vram> = OnceCell::uninit();
 }
 
 // Copy trait is needed for constructing MouseCursor struct
@@ -47,7 +47,8 @@ pub struct Vram {
 
 impl Vram {
     pub fn init(boot_info: &kernelboot::Info) {
-        VRAM.call_once(|| Self::new_from_boot_info(boot_info));
+        VRAM.try_init_once(|| Self::new_from_boot_info(boot_info))
+            .unwrap();
     }
 
     fn new_from_boot_info(boot_info: &kernelboot::Info) -> Self {
@@ -68,7 +69,7 @@ impl Vram {
     }
 
     fn get() -> &'static Vram {
-        VRAM.r#try().expect("VRAM not initialized")
+        VRAM.try_get().expect("VRAM not initialized")
     }
 
     pub fn resolution() -> &'static TwoDimensionalVec<usize> {
