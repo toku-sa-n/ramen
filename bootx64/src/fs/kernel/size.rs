@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
- 
+
 use common::size::{Byte, Size};
+use core::convert::TryFrom;
 use uefi::proto::media::file;
 use uefi::proto::media::file::RegularFile;
 
@@ -13,9 +14,12 @@ pub fn get(root_dir: &mut file::Directory) -> Size<Byte> {
         .unwrap();
 
     Size::new(
-        handler
-            .get_position()
-            .expect("Failed to calculate the size of the kernel.")
-            .unwrap() as _,
+        usize::try_from(
+            handler
+                .get_position()
+                .expect("Failed to calculate the size of the kernel.")
+                .unwrap(),
+        )
+        .unwrap(),
     )
 }
