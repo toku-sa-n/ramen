@@ -26,7 +26,7 @@ mod fs;
 mod gop;
 mod mem;
 
-use common::boot as kernelboot;
+use common::kernelboot;
 use common::mem::reserved;
 use core::convert::TryFrom;
 use core::ptr;

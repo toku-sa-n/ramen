@@ -23,7 +23,7 @@ mod queue;
 #[macro_use]
 mod graphics;
 
-use common::boot;
+use common::kernelboot;
 use graphics::screen;
 use graphics::Vram;
 use graphics::RGB;
@@ -33,7 +33,7 @@ use x86_64::instructions::interrupts;
 
 #[no_mangle]
 #[start]
-pub extern "win64" fn os_main(boot_info: boot::Info) -> ! {
+pub extern "win64" fn os_main(boot_info: kernelboot::Info) -> ! {
     Vram::init(&boot_info);
     let mut mouse_device = mouse::Device::new();
     let mut mouse_cursor = screen::MouseCursor::new(RGB::new(0x0000_8484), screen::MOUSE_GRAPHIC);
