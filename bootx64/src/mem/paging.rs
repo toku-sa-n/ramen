@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use common::constant::*;
+use common::constant::RECUR_PML4_ADDR;
 use common::mem::reserved;
 use core::convert::TryFrom;
 use uefi::table::boot;
