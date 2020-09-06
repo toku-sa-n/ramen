@@ -9,15 +9,11 @@
 extern crate rlibc;
 
 #[macro_use]
-extern crate log;
-
-extern crate elf_rs;
-extern crate uefi;
-extern crate uefi_services;
-
-#[macro_use]
 #[allow(unused_imports)]
 extern crate common;
+
+#[macro_use]
+extern crate log;
 
 extern crate x86_64;
 

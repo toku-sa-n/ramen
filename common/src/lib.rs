@@ -11,5 +11,4 @@ pub mod kernelboot;
 pub mod mem;
 pub mod vram;
 
-extern crate uefi;
 extern crate x86_64;
