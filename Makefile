@@ -43,7 +43,7 @@ VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive
 
 LDFLAGS			:= -nostdlib -T $(LD_SRC)
 
-.PHONY:all copy_to_usb run test_general test release_test release clean
+.PHONY:all copy_to_usb run test_general test release_test release clippy clean
 
 .SUFFIXES:
 
@@ -113,6 +113,10 @@ $(EFI_FILE):$(EFI_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(EFI_DIR)/
 
 $(BUILD_DIR):
 	mkdir $@
+
+clippy:
+	(cd $(KERNEL_DIR) && $(RUSTCC) clippy)
+	(cd $(EFI_DIR) && $(RUSTCC) clippy)
 
 clean:
 	$(RM) build
