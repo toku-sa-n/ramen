@@ -28,7 +28,6 @@ test = false
 bench = false
 
 [dependencies]
-spin = "0.5.2"
 common = { path = "../common" }
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
 qemu-exit = "0.1.3"
