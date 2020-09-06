@@ -2,11 +2,11 @@
 
 use super::root_dir;
 use common::constant::{KERNEL_ADDR, KERNEL_NAME};
-use common::size::{Byte, Size};
 use core::cmp;
 use core::convert::TryFrom;
 use core::slice;
 use elf_rs::Elf;
+use os_units::{Bytes, Size};
 use uefi::proto::media::file;
 use uefi::proto::media::file::File;
 use uefi::proto::media::file::FileAttribute;
@@ -14,11 +14,12 @@ use uefi::proto::media::file::FileMode;
 use uefi::table::boot;
 use uefi::table::boot::{AllocateType, MemoryType};
 use uefi::ResultExt;
+use x86_64::structures::paging::Size4KiB;
 use x86_64::{PhysAddr, VirtAddr};
 
 mod size;
 
-pub fn deploy(boot_services: &boot::BootServices) -> (PhysAddr, Size<Byte>) {
+pub fn deploy(boot_services: &boot::BootServices) -> (PhysAddr, Size<Bytes>) {
     let mut root_dir = root_dir::open(boot_services);
 
     locate(boot_services, &mut root_dir)
@@ -27,7 +28,7 @@ pub fn deploy(boot_services: &boot::BootServices) -> (PhysAddr, Size<Byte>) {
 fn locate(
     boot_services: &boot::BootServices,
     root_dir: &mut file::Directory,
-) -> (PhysAddr, Size<Byte>) {
+) -> (PhysAddr, Size<Bytes>) {
     let kernel_bytes = size::get(root_dir);
     let mut kernel_handler = get_handler(root_dir);
 
@@ -39,8 +40,8 @@ fn locate(
 
 pub fn fetch_entry_address_and_memory_size(
     addr: PhysAddr,
-    bytes: Size<Byte>,
-) -> (VirtAddr, Size<Byte>) {
+    bytes: Size<Bytes>,
+) -> (VirtAddr, Size<Bytes>) {
     let elf =
         Elf::from_bytes(unsafe { slice::from_raw_parts(addr.as_u64() as _, bytes.as_usize()) });
 
@@ -55,13 +56,13 @@ pub fn fetch_entry_address_and_memory_size(
             let entry_addr = VirtAddr::new(elf.header().entry_point());
             let mem_size = elf
                 .program_header_iter()
-                .fold(Size::<Byte>::new(0), |acc, x| {
+                .fold(Size::<Bytes>::new(0), |acc, x| {
                     cmp::max(
                         acc,
                         Size::new(usize::try_from(x.ph.vaddr() + x.ph.memsz()).unwrap()),
                     )
                 })
-                - usize::try_from(KERNEL_ADDR.as_u64()).unwrap();
+                - Size::<Bytes>::new(usize::try_from(KERNEL_ADDR.as_u64()).unwrap());
 
             info!("Entry point: {:?}", entry_addr);
             info!("Memory size: {:X?}", mem_size.as_usize());
@@ -79,19 +80,23 @@ fn get_handler(root_dir: &mut file::Directory) -> file::RegularFile {
     unsafe { file::RegularFile::new(handler) }
 }
 
-fn allocate(boot_services: &boot::BootServices, kernel_bytes: Size<Byte>) -> PhysAddr {
+fn allocate(boot_services: &boot::BootServices, kernel_bytes: Size<Bytes>) -> PhysAddr {
     PhysAddr::new(
         boot_services
             .allocate_pages(
                 AllocateType::AnyPages,
                 MemoryType::LOADER_DATA,
-                kernel_bytes.as_num_of_pages().as_usize(),
+                kernel_bytes.as_num_of_pages::<Size4KiB>().as_usize(),
             )
             .expect_success("Failed to allocate memory for the kernel"),
     )
 }
 
-fn put_on_memory(handler: &mut file::RegularFile, kernel_addr: PhysAddr, kernel_bytes: Size<Byte>) {
+fn put_on_memory(
+    handler: &mut file::RegularFile,
+    kernel_addr: PhysAddr,
+    kernel_bytes: Size<Bytes>,
+) {
     // Reading should use while statement with the number of bytes which were actually read.
     // However, without while statement previous uefi implementation worked so this uefi
     // implementation also never use it.

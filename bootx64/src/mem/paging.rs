@@ -64,7 +64,7 @@ fn map_virt_to_phys(region: &reserved::Range, allocator: &mut AllocatorWithEfiMe
     let p4 = unsafe { &mut *(RECUR_PML4_ADDR.as_mut_ptr()) };
     let mut p4 = RecursivePageTable::new(p4).unwrap();
 
-    let num_of_pages = region.bytes().as_num_of_pages().as_usize();
+    let num_of_pages = region.bytes().as_num_of_pages::<Size4KiB>().as_usize();
     for i in 0..num_of_pages {
         unsafe {
             p4.map_to_with_table_flags::<AllocatorWithEfiMemoryMap>(
