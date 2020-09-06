@@ -28,6 +28,7 @@ mod mem;
 
 use common::boot as kernelboot;
 use common::mem::reserved;
+use core::convert::TryFrom;
 use core::ptr;
 use core::slice;
 use fs::kernel;
@@ -117,7 +118,10 @@ fn terminate_boot_services<'a>(image: Handle, system_table: SystemTable<Boot>) -
     let mut num_descriptors = 0;
     for (index, descriptor) in descriptors_iter.enumerate() {
         unsafe {
-            ptr::write(memory_map_buf.offset(index as isize), *descriptor);
+            ptr::write(
+                memory_map_buf.offset(isize::try_from(index).unwrap()),
+                *descriptor,
+            );
         }
 
         num_descriptors += 1;
