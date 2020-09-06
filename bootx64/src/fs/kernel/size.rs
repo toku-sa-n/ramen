@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use common::size::{Byte, Size};
 use core::convert::TryFrom;
+use os_units::{Bytes, Size};
 use uefi::proto::media::file;
 use uefi::proto::media::file::RegularFile;
 
-pub fn get(root_dir: &mut file::Directory) -> Size<Byte> {
+pub fn get(root_dir: &mut file::Directory) -> Size<Bytes> {
     let mut handler = super::get_handler(root_dir);
 
     handler

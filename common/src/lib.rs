@@ -9,7 +9,6 @@ pub mod constant;
 pub mod debug;
 pub mod kernelboot;
 pub mod mem;
-pub mod size;
 pub mod vram;
 
 extern crate uefi;
