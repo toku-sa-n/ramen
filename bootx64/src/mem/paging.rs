@@ -68,7 +68,9 @@ fn map_virt_to_phys(region: &reserved::Range, allocator: &mut AllocatorWithEfiMe
     for i in 0..num_of_pages {
         unsafe {
             p4.map_to_with_table_flags::<AllocatorWithEfiMemoryMap>(
-                Page::<Size4KiB>::containing_address(region.virt() + Size4KiB::SIZE as usize * i),
+                Page::<Size4KiB>::containing_address(
+                    region.virt() + usize::try_from(Size4KiB::SIZE).unwrap() * i,
+                ),
                 PhysFrame::containing_address(
                     region.phys() + usize::try_from(Size4KiB::SIZE).unwrap() * i,
                 ),
