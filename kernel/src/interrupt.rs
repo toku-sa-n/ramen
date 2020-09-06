@@ -7,8 +7,6 @@ use crate::queue;
 use crate::x86_64::instructions::port::Port;
 use crate::x86_64::structures::idt;
 
-extern crate lazy_static;
-
 const PIC0_ICW1: u16 = 0x0020;
 const PIC0_OCW2: u16 = 0x0020;
 const PIC0_IMR: u16 = 0x0021;
@@ -32,11 +30,11 @@ const KEY_CMD_MODE: u8 = 0x47;
 const KEY_CMD_SEND_TO_MOUSE: u8 = 0xD4;
 const MOUSE_CMD_ENABLE: u8 = 0xF4;
 
+use conquer_once::spin::Lazy;
 use spinning_top::Spinlock;
 
-lazy_static::lazy_static! {
-    pub static ref KEY_QUEUE: Spinlock<queue::Queue<u32>> = Spinlock::new(queue::Queue::new(0));
-}
+pub static KEY_QUEUE: Lazy<Spinlock<queue::Queue<u32>>> =
+    Lazy::new(|| Spinlock::new(queue::Queue::new(0)));
 
 // See P.128.
 pub fn init_pic() {

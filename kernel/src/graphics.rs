@@ -8,16 +8,14 @@ pub mod screen;
 use crate::common;
 use common::constant::VRAM_ADDR;
 use common::kernelboot;
+use conquer_once::spin::Lazy;
 use conquer_once::spin::OnceCell;
 use core::convert::TryFrom;
 use core::ptr;
-use lazy_static::lazy_static;
 use screen::TwoDimensionalVec;
 use x86_64::VirtAddr;
 
-lazy_static! {
-    static ref VRAM: OnceCell<Vram> = OnceCell::uninit();
-}
+static VRAM: Lazy<OnceCell<Vram>> = Lazy::new(OnceCell::uninit);
 
 // Copy trait is needed for constructing MouseCursor struct
 // If you are unsure, remove Copy trait from this struct and see the error messages.

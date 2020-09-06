@@ -3,16 +3,14 @@
 use crate::x86_64::instructions::segmentation;
 use crate::x86_64::structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector};
 use crate::x86_64::PrivilegeLevel;
-use lazy_static::lazy_static;
+use conquer_once::spin::Lazy;
 
-lazy_static! {
-    pub static ref GDT: Gdt = {
-        let mut gdt = GlobalDescriptorTable::new();
-        let code_selector = gdt.add_entry(Descriptor::kernel_code_segment());
+pub static GDT: Lazy<Gdt> = Lazy::new(|| {
+    let mut gdt = GlobalDescriptorTable::new();
+    let code_selector = gdt.add_entry(Descriptor::kernel_code_segment());
 
-        Gdt::new(gdt, code_selector)
-    };
-}
+    Gdt::new(gdt, code_selector)
+});
 
 pub struct Gdt {
     table: GlobalDescriptorTable,
