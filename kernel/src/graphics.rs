@@ -6,8 +6,8 @@ pub mod font;
 pub mod screen;
 
 use crate::common;
-use common::boot;
 use common::constant::VRAM_ADDR;
+use common::kernelboot;
 use core::convert::TryFrom;
 use core::ptr;
 use lazy_static::lazy_static;
@@ -46,11 +46,11 @@ pub struct Vram {
 }
 
 impl Vram {
-    pub fn init(boot_info: &boot::Info) {
+    pub fn init(boot_info: &kernelboot::Info) {
         VRAM.call_once(|| Self::new_from_boot_info(boot_info));
     }
 
-    fn new_from_boot_info(boot_info: &boot::Info) -> Self {
+    fn new_from_boot_info(boot_info: &kernelboot::Info) -> Self {
         let vram = boot_info.vram();
 
         let (x_len, y_len) = vram.resolution();
