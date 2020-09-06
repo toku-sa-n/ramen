@@ -2,6 +2,7 @@
 
 use common::constant::*;
 use common::mem::reserved;
+use core::convert::TryFrom;
 use uefi::table::boot;
 use uefi::table::boot::{AllocateType, MemoryType};
 use x86_64::addr::PhysAddr;
@@ -68,7 +69,9 @@ fn map_virt_to_phys(region: &reserved::Range, allocator: &mut AllocatorWithEfiMe
         unsafe {
             p4.map_to_with_table_flags::<AllocatorWithEfiMemoryMap>(
                 Page::<Size4KiB>::containing_address(region.virt() + Size4KiB::SIZE as usize * i),
-                PhysFrame::containing_address(region.phys() + Size4KiB::SIZE as usize * i),
+                PhysFrame::containing_address(
+                    region.phys() + usize::try_from(Size4KiB::SIZE).unwrap() * i,
+                ),
                 PageTableFlags::PRESENT,
                 PageTableFlags::PRESENT,
                 allocator,
