@@ -30,6 +30,7 @@ use common::boot as kernelboot;
 use common::mem::reserved;
 use core::convert::TryFrom;
 use core::ptr;
+use core::ptr::NonNull;
 use core::slice;
 use fs::kernel;
 use mem::paging;
@@ -87,14 +88,17 @@ fn reset_console(system_table: &SystemTable<Boot>) {
 }
 
 fn terminate_boot_services<'a>(image: Handle, system_table: SystemTable<Boot>) -> common::mem::Map {
-    let memory_map_buf = system_table
-        .boot_services()
-        .allocate_pool(
-            MemoryType::LOADER_DATA,
-            system_table.boot_services().memory_map_size(),
-        )
-        .expect_success("Failed to allocate memory for memory map")
-        as *mut boot::MemoryDescriptor;
+    let memory_map_buf = NonNull::new(
+        system_table
+            .boot_services()
+            .allocate_pool(
+                MemoryType::LOADER_DATA,
+                system_table.boot_services().memory_map_size(),
+            )
+            .expect_success("Failed to allocate memory for memory map"),
+    )
+    .unwrap()
+    .cast::<boot::MemoryDescriptor>();
 
     let buf_for_exiting = system_table
         .boot_services()
@@ -119,7 +123,9 @@ fn terminate_boot_services<'a>(image: Handle, system_table: SystemTable<Boot>) -
     for (index, descriptor) in descriptors_iter.enumerate() {
         unsafe {
             ptr::write(
-                memory_map_buf.offset(isize::try_from(index).unwrap()),
+                memory_map_buf
+                    .as_ptr()
+                    .offset(isize::try_from(index).unwrap()),
                 *descriptor,
             );
         }
@@ -127,5 +133,5 @@ fn terminate_boot_services<'a>(image: Handle, system_table: SystemTable<Boot>) -
         num_descriptors += 1;
     }
 
-    common::mem::Map::new(memory_map_buf, num_descriptors)
+    common::mem::Map::new(memory_map_buf.as_ptr(), num_descriptors)
 }
