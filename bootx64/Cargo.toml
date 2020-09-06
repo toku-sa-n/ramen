@@ -15,4 +15,4 @@ rlibc = "1.0.0"
 common = { path = "../common/" }
 x86_64 = "0.11.2"
 elf_rs = "0.1.3"
-os_units = { git = "https://github.com/toku-sa-n/os_units.git" }
+os_units = "0.1.0"

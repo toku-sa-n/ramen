@@ -10,4 +10,4 @@ license = "GPL-3.0-or-later"
 [dependencies]
 uefi = "0.5.0"
 x86_64 = "0.11.4"
-os_units = { git = "https://github.com/toku-sa-n/os_units.git" }
+os_units = "0.1.0"
