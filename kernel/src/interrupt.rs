@@ -32,8 +32,10 @@ const KEY_CMD_MODE: u8 = 0x47;
 const KEY_CMD_SEND_TO_MOUSE: u8 = 0xD4;
 const MOUSE_CMD_ENABLE: u8 = 0xF4;
 
+use spinning_top::Spinlock;
+
 lazy_static::lazy_static! {
-    pub static ref KEY_QUEUE: spin::Mutex<queue::Queue<u32>> = spin::Mutex::new(queue::Queue::new(0));
+    pub static ref KEY_QUEUE: Spinlock<queue::Queue<u32>> = Spinlock::new(queue::Queue::new(0));
 }
 
 // See P.128.

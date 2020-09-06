@@ -7,9 +7,10 @@ use crate::queue;
 use crate::x86_64::instructions::port::Port;
 
 use lazy_static::lazy_static;
+use spinning_top::Spinlock;
 
 lazy_static! {
-    pub static ref QUEUE: spin::Mutex<queue::Queue<u8>> = spin::Mutex::new(queue::Queue::new(0));
+    pub static ref QUEUE: Spinlock<queue::Queue<u8>> = Spinlock::new(queue::Queue::new(0));
 }
 
 struct MouseButtons {
