@@ -16,17 +16,21 @@ pub struct Space {
 
 impl Space {
     pub fn fetch(bus: u8, device: u8) -> Option<Self> {
-        let id = Id::fetch(bus, device)?;
+        let id = Id::fetch(bus, device);
         let bar = Bar::fetch(bus, device);
         let class = Class::fetch(bus, device);
         let interface = Interface::fetch(bus, device);
 
-        Some(Self {
-            id,
-            bar,
-            class,
-            interface,
-        })
+        if id.is_valid() {
+            Some(Self {
+                id,
+                bar,
+                class,
+                interface,
+            })
+        } else {
+            None
+        }
     }
 
     pub fn is_xhci(&self) -> bool {
@@ -83,17 +87,17 @@ struct Id {
 }
 
 impl Id {
-    fn fetch(bus: u8, device: u8) -> Option<Self> {
+    fn fetch(bus: u8, device: u8) -> Self {
         let config_addr = ConfigAddress::new(bus, device, 0, 0);
         let raw_ids = unsafe { config_addr.read() };
-        if raw_ids & 0xffff == 0xffff {
-            None
-        } else {
-            Some(Self {
-                vendor: u16::try_from(raw_ids & 0xffff).unwrap(),
-                device: u16::try_from(raw_ids >> 16).unwrap(),
-            })
+        Self {
+            vendor: u16::try_from(raw_ids & 0xffff).unwrap(),
+            device: u16::try_from(raw_ids >> 16).unwrap(),
         }
+    }
+
+    fn is_valid(&self) -> bool {
+        self.vendor == 0xffff
     }
 }
 
