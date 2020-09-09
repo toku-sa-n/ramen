@@ -8,7 +8,7 @@ use crate::print_with_pos;
 use crate::x86_64::instructions::interrupts;
 
 pub fn keyboard_data() {
-    let data: Option<u32> = super::KEY_QUEUE.lock().dequeue();
+    let data: Option<u32> = super::KEY_QUEUE.lock().pop_front();
 
     interrupts::enable();
 
@@ -29,7 +29,7 @@ pub fn keyboard_data() {
 }
 
 pub fn mouse_data(mouse_device: &mut super::mouse::Device, mouse_cursor: &mut screen::MouseCursor) {
-    let data = mouse::QUEUE.lock().dequeue();
+    let data = mouse::QUEUE.lock().pop_front();
 
     interrupts::enable();
 

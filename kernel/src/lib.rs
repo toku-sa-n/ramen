@@ -21,7 +21,6 @@ mod gdt;
 mod idt;
 mod interrupt;
 mod panic;
-mod queue;
 
 #[macro_use]
 mod graphics;
@@ -39,12 +38,12 @@ use x86_64::instructions::interrupts;
 #[no_mangle]
 #[start]
 pub extern "win64" fn os_main(boot_info: kernelboot::Info) -> ! {
-    let (mut mouse_device, mut cursor) = initialization(boot_info);
+    let (mut mouse_device, mut cursor) = initialization(&boot_info);
 
     main_loop(&mut mouse_device, &mut cursor)
 }
 
-fn initialization(boot_info: kernelboot::Info) -> (mouse::Device, MouseCursor) {
+fn initialization(boot_info: &kernelboot::Info) -> (mouse::Device, MouseCursor) {
     Vram::init(&boot_info);
 
     gdt::init();
@@ -98,9 +97,9 @@ fn main_loop(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseC
 
 fn loop_main(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseCursor) {
     interrupts::disable();
-    if interrupt::KEY_QUEUE.lock().size() > 0 {
+    if interrupt::KEY_QUEUE.lock().len() > 0 {
         handler::keyboard_data();
-    } else if mouse::QUEUE.lock().size() > 0 {
+    } else if mouse::QUEUE.lock().len() > 0 {
         handler::mouse_data(mouse_device, mouse_cursor);
     } else {
         interrupts::enable_interrupts_and_hlt();
