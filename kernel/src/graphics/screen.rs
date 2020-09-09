@@ -269,13 +269,21 @@ pub fn draw_desktop()  {
 
 fn print_str(coord: &Coord<isize>, color: RGB, str: &str) {
     let mut char_x_pos = coord.x;
+    let mut char_y_pos = coord.y;
     for c in str.chars() {
         print_char(
-            &Coord::new(char_x_pos, coord.y),
+            &Coord::new(char_x_pos, char_y_pos),
             color,
             font::FONTS[c as usize],
         );
         char_x_pos += isize::try_from(font::FONT_WIDTH).unwrap();
+
+        if char_x_pos + isize::try_from(font::FONT_WIDTH).unwrap()
+            >= isize::try_from(Vram::resolution().x).unwrap()
+        {
+            char_x_pos = 0;
+            char_y_pos += isize::try_from(font::FONT_HEIGHT).unwrap();
+        }
     }
 }
 
