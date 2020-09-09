@@ -3,5 +3,5 @@
 use super::pci::config;
 
 pub fn iter_devices() -> impl Iterator<Item = config::Space> {
-    super::pci::iter_devices().filter(|device| device.is_xhci())
+    super::pci::iter_devices().filter(config::Space::is_xhci)
 }
