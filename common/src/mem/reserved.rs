@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::constant::{KERNEL_ADDR, NUM_OF_PAGES_STACK, STACK_LOWER, VRAM_ADDR};
+use crate::constant::{
+    BYTES_KERNEL_HEAP, KERNEL_ADDR, KERNEL_HEAP_ADDR, NUM_OF_PAGES_STACK, STACK_LOWER, VRAM_ADDR,
+};
 use crate::vram;
 use os_units::{Bytes, Size};
 use x86_64::{PhysAddr, VirtAddr};
@@ -19,15 +21,22 @@ impl KernelPhysRange {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub struct Map([Range; 3]);
+pub struct Map([Range; 4]);
 impl Map {
     #[must_use]
-    pub fn new(kernel: &KernelPhysRange, phys_addr_stack: PhysAddr, vram: &vram::Info) -> Self {
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        kernel: &KernelPhysRange,
+        phys_addr_stack: PhysAddr,
+        vram: &vram::Info,
+        heap: PhysAddr,
+    ) -> Self {
         Self {
             0: [
                 Range::kernel(&kernel),
                 Range::stack(phys_addr_stack),
                 Range::vram(vram),
+                Range::heap(heap),
             ],
         }
     }
@@ -71,6 +80,15 @@ impl Range {
             virt: STACK_LOWER,
             phys,
             bytes: NUM_OF_PAGES_STACK.as_bytes(),
+        }
+    }
+
+    #[must_use]
+    pub fn heap(phys: PhysAddr) -> Self {
+        Self {
+            virt: KERNEL_HEAP_ADDR,
+            phys,
+            bytes: BYTES_KERNEL_HEAP,
         }
     }
 

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
+#![feature(alloc_error_handler)]
 #![feature(asm)]
 #![feature(panic_info_message)]
 #![feature(start)]
@@ -12,8 +13,10 @@
 #[macro_use]
 #[allow(unused_imports)]
 extern crate common;
+extern crate alloc;
 extern crate x86_64;
 
+mod allocator;
 mod gdt;
 mod idt;
 mod interrupt;
@@ -23,12 +26,14 @@ mod queue;
 #[macro_use]
 mod graphics;
 
-use common::kernelboot;
-use graphics::screen;
-use graphics::Vram;
-use graphics::RGB;
-use interrupt::handler;
-use interrupt::mouse;
+use allocator::ALLOCATOR;
+use common::{
+    constant::{BYTES_KERNEL_HEAP, KERNEL_HEAP_ADDR},
+    kernelboot,
+};
+use core::convert::TryFrom;
+use graphics::{screen, Vram, RGB};
+use interrupt::{handler, mouse};
 use x86_64::instructions::interrupts;
 
 #[no_mangle]
@@ -47,6 +52,13 @@ fn initialization(mouse_cursor: &mut graphics::screen::MouseCursor) {
     gdt::init();
     idt::init();
     interrupt::init_pic();
+
+    unsafe {
+        ALLOCATOR.lock().init(
+            usize::try_from(KERNEL_HEAP_ADDR.as_u64()).unwrap(),
+            BYTES_KERNEL_HEAP.as_usize(),
+        )
+    }
 
     graphics::screen::draw_desktop();
 
