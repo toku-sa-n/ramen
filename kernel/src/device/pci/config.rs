@@ -42,7 +42,6 @@ struct ConfigAddress {
 }
 
 impl ConfigAddress {
-    const VALID: u32 = 0x8000_0000;
     const PORT_CONFIG_ADDR: u16 = 0xcf8;
     const PORT_CONFIG_DATA: u16 = 0xcfc;
 
@@ -61,12 +60,13 @@ impl ConfigAddress {
     }
 
     fn as_u32(&self) -> u32 {
+        const VALID: u32 = 0x8000_0000;
         let bus = u32::from(self.bus);
         let device = u32::from(self.device);
         let function = u32::from(self.function);
         let register = u32::from(self.register);
 
-        Self::VALID | bus << 16 | device << 11 | function << 8 | register
+        VALID | bus << 16 | device << 11 | function << 8 | register
     }
 
     /// Safety: `self` must contain the valid config address.
