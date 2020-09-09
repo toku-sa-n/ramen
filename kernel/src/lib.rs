@@ -16,15 +16,15 @@ extern crate common;
 extern crate alloc;
 extern crate x86_64;
 
+#[macro_use]
+mod graphics;
 mod allocator;
+mod device;
 mod gdt;
 mod idt;
 mod interrupt;
 mod panic;
 mod queue;
-
-#[macro_use]
-mod graphics;
 
 use allocator::ALLOCATOR;
 use common::{

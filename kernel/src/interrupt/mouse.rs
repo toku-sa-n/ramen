@@ -133,8 +133,6 @@ impl Device {
     }
 
     pub fn print_buf_data(&mut self) {
-        use crate::print_with_pos;
-
         Screen::draw_rectangle(
             graphics::RGB::new(0x0000_8484),
             &graphics::screen::Coord::new(32, 16),
