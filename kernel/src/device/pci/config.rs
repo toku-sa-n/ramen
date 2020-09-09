@@ -10,14 +10,23 @@ use x86_64::instructions::port::{PortReadOnly, PortWriteOnly};
 pub struct Space {
     id: Id,
     bar: Bar,
+    class: Class,
+    interface: Interface,
 }
 
 impl Space {
     pub fn fetch(bus: u8, device: u8) -> Option<Self> {
         let id = Id::fetch(bus, device)?;
         let bar = Bar::fetch(bus, device);
+        let class = Class::fetch(bus, device);
+        let interface = Interface::fetch(bus, device);
 
-        Some(Self { id, bar })
+        Some(Self {
+            id,
+            bar,
+            class,
+            interface,
+        })
     }
 }
 
@@ -81,5 +90,35 @@ impl Id {
                 device: u16::try_from(raw_ids >> 16).unwrap(),
             })
         }
+    }
+}
+
+#[derive(Debug)]
+struct Class {
+    base: u8,
+    sub: u8,
+}
+
+impl Class {
+    fn fetch(bus: u8, device: u8) -> Self {
+        let config_addr = ConfigAddress::new(bus, device, 0, 8);
+        let raw_data = unsafe { config_addr.read() };
+
+        Self {
+            base: u8::try_from((raw_data >> 24) & 0xff).unwrap(),
+            sub: u8::try_from((raw_data >> 16) & 0xff).unwrap(),
+        }
+    }
+}
+
+#[derive(Debug)]
+struct Interface(u8);
+
+impl Interface {
+    fn fetch(bus: u8, device: u8) -> Self {
+        let config_addr = ConfigAddress::new(bus, device, 0, 8);
+        let raw_data = unsafe { config_addr.read() };
+
+        Self(u8::try_from((raw_data >> 8) & 0xff).unwrap())
     }
 }
