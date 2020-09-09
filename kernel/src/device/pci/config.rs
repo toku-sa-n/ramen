@@ -28,6 +28,10 @@ impl Space {
             interface,
         })
     }
+
+    pub fn is_xhci(&self) -> bool {
+        self.class.base == 0x0c && self.class.sub == 0x03 && self.interface.0 == 0x30
+    }
 }
 
 struct ConfigAddress {
