@@ -3,13 +3,12 @@
 use crate::graphics;
 use crate::graphics::screen::Screen;
 use crate::graphics::screen::TwoDimensionalVec;
-use crate::queue;
 use crate::x86_64::instructions::port::Port;
+use alloc::collections::vec_deque::VecDeque;
 use conquer_once::spin::Lazy;
 use spinning_top::Spinlock;
 
-pub static QUEUE: Lazy<Spinlock<queue::Queue<u8>>> =
-    Lazy::new(|| Spinlock::new(queue::Queue::new(0)));
+pub static QUEUE: Lazy<Spinlock<VecDeque<u8>>> = Lazy::new(|| Spinlock::new(VecDeque::new()));
 
 struct MouseButtons {
     left: bool,

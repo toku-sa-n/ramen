@@ -24,7 +24,6 @@ mod gdt;
 mod idt;
 mod interrupt;
 mod panic;
-mod queue;
 
 use allocator::ALLOCATOR;
 use common::{
@@ -32,23 +31,21 @@ use common::{
     kernelboot,
 };
 use core::convert::TryFrom;
-use graphics::{screen, screen::Coord, Vram, RGB};
+use graphics::{screen, screen::Coord, screen::MouseCursor, Vram, RGB};
 use interrupt::{handler, mouse};
 use x86_64::instructions::interrupts;
 
 #[no_mangle]
 #[start]
 pub extern "win64" fn os_main(boot_info: kernelboot::Info) -> ! {
-    Vram::init(&boot_info);
-    let mut mouse_device = mouse::Device::new();
-    let mut mouse_cursor = screen::MouseCursor::new(RGB::new(0x0000_8484), screen::MOUSE_GRAPHIC);
+    let (mut mouse_device, mut cursor) = initialization(&boot_info);
 
-    initialization(&mut mouse_cursor);
-
-    main_loop(&mut mouse_device, &mut mouse_cursor)
+    main_loop(&mut mouse_device, &mut cursor)
 }
 
-fn initialization(mouse_cursor: &mut graphics::screen::MouseCursor) {
+fn initialization(boot_info: &kernelboot::Info) -> (mouse::Device, MouseCursor) {
+    Vram::init(&boot_info);
+
     gdt::init();
     idt::init();
     interrupt::init_pic();
@@ -59,6 +56,9 @@ fn initialization(mouse_cursor: &mut graphics::screen::MouseCursor) {
             BYTES_KERNEL_HEAP.as_usize(),
         )
     }
+
+    let mouse_device = mouse::Device::new();
+    let mut mouse_cursor = MouseCursor::new(RGB::new(0x0000_8484), screen::MOUSE_GRAPHIC);
 
     graphics::screen::draw_desktop();
 
@@ -87,7 +87,9 @@ fn initialization(mouse_cursor: &mut graphics::screen::MouseCursor) {
     interrupt::init_keyboard();
     mouse::Device::enable();
 
-    mouse_cursor.draw_offset(graphics::screen::Coord::new(300, 300))
+    mouse_cursor.draw_offset(graphics::screen::Coord::new(300, 300));
+
+    (mouse_device, mouse_cursor)
 }
 
 #[cfg(not(feature = "qemu_test"))]
@@ -109,9 +111,9 @@ fn main_loop(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseC
 
 fn loop_main(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseCursor) {
     interrupts::disable();
-    if interrupt::KEY_QUEUE.lock().size() > 0 {
+    if interrupt::KEY_QUEUE.lock().len() > 0 {
         handler::keyboard_data();
-    } else if mouse::QUEUE.lock().size() > 0 {
+    } else if mouse::QUEUE.lock().len() > 0 {
         handler::mouse_data(mouse_device, mouse_cursor);
     } else {
         interrupts::enable_interrupts_and_hlt();
