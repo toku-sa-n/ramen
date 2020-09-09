@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+mod layer;
+
 use super::{font, Vram, RGB};
 use core::convert::TryFrom;
 
