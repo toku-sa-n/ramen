@@ -1,45 +1,27 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-const QUEUE_SIZE: usize = 128;
+use alloc::collections::vec_deque::VecDeque;
+
 pub struct Queue<T: Copy> {
-    data: [T; QUEUE_SIZE],
-    next_idx_write: usize,
-    next_idx_read: usize,
-    size: usize,
+    queue: VecDeque<T>,
 }
 
 impl<T: Copy> Queue<T> {
-    pub fn new(init_data: T) -> Self {
+    pub fn new() -> Self {
         Self {
-            data: [init_data; QUEUE_SIZE],
-            next_idx_write: 0,
-            next_idx_read: 0,
-            size: 0,
+            queue: VecDeque::new(),
         }
     }
 
     pub fn enqueue(&mut self, element: T) {
-        if self.size == QUEUE_SIZE {
-            return;
-        }
-
-        self.data[self.next_idx_write] = element;
-        self.size += 1;
-        self.next_idx_write = (self.next_idx_write + 1) % QUEUE_SIZE;
+        self.queue.push_back(element);
     }
 
     pub fn dequeue(&mut self) -> Option<T> {
-        if self.size == 0 {
-            return None;
-        }
-
-        let return_value = self.data[self.next_idx_read];
-        self.next_idx_read = (self.next_idx_read + 1) % QUEUE_SIZE;
-        self.size -= 1;
-        Some(return_value)
+        self.queue.pop_front()
     }
 
     pub fn size(&self) -> usize {
-        self.size
+        self.queue.len()
     }
 }

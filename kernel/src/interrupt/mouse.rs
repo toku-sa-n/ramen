@@ -9,7 +9,7 @@ use conquer_once::spin::Lazy;
 use spinning_top::Spinlock;
 
 pub static QUEUE: Lazy<Spinlock<queue::Queue<u8>>> =
-    Lazy::new(|| Spinlock::new(queue::Queue::new(0)));
+    Lazy::new(|| Spinlock::new(queue::Queue::new()));
 
 struct MouseButtons {
     left: bool,

@@ -34,7 +34,7 @@ use conquer_once::spin::Lazy;
 use spinning_top::Spinlock;
 
 pub static KEY_QUEUE: Lazy<Spinlock<queue::Queue<u32>>> =
-    Lazy::new(|| Spinlock::new(queue::Queue::new(0)));
+    Lazy::new(|| Spinlock::new(queue::Queue::new()));
 
 // See P.128.
 pub fn init_pic() {
