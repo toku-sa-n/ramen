@@ -32,7 +32,7 @@ use common::{
     kernelboot,
 };
 use core::convert::TryFrom;
-use graphics::{screen, Vram, RGB};
+use graphics::{screen, screen::Coord, Vram, RGB};
 use interrupt::{handler, mouse};
 use x86_64::instructions::interrupts;
 
@@ -67,6 +67,20 @@ fn initialization(mouse_cursor: &mut graphics::screen::MouseCursor) {
         graphics::RGB::new(0x00FF_FFFF),
         "x_len = {}",
         Vram::resolution().x
+    );
+
+    print_with_pos!(
+        Coord::new(100, 100),
+        RGB::new(0x00ff_ffff),
+        "The number of PCI devices: {}",
+        device::pci::iter_devices().count()
+    );
+
+    print_with_pos!(
+        Coord::new(200, 200),
+        RGB::new(0x00ff_ffff),
+        "The number of xhci devices: {}",
+        device::xhci::iter_devices().count()
     );
 
     interrupt::set_init_pic_bits();
