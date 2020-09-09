@@ -3,7 +3,6 @@
 pub mod handler;
 pub mod mouse;
 
-use crate::queue;
 use crate::x86_64::instructions::port::Port;
 use crate::x86_64::structures::idt;
 
@@ -30,11 +29,11 @@ const KEY_CMD_MODE: u8 = 0x47;
 const KEY_CMD_SEND_TO_MOUSE: u8 = 0xD4;
 const MOUSE_CMD_ENABLE: u8 = 0xF4;
 
+use alloc::collections::vec_deque::VecDeque;
 use conquer_once::spin::Lazy;
 use spinning_top::Spinlock;
 
-pub static KEY_QUEUE: Lazy<Spinlock<queue::Queue<u32>>> =
-    Lazy::new(|| Spinlock::new(queue::Queue::new(0)));
+pub static KEY_QUEUE: Lazy<Spinlock<VecDeque<u32>>> = Lazy::new(|| Spinlock::new(VecDeque::new()));
 
 // See P.128.
 pub fn init_pic() {
@@ -108,7 +107,7 @@ pub extern "x86-interrupt" fn handler_21(_stack_frame: &mut idt::InterruptStackF
     unsafe { Port::new(PIC0_OCW2).write(0x61 as u8) };
     KEY_QUEUE
         .lock()
-        .enqueue(unsafe { u32::from(Port::<u8>::new(PORT_KEYDATA).read()) });
+        .push_back(unsafe { u32::from(Port::<u8>::new(PORT_KEYDATA).read()) });
 }
 
 pub extern "x86-interrupt" fn handler_2c(_stack_frame: &mut idt::InterruptStackFrame) {
@@ -118,5 +117,5 @@ pub extern "x86-interrupt" fn handler_2c(_stack_frame: &mut idt::InterruptStackF
     }
     mouse::QUEUE
         .lock()
-        .enqueue(unsafe { Port::<u8>::new(PORT_KEYDATA).read() });
+        .push_back(unsafe { Port::<u8>::new(PORT_KEYDATA).read() });
 }
