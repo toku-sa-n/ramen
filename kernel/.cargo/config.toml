@@ -1,5 +1,5 @@
 [unstable]
-build-std = ["core", "compiler_builtins"]
+build-std = ["core", "compiler_builtins", "alloc"]
 
 [build]
 target = "cargo_settings.json"
