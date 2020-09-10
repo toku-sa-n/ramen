@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{Coord, Writer, RGB};
+use super::{writer::Writer, Coord, RGB};
 use conquer_once::spin::Lazy;
 use core::fmt::Write;
 use log::{LevelFilter, Metadata, Record, SetLoggerError};
