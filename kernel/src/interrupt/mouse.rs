@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::graphics;
 use crate::graphics::screen::Screen;
-use crate::x86_64::instructions::port::Port;
 use alloc::collections::vec_deque::VecDeque;
 use conquer_once::spin::Lazy;
+use rgb::RGB8;
 use spinning_top::Spinlock;
 use vek::Vec2;
+use x86_64::instructions::port::Port;
 
 pub static QUEUE: Lazy<Spinlock<VecDeque<u8>>> = Lazy::new(|| Spinlock::new(VecDeque::new()));
 
@@ -135,14 +135,14 @@ impl Device {
         use crate::print_with_pos;
 
         Screen::draw_rectangle(
-            graphics::RGB::new(0x0000_8484),
+            RGB8::new(0, 0x84, 0x84),
             &Vec2::new(32, 16),
             &Vec2::new(32 + 15 * 8 - 1, 31),
         );
 
         print_with_pos!(
             Vec2::new(32, 16),
-            graphics::RGB::new(0x00FF_FFFF),
+            RGB8::new(0xff, 0xff, 0xff),
             "[{}{}{} {:4}{:4}]",
             if self.buttons.left { 'L' } else { 'l' },
             if self.buttons.center { 'C' } else { 'c' },

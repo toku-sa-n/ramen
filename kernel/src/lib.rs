@@ -31,8 +31,9 @@ use common::{
     kernelboot,
 };
 use core::convert::TryFrom;
-use graphics::{screen, screen::MouseCursor, Vram, RGB};
+use graphics::{screen, screen::MouseCursor, Vram};
 use interrupt::{handler, mouse};
+use rgb::RGB8;
 use vek::Vec2;
 use x86_64::instructions::interrupts;
 
@@ -59,13 +60,13 @@ fn initialization(boot_info: &kernelboot::Info) -> (mouse::Device, MouseCursor) 
     }
 
     let mouse_device = mouse::Device::new();
-    let mut mouse_cursor = MouseCursor::new(RGB::new(0x0000_8484), screen::MOUSE_GRAPHIC);
+    let mut mouse_cursor = MouseCursor::new(RGB8::new(0, 0x84, 0x84), screen::MOUSE_GRAPHIC);
 
     graphics::screen::draw_desktop();
 
     print_with_pos!(
         Vec2::new(16, 64),
-        graphics::RGB::new(0x00FF_FFFF),
+        RGB8::new(0, 0xff, 0xff),
         "x_len = {}",
         Vram::resolution().x
     );
