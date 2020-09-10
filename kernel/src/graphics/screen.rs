@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 pub mod log;
+pub mod writer;
 
 use super::{font, Vram, RGB};
 use core::convert::TryFrom;
