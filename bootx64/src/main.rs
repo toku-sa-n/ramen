@@ -128,5 +128,5 @@ fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> co
         num_descriptors += 1;
     }
 
-    common::mem::Map::new(memory_map_buf.as_ptr(), num_descriptors)
+    common::mem::Map::new(memory_map_buf, num_descriptors)
 }
