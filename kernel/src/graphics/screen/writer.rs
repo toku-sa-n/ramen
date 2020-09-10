@@ -23,7 +23,7 @@ impl Writer {
                 continue;
             }
 
-            print_char(&self.coord, self.color, font::FONTS[c as usize]);
+            self.print_char(font::FONTS[c as usize]);
             self.coord.x += isize::try_from(font::FONT_WIDTH).unwrap();
 
             if self.coord.x + isize::try_from(font::FONT_WIDTH).unwrap()
@@ -34,31 +34,30 @@ impl Writer {
             }
         }
     }
+
+    fn print_char(&self, font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT]) {
+        for (i, line) in font.iter().enumerate().take(font::FONT_HEIGHT) {
+            for (j, cell) in line.iter().enumerate().take(font::FONT_WIDTH) {
+                if *cell {
+                    unsafe {
+                        Vram::set_color(
+                            &(self.coord
+                                + Vec2::new(
+                                    isize::try_from(j).unwrap(),
+                                    isize::try_from(i).unwrap(),
+                                )),
+                            self.color,
+                        );
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl core::fmt::Write for Writer {
     fn write_str(&mut self, s: &str) -> Result<(), core::fmt::Error> {
         self.print_str(s);
         Ok(())
-    }
-}
-
-fn print_char(
-    coord: &Vec2<isize>,
-    color: RGB8,
-    font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT],
-) {
-    for (i, line) in font.iter().enumerate().take(font::FONT_HEIGHT) {
-        for (j, cell) in line.iter().enumerate().take(font::FONT_WIDTH) {
-            if *cell {
-                unsafe {
-                    Vram::set_color(
-                        &(coord.clone()
-                            + Vec2::new(isize::try_from(j).unwrap(), isize::try_from(i).unwrap())),
-                        color,
-                    );
-                }
-            }
-        }
     }
 }
