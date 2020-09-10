@@ -56,12 +56,17 @@ impl FrameManager {
             if addr.is_null() {
                 continue;
             }
-            Self::change_free_page_ptr(addr);
 
-            unsafe { ptr::write(FREE_PAGE_ADDR.as_mut_ptr(), self.tail) }
-
-            if let None = self.head {
+            if self.head.is_none() {
                 self.head = Some(addr);
+            }
+
+            unsafe {
+                ptr::write(addr.as_u64() as *mut Option<PhysAddr>, None);
+            }
+
+            if let Some(prev) = self.tail {
+                unsafe { ptr::write(prev.as_u64() as _, Some(addr)) }
             }
 
             self.tail = Some(addr);
