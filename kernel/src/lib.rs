@@ -14,6 +14,8 @@
 #[allow(unused_imports)]
 extern crate common;
 extern crate alloc;
+#[macro_use]
+extern crate log;
 extern crate x86_64;
 
 mod allocator;
@@ -59,17 +61,15 @@ fn initialization(boot_info: &kernelboot::Info) -> (mouse::Device, MouseCursor) 
         )
     }
 
+    screen::log::init().unwrap();
+
     let mouse_device = mouse::Device::new();
     let mut mouse_cursor = MouseCursor::new(RGB8::new(0, 0x84, 0x84), screen::MOUSE_GRAPHIC);
 
     graphics::screen::draw_desktop();
 
-    print_with_pos!(
-        Vec2::new(16, 64),
-        RGB8::new(0, 0xff, 0xff),
-        "x_len = {}",
-        Vram::resolution().x
-    );
+    info!("Hello Ramen OS!");
+    info!("Vram information: {}", Vram::display());
 
     interrupt::set_init_pic_bits();
     interrupt::init_keyboard();
