@@ -7,7 +7,7 @@ pub mod screen;
 
 use common::{constant::VRAM_ADDR, kernelboot};
 use conquer_once::spin::{Lazy, OnceCell};
-use core::{convert::TryFrom, ptr};
+use core::{convert::TryFrom, fmt, ptr};
 use rgb::RGB8;
 use vek::Vec2;
 use x86_64::VirtAddr;
@@ -52,6 +52,10 @@ impl Vram {
         &Vram::get().resolution
     }
 
+    pub fn display() -> impl core::fmt::Display {
+        Self::get()
+    }
+
     pub unsafe fn set_color(coord: &Vec2<isize>, rgb: RGB8) {
         let vram = Self::get();
 
@@ -66,5 +70,15 @@ impl Vram {
         ptr::write(base_ptr.offset(0), rgb.b);
         ptr::write(base_ptr.offset(1), rgb.g);
         ptr::write(base_ptr.offset(2), rgb.r);
+    }
+}
+
+impl fmt::Display for Vram {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}bpp Resolution: {}x{}",
+            self.bits_per_pixel, self.resolution.x, self.resolution.y
+        )
     }
 }

@@ -68,19 +68,8 @@ fn initialization(boot_info: &kernelboot::Info) -> (mouse::Device, MouseCursor) 
 
     graphics::screen::draw_desktop();
 
-    print_with_pos!(
-        Vec2::new(16, 64),
-        RGB8::new(0, 0xff, 0xff),
-        "x_len = {}",
-        Vram::resolution().x
-    );
-
     info!("Hello Ramen OS!");
-    info!(
-        "Resultion: {}x{}",
-        Vram::resolution().x,
-        Vram::resolution().y
-    );
+    info!("Vram information: {}", Vram::display());
 
     interrupt::set_init_pic_bits();
     interrupt::init_keyboard();
