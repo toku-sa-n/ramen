@@ -152,7 +152,7 @@ impl MouseCursor {
     }
 
     pub fn draw_offset(&mut self, offset: Vec2<isize>) {
-        let new_coord = self.coord.clone() + offset;
+        let new_coord = self.coord + offset;
         self.draw(new_coord)
     }
 
@@ -180,7 +180,7 @@ impl MouseCursor {
             for x in 0..MOUSE_CURSOR_WIDTH {
                 unsafe {
                     Vram::set_color(
-                        &(adjusted_coord.clone()
+                        &(adjusted_coord
                             + Vec2::new(isize::try_from(x).unwrap(), isize::try_from(y).unwrap())),
                         self.image[y][x],
                     );
@@ -252,7 +252,7 @@ fn print_char(
             if *cell {
                 unsafe {
                     Vram::set_color(
-                        &(coord.clone()
+                        &(coord
                             + Vec2::new(isize::try_from(j).unwrap(), isize::try_from(i).unwrap())),
                         color,
                     );
