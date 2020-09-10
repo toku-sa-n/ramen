@@ -211,7 +211,10 @@ pub fn draw_desktop()  {
 
     // It seems that changing the arguments as `color, coord_1, coord_2` actually makes the code
     // dirty because by doing it lots of `Coord::new(x1, x2)` appear on below.
-    let draw_desktop_part = |color, x0, y0, x1, y1| Screen::draw_rectangle(RGB8::new(((color>>16)&0xff) as u8,((color>>8)&0xff) as u8,(color&0xff) as u8), &Vec2::new(x0, y0), &Vec2::new(x1, y1));
+    let draw_desktop_part = |color, x0, y0, x1, y1| {
+        let rgb = RGB8::new(u8::try_from((color>>16)&0xff).unwrap(),u8::try_from((color>>8)&0xff).unwrap(),u8::try_from(color&0xff).unwrap());
+        Screen::draw_rectangle(rgb, &Vec2::new(x0, y0), &Vec2::new(x1, y1))
+    };
 
     draw_desktop_part(0x0000_8484,          0,          0, x_len -  1, y_len - 29);
     draw_desktop_part(0x00C6_C6C6,          0, y_len - 28, x_len -  1, y_len - 28);
