@@ -2,11 +2,11 @@
 
 use crate::graphics;
 use crate::graphics::screen::Screen;
-use crate::graphics::screen::TwoDimensionalVec;
 use crate::x86_64::instructions::port::Port;
 use alloc::collections::vec_deque::VecDeque;
 use conquer_once::spin::Lazy;
 use spinning_top::Spinlock;
+use vek::Vec2;
 
 pub static QUEUE: Lazy<Spinlock<VecDeque<u8>>> = Lazy::new(|| Spinlock::new(VecDeque::new()));
 
@@ -47,7 +47,7 @@ pub struct Device {
     data_from_device: [u8; 3],
     phase: DevicePhase,
 
-    speed: TwoDimensionalVec<i16>,
+    speed: Vec2<i16>,
 
     buttons: MouseButtons,
 }
@@ -57,7 +57,7 @@ impl Device {
         Self {
             data_from_device: [0; 3],
             phase: DevicePhase::Init,
-            speed: graphics::screen::TwoDimensionalVec::new(0, 0),
+            speed: Vec2::new(0, 0),
             buttons: MouseButtons::new(),
         }
     }
@@ -127,8 +127,8 @@ impl Device {
         self.clear_stack();
     }
 
-    pub fn get_speed(&self) -> graphics::screen::Coord<isize> {
-        graphics::screen::Coord::new(self.speed.x as isize, self.speed.y as isize)
+    pub fn get_speed(&self) -> Vec2<isize> {
+        Vec2::new(self.speed.x as isize, self.speed.y as isize)
     }
 
     pub fn print_buf_data(&mut self) {
@@ -136,12 +136,12 @@ impl Device {
 
         Screen::draw_rectangle(
             graphics::RGB::new(0x0000_8484),
-            &graphics::screen::Coord::new(32, 16),
-            &graphics::screen::Coord::new(32 + 15 * 8 - 1, 31),
+            &Vec2::new(32, 16),
+            &Vec2::new(32 + 15 * 8 - 1, 31),
         );
 
         print_with_pos!(
-            graphics::screen::Coord::new(32, 16),
+            Vec2::new(32, 16),
             graphics::RGB::new(0x00FF_FFFF),
             "[{}{}{} {:4}{:4}]",
             if self.buttons.left { 'L' } else { 'l' },

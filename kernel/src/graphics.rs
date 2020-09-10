@@ -5,14 +5,10 @@ pub mod font;
 #[macro_use]
 pub mod screen;
 
-use crate::common;
-use common::constant::VRAM_ADDR;
-use common::kernelboot;
-use conquer_once::spin::Lazy;
-use conquer_once::spin::OnceCell;
-use core::convert::TryFrom;
-use core::ptr;
-use screen::TwoDimensionalVec;
+use common::{constant::VRAM_ADDR, kernelboot};
+use conquer_once::spin::{Lazy, OnceCell};
+use core::{convert::TryFrom, ptr};
+use vek::Vec2;
 use x86_64::VirtAddr;
 
 static VRAM: Lazy<OnceCell<Vram>> = Lazy::new(OnceCell::uninit);
@@ -39,7 +35,7 @@ impl RGB {
 #[derive(Clone)]
 pub struct Vram {
     bits_per_pixel: usize,
-    resolution: TwoDimensionalVec<usize>,
+    resolution: Vec2<usize>,
     ptr: VirtAddr,
 }
 
@@ -53,12 +49,12 @@ impl Vram {
         let vram = boot_info.vram();
 
         let (x_len, y_len) = vram.resolution();
-        let resolution = TwoDimensionalVec::new(x_len, y_len);
+        let resolution = Vec2::new(x_len, y_len);
 
         Self::new(vram.bpp(), resolution, VRAM_ADDR)
     }
 
-    fn new(bits_per_pixel: usize, resolution: TwoDimensionalVec<usize>, ptr: VirtAddr) -> Self {
+    fn new(bits_per_pixel: usize, resolution: Vec2<usize>, ptr: VirtAddr) -> Self {
         Self {
             bits_per_pixel,
             resolution,
@@ -70,11 +66,11 @@ impl Vram {
         VRAM.try_get().expect("VRAM not initialized")
     }
 
-    pub fn resolution() -> &'static TwoDimensionalVec<usize> {
+    pub fn resolution() -> &'static Vec2<usize> {
         &Vram::get().resolution
     }
 
-    pub unsafe fn set_color(coord: &screen::Coord<isize>, rgb: RGB) {
+    pub unsafe fn set_color(coord: &Vec2<isize>, rgb: RGB) {
         let vram = Self::get();
 
         let base_ptr = (usize::try_from(vram.ptr.as_u64()).unwrap()
