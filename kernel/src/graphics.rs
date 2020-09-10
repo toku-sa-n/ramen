@@ -27,11 +27,11 @@ pub struct RGB {
 }
 
 impl RGB {
-    pub fn new(hex: u32) -> Self {
+    pub const fn new(hex: u32) -> Self {
         Self {
-            r: u8::try_from((hex & 0x00FF_0000) >> 16).unwrap(),
-            g: u8::try_from((hex & 0x0000_FF00) >> 8).unwrap(),
-            b: u8::try_from(hex & 0x0000_00FF).unwrap(),
+            r: ((hex & 0x00FF_0000) >> 16) as u8,
+            g: ((hex & 0x0000_FF00) >> 8) as u8,
+            b: (hex & 0x0000_00FF) as u8,
         }
     }
 }

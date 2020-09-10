@@ -97,7 +97,7 @@ pub struct Coord<T> {
 pub type TwoDimensionalVec<T> = Coord<T>;
 
 impl<T> Coord<T> {
-    pub fn new(x: T, y: T) -> Self {
+    pub const fn new(x: T, y: T) -> Self {
         Self { x, y }
     }
 }
@@ -141,15 +141,17 @@ pub struct Writer {
 }
 
 impl Writer {
-    pub fn new(coord: Coord<isize>, color: RGB) -> Self {
+    pub const fn new(coord: Coord<isize>, color: RGB) -> Self {
         Self { coord, color }
     }
 }
 
 impl core::fmt::Write for Writer {
-    fn write_str(&mut self, s: &str) -> core::result::Result<(), core::fmt::Error> {
+    fn write_str(&mut self, s: &str) -> Result<(), core::fmt::Error> {
         print_str(&self.coord, self.color, s);
         self.coord.x += isize::try_from(s.len() * font::FONT_WIDTH).unwrap();
+        self.coord.y += self.coord.x / isize::try_from(Vram::resolution().x).unwrap();
+        self.coord.x %= isize::try_from(Vram::resolution().x).unwrap();
         Ok(())
     }
 }
@@ -273,6 +275,12 @@ fn print_str(coord: &Coord<isize>, color: RGB, str: &str) {
     let mut char_x_pos = coord.x;
     let mut char_y_pos = coord.y;
     for c in str.chars() {
+        if c == '\n' {
+            char_x_pos = 0;
+            char_y_pos += isize::try_from(font::FONT_HEIGHT).unwrap();
+            continue;
+        }
+
         print_char(
             &Coord::new(char_x_pos, char_y_pos),
             color,
