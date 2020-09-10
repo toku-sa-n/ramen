@@ -205,14 +205,18 @@ impl MouseCursor {
 }
 
 #[rustfmt::skip]
-pub fn draw_desktop()  {
-    let x_len:isize  = isize::try_from(Vram::resolution().x).unwrap();
-    let y_len:isize  = isize::try_from(Vram::resolution().y).unwrap();
+pub fn draw_desktop() {
+    let x_len: isize = isize::try_from(Vram::resolution().x).unwrap();
+    let y_len: isize = isize::try_from(Vram::resolution().y).unwrap();
 
     // It seems that changing the arguments as `color, coord_1, coord_2` actually makes the code
     // dirty because by doing it lots of `Coord::new(x1, x2)` appear on below.
     let draw_desktop_part = |color, x0, y0, x1, y1| {
-        let rgb = RGB8::new(u8::try_from((color>>16)&0xff).unwrap(),u8::try_from((color>>8)&0xff).unwrap(),u8::try_from(color&0xff).unwrap());
+        let rgb = RGB8::new(
+            u8::try_from((color >> 16) & 0xff).unwrap(),
+            u8::try_from((color >> 8) & 0xff).unwrap(),
+            u8::try_from(color & 0xff).unwrap(),
+        );
         Screen::draw_rectangle(rgb, &Vec2::new(x0, y0), &Vec2::new(x1, y1))
     };
 
