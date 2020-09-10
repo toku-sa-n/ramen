@@ -18,8 +18,7 @@ impl Writer {
     fn print_str(&mut self, str: &str) {
         for c in str.chars() {
             if c == '\n' {
-                self.coord.x = 0;
-                self.coord.y += isize::try_from(font::FONT_HEIGHT).unwrap();
+                self.break_line();
                 continue;
             }
 
@@ -29,10 +28,14 @@ impl Writer {
             if self.coord.x + isize::try_from(font::FONT_WIDTH).unwrap()
                 >= isize::try_from(Vram::resolution().x).unwrap()
             {
-                self.coord.x = 0;
-                self.coord.y += isize::try_from(font::FONT_HEIGHT).unwrap();
+                self.break_line();
             }
         }
+    }
+
+    fn break_line(&mut self) {
+        self.coord.x = 0;
+        self.coord.y += isize::try_from(font::FONT_HEIGHT).unwrap();
     }
 
     fn print_char(&self, font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT]) {
