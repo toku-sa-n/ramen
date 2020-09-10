@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+pub mod log;
+pub mod writer;
+
 use super::{font, Vram};
 use core::{cmp, convert::TryFrom};
 use rgb::RGB8;
@@ -63,7 +66,7 @@ pub const MOUSE_GRAPHIC: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] = [
 macro_rules! print_with_pos {
     ($coord:expr,$color:expr,$text:expr,$($args:expr),*) => {
         let mut screen_write =
-            crate::graphics::screen::Writer::new($coord, $color);
+            crate::graphics::screen::writer::Writer::new($coord, $color);
 
         // To narrow the scope of `use core::fmt::Write;`, enclose sentences by curly braces.
         {
@@ -85,25 +88,6 @@ impl Screen {
                 }
             }
         }
-    }
-}
-
-pub struct Writer {
-    coord: Vec2<isize>,
-    color: RGB8,
-}
-
-impl Writer {
-    pub fn new(coord: Vec2<isize>, color: RGB8) -> Self {
-        Self { coord, color }
-    }
-}
-
-impl core::fmt::Write for Writer {
-    fn write_str(&mut self, s: &str) -> core::result::Result<(), core::fmt::Error> {
-        print_str(&self.coord, self.color, s);
-        self.coord.x += isize::try_from(s.len() * font::FONT_WIDTH).unwrap();
-        Ok(())
     }
 }
 
@@ -232,36 +216,4 @@ pub fn draw_desktop()  {
     draw_desktop_part(0x0084_8484, x_len - 47, y_len - 23, x_len - 47, y_len -  4);
     draw_desktop_part(0x00FF_FFFF, x_len - 47, y_len -  3, x_len -  4, y_len -  3);
     draw_desktop_part(0x00FF_FFFF, x_len -  3, y_len - 24, x_len -  3, y_len -  3);
-}
-
-fn print_str(coord: &Vec2<isize>, color: RGB8, str: &str) {
-    let mut char_x_pos = coord.x;
-    for c in str.chars() {
-        print_char(
-            &Vec2::new(char_x_pos, coord.y),
-            color,
-            font::FONTS[c as usize],
-        );
-        char_x_pos += isize::try_from(font::FONT_WIDTH).unwrap();
-    }
-}
-
-fn print_char(
-    coord: &Vec2<isize>,
-    color: RGB8,
-    font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT],
-) {
-    for (i, line) in font.iter().enumerate().take(font::FONT_HEIGHT) {
-        for (j, cell) in line.iter().enumerate().take(font::FONT_WIDTH) {
-            if *cell {
-                unsafe {
-                    Vram::set_color(
-                        &(coord
-                            + Vec2::new(isize::try_from(j).unwrap(), isize::try_from(i).unwrap())),
-                        color,
-                    );
-                }
-            }
-        }
-    }
 }
