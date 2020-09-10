@@ -27,7 +27,7 @@ mod panic;
 #[macro_use]
 mod graphics;
 
-use allocator::ALLOCATOR;
+use allocator::{FrameManager, ALLOCATOR};
 use common::{
     constant::{BYTES_KERNEL_HEAP, KERNEL_HEAP_ADDR},
     kernelboot,
@@ -53,6 +53,8 @@ fn initialization(boot_info: &kernelboot::Info) -> (mouse::Device, MouseCursor) 
     gdt::init();
     idt::init();
     interrupt::init_pic();
+
+    FrameManager::init(boot_info.mem_map());
 
     unsafe {
         ALLOCATOR.lock().init(
