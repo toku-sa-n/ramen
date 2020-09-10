@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::mouse;
-use crate::graphics;
 use crate::graphics::screen;
 use crate::graphics::screen::Screen;
 use crate::print_with_pos;
 use crate::x86_64::instructions::interrupts;
+use rgb::RGB8;
 use vek::Vec2;
 
 pub fn keyboard_data() {
@@ -14,18 +14,13 @@ pub fn keyboard_data() {
     interrupts::enable();
 
     Screen::draw_rectangle(
-        graphics::RGB::new(0x0000_8484),
+        RGB8::new(0, 0x84, 0x84),
         &Vec2::new(0, 16),
         &Vec2::new(15, 31),
     );
 
     if let Some(data) = data {
-        print_with_pos!(
-            Vec2::new(0, 16),
-            graphics::RGB::new(0x00FF_FFFF),
-            "{:X}",
-            data
-        );
+        print_with_pos!(Vec2::new(0, 16), RGB8::new(0xff, 0xff, 0xff), "{:X}", data);
     }
 }
 
@@ -35,7 +30,7 @@ pub fn mouse_data(mouse_device: &mut super::mouse::Device, mouse_cursor: &mut sc
     interrupts::enable();
 
     Screen::draw_rectangle(
-        graphics::RGB::new(0x0000_8484),
+        RGB8::new(0, 0x84, 0x84),
         &Vec2::new(32, 16),
         &Vec2::new(47, 31),
     );

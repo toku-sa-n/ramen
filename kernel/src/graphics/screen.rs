@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{font, Vram, RGB};
+use super::{font, Vram};
 use core::{cmp, convert::TryFrom};
+use rgb::RGB8;
 use vek::Vec2;
 
 pub const MOUSE_CURSOR_WIDTH: usize = 16;
@@ -76,7 +77,7 @@ pub struct Screen;
 
 impl Screen {
     // TODO: Specify top left coordinate and length, rather than two coordinates.
-    pub fn draw_rectangle(color: RGB, top_left: &Vec2<isize>, bottom_right: &Vec2<isize>) {
+    pub fn draw_rectangle(color: RGB8, top_left: &Vec2<isize>, bottom_right: &Vec2<isize>) {
         for y in top_left.y..=bottom_right.y {
             for x in top_left.x..=bottom_right.x {
                 unsafe {
@@ -89,11 +90,11 @@ impl Screen {
 
 pub struct Writer {
     coord: Vec2<isize>,
-    color: RGB,
+    color: RGB8,
 }
 
 impl Writer {
-    pub fn new(coord: Vec2<isize>, color: RGB) -> Self {
+    pub fn new(coord: Vec2<isize>, color: RGB8) -> Self {
         Self { coord, color }
     }
 }
@@ -108,22 +109,22 @@ impl core::fmt::Write for Writer {
 
 pub struct MouseCursor {
     coord: Vec2<isize>,
-    image: [[RGB; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
+    image: [[RGB8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
 }
 
 impl MouseCursor {
     pub fn new(
-        background_color: RGB,
+        background_color: RGB8,
         image: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
     ) -> Self {
-        let mut colored_dots: [[RGB; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] =
+        let mut colored_dots: [[RGB8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] =
             [[background_color; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_WIDTH];
 
         for y in 0..MOUSE_CURSOR_HEIGHT {
             for x in 0..MOUSE_CURSOR_WIDTH {
                 colored_dots[y][x] = match image[y][x] {
-                    '*' => RGB::new(0x0000_0000),
-                    '0' => RGB::new(0x00FF_FFFF),
+                    '*' => RGB8::new(0, 0, 0),
+                    '0' => RGB8::new(0xff, 0xff, 0xff),
                     _ => background_color,
                 }
             }
@@ -137,14 +138,14 @@ impl MouseCursor {
 
     pub fn print_coord(&mut self, coord: Vec2<isize>) {
         Screen::draw_rectangle(
-            RGB::new(0x0000_8484),
+            RGB8::new(0x00, 0x84, 0x84),
             &Vec2::new(16, 32),
             &Vec2::new(16 + 8 * 12 - 1, 32 + 15),
         );
 
         print_with_pos!(
             coord,
-            RGB::new(0x00FF_FFFF),
+            RGB8::new(0xff, 0xff, 0xff),
             "({}, {})",
             self.coord.x,
             self.coord.y
@@ -193,7 +194,7 @@ impl MouseCursor {
 
     fn remove_previous_cursor(&self) {
         Screen::draw_rectangle(
-            RGB::new(0x0000_8484),
+            RGB8::new(0, 0x84, 0x84),
             &Vec2::new(self.coord.x, self.coord.y),
             &Vec2::new(
                 self.coord.x + isize::try_from(MOUSE_CURSOR_WIDTH).unwrap(),
@@ -210,7 +211,7 @@ pub fn draw_desktop()  {
 
     // It seems that changing the arguments as `color, coord_1, coord_2` actually makes the code
     // dirty because by doing it lots of `Coord::new(x1, x2)` appear on below.
-    let draw_desktop_part = |color, x0, y0, x1, y1| Screen::draw_rectangle(RGB::new(color), &Vec2::new(x0, y0), &Vec2::new(x1, y1));
+    let draw_desktop_part = |color, x0, y0, x1, y1| Screen::draw_rectangle(RGB8::new(((color>>16)&0xff) as u8,((color>>8)&0xff) as u8,(color&0xff) as u8), &Vec2::new(x0, y0), &Vec2::new(x1, y1));
 
     draw_desktop_part(0x0000_8484,          0,          0, x_len -  1, y_len - 29);
     draw_desktop_part(0x00C6_C6C6,          0, y_len - 28, x_len -  1, y_len - 28);
@@ -230,7 +231,7 @@ pub fn draw_desktop()  {
     draw_desktop_part(0x00FF_FFFF, x_len -  3, y_len - 24, x_len -  3, y_len -  3);
 }
 
-fn print_str(coord: &Vec2<isize>, color: RGB, str: &str) {
+fn print_str(coord: &Vec2<isize>, color: RGB8, str: &str) {
     let mut char_x_pos = coord.x;
     for c in str.chars() {
         print_char(
@@ -244,7 +245,7 @@ fn print_str(coord: &Vec2<isize>, color: RGB, str: &str) {
 
 fn print_char(
     coord: &Vec2<isize>,
-    color: RGB,
+    color: RGB8,
     font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT],
 ) {
     for (i, line) in font.iter().enumerate().take(font::FONT_HEIGHT) {

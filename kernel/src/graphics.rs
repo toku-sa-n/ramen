@@ -8,29 +8,11 @@ pub mod screen;
 use common::{constant::VRAM_ADDR, kernelboot};
 use conquer_once::spin::{Lazy, OnceCell};
 use core::{convert::TryFrom, ptr};
+use rgb::RGB8;
 use vek::Vec2;
 use x86_64::VirtAddr;
 
 static VRAM: Lazy<OnceCell<Vram>> = Lazy::new(OnceCell::uninit);
-
-// Copy trait is needed for constructing MouseCursor struct
-// If you are unsure, remove Copy trait from this struct and see the error messages.
-#[derive(Clone, Copy)]
-pub struct RGB {
-    r: u8,
-    g: u8,
-    b: u8,
-}
-
-impl RGB {
-    pub fn new(hex: u32) -> Self {
-        Self {
-            r: u8::try_from((hex & 0x00FF_0000) >> 16).unwrap(),
-            g: u8::try_from((hex & 0x0000_FF00) >> 8).unwrap(),
-            b: u8::try_from(hex & 0x0000_00FF).unwrap(),
-        }
-    }
-}
 
 #[derive(Clone)]
 pub struct Vram {
@@ -70,7 +52,7 @@ impl Vram {
         &Vram::get().resolution
     }
 
-    pub unsafe fn set_color(coord: &Vec2<isize>, rgb: RGB) {
+    pub unsafe fn set_color(coord: &Vec2<isize>, rgb: RGB8) {
         let vram = Self::get();
 
         let base_ptr = (usize::try_from(vram.ptr.as_u64()).unwrap()
