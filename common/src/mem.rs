@@ -2,7 +2,7 @@
 
 pub mod reserved;
 
-use core::ptr::NonNull;
+use core::{ptr::NonNull, slice};
 use uefi::table::boot;
 
 #[repr(C)]
@@ -17,5 +17,9 @@ impl Map {
             ptr,
             num_descriptors,
         }
+    }
+
+    pub fn as_slice(&self) -> &[boot::MemoryDescriptor] {
+        unsafe { slice::from_raw_parts_mut(self.ptr.as_ptr(), self.num_descriptors) }
     }
 }
