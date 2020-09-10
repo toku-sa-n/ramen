@@ -25,9 +25,7 @@ impl Writer {
             self.print_char(font::FONTS[c as usize]);
             self.move_cursor_by_one_character();
 
-            if self.coord.x + isize::try_from(font::FONT_WIDTH).unwrap()
-                >= isize::try_from(Vram::resolution().x).unwrap()
-            {
+            if self.cursor_is_outside_screen() {
                 self.break_line();
             }
         }
@@ -40,6 +38,11 @@ impl Writer {
 
     fn move_cursor_by_one_character(&mut self) {
         self.coord.x += isize::try_from(font::FONT_WIDTH).unwrap();
+    }
+
+    fn cursor_is_outside_screen(&self) -> bool {
+        self.coord.x + isize::try_from(font::FONT_WIDTH).unwrap()
+            >= isize::try_from(Vram::resolution().x).unwrap()
     }
 
     fn print_char(&self, font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT]) {
