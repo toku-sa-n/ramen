@@ -23,7 +23,7 @@ impl Writer {
             }
 
             self.print_char(font::FONTS[c as usize]);
-            self.coord.x += isize::try_from(font::FONT_WIDTH).unwrap();
+            self.move_cursor_by_one_character();
 
             if self.coord.x + isize::try_from(font::FONT_WIDTH).unwrap()
                 >= isize::try_from(Vram::resolution().x).unwrap()
@@ -36,6 +36,10 @@ impl Writer {
     fn break_line(&mut self) {
         self.coord.x = 0;
         self.coord.y += isize::try_from(font::FONT_HEIGHT).unwrap();
+    }
+
+    fn move_cursor_by_one_character(&mut self) {
+        self.coord.x += isize::try_from(font::FONT_WIDTH).unwrap();
     }
 
     fn print_char(&self, font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT]) {
