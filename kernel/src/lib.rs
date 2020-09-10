@@ -33,6 +33,7 @@ use common::{
 use core::convert::TryFrom;
 use graphics::{screen, screen::MouseCursor, Vram, RGB};
 use interrupt::{handler, mouse};
+use vek::Vec2;
 use x86_64::instructions::interrupts;
 
 #[no_mangle]
@@ -63,7 +64,7 @@ fn initialization(boot_info: &kernelboot::Info) -> (mouse::Device, MouseCursor) 
     graphics::screen::draw_desktop();
 
     print_with_pos!(
-        graphics::screen::Coord::new(16, 64),
+        Vec2::new(16, 64),
         graphics::RGB::new(0x00FF_FFFF),
         "x_len = {}",
         Vram::resolution().x
@@ -73,7 +74,7 @@ fn initialization(boot_info: &kernelboot::Info) -> (mouse::Device, MouseCursor) 
     interrupt::init_keyboard();
     mouse::Device::enable();
 
-    mouse_cursor.draw_offset(graphics::screen::Coord::new(300, 300));
+    mouse_cursor.draw_offset(Vec2::new(300, 300));
 
     (mouse_device, mouse_cursor)
 }
