@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{font, Coord, Vram, RGB};
+use super::{font, Vram};
 use core::convert::TryFrom;
+use rgb::RGB8;
+use vek::Vec2;
 
 pub struct Writer {
-    coord: Coord<isize>,
-    color: RGB,
+    coord: Vec2<isize>,
+    color: RGB8,
 }
 
 impl Writer {
-    pub const fn new(coord: Coord<isize>, color: RGB) -> Self {
+    pub const fn new(coord: Vec2<isize>, color: RGB8) -> Self {
         Self { coord, color }
     }
 
@@ -24,7 +26,7 @@ impl Writer {
             }
 
             print_char(
-                &Coord::new(char_x_pos, char_y_pos),
+                &Vec2::new(char_x_pos, char_y_pos),
                 self.color,
                 font::FONTS[c as usize],
             );
@@ -51,8 +53,8 @@ impl core::fmt::Write for Writer {
 }
 
 fn print_char(
-    coord: &Coord<isize>,
-    color: RGB,
+    coord: &Vec2<isize>,
+    color: RGB8,
     font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT],
 ) {
     for (i, line) in font.iter().enumerate().take(font::FONT_HEIGHT) {
@@ -61,7 +63,7 @@ fn print_char(
                 unsafe {
                     Vram::set_color(
                         &(coord.clone()
-                            + Coord::new(isize::try_from(j).unwrap(), isize::try_from(i).unwrap())),
+                            + Vec2::new(isize::try_from(j).unwrap(), isize::try_from(i).unwrap())),
                         color,
                     );
                 }

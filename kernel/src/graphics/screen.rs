@@ -3,8 +3,10 @@
 pub mod log;
 pub mod writer;
 
-use super::{font, Vram, RGB};
-use core::convert::TryFrom;
+use super::{font, Vram};
+use core::{cmp, convert::TryFrom};
+use rgb::RGB8;
+use vek::Vec2;
 
 pub const MOUSE_CURSOR_WIDTH: usize = 16;
 pub const MOUSE_CURSOR_HEIGHT: usize = 16;
@@ -78,131 +80,93 @@ pub struct Screen;
 
 impl Screen {
     // TODO: Specify top left coordinate and length, rather than two coordinates.
-    pub fn draw_rectangle(color: RGB, top_left: &Coord<isize>, bottom_right: &Coord<isize>) {
+    pub fn draw_rectangle(color: RGB8, top_left: &Vec2<isize>, bottom_right: &Vec2<isize>) {
         for y in top_left.y..=bottom_right.y {
             for x in top_left.x..=bottom_right.x {
                 unsafe {
-                    Vram::set_color(&Coord::new(x, y), color);
+                    Vram::set_color(&Vec2::new(x, y), color);
                 }
             }
         }
     }
 }
 
-#[derive(Clone)]
-pub struct Coord<T> {
-    pub x: T,
-    pub y: T,
-}
-
-pub type TwoDimensionalVec<T> = Coord<T>;
-
-impl<T> Coord<T> {
-    pub const fn new(x: T, y: T) -> Self {
-        Self { x, y }
-    }
-}
-
-impl<T: core::ops::Add<Output = T>> core::ops::Add for Coord<T> {
-    type Output = Self;
-
-    fn add(self, other: Self) -> Self {
-        Self {
-            x: self.x + other.x,
-            y: self.y + other.y,
-        }
-    }
-}
-
-impl<T: core::cmp::PartialOrd> Coord<T> {
-    pub fn put_in(self, coord_1: Self, coord_2: Self) -> Self {
-        let mut new_coord = self;
-
-        if new_coord.x < coord_1.x {
-            new_coord.x = coord_1.x;
-        }
-        if new_coord.x > coord_2.x {
-            new_coord.x = coord_2.x;
-        }
-
-        if new_coord.y < coord_1.y {
-            new_coord.y = coord_1.y;
-        }
-        if new_coord.y > coord_2.y {
-            new_coord.y = coord_2.y;
-        }
-
-        new_coord
-    }
-}
-
 pub struct MouseCursor {
-    coord: Coord<isize>,
-    image: [[RGB; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
+    coord: Vec2<isize>,
+    image: [[RGB8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
 }
 
 impl MouseCursor {
     pub fn new(
-        background_color: RGB,
+        background_color: RGB8,
         image: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
     ) -> Self {
-        let mut colored_dots: [[RGB; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] =
+        let mut colored_dots: [[RGB8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] =
             [[background_color; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_WIDTH];
 
         for y in 0..MOUSE_CURSOR_HEIGHT {
             for x in 0..MOUSE_CURSOR_WIDTH {
                 colored_dots[y][x] = match image[y][x] {
-                    '*' => RGB::new(0x0000_0000),
-                    '0' => RGB::new(0x00FF_FFFF),
+                    '*' => RGB8::new(0, 0, 0),
+                    '0' => RGB8::new(0xff, 0xff, 0xff),
                     _ => background_color,
                 }
             }
         }
 
         Self {
-            coord: Coord::new(0, 0),
+            coord: Vec2::new(0, 0),
             image: colored_dots,
         }
     }
 
-    pub fn print_coord(&mut self, coord: Coord<isize>) {
+    pub fn print_coord(&mut self, coord: Vec2<isize>) {
         Screen::draw_rectangle(
-            RGB::new(0x0000_8484),
-            &Coord::new(16, 32),
-            &Coord::new(16 + 8 * 12 - 1, 32 + 15),
+            RGB8::new(0x00, 0x84, 0x84),
+            &Vec2::new(16, 32),
+            &Vec2::new(16 + 8 * 12 - 1, 32 + 15),
         );
 
         print_with_pos!(
             coord,
-            RGB::new(0x00FF_FFFF),
+            RGB8::new(0xff, 0xff, 0xff),
             "({}, {})",
             self.coord.x,
             self.coord.y
         );
     }
 
-    pub fn draw_offset(&mut self, offset: TwoDimensionalVec<isize>) {
-        let new_coord = self.coord.clone() + offset;
+    pub fn draw_offset(&mut self, offset: Vec2<isize>) {
+        let new_coord = self.coord + offset;
         self.draw(new_coord)
     }
 
-    pub fn draw(&mut self, coord: Coord<isize>) {
-        self.remove_previous_cursor();
+    fn put_coord_on_screen(mut coord: Vec2<isize>) -> Vec2<isize> {
+        coord.x = cmp::max(coord.x, 0);
+        coord.y = cmp::max(coord.y, 0);
 
-        let adjusted_coord = coord.put_in(
-            Coord::new(0, 0),
-            Coord::new(
-                isize::try_from(Vram::resolution().x - MOUSE_CURSOR_WIDTH - 1).unwrap(),
-                isize::try_from(Vram::resolution().y - MOUSE_CURSOR_HEIGHT - 1).unwrap(),
-            ),
+        coord.x = cmp::min(
+            coord.x,
+            isize::try_from(Vram::resolution().x - MOUSE_CURSOR_WIDTH - 1).unwrap(),
+        );
+        coord.y = cmp::min(
+            coord.y,
+            isize::try_from(Vram::resolution().y - MOUSE_CURSOR_HEIGHT - 1).unwrap(),
         );
 
+        coord
+    }
+
+    pub fn draw(&mut self, coord: Vec2<isize>) {
+        self.remove_previous_cursor();
+
+        let adjusted_coord = Self::put_coord_on_screen(coord);
         for y in 0..MOUSE_CURSOR_HEIGHT {
             for x in 0..MOUSE_CURSOR_WIDTH {
                 unsafe {
                     Vram::set_color(
-                        &(adjusted_coord.clone()
-                            + Coord::new(isize::try_from(x).unwrap(), isize::try_from(y).unwrap())),
+                        &(adjusted_coord
+                            + Vec2::new(isize::try_from(x).unwrap(), isize::try_from(y).unwrap())),
                         self.image[y][x],
                     );
                 }
@@ -214,9 +178,9 @@ impl MouseCursor {
 
     fn remove_previous_cursor(&self) {
         Screen::draw_rectangle(
-            RGB::new(0x0000_8484),
-            &Coord::new(self.coord.x, self.coord.y),
-            &Coord::new(
+            RGB8::new(0, 0x84, 0x84),
+            &Vec2::new(self.coord.x, self.coord.y),
+            &Vec2::new(
                 self.coord.x + isize::try_from(MOUSE_CURSOR_WIDTH).unwrap(),
                 self.coord.y + isize::try_from(MOUSE_CURSOR_HEIGHT).unwrap(),
             ),
@@ -231,7 +195,10 @@ pub fn draw_desktop()  {
 
     // It seems that changing the arguments as `color, coord_1, coord_2` actually makes the code
     // dirty because by doing it lots of `Coord::new(x1, x2)` appear on below.
-    let draw_desktop_part = |color, x0, y0, x1, y1| Screen::draw_rectangle(RGB::new(color), &Coord::new(x0, y0), &Coord::new(x1, y1));
+    let draw_desktop_part = |color, x0, y0, x1, y1| {
+        let rgb = RGB8::new(u8::try_from((color>>16)&0xff).unwrap(),u8::try_from((color>>8)&0xff).unwrap(),u8::try_from(color&0xff).unwrap());
+        Screen::draw_rectangle(rgb, &Vec2::new(x0, y0), &Vec2::new(x1, y1))
+    };
 
     draw_desktop_part(0x0000_8484,          0,          0, x_len -  1, y_len - 29);
     draw_desktop_part(0x00C6_C6C6,          0, y_len - 28, x_len -  1, y_len - 28);
