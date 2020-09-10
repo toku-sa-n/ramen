@@ -22,18 +22,15 @@ mod fs;
 mod gop;
 mod mem;
 
-use common::kernelboot;
-use common::mem::reserved;
-use core::convert::TryFrom;
-use core::ptr;
-use core::ptr::NonNull;
-use core::slice;
+use common::{kernelboot, mem::reserved};
+use core::{convert::TryFrom, ptr, ptr::NonNull, slice};
 use fs::kernel;
-use mem::{heap, paging, stack};
-use uefi::prelude::{Boot, Handle, SystemTable};
-use uefi::table::boot;
-use uefi::table::boot::MemoryType;
-use uefi::ResultExt;
+use mem::{free_page, heap, paging, stack};
+use uefi::{
+    prelude::{Boot, Handle, SystemTable},
+    table::{boot, boot::MemoryType},
+    ResultExt,
+};
 
 #[start]
 #[no_mangle]
@@ -48,11 +45,13 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
 
     let stack_addr = stack::allocate(system_table.boot_services());
     let heap_addr = heap::allocate(system_table.boot_services());
+    let free_page = free_page::allocate(system_table.boot_services());
     let reserved_regions = reserved::Map::new(
         &reserved::KernelPhysRange::new(phys_kernel_addr, actual_mem_size),
         stack_addr,
         &vram_info,
         heap_addr,
+        free_page,
     );
     paging::init(system_table.boot_services(), &reserved_regions);
     let mem_map = terminate_boot_services(image, system_table);
@@ -128,5 +127,5 @@ fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> co
         num_descriptors += 1;
     }
 
-    common::mem::Map::new(memory_map_buf.as_ptr(), num_descriptors)
+    common::mem::Map::new(memory_map_buf, num_descriptors)
 }
