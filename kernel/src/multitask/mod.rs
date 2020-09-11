@@ -1,4 +1,4 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod executor;
-mod task;
+pub mod executor;
+pub mod task;

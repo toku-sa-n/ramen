@@ -74,6 +74,12 @@ fn initialization(boot_info: &kernelboot::Info) -> (mouse::Device, MouseCursor) 
     info!("Hello Ramen OS!");
     info!("Vram information: {}", Vram::display());
 
+    let mut executor = multitask::executor::Executor::new();
+    executor.spawn(multitask::task::Task::new(
+        multitask::executor::sample_task(),
+    ));
+    executor.run();
+
     interrupt::set_init_pic_bits();
     interrupt::init_keyboard();
     mouse::Device::enable();
