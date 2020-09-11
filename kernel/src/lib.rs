@@ -22,6 +22,7 @@ mod allocator;
 mod gdt;
 mod idt;
 mod interrupt;
+mod mem;
 mod panic;
 
 #[macro_use]
