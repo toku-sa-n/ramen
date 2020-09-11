@@ -19,6 +19,7 @@ extern crate log;
 extern crate x86_64;
 
 mod allocator;
+mod device;
 mod gdt;
 mod idt;
 mod interrupt;
