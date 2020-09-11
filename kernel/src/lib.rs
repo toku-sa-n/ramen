@@ -29,17 +29,19 @@ mod panic;
 #[macro_use]
 mod graphics;
 
-use allocator::{FrameManager, ALLOCATOR};
-use common::{
-    constant::{BYTES_KERNEL_HEAP, KERNEL_HEAP_ADDR},
-    kernelboot,
+use {
+    allocator::{FrameManager, ALLOCATOR},
+    common::{
+        constant::{BYTES_KERNEL_HEAP, KERNEL_HEAP_ADDR},
+        kernelboot,
+    },
+    core::convert::TryFrom,
+    graphics::{screen, screen::MouseCursor, Vram},
+    interrupt::{handler, mouse},
+    rgb::RGB8,
+    vek::Vec2,
+    x86_64::instructions::interrupts,
 };
-use core::convert::TryFrom;
-use graphics::{screen, screen::MouseCursor, Vram};
-use interrupt::{handler, mouse};
-use rgb::RGB8;
-use vek::Vec2;
-use x86_64::instructions::interrupts;
 
 #[no_mangle]
 #[start]
@@ -110,7 +112,7 @@ fn main_loop(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseC
 fn loop_main(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseCursor) {
     interrupts::disable();
     if interrupt::KEY_QUEUE.lock().len() > 0 {
-        handler::keyboard_data();
+        device::keyboard::handler();
     } else if mouse::QUEUE.lock().len() > 0 {
         handler::mouse_data(mouse_device, mouse_cursor);
     } else {
