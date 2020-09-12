@@ -38,7 +38,7 @@ use {
         kernelboot,
     },
     core::convert::TryFrom,
-    device::{keyboard::keyboard_task, mouse::mouse_task},
+    device::{keyboard, mouse},
     graphics::{screen, screen::MouseCursor, Vram},
     interrupt::handler,
     multitask::{executor::Executor, task::Task},
@@ -83,8 +83,8 @@ fn initialization(boot_info: &kernelboot::Info) {
 
 fn run_tasks() -> ! {
     let mut executor = Executor::new();
-    executor.spawn(Task::new(keyboard_task()));
-    executor.spawn(Task::new(mouse_task()));
+    executor.spawn(Task::new(keyboard::task()));
+    executor.spawn(Task::new(mouse::task()));
     executor.run();
 }
 

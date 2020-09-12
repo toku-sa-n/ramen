@@ -23,7 +23,7 @@ static WAKER: AtomicWaker = AtomicWaker::new();
 const KEY_CMD_SEND_TO_MOUSE: u8 = 0xD4;
 const MOUSE_CMD_ENABLE: u8 = 0xF4;
 
-pub async fn mouse_task() {
+pub async fn task() {
     PacketStream::init_queue();
     Device::enable();
     let mut packet_stream = PacketStream;

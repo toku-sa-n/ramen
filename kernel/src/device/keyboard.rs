@@ -67,7 +67,7 @@ impl Stream for ScancodeStream {
     }
 }
 
-pub async fn keyboard_task() {
+pub async fn task() {
     ScancodeStream::init_queue();
 
     enable_keyboard();
