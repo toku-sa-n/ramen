@@ -30,10 +30,13 @@ static WAKER: AtomicWaker = AtomicWaker::new();
 
 pub fn enqueue_scancode(code: u8) {
     match SCANCODE_QUEUE.try_get() {
-        Ok(queue) => match queue.push(code) {
-            Ok(_) => WAKER.wake(),
-            Err(_) => warn!("SCANCODE_QUEUE is full."),
-        },
+        Ok(queue) => {
+            if queue.push(code).is_ok() {
+                WAKER.wake();
+            } else {
+                warn!("SCANCODE_QUEUE is full.");
+            }
+        }
         Err(_) => panic!("SCANCODE_QUEUE is not initialized."),
     }
 }
