@@ -44,10 +44,13 @@ pub async fn task() {
 
 pub fn enqueue_packet(packet: u8) {
     match MOUSE_PACKET_QUEUE.try_get() {
-        Ok(queue) => match queue.push(packet) {
-            Ok(_) => WAKER.wake(),
-            Err(_) => warn!("MOUSE_PACKET_QUEUE is full."),
-        },
+        Ok(queue) => {
+            if queue.push(packet).is_ok() {
+                WAKER.wake();
+            } else {
+                warn!("MOUSE_PACKET_QUEUE is full.")
+            }
+        }
         Err(_) => panic!("MOUSE_PACKET_QUEUE is not initialized."),
     }
 }
