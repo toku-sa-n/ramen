@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![allow(clippy::too_many_arguments)]
-use common::constant::{CHANGE_FREE_PAGE_ADDR, FREE_PAGE_ADDR};
+use common::constant::CHANGE_FREE_PAGE_ADDR;
 use conquer_once::spin::{Lazy, OnceCell};
 use core::{alloc::Layout, ptr};
 use linked_list_allocator::LockedHeap;

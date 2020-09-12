@@ -117,22 +117,6 @@ impl MouseCursor {
         }
     }
 
-    pub fn print_coord(&mut self, coord: Vec2<isize>) {
-        Screen::draw_rectangle(
-            RGB8::new(0x00, 0x84, 0x84),
-            &Vec2::new(16, 32),
-            &Vec2::new(16 + 8 * 12 - 1, 32 + 15),
-        );
-
-        print_with_pos!(
-            coord,
-            RGB8::new(0xff, 0xff, 0xff),
-            "({}, {})",
-            self.coord.x,
-            self.coord.y
-        );
-    }
-
     pub fn draw_offset(&mut self, offset: Vec2<isize>) {
         let new_coord = self.coord + offset;
         self.draw(new_coord)

@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::{
-        graphics::screen::Screen,
-        interrupt::{self, KEY_QUEUE},
-        print_with_pos,
-    },
+    crate::{graphics::screen::Screen, print_with_pos},
     common::constant::{
         KEY_CMD_MODE, KEY_CMD_WRITE_MODE, KEY_STATUS_SEND_NOT_READY, PORT_KEY_CMD, PORT_KEY_DATA,
         PORT_KEY_STATUS,
@@ -22,7 +18,6 @@ use {
     },
     rgb::RGB8,
     vek::Vec2,
-    x86_64::instructions::interrupts,
 };
 
 static SCANCODE_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
@@ -89,14 +84,20 @@ pub async fn task() {
 
 fn enable_keyboard() {
     wait_kbc_sendready();
-    unsafe { PORT_KEY_CMD.write(KEY_CMD_WRITE_MODE as u8) };
+
+    let mut port_key_cmd = PORT_KEY_CMD;
+    unsafe { port_key_cmd.write(KEY_CMD_WRITE_MODE as u8) };
+
     wait_kbc_sendready();
-    unsafe { PORT_KEY_DATA.write(KEY_CMD_MODE as u8) };
+
+    let mut port_key_data = PORT_KEY_DATA;
+    unsafe { port_key_data.write(KEY_CMD_MODE as u8) };
 }
 
 pub(super) fn wait_kbc_sendready() {
     loop {
-        if unsafe { PORT_KEY_STATUS.read() } & KEY_STATUS_SEND_NOT_READY == 0 {
+        let mut port_key_status = PORT_KEY_STATUS;
+        if unsafe { port_key_status.read() } & KEY_STATUS_SEND_NOT_READY == 0 {
             break;
         }
     }

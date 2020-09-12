@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::{graphics::screen::MouseCursor, interrupt},
+    crate::graphics::screen::MouseCursor,
     common::constant::{PORT_KEY_CMD, PORT_KEY_DATA},
     conquer_once::spin::OnceCell,
     core::{
@@ -14,7 +14,6 @@ use {
         task::AtomicWaker,
     },
     vek::Vec2,
-    x86_64::instructions::port::Port,
 };
 
 static MOUSE_PACKET_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
@@ -37,6 +36,7 @@ pub async fn task() {
         device.put_data(packet);
         if device.data_available() {
             device.purse_data();
+            device.print_click_info();
             cursor.draw_offset(device.get_speed());
         }
     }
@@ -76,9 +76,14 @@ impl Device {
 
     pub fn enable() {
         super::keyboard::wait_kbc_sendready();
-        unsafe { PORT_KEY_CMD.write(KEY_CMD_SEND_TO_MOUSE) };
+
+        let mut port_key_cmd = PORT_KEY_CMD;
+        unsafe { port_key_cmd.write(KEY_CMD_SEND_TO_MOUSE) };
+
         super::keyboard::wait_kbc_sendready();
-        unsafe { PORT_KEY_DATA.write(MOUSE_CMD_ENABLE) };
+
+        let mut port_key_data = PORT_KEY_DATA;
+        unsafe { port_key_data.write(MOUSE_CMD_ENABLE) };
     }
 
     pub fn data_available(&self) -> bool {
@@ -137,6 +142,20 @@ impl Device {
         self.speed.y = -self.speed.y;
 
         self.clear_stack();
+    }
+
+    pub fn print_click_info(&self) {
+        if self.buttons.left {
+            info!("Left button pressed");
+        }
+
+        if self.buttons.center {
+            info!("Scroll wheel pressed");
+        }
+
+        if self.buttons.right {
+            info!("Right button pressed");
+        }
     }
 
     pub fn get_speed(&self) -> Vec2<isize> {

@@ -3,7 +3,7 @@
 use {
     super::task::{self, Task},
     alloc::{collections::BTreeMap, sync::Arc, task::Wake},
-    core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker},
+    core::task::{Context, Poll, Waker},
     crossbeam_queue::ArrayQueue,
     x86_64::instructions::interrupts::{self, enable_interrupts_and_hlt},
 };

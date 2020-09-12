@@ -39,12 +39,8 @@ use {
     },
     core::convert::TryFrom,
     device::{keyboard, mouse},
-    graphics::{screen, screen::MouseCursor, Vram},
-    interrupt::handler,
+    graphics::{screen, Vram},
     multitask::{executor::Executor, task::Task},
-    rgb::RGB8,
-    vek::Vec2,
-    x86_64::instructions::interrupts,
 };
 
 #[no_mangle]
