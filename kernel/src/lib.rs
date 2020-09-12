@@ -2,6 +2,8 @@
 
 #![no_std]
 #![feature(alloc_error_handler)]
+#![feature(const_fn)]
+#![feature(wake_trait)]
 #![feature(asm)]
 #![feature(panic_info_message)]
 #![feature(start)]
@@ -36,8 +38,10 @@ use {
         kernelboot,
     },
     core::convert::TryFrom,
+    device::{keyboard::keyboard_task, mouse::mouse_task},
     graphics::{screen, screen::MouseCursor, Vram},
-    interrupt::{handler, mouse},
+    interrupt::handler,
+    multitask::{executor::Executor, task::Task},
     rgb::RGB8,
     vek::Vec2,
     x86_64::instructions::interrupts,
@@ -46,12 +50,12 @@ use {
 #[no_mangle]
 #[start]
 pub extern "win64" fn os_main(boot_info: kernelboot::Info) -> ! {
-    let (mut mouse_device, mut cursor) = initialization(&boot_info);
+    initialization(&boot_info);
 
-    main_loop(&mut mouse_device, &mut cursor)
+    run_tasks();
 }
 
-fn initialization(boot_info: &kernelboot::Info) -> (mouse::Device, MouseCursor) {
+fn initialization(boot_info: &kernelboot::Info) {
     Vram::init(&boot_info);
 
     gdt::init();
@@ -69,34 +73,19 @@ fn initialization(boot_info: &kernelboot::Info) -> (mouse::Device, MouseCursor) 
 
     screen::log::init().unwrap();
 
-    let mouse_device = mouse::Device::new();
-    let mut mouse_cursor = MouseCursor::new(RGB8::new(0, 0x84, 0x84), screen::MOUSE_GRAPHIC);
-
     graphics::screen::draw_desktop();
 
     info!("Hello Ramen OS!");
     info!("Vram information: {}", Vram::display());
 
-    let mut executor = multitask::executor::Executor::new();
-    executor.spawn(multitask::task::Task::new(
-        multitask::executor::sample_task(),
-    ));
-    executor.run();
-
     interrupt::set_init_pic_bits();
-    interrupt::init_keyboard();
-    mouse::Device::enable();
-
-    mouse_cursor.draw_offset(Vec2::new(300, 300));
-
-    (mouse_device, mouse_cursor)
 }
 
-#[cfg(not(feature = "qemu_test"))]
-fn main_loop(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseCursor) -> ! {
-    loop {
-        loop_main(mouse_device, mouse_cursor)
-    }
+fn run_tasks() -> ! {
+    let mut executor = Executor::new();
+    executor.spawn(Task::new(keyboard_task()));
+    executor.spawn(Task::new(mouse_task()));
+    executor.run();
 }
 
 #[cfg(feature = "qemu_test")]
@@ -107,15 +96,4 @@ fn main_loop(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseC
     // If you change the value `0xf4` and `0x10`, don't forget to change the correspond values in
     // `Makefile`!
     qemu_exit::x86::exit::<u32, 0xf4>(0x10);
-}
-
-fn loop_main(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseCursor) {
-    interrupts::disable();
-    if interrupt::KEY_QUEUE.lock().len() > 0 {
-        device::keyboard::handler();
-    } else if mouse::QUEUE.lock().len() > 0 {
-        handler::mouse_data(mouse_device, mouse_cursor);
-    } else {
-        interrupts::enable_interrupts_and_hlt();
-    }
 }

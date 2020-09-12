@@ -11,7 +11,7 @@ use vek::Vec2;
 pub const MOUSE_CURSOR_WIDTH: usize = 16;
 pub const MOUSE_CURSOR_HEIGHT: usize = 16;
 
-pub const MOUSE_GRAPHIC: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] = [
+const MOUSE_GRAPHIC: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] = [
     [
         '*', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.',
     ],
@@ -97,19 +97,16 @@ pub struct MouseCursor {
 }
 
 impl MouseCursor {
-    pub fn new(
-        background_color: RGB8,
-        image: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
-    ) -> Self {
+    pub fn new() -> Self {
         let mut colored_dots: [[RGB8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] =
-            [[background_color; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_WIDTH];
+            [[RGB8::default(); MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_WIDTH];
 
         for y in 0..MOUSE_CURSOR_HEIGHT {
             for x in 0..MOUSE_CURSOR_WIDTH {
-                colored_dots[y][x] = match image[y][x] {
+                colored_dots[y][x] = match MOUSE_GRAPHIC[y][x] {
                     '*' => RGB8::new(0, 0, 0),
                     '0' => RGB8::new(0xff, 0xff, 0xff),
-                    _ => background_color,
+                    _ => RGB8::new(0, 0x84, 0x84),
                 }
             }
         }

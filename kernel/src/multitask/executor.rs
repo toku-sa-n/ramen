@@ -1,56 +1,105 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::task::Task,
-    alloc::collections::VecDeque,
+    super::task::{self, Task},
+    alloc::{collections::BTreeMap, sync::Arc, task::Wake},
     core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker},
+    crossbeam_queue::ArrayQueue,
+    x86_64::instructions::interrupts::{self, enable_interrupts_and_hlt},
 };
 
 pub struct Executor {
-    task_queue: VecDeque<Task>,
+    tasks: BTreeMap<task::Id, Task>,
+    woken_id_queue: Arc<ArrayQueue<task::Id>>,
+    waker_cache: BTreeMap<task::Id, Waker>,
 }
 
 impl Executor {
     pub fn new() -> Self {
         Self {
-            task_queue: VecDeque::new(),
+            tasks: BTreeMap::new(),
+            woken_id_queue: Arc::new(ArrayQueue::new(100)),
+            waker_cache: BTreeMap::new(),
         }
     }
 
     pub fn spawn(&mut self, task: Task) {
-        self.task_queue.push_back(task)
+        let id = task.id();
+        if self.tasks.insert(id, task).is_some() {
+            panic!("Task ID confliction!");
+        }
+
+        self.woken_id_queue
+            .push(id)
+            .expect("woken_id_queue is full");
     }
 
-    pub fn run(&mut self) {
-        while let Some(mut task) = self.task_queue.pop_front() {
-            let waker = dummy_waker();
-            let mut context = Context::from_waker(&waker);
+    pub fn run(&mut self) -> ! {
+        loop {
+            self.run_woken_tasks();
+            self.sleep_if_idle();
+        }
+    }
+
+    fn sleep_if_idle(&self) {
+        interrupts::disable();
+        if self.woken_id_queue.is_empty() {
+            enable_interrupts_and_hlt()
+        } else {
+            interrupts::enable()
+        }
+    }
+
+    fn run_woken_tasks(&mut self) {
+        let Self {
+            tasks,
+            woken_id_queue,
+            waker_cache,
+        } = self;
+
+        while let Ok(id) = woken_id_queue.pop() {
+            let task = match tasks.get_mut(&id) {
+                Some(task) => task,
+                None => continue,
+            };
+
+            let waker = waker_cache
+                .entry(id)
+                .or_insert(TaskWaker::new(id, woken_id_queue.clone()));
+
+            let mut context = Context::from_waker(waker);
             match task.poll(&mut context) {
-                Poll::Ready(()) => {}
-                Poll::Pending => self.task_queue.push_back(task),
+                Poll::Ready(_) => {
+                    tasks.remove(&id);
+                    waker_cache.remove(&id);
+                }
+                Poll::Pending => {}
             }
         }
     }
 }
 
-fn dummy_raw_waker() -> RawWaker {
-    fn no_op(_: *const ()) {}
-    fn clone(_: *const ()) -> RawWaker {
-        dummy_raw_waker()
+struct TaskWaker {
+    id: task::Id,
+    task_queue: Arc<ArrayQueue<task::Id>>,
+}
+
+impl TaskWaker {
+    fn new(id: task::Id, task_queue: Arc<ArrayQueue<task::Id>>) -> Waker {
+        Waker::from(Arc::new(Self { id, task_queue }))
     }
 
-    let vtable = &RawWakerVTable::new(clone, no_op, no_op, no_op);
-    RawWaker::new(0 as *const (), vtable)
+    fn wake_task(&self) {
+        self.task_queue.push(self.id).expect("task_queue is full")
+    }
 }
 
-fn dummy_waker() -> Waker {
-    unsafe { Waker::from_raw(dummy_raw_waker()) }
-}
+impl Wake for TaskWaker {
+    fn wake(self: Arc<Self>) {
+        self.wake_task();
+    }
 
-async fn async_logging() {
-    info!("Async task");
-}
-
-pub async fn sample_task() {
-    async_logging().await;
+    fn wake_by_ref(self: &Arc<Self>) {
+        self.wake_task()
+    }
 }
