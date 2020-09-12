@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pub mod handler;
-
 use {
     crate::device::{keyboard, mouse},
     common::constant::PORT_KEY_DATA,
