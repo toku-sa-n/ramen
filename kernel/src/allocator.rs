@@ -1,21 +1,29 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![allow(clippy::too_many_arguments)]
-use common::constant::CHANGE_FREE_PAGE_ADDR;
-use conquer_once::spin::{Lazy, OnceCell};
-use core::{alloc::Layout, ptr};
-use linked_list_allocator::LockedHeap;
-use uefi::table::{boot, boot::MemoryType};
-use x86_64::{
-    instructions::tlb,
-    structures::paging::{PageSize, Size4KiB},
-    PhysAddr,
+use {
+    common::constant::{CHANGE_FREE_PAGE_ADDR, FREE_PAGE_ADDR},
+    conquer_once::spin::{Lazy, OnceCell},
+    core::{alloc::Layout, ptr},
+    linked_list_allocator::LockedHeap,
+    spinning_top::Spinlock,
+    uefi::table::{boot, boot::MemoryType},
+    x86_64::{
+        instructions::tlb,
+        structures::paging::{FrameAllocator, PageSize, PhysFrame, Size4KiB},
+        PhysAddr,
+    },
 };
 
 #[global_allocator]
 pub static ALLOCATOR: LockedHeap = LockedHeap::empty();
 
-pub static FRAME_MANAGER: Lazy<OnceCell<FrameManager>> = Lazy::new(OnceCell::uninit);
+pub static FRAME_MANAGER: Lazy<Spinlock<FrameManager>> = Lazy::new(|| {
+    Spinlock::new(FrameManager {
+        head: None,
+        tail: None,
+    })
+});
 
 #[alloc_error_handler]
 fn alloc_error(layout: Layout) -> ! {
@@ -29,17 +37,7 @@ pub struct FrameManager {
 
 impl FrameManager {
     pub fn init(mem_map: &[boot::MemoryDescriptor]) {
-        FRAME_MANAGER.try_init_once(|| Self::new(mem_map)).unwrap();
-    }
-
-    fn new(mem_map: &[boot::MemoryDescriptor]) -> Self {
-        let mut manager = Self {
-            head: None,
-            tail: None,
-        };
-
-        manager.init_static(mem_map);
-        manager
+        FRAME_MANAGER.lock().init_static(mem_map);
     }
 
     fn init_static(&mut self, mem_map: &[boot::MemoryDescriptor]) {
@@ -86,5 +84,21 @@ impl FrameManager {
 
     fn available(ty: boot::MemoryType) -> bool {
         ty == MemoryType::CONVENTIONAL
+    }
+}
+
+unsafe impl FrameAllocator<Size4KiB> for FrameManager {
+    fn allocate_frame(&mut self) -> Option<PhysFrame<Size4KiB>> {
+        match self.head {
+            None => None,
+            Some(addr) => {
+                Self::change_free_page_ptr(addr);
+                unsafe {
+                    self.head = ptr::read(addr.as_u64() as _);
+                }
+
+                Some(PhysFrame::containing_address(addr))
+            }
+        }
     }
 }

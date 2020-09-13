@@ -25,6 +25,7 @@ mod device;
 mod gdt;
 mod idt;
 mod interrupt;
+mod mem;
 mod multitask;
 mod panic;
 
