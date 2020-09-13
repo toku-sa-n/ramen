@@ -84,11 +84,11 @@ pub struct Screen;
 
 impl Screen {
     // TODO: Specify top left coordinate and length, rather than two coordinates.
-    pub fn draw_rectangle(color: RGB8, top_left: &Vec2<isize>, bottom_right: &Vec2<isize>) {
+    pub fn draw_rectangle(color: RGB8, top_left: Vec2<i32>, bottom_right: Vec2<i32>) {
         for y in top_left.y..=bottom_right.y {
             for x in top_left.x..=bottom_right.x {
                 unsafe {
-                    Vram::set_color(&Vec2::new(x, y), color);
+                    Vram::set_color(Vec2::new(x, y), color);
                 }
             }
         }
@@ -96,7 +96,7 @@ impl Screen {
 }
 
 pub struct MouseCursor {
-    coord: Vec2<isize>,
+    coord: Vec2<i32>,
     image: [[RGB8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
 }
 
@@ -121,39 +121,35 @@ impl MouseCursor {
         }
     }
 
-    pub fn draw_offset(&mut self, offset: Vec2<isize>) {
+    pub fn draw_offset(&mut self, offset: Vec2<i32>) {
         let new_coord = self.coord + offset;
         self.draw(new_coord)
     }
 
-    fn put_coord_on_screen(mut coord: Vec2<isize>) -> Vec2<isize> {
+    fn put_coord_on_screen(mut coord: Vec2<i32>) -> Vec2<i32> {
         coord.x = cmp::max(coord.x, 0);
         coord.y = cmp::max(coord.y, 0);
 
         coord.x = cmp::min(
             coord.x,
-            isize::try_from(Vram::resolution().x - MOUSE_CURSOR_WIDTH - 1).unwrap(),
+            Vram::resolution().x - i32::try_from(MOUSE_CURSOR_WIDTH).unwrap() - 1,
         );
         coord.y = cmp::min(
             coord.y,
-            isize::try_from(Vram::resolution().y - MOUSE_CURSOR_HEIGHT - 1).unwrap(),
+            Vram::resolution().y - i32::try_from(MOUSE_CURSOR_HEIGHT).unwrap() - 1,
         );
 
         coord
     }
 
-    pub fn draw(&mut self, coord: Vec2<isize>) {
+    pub fn draw(&mut self, coord: Vec2<i32>) {
         self.remove_previous_cursor();
 
         let adjusted_coord = Self::put_coord_on_screen(coord);
         for y in 0..MOUSE_CURSOR_HEIGHT {
             for x in 0..MOUSE_CURSOR_WIDTH {
                 unsafe {
-                    Vram::set_color(
-                        &(adjusted_coord
-                            + Vec2::new(isize::try_from(x).unwrap(), isize::try_from(y).unwrap())),
-                        self.image[y][x],
-                    );
+                    Vram::set_color(adjusted_coord + Vec2::new(x, y).as_(), self.image[y][x]);
                 }
             }
         }
@@ -164,10 +160,10 @@ impl MouseCursor {
     fn remove_previous_cursor(&self) {
         Screen::draw_rectangle(
             RGB8::new(0, 0x84, 0x84),
-            &Vec2::new(self.coord.x, self.coord.y),
-            &Vec2::new(
-                self.coord.x + isize::try_from(MOUSE_CURSOR_WIDTH).unwrap(),
-                self.coord.y + isize::try_from(MOUSE_CURSOR_HEIGHT).unwrap(),
+            Vec2::new(self.coord.x, self.coord.y),
+            Vec2::new(
+                self.coord.x + i32::try_from(MOUSE_CURSOR_WIDTH).unwrap(),
+                self.coord.y + i32::try_from(MOUSE_CURSOR_HEIGHT).unwrap(),
             ),
         );
     }
@@ -175,8 +171,8 @@ impl MouseCursor {
 
 #[rustfmt::skip]
 pub fn draw_desktop() {
-    let x_len: isize = isize::try_from(Vram::resolution().x).unwrap();
-    let y_len: isize = isize::try_from(Vram::resolution().y).unwrap();
+    let x_len= Vram::resolution().x;
+    let y_len= Vram::resolution().y;
 
     // It seems that changing the arguments as `color, coord_1, coord_2` actually makes the code
     // dirty because by doing it lots of `Coord::new(x1, x2)` appear on below.
@@ -186,7 +182,7 @@ pub fn draw_desktop() {
             u8::try_from((color >> 8) & 0xff).unwrap(),
             u8::try_from(color & 0xff).unwrap(),
         );
-        Screen::draw_rectangle(rgb, &Vec2::new(x0, y0), &Vec2::new(x1, y1))
+        Screen::draw_rectangle(rgb, Vec2::new(x0, y0), Vec2::new(x1, y1))
     };
 
     draw_desktop_part(0x0000_8484,          0,          0, x_len -  1, y_len - 29);
