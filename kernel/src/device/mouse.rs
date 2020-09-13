@@ -55,7 +55,7 @@ pub fn enqueue_packet(packet: u8) {
     }
 }
 
-pub struct Device {
+struct Device {
     data_from_device: [u8; 3],
     phase: DevicePhase,
 
@@ -65,7 +65,7 @@ pub struct Device {
 }
 
 impl Device {
-    pub const fn new() -> Self {
+    const fn new() -> Self {
         Self {
             data_from_device: [0; 3],
             phase: DevicePhase::Init,
@@ -74,7 +74,7 @@ impl Device {
         }
     }
 
-    pub fn enable() {
+    fn enable() {
         super::keyboard::wait_kbc_sendready();
 
         let mut port_key_cmd = PORT_KEY_CMD;
@@ -86,11 +86,11 @@ impl Device {
         unsafe { port_key_data.write(MOUSE_CMD_ENABLE) };
     }
 
-    pub fn data_available(&self) -> bool {
+    fn data_available(&self) -> bool {
         self.phase == DevicePhase::ThreeData
     }
 
-    pub fn put_data(&mut self, data: u8) {
+    fn put_data(&mut self, data: u8) {
         match self.phase {
             DevicePhase::Init => {
                 let is_correct_startup = data == 0xfa;
@@ -126,7 +126,7 @@ impl Device {
         self.phase = DevicePhase::NoData;
     }
 
-    pub fn purse_data(&mut self) {
+    fn purse_data(&mut self) {
         self.buttons = MouseButtons::purse_data(self.data_from_device[0]);
         self.speed.x = i16::from(self.data_from_device[1]);
         self.speed.y = i16::from(self.data_from_device[2]);
@@ -144,7 +144,7 @@ impl Device {
         self.clear_stack();
     }
 
-    pub fn print_click_info(&self) {
+    fn print_click_info(&self) {
         if self.buttons.left {
             info!("Left button pressed");
         }
@@ -158,7 +158,7 @@ impl Device {
         }
     }
 
-    pub fn get_speed(&self) -> Vec2<isize> {
+    fn get_speed(&self) -> Vec2<isize> {
         Vec2::new(self.speed.x as isize, self.speed.y as isize)
     }
 }
