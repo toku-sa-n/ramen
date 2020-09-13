@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{Coord, TwoDimensionalVec, Vram, RGB};
-use alloc::vec::Vec;
-use core::convert::TryFrom;
+use {super::Vram, alloc::vec::Vec, core::convert::TryFrom, rgb::RGB8, vek::Vec2};
 
 struct LayerCollection(Vec<Layer>);
 
@@ -21,7 +19,7 @@ impl LayerCollection {
                         let vram_x = Vram::resolution().x + x;
                         unsafe {
                             Vram::set_color(
-                                &Coord::new(
+                                &Vec2::new(
                                     isize::try_from(vram_y).unwrap(),
                                     isize::try_from(vram_x).unwrap(),
                                 ),
@@ -36,14 +34,14 @@ impl LayerCollection {
 }
 
 struct Layer {
-    buf: Vec<Vec<Option<RGB>>>,
-    top_left: Coord<usize>,
-    len: TwoDimensionalVec<usize>,
+    buf: Vec<Vec<Option<RGB8>>>,
+    top_left: Vec2<usize>,
+    len: Vec2<usize>,
     z_index: usize,
 }
 
 impl Layer {
-    fn new(top_left: Coord<usize>, len: TwoDimensionalVec<usize>) -> Self {
+    fn new(top_left: Vec2<usize>, len: Vec2<usize>) -> Self {
         Self {
             buf: Vec::new(),
             top_left,

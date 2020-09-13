@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::constant::{
-    BYTES_KERNEL_HEAP, KERNEL_ADDR, KERNEL_HEAP_ADDR, NUM_OF_PAGES_STACK, STACK_LOWER, VRAM_ADDR,
+    BYTES_KERNEL_HEAP, FREE_PAGE_ADDR, KERNEL_ADDR, KERNEL_HEAP_ADDR, NUM_OF_PAGES_STACK,
+    STACK_LOWER, VRAM_ADDR,
 };
 use crate::vram;
 use os_units::{Bytes, Size};
@@ -21,7 +22,7 @@ impl KernelPhysRange {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub struct Map([Range; 4]);
+pub struct Map([Range; 5]);
 impl Map {
     #[must_use]
     #[allow(clippy::too_many_arguments)]
@@ -30,6 +31,7 @@ impl Map {
         phys_addr_stack: PhysAddr,
         vram: &vram::Info,
         heap: PhysAddr,
+        free_page: PhysAddr,
     ) -> Self {
         Self {
             0: [
@@ -37,6 +39,7 @@ impl Map {
                 Range::stack(phys_addr_stack),
                 Range::vram(vram),
                 Range::heap(heap),
+                Range::free_page(free_page),
             ],
         }
     }
@@ -57,7 +60,7 @@ pub struct Range {
 
 impl Range {
     #[must_use]
-    pub fn kernel(kernel: &KernelPhysRange) -> Self {
+    fn kernel(kernel: &KernelPhysRange) -> Self {
         Self {
             virt: KERNEL_ADDR,
             phys: kernel.start,
@@ -66,7 +69,7 @@ impl Range {
     }
 
     #[must_use]
-    pub fn vram(vram: &vram::Info) -> Self {
+    fn vram(vram: &vram::Info) -> Self {
         Self {
             virt: VRAM_ADDR,
             phys: vram.phys_ptr(),
@@ -75,7 +78,7 @@ impl Range {
     }
 
     #[must_use]
-    pub fn stack(phys: PhysAddr) -> Self {
+    fn stack(phys: PhysAddr) -> Self {
         Self {
             virt: STACK_LOWER,
             phys,
@@ -84,11 +87,20 @@ impl Range {
     }
 
     #[must_use]
-    pub fn heap(phys: PhysAddr) -> Self {
+    fn heap(phys: PhysAddr) -> Self {
         Self {
             virt: KERNEL_HEAP_ADDR,
             phys,
             bytes: BYTES_KERNEL_HEAP,
+        }
+    }
+
+    #[must_use]
+    fn free_page(phys: PhysAddr) -> Self {
+        Self {
+            virt: FREE_PAGE_ADDR,
+            phys,
+            bytes: Size::new(0x1000),
         }
     }
 

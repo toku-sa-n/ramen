@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::constant::INIT_RSP;
-use crate::mem;
-use crate::mem::reserved;
-use crate::vram;
+use crate::{constant::INIT_RSP, mem, mem::reserved, vram};
 use core::ptr;
+use uefi::table::boot;
 use x86_64::VirtAddr;
 
 #[repr(C)]
@@ -51,5 +49,10 @@ impl Info {
     #[must_use]
     pub fn get() -> Self {
         unsafe { ptr::read(INIT_RSP.as_mut_ptr() as _) }
+    }
+
+    #[must_use]
+    pub fn mem_map(&self) -> &[boot::MemoryDescriptor] {
+        self.mem_map.as_slice()
     }
 }

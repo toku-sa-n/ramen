@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pub mod handler;
-pub mod mouse;
-
-use crate::x86_64::instructions::port::Port;
-use crate::x86_64::structures::idt;
+use {
+    crate::device::{keyboard, mouse},
+    common::constant::PORT_KEY_DATA,
+    x86_64::{instructions::port::Port, structures::idt},
+};
 
 const PIC0_ICW1: u16 = 0x0020;
 const PIC0_OCW2: u16 = 0x0020;
@@ -18,22 +18,6 @@ const PIC1_IMR: u16 = 0x00A1;
 const PIC1_ICW2: u16 = 0x00A1;
 const PIC1_ICW3: u16 = 0x00A1;
 const PIC1_ICW4: u16 = 0x00A1;
-
-const PORT_KEYDATA: u16 = 0x0060;
-
-const PORT_KEY_STATUS: u16 = 0x0064;
-const PORT_KEY_CMD: u16 = 0x0064;
-const KEY_STATUS_SEND_NOT_READY: u8 = 0x02;
-const KEY_CMD_WRITE_MODE: u8 = 0x60;
-const KEY_CMD_MODE: u8 = 0x47;
-const KEY_CMD_SEND_TO_MOUSE: u8 = 0xD4;
-const MOUSE_CMD_ENABLE: u8 = 0xF4;
-
-use alloc::collections::vec_deque::VecDeque;
-use conquer_once::spin::Lazy;
-use spinning_top::Spinlock;
-
-pub static KEY_QUEUE: Lazy<Spinlock<VecDeque<u32>>> = Lazy::new(|| Spinlock::new(VecDeque::new()));
 
 // See P.128.
 pub fn init_pic() {
@@ -88,26 +72,10 @@ pub fn set_init_pic_bits() {
     }
 }
 
-pub fn init_keyboard() {
-    wait_kbc_sendready();
-    unsafe { Port::new(PORT_KEY_CMD).write(KEY_CMD_WRITE_MODE as u8) };
-    wait_kbc_sendready();
-    unsafe { Port::new(PORT_KEYDATA).write(KEY_CMD_MODE as u8) };
-}
-
-fn wait_kbc_sendready() {
-    loop {
-        if unsafe { Port::<u8>::new(PORT_KEY_STATUS).read() } & KEY_STATUS_SEND_NOT_READY == 0 {
-            break;
-        }
-    }
-}
-
 pub extern "x86-interrupt" fn handler_21(_stack_frame: &mut idt::InterruptStackFrame) {
     unsafe { Port::new(PIC0_OCW2).write(0x61 as u8) };
-    KEY_QUEUE
-        .lock()
-        .push_back(unsafe { u32::from(Port::<u8>::new(PORT_KEYDATA).read()) });
+    let mut port = PORT_KEY_DATA;
+    keyboard::enqueue_scancode(unsafe { port.read() });
 }
 
 pub extern "x86-interrupt" fn handler_2c(_stack_frame: &mut idt::InterruptStackFrame) {
@@ -115,7 +83,6 @@ pub extern "x86-interrupt" fn handler_2c(_stack_frame: &mut idt::InterruptStackF
         Port::new(PIC1_OCW2).write(0x64 as u8);
         Port::new(PIC0_OCW2).write(0x62 as u8);
     }
-    mouse::QUEUE
-        .lock()
-        .push_back(unsafe { Port::<u8>::new(PORT_KEYDATA).read() });
+    let mut port = PORT_KEY_DATA;
+    mouse::enqueue_packet(unsafe { port.read() });
 }
