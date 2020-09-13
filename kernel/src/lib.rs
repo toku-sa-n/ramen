@@ -2,6 +2,7 @@
 
 #![no_std]
 #![feature(alloc_error_handler)]
+#![feature(linked_list_remove)]
 #![feature(const_fn)]
 #![feature(wake_trait)]
 #![feature(asm)]
@@ -40,7 +41,10 @@ use {
     },
     core::convert::TryFrom,
     device::{keyboard, mouse},
-    graphics::{screen, Vram},
+    graphics::{
+        screen::{self, desktop::Desktop},
+        Vram,
+    },
     multitask::{executor::Executor, task::Task},
 };
 
@@ -70,7 +74,7 @@ fn initialization(boot_info: &kernelboot::Info) {
 
     screen::log::init().unwrap();
 
-    graphics::screen::draw_desktop();
+    Desktop::draw();
 
     info!("Hello Ramen OS!");
     info!("Vram information: {}", Vram::display());
