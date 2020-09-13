@@ -75,8 +75,8 @@ pub async fn task() {
     while let Some(code) = scancode_stream.next().await {
         Screen::draw_rectangle(
             RGB8::new(0, 0x84, 0x84),
-            &Vec2::new(0, 16),
-            &Vec2::new(15, 31),
+            Vec2::new(0, 16),
+            Vec2::new(15, 31),
         );
         print_with_pos!(Vec2::new(0, 16), RGB8::new(0xff, 0xff, 0xff), "{:X}", code);
     }
