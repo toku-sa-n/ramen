@@ -59,12 +59,7 @@ impl Vram {
     pub unsafe fn set_color(coord: &Vec2<i32>, rgb: RGB8) {
         let vram = Self::get();
 
-        let offset_from_base = (coord.y
-            * i32::try_from(Vram::resolution().x)
-                .expect("The width of screen did not fit in i32.")
-            + coord.x)
-            * vram.bits_per_pixel
-            / 8;
+        let offset_from_base = (coord.y * Vram::resolution().x + coord.x) * vram.bits_per_pixel / 8;
 
         let ptr = vram.ptr.as_mut_ptr::<u8>().offset(offset_from_base as _);
 
