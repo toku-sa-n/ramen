@@ -1,8 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::x86_64::VirtAddr;
-use os_units::{Bytes, NumOfPages, Size};
-use x86_64::structures::paging::{PageSize, Size4KiB};
+use {
+    crate::x86_64::VirtAddr,
+    os_units::{Bytes, NumOfPages, Size},
+    x86_64::{
+        instructions::port::Port,
+        structures::paging::{PageSize, Size4KiB},
+    },
+};
 
 pub const KERNEL_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_8000_0000);
 pub const KERNEL_HEAP_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_9000_0000);
@@ -23,5 +28,13 @@ pub const RECUR_PML4_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_ffff_f0
 
 pub const NUM_OF_PAGES_STACK: Size<NumOfPages<Size4KiB>> = Size::new(16);
 pub const BYTES_KERNEL_HEAP: Size<Bytes> = Size::new(100 * 1024);
+
+pub const PORT_KEY_STATUS: Port<u8> = Port::new(0x0064);
+pub const PORT_KEY_CMD: Port<u8> = Port::new(0x0064);
+pub const PORT_KEY_DATA: Port<u8> = Port::new(0x0060);
+
+pub const KEY_CMD_WRITE_MODE: u8 = 0x60;
+pub const KEY_CMD_MODE: u8 = 0x47;
+pub const KEY_STATUS_SEND_NOT_READY: u8 = 0x02;
 
 pub const KERNEL_NAME: &str = "kernel.bin";

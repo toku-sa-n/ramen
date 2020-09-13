@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![allow(clippy::too_many_arguments)]
-use common::constant::{CHANGE_FREE_PAGE_ADDR, FREE_PAGE_ADDR};
-use conquer_once::spin::Lazy;
-use core::{alloc::Layout, ptr};
-use linked_list_allocator::LockedHeap;
-use spinning_top::Spinlock;
-use uefi::table::{boot, boot::MemoryType};
-use x86_64::{
-    instructions::tlb,
-    structures::paging::{FrameAllocator, PageSize, PhysFrame, Size4KiB},
-    PhysAddr,
+use {
+    common::constant::{CHANGE_FREE_PAGE_ADDR, FREE_PAGE_ADDR},
+    conquer_once::spin::{Lazy, OnceCell},
+    core::{alloc::Layout, ptr},
+    linked_list_allocator::LockedHeap,
+    spinning_top::Spinlock,
+    uefi::table::{boot, boot::MemoryType},
+    x86_64::{
+        instructions::tlb,
+        structures::paging::{FrameAllocator, PageSize, PhysFrame, Size4KiB},
+        PhysAddr,
+    },
 };
 
 #[global_allocator]
