@@ -77,6 +77,7 @@ fn initialization(boot_info: &kernelboot::Info) {
     interrupt::set_init_pic_bits();
 }
 
+#[cfg(not(feature = "qemu_test"))]
 fn run_tasks() -> ! {
     let mut executor = Executor::new();
     executor.spawn(Task::new(keyboard::task()));
@@ -85,10 +86,10 @@ fn run_tasks() -> ! {
 }
 
 #[cfg(feature = "qemu_test")]
-fn main_loop(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseCursor) -> ! {
-    // Because of `hlt` instruction, running `loop_main` many times is impossible.
-    loop_main(mouse_device, mouse_cursor);
-
+fn run_tasks() -> ! {
+    // Currently there is no way to test multitasking. If this OS suppports timer, the situation
+    // may change.
+    //
     // If you change the value `0xf4` and `0x10`, don't forget to change the correspond values in
     // `Makefile`!
     qemu_exit::x86::exit::<u32, 0xf4>(0x10);
