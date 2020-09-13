@@ -3,7 +3,6 @@
 use crate::graphics::screen::Screen;
 use crate::graphics::Vram;
 use crate::print_with_pos;
-use core::convert::TryFrom;
 use rgb::RGB8;
 use vek::Vec2;
 
@@ -11,8 +10,8 @@ use vek::Vec2;
 fn panic(info: &core::panic::PanicInfo) -> ! {
     Screen::draw_rectangle(
         RGB8::new(0xff, 0, 0),
-        &Vec2::new(0, 0),
-        &(Vram::resolution() - Vec2::new(1, 1)),
+        Vec2::new(0, 0),
+        Vram::resolution() - Vec2::new(1, 1),
     );
 
     if let Some(location) = info.location() {

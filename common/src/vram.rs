@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    core::convert::{TryFrom, TryInto},
+    core::convert::TryFrom,
     os_units::{Bytes, Size},
     uefi::proto::console::gop,
     x86_64::PhysAddr,

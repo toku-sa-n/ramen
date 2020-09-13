@@ -41,8 +41,7 @@ impl Writer {
     }
 
     fn cursor_is_outside_screen(&self) -> bool {
-        self.coord.x + i32::try_from(font::FONT_WIDTH).unwrap()
-            >= i32::try_from(Vram::resolution().x).unwrap()
+        self.coord.x + i32::try_from(font::FONT_WIDTH).unwrap() >= Vram::resolution().x
     }
 
     fn print_char(&self, font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT]) {
@@ -50,7 +49,7 @@ impl Writer {
             for (j, cell) in line.iter().enumerate().take(font::FONT_WIDTH) {
                 if *cell {
                     unsafe {
-                        Vram::set_color(&(self.coord + Vec2::new(j as i32, i as i32)), self.color);
+                        Vram::set_color(self.coord + Vec2::new(j, i).as_(), self.color);
                     }
                 }
             }

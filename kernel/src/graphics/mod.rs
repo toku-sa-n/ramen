@@ -56,7 +56,7 @@ impl Vram {
         Self::get()
     }
 
-    pub unsafe fn set_color(coord: &Vec2<i32>, rgb: RGB8) {
+    pub unsafe fn set_color(coord: Vec2<i32>, rgb: RGB8) {
         let vram = Self::get();
 
         let offset_from_base = (coord.y * Vram::resolution().x + coord.x) * vram.bits_per_pixel / 8;
