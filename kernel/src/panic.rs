@@ -12,10 +12,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
     Screen::draw_rectangle(
         RGB8::new(0xff, 0, 0),
         &Vec2::new(0, 0),
-        &Vec2::new(
-            isize::try_from(Vram::resolution().x - 1).unwrap(),
-            isize::try_from(Vram::resolution().y - 1).unwrap(),
-        ),
+        &(Vram::resolution() - Vec2::new(1, 1)),
     );
 
     if let Some(location) = info.location() {

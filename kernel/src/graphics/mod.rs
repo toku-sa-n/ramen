@@ -16,8 +16,8 @@ static VRAM: Lazy<OnceCell<Vram>> = Lazy::new(OnceCell::uninit);
 
 #[derive(Clone)]
 pub struct Vram {
-    bits_per_pixel: usize,
-    resolution: Vec2<usize>,
+    bits_per_pixel: i32,
+    resolution: Vec2<i32>,
     ptr: VirtAddr,
 }
 
@@ -36,7 +36,7 @@ impl Vram {
         Self::new(vram.bpp(), resolution, VRAM_ADDR)
     }
 
-    fn new(bits_per_pixel: usize, resolution: Vec2<usize>, ptr: VirtAddr) -> Self {
+    fn new(bits_per_pixel: i32, resolution: Vec2<i32>, ptr: VirtAddr) -> Self {
         Self {
             bits_per_pixel,
             resolution,
@@ -48,7 +48,7 @@ impl Vram {
         VRAM.try_get().expect("VRAM not initialized")
     }
 
-    pub fn resolution() -> &'static Vec2<usize> {
+    pub fn resolution() -> &'static Vec2<i32> {
         &Vram::get().resolution
     }
 
@@ -56,20 +56,23 @@ impl Vram {
         Self::get()
     }
 
-    pub unsafe fn set_color(coord: &Vec2<isize>, rgb: RGB8) {
+    pub unsafe fn set_color(coord: &Vec2<i32>, rgb: RGB8) {
         let vram = Self::get();
 
-        let base_ptr = (usize::try_from(vram.ptr.as_u64()).unwrap()
-            + (usize::try_from(coord.y).unwrap() * Vram::resolution().x
-                + usize::try_from(coord.x).unwrap())
-                * vram.bits_per_pixel
-                / 8) as *mut u8;
+        let offset_from_base = (coord.y
+            * i32::try_from(Vram::resolution().x)
+                .expect("The width of screen did not fit in i32.")
+            + coord.x)
+            * vram.bits_per_pixel
+            / 8;
+
+        let ptr = vram.ptr.as_mut_ptr::<u8>().offset(offset_from_base as _);
 
         // The order of `RGB` is right.
         // See: https://wiki.osdev.org/Drawing_In_Protected_Mode
-        ptr::write(base_ptr.offset(0), rgb.b);
-        ptr::write(base_ptr.offset(1), rgb.g);
-        ptr::write(base_ptr.offset(2), rgb.r);
+        ptr::write(ptr.offset(0), rgb.b);
+        ptr::write(ptr.offset(1), rgb.g);
+        ptr::write(ptr.offset(2), rgb.r);
     }
 }
 

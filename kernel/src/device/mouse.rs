@@ -59,7 +59,7 @@ struct Device {
     data_from_device: [u8; 3],
     phase: DevicePhase,
 
-    speed: Vec2<i16>,
+    speed: Vec2<i32>,
 
     buttons: MouseButtons,
 }
@@ -128,8 +128,8 @@ impl Device {
 
     fn purse_data(&mut self) {
         self.buttons = MouseButtons::purse_data(self.data_from_device[0]);
-        self.speed.x = i16::from(self.data_from_device[1]);
-        self.speed.y = i16::from(self.data_from_device[2]);
+        self.speed.x = i32::from(self.data_from_device[1]);
+        self.speed.y = i32::from(self.data_from_device[2]);
 
         if self.data_from_device[0] & 0x10 != 0 {
             self.speed.x -= 256;
@@ -158,8 +158,8 @@ impl Device {
         }
     }
 
-    fn get_speed(&self) -> Vec2<isize> {
-        Vec2::new(self.speed.x as isize, self.speed.y as isize)
+    fn get_speed(&self) -> Vec2<i32> {
+        Vec2::new(self.speed.x, self.speed.y)
     }
 }
 
