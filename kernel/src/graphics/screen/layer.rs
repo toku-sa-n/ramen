@@ -32,6 +32,15 @@ impl LayerCollection {
         }
     }
 
+    fn bring_layer_to_front(&mut self, id: Id) -> Result<(), Error> {
+        let index = self.id_to_index(id)?;
+
+        let layer = self.0.remove(index);
+        self.0.push(layer);
+
+        Ok(())
+    }
+
     fn id_to_layer(&mut self, id: Id) -> Result<&mut Layer, Error> {
         self.0
             .iter_mut()
