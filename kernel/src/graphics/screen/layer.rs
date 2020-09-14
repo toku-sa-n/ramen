@@ -24,7 +24,7 @@ pub fn init_controller() {
 }
 
 impl Controller {
-    fn new() -> Self {
+    const fn new() -> Self {
         Self(Vec::new())
     }
 
