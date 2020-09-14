@@ -10,10 +10,11 @@ use {
         sync::atomic::{AtomicI32, Ordering::Relaxed},
     },
     rgb::RGB8,
+    spinning_top::Spinlock,
     vek::Vec2,
 };
 
-pub static CONTROLLER: OnceCell<Controller> = OnceCell::uninit();
+pub static CONTROLLER: Spinlock<Controller> = Spinlock::new(Controller::new());
 
 pub struct Controller(Vec<Layer>);
 
