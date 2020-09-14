@@ -19,7 +19,7 @@ pub struct Controller(Vec<Layer>);
 
 pub fn init_controller() {
     CONTROLLER
-        .try_init_once(|| Controller(Vec::new()))
+        .try_init_once(|| Controller::new())
         .expect("CONTROLLER is already initialized.")
 }
 
