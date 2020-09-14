@@ -31,7 +31,10 @@ struct Layer {
 impl Layer {
     fn new(top_left: Vec2<i32>, len: Vec2<i32>) -> Self {
         Self {
-            buf: vec![vec![None; len.x as usize]; len.y as usize],
+            buf: vec![
+                vec![None; usize::try_from(len.x).expect("Negative width of a layer.")];
+                usize::try_from(len.y).expect("Negative height of a layer.")
+            ],
             top_left,
             len,
         }
