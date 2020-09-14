@@ -11,23 +11,10 @@ impl LayerCollection {
 
     fn repaint(&self) {
         for layer in &self.0 {
-            for y in 0..layer.top_left.y {
-                for x in 0..layer.top_left.x {
-                    if let Some(rgb) = layer.buf[y][x] {
-                        unsafe {
-                            Vram::set_color(
-                                Vram::resolution().as_()
-                                    + Vec2::new(
-                                        i32::try_from(x).expect(
-                                            "The x coordinate of redraw area overflowed i32.",
-                                        ),
-                                        i32::try_from(y).expect(
-                                            "The y coordinate of redraw area overflowed i32.",
-                                        ),
-                                    ),
-                                rgb,
-                            )
-                        }
+            for y in 0..layer.len.y {
+                for x in 0..layer.len.x {
+                    if let Some(rgb) = layer.buf[y as usize][x as usize] {
+                        unsafe { Vram::set_color(layer.top_left + Vec2::new(x, y), rgb) }
                     }
                 }
             }
@@ -37,14 +24,14 @@ impl LayerCollection {
 
 struct Layer {
     buf: Vec<Vec<Option<RGB8>>>,
-    top_left: Vec2<usize>,
-    len: Vec2<usize>,
+    top_left: Vec2<i32>,
+    len: Vec2<i32>,
 }
 
 impl Layer {
-    fn new(top_left: Vec2<usize>, len: Vec2<usize>) -> Self {
+    fn new(top_left: Vec2<i32>, len: Vec2<i32>) -> Self {
         Self {
-            buf: vec![vec![None; len.x]; len.y],
+            buf: vec![vec![None; len.x as usize]; len.y as usize],
             top_left,
             len,
         }
