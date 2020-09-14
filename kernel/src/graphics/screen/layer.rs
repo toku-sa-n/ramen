@@ -18,12 +18,6 @@ pub static CONTROLLER: Spinlock<Controller> = Spinlock::new(Controller::new());
 
 pub struct Controller(Vec<Layer>);
 
-pub fn init_controller() {
-    CONTROLLER
-        .try_init_once(Controller::new)
-        .expect("CONTROLLER is already initialized.")
-}
-
 impl Controller {
     const fn new() -> Self {
         Self(Vec::new())
