@@ -9,6 +9,7 @@ pub mod writer;
 use {
     super::{font, Vram},
     core::{cmp, convert::TryFrom},
+    layer::Layer,
     rgb::RGB8,
     vek::Vec2,
 };
@@ -98,27 +99,36 @@ impl Screen {
 
 pub struct MouseCursor {
     coord: Vec2<i32>,
-    image: [[RGB8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT],
+    id: layer::Id,
 }
 
 impl MouseCursor {
     pub fn new() -> Self {
-        let mut colored_dots: [[RGB8; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] =
-            [[RGB8::default(); MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_WIDTH];
+        let layer = Layer::new(
+            Vec2::zero(),
+            Vec2::new(MOUSE_CURSOR_WIDTH, MOUSE_CURSOR_HEIGHT).as_(),
+        );
 
-        for y in 0..MOUSE_CURSOR_HEIGHT {
-            for x in 0..MOUSE_CURSOR_WIDTH {
-                colored_dots[y][x] = match MOUSE_GRAPHIC[y][x] {
-                    '*' => RGB8::new(0, 0, 0),
-                    '0' => RGB8::new(0xff, 0xff, 0xff),
-                    _ => RGB8::new(0, 0x84, 0x84),
+        let id = layer::CONTROLLER.lock().add_layer(layer);
+
+        layer::CONTROLLER
+            .lock()
+            .edit_layer(id, |layer: &mut Layer| {
+                for y in 0..MOUSE_CURSOR_HEIGHT {
+                    for x in 0..MOUSE_CURSOR_WIDTH {
+                        layer[y][x] = match MOUSE_GRAPHIC[y][x] {
+                            '*' => Some(RGB8::new(0, 0, 0)),
+                            '0' => Some(RGB8::new(0xff, 0xff, 0xff)),
+                            _ => None,
+                        }
+                    }
                 }
-            }
-        }
+            })
+            .expect("Layer of mouse cursor should be added.");
 
         Self {
             coord: Vec2::new(0, 0),
-            image: colored_dots,
+            id,
         }
     }
 
@@ -144,18 +154,10 @@ impl MouseCursor {
     }
 
     pub fn draw(&mut self, coord: Vec2<i32>) {
-        self.remove_previous_cursor();
-
-        let adjusted_coord = Self::put_coord_on_screen(coord);
-        for y in 0..MOUSE_CURSOR_HEIGHT {
-            for x in 0..MOUSE_CURSOR_WIDTH {
-                unsafe {
-                    Vram::set_color(adjusted_coord + Vec2::new(x, y).as_(), self.image[y][x]);
-                }
-            }
-        }
-
-        self.coord = adjusted_coord;
+        layer::CONTROLLER
+            .lock()
+            .slide_layer(self.id, coord)
+            .expect("Layer of mouse cursor should be added.");
     }
 
     fn remove_previous_cursor(&self) {
