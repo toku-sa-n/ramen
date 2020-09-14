@@ -1,18 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::Vram,
-    alloc::{collections::linked_list::LinkedList, vec::Vec},
-    core::convert::TryFrom,
-    rgb::RGB8,
-    vek::Vec2,
-};
+use {super::Vram, alloc::vec::Vec, core::convert::TryFrom, rgb::RGB8, vek::Vec2};
 
-struct LayerCollection(LinkedList<Layer>);
+struct LayerCollection(Vec<Layer>);
 
 impl LayerCollection {
     fn add_layer(&mut self, layer: Layer) {
-        self.0.push_back(layer);
+        self.0.push(layer);
+        self.0.sort_by(|a, b| a.z_index.cmp(&b.z_index));
     }
 
     fn repaint(&self) {
