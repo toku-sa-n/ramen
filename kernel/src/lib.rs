@@ -68,8 +68,6 @@ fn initialization(boot_info: &kernelboot::Info) {
 
     allocator::init_heap();
 
-    layer::init_controller();
-
     screen::log::init().unwrap();
 
     Desktop::draw();
