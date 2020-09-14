@@ -3,7 +3,7 @@
 use {
     super::{
         layer::{self, Layer},
-        Screen, Vram,
+        Vram,
     },
     core::convert::TryFrom,
     rgb::RGB8,
