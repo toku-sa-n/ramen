@@ -17,7 +17,15 @@ impl LayerCollection {
                     if let Some(rgb) = layer.buf[y][x] {
                         unsafe {
                             Vram::set_color(
-                                Vram::resolution().as_() + Vec2::new(x as i32, y as i32),
+                                Vram::resolution().as_()
+                                    + Vec2::new(
+                                        i32::try_from(x).expect(
+                                            "The x coordinate of redraw area overflowed i32.",
+                                        ),
+                                        i32::try_from(y).expect(
+                                            "The y coordinate of redraw area overflowed i32.",
+                                        ),
+                                    ),
                                 rgb,
                             )
                         }
