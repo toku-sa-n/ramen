@@ -114,7 +114,7 @@ impl IndexMut<usize> for Layer {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-struct Id(i32);
+pub struct Id(i32);
 impl Id {
     fn new() -> Self {
         static ID: AtomicI32 = AtomicI32::new(0);
