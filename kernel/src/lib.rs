@@ -65,12 +65,7 @@ fn initialization(boot_info: &kernelboot::Info) {
 
     FrameManager::init(boot_info.mem_map());
 
-    unsafe {
-        ALLOCATOR.lock().init(
-            usize::try_from(KERNEL_HEAP_ADDR.as_u64()).unwrap(),
-            BYTES_KERNEL_HEAP.as_usize(),
-        )
-    }
+    allocator::init_heap();
 
     screen::log::init().unwrap();
 

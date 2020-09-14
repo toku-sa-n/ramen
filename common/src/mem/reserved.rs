@@ -22,7 +22,7 @@ impl KernelPhysRange {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub struct Map([Range; 5]);
+pub struct Map([Range; 4]);
 impl Map {
     #[must_use]
     #[allow(clippy::too_many_arguments)]
@@ -30,7 +30,6 @@ impl Map {
         kernel: &KernelPhysRange,
         phys_addr_stack: PhysAddr,
         vram: &vram::Info,
-        heap: PhysAddr,
         free_page: PhysAddr,
     ) -> Self {
         Self {
@@ -38,7 +37,6 @@ impl Map {
                 Range::kernel(&kernel),
                 Range::stack(phys_addr_stack),
                 Range::vram(vram),
-                Range::heap(heap),
                 Range::free_page(free_page),
             ],
         }
@@ -83,15 +81,6 @@ impl Range {
             virt: STACK_LOWER,
             phys,
             bytes: NUM_OF_PAGES_STACK.as_bytes(),
-        }
-    }
-
-    #[must_use]
-    fn heap(phys: PhysAddr) -> Self {
-        Self {
-            virt: KERNEL_HEAP_ADDR,
-            phys,
-            bytes: BYTES_KERNEL_HEAP,
         }
     }
 
