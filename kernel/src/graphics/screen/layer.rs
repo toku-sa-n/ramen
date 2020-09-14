@@ -44,7 +44,7 @@ struct Layer {
 impl Layer {
     fn new(top_left: Vec2<usize>, len: Vec2<usize>) -> Self {
         Self {
-            buf: Vec::new(),
+            buf: vec![vec![None; len.x]; len.y],
             top_left,
             len,
         }
