@@ -89,6 +89,12 @@ impl Index<usize> for Layer {
     }
 }
 
+impl IndexMut<usize> for Layer {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.buf[index]
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 struct Id(i32);
 impl Id {
