@@ -36,7 +36,11 @@ impl Desktop {
 
                 for y in y0..y1 {
                     for x in x0..x1 {
-                        layer[y as usize][x as usize] = Some(rgb);
+                        layer[usize::try_from(y)
+                            .expect("Negative y coordinate during drawing desktop")]
+                            [usize::try_from(x)
+                                .expect("Negative x coordinate during drawing desktop")] =
+                            Some(rgb);
                     }
                 }
             };
