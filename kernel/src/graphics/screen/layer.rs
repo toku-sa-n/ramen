@@ -54,10 +54,16 @@ impl Layer {
     }
 }
 
+#[derive(Debug)]
 struct Id(i32);
 impl Id {
     fn new() -> Self {
         static ID: AtomicI32 = AtomicI32::new(0);
         Self(ID.fetch_add(1, Relaxed))
     }
+}
+
+#[derive(Debug)]
+enum Error {
+    NoSuchLayer(Id),
 }
