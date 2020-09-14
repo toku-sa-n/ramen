@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{Screen, Vram},
+    super::{layer, Screen, Vram},
     core::convert::TryFrom,
     rgb::RGB8,
     vek::Vec2,
 };
 
-pub struct Desktop;
+pub struct Desktop {
+    id: layer::Id,
+}
 
 impl Desktop {
     pub fn draw() {
