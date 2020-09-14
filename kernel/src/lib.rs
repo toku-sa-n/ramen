@@ -70,7 +70,8 @@ fn initialization(boot_info: &kernelboot::Info) {
 
     screen::log::init().unwrap();
 
-    Desktop::draw();
+    let desktop = Desktop::new();
+    desktop.draw();
 
     info!("Hello Ramen OS!");
     info!("Vram information: {}", Vram::display());
