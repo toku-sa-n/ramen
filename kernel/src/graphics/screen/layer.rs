@@ -39,7 +39,6 @@ struct Layer {
     buf: Vec<Vec<Option<RGB8>>>,
     top_left: Vec2<usize>,
     len: Vec2<usize>,
-    z_index: usize,
 }
 
 impl Layer {
@@ -48,7 +47,6 @@ impl Layer {
             buf: Vec::new(),
             top_left,
             len,
-            z_index: 0,
         }
     }
 }
