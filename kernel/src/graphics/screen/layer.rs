@@ -79,6 +79,10 @@ impl Layer {
             id: Id::new(),
         }
     }
+
+    fn slide(&mut self, new_top_left: Vec2<i32>) {
+        self.top_left = new_top_left;
+    }
 }
 
 impl Index<usize> for Layer {
