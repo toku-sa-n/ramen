@@ -29,6 +29,16 @@ impl Controller {
         id
     }
 
+    pub fn edit_layer<T>(&mut self, id: Id, f: T) -> Result<(), Error>
+    where
+        T: Fn(&mut Layer) -> (),
+    {
+        let layer = self.id_to_layer(id)?;
+        f(layer);
+        self.repaint();
+        Ok(())
+    }
+
     fn repaint(&self) {
         for layer in &self.0 {
             for y in 0..layer.len.y {
@@ -125,6 +135,6 @@ impl Id {
 }
 
 #[derive(Debug)]
-enum Error {
+pub enum Error {
     NoSuchLayer(Id),
 }
