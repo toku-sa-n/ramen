@@ -56,6 +56,7 @@ impl Controller {
     pub fn slide_layer(&mut self, id: Id, new_top_left: Vec2<i32>) -> Result<(), Error> {
         let layer = self.id_to_layer(id)?;
         layer.slide(new_top_left);
+        self.repaint();
         Ok(())
     }
 
