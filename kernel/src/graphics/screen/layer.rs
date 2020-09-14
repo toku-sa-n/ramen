@@ -17,6 +17,12 @@ pub static CONTROLLER: OnceCell<Controller> = OnceCell::uninit();
 
 pub struct Controller(Vec<Layer>);
 
+pub fn init_controller() {
+    CONTROLLER
+        .try_init_once(|| Controller(Vec::new()))
+        .expect("CONTROLLER is already initialized.")
+}
+
 impl Controller {
     fn add_layer(&mut self, layer: Layer) {
         self.0.push(layer);
