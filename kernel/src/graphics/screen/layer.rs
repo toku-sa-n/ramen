@@ -7,7 +7,6 @@ struct LayerCollection(Vec<Layer>);
 impl LayerCollection {
     fn add_layer(&mut self, layer: Layer) {
         self.0.push(layer);
-        self.0.sort_by(|a, b| a.z_index.cmp(&b.z_index));
     }
 
     fn repaint(&self) {
