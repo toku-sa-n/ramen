@@ -31,7 +31,7 @@ impl Controller {
 
     pub fn edit_layer<T>(&mut self, id: Id, f: T) -> Result<(), Error>
     where
-        T: Fn(&mut Layer) -> (),
+        T: Fn(&mut Layer),
     {
         let layer = self.id_to_layer(id)?;
         f(layer);
