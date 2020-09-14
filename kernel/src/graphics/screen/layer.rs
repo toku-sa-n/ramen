@@ -23,8 +23,10 @@ impl Controller {
         Self(Vec::new())
     }
 
-    pub fn add_layer(&mut self, layer: Layer) {
+    pub fn add_layer(&mut self, layer: Layer) -> Id {
+        let id = layer.id;
         self.0.push(layer);
+        id
     }
 
     fn repaint(&self) {
@@ -113,7 +115,7 @@ impl IndexMut<usize> for Layer {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub struct Id(i32);
 impl Id {
     fn new() -> Self {
