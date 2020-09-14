@@ -24,6 +24,10 @@ pub fn init_controller() {
 }
 
 impl Controller {
+    fn new() -> Self {
+        Self(Vec::new())
+    }
+
     fn add_layer(&mut self, layer: Layer) {
         self.0.push(layer);
     }
