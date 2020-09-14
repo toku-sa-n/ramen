@@ -31,6 +31,13 @@ impl LayerCollection {
             }
         }
     }
+
+    fn id_to_layer(&mut self, id: Id) -> Result<&mut Layer, Error> {
+        self.0
+            .iter_mut()
+            .find(|layer| layer.id == id)
+            .ok_or_else(|| Error::NoSuchLayer(id))
+    }
 }
 
 struct Layer {
@@ -54,7 +61,7 @@ impl Layer {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 struct Id(i32);
 impl Id {
     fn new() -> Self {
