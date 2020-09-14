@@ -82,7 +82,7 @@ pub struct Layer {
 }
 
 impl Layer {
-    fn new(top_left: Vec2<i32>, len: Vec2<i32>) -> Self {
+    pub fn new(top_left: Vec2<i32>, len: Vec2<i32>) -> Self {
         Self {
             buf: vec![
                 vec![None; usize::try_from(len.x).expect("Negative width of a layer.")];
