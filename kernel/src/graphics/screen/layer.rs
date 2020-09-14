@@ -11,7 +11,7 @@ impl LayerCollection {
     }
 
     fn repaint(&self) {
-        for layer in self.0.iter() {
+        for layer in &self.0 {
             for y in 0..layer.top_left.y {
                 for x in 0..layer.top_left.x {
                     if let Some(rgb) = layer.buf[y][x] {
