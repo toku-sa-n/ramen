@@ -74,7 +74,7 @@ impl Controller {
     }
 }
 
-struct Layer {
+pub struct Layer {
     buf: Vec<Vec<Option<RGB8>>>,
     top_left: Vec2<i32>,
     len: Vec2<i32>,
