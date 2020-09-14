@@ -38,6 +38,16 @@ impl LayerCollection {
             .find(|layer| layer.id == id)
             .ok_or_else(|| Error::NoSuchLayer(id))
     }
+
+    fn id_to_index(&self, id: Id) -> Result<usize, Error> {
+        for (i, layer) in self.0.iter().enumerate() {
+            if layer.id == id {
+                return Ok(i);
+            }
+        }
+
+        Err(Error::NoSuchLayer(id))
+    }
 }
 
 struct Layer {
