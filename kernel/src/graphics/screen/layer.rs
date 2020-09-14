@@ -1,6 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {super::Vram, alloc::vec::Vec, core::convert::TryFrom, rgb::RGB8, vek::Vec2};
+use {
+    super::Vram,
+    alloc::vec::Vec,
+    core::{
+        convert::TryFrom,
+        sync::atomic::{AtomicI32, Ordering::Relaxed},
+    },
+    rgb::RGB8,
+    vek::Vec2,
+};
 
 struct LayerCollection(Vec<Layer>);
 
@@ -28,6 +37,7 @@ struct Layer {
     buf: Vec<Vec<Option<RGB8>>>,
     top_left: Vec2<i32>,
     len: Vec2<i32>,
+    id: Id,
 }
 
 impl Layer {
@@ -39,6 +49,15 @@ impl Layer {
             ],
             top_left,
             len,
+            id: Id::new(),
         }
+    }
+}
+
+struct Id(i32);
+impl Id {
+    fn new() -> Self {
+        static ID: AtomicI32 = AtomicI32::new(0);
+        Self(ID.fetch_add(1, Relaxed))
     }
 }
