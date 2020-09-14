@@ -3,6 +3,7 @@
 use {
     super::Vram,
     alloc::vec::Vec,
+    conquer_once::spin::OnceCell,
     core::{
         convert::TryFrom,
         ops::{Index, IndexMut},
@@ -12,7 +13,9 @@ use {
     vek::Vec2,
 };
 
-struct LayerCollection(Vec<Layer>);
+pub static LAYER_COLLECTION: OnceCell<LayerCollection> = OnceCell::uninit();
+
+pub struct LayerCollection(Vec<Layer>);
 
 impl LayerCollection {
     fn add_layer(&mut self, layer: Layer) {
