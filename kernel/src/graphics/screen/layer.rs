@@ -13,11 +13,11 @@ use {
     vek::Vec2,
 };
 
-pub static LAYER_COLLECTION: OnceCell<LayerCollection> = OnceCell::uninit();
+pub static CONTROLLER: OnceCell<Controller> = OnceCell::uninit();
 
-pub struct LayerCollection(Vec<Layer>);
+pub struct Controller(Vec<Layer>);
 
-impl LayerCollection {
+impl Controller {
     fn add_layer(&mut self, layer: Layer) {
         self.0.push(layer);
     }
