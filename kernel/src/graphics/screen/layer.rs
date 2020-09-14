@@ -15,14 +15,9 @@ impl LayerCollection {
             for y in 0..layer.top_left.y {
                 for x in 0..layer.top_left.x {
                     if let Some(rgb) = layer.buf[y][x] {
-                        let vram_y = Vram::resolution().y + y;
-                        let vram_x = Vram::resolution().x + x;
                         unsafe {
                             Vram::set_color(
-                                &Vec2::new(
-                                    isize::try_from(vram_y).unwrap(),
-                                    isize::try_from(vram_x).unwrap(),
-                                ),
+                                Vram::resolution().as_() + Vec2::new(x as i32, y as i32),
                                 rgb,
                             )
                         }
