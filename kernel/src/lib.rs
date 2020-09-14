@@ -43,7 +43,7 @@ use {
     core::convert::TryFrom,
     device::{keyboard, mouse},
     graphics::{
-        screen::{self, desktop::Desktop},
+        screen::{self, desktop::Desktop, layer},
         Vram,
     },
     multitask::{executor::Executor, task::Task},
@@ -67,6 +67,8 @@ fn initialization(boot_info: &kernelboot::Info) {
     FrameManager::init(boot_info.mem_map());
 
     allocator::init_heap();
+
+    layer::init_controller();
 
     screen::log::init().unwrap();
 
