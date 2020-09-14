@@ -5,6 +5,7 @@ use {
     alloc::vec::Vec,
     core::{
         convert::TryFrom,
+        ops::{Index, IndexMut},
         sync::atomic::{AtomicI32, Ordering::Relaxed},
     },
     rgb::RGB8,
@@ -77,6 +78,14 @@ impl Layer {
             len,
             id: Id::new(),
         }
+    }
+}
+
+impl Index<usize> for Layer {
+    type Output = Vec<Option<RGB8>>;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.buf[index]
     }
 }
 
