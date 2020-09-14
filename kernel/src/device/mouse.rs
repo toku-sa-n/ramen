@@ -30,8 +30,6 @@ pub async fn task() {
     let mut device = Device::new();
     let mut cursor = MouseCursor::new();
 
-    cursor.draw_offset(Vec2::new(300, 300));
-
     while let Some(packet) = packet_stream.next().await {
         device.put_data(packet);
         if device.data_available() {
