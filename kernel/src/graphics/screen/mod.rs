@@ -138,7 +138,7 @@ impl MouseCursor {
         self.fit_in_screen();
         layer::CONTROLLER
             .lock()
-            .slide_layer(self.id, new_coord)
+            .slide_layer(self.id, self.coord)
             .expect("Layer of mouse cursor should be added.");
     }
 
