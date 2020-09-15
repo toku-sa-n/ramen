@@ -51,12 +51,26 @@ impl Controller {
         Ok(())
     }
 
-    fn repaint(&self, vram_top_left: Vec2<i32>, len: Vec2<i32>) {
+    fn repaint(&self, mut vram_top_left: Vec2<i32>, len: Vec2<i32>) {
+        vram_top_left =
+            Vec2::<i32>::max(Vec2::min(vram_top_left, *Vram::resolution()), Vec2::zero());
+
+        let vram_bottom_right = vram_top_left + len;
+        let vram_bottom_right = Vec2::<i32>::max(
+            Vec2::min(vram_bottom_right, *Vram::resolution()),
+            Vec2::zero(),
+        );
+
         for layer in &self.0 {
             let layer_bottom_right = layer.top_left + layer.len;
 
-            for y in layer.top_left.y..layer_bottom_right.y {
-                for x in layer.top_left.x..layer_bottom_right.x {
+            let top_left =
+                Vec2::<i32>::min(Vec2::max(vram_top_left, layer.top_left), layer_bottom_right);
+            let bottom_right =
+                Vec2::<i32>::max(top_left, Vec2::min(vram_bottom_right, layer_bottom_right));
+
+            for y in top_left.y..bottom_right.y {
+                for x in top_left.x..bottom_right.x {
                     if let Some(rgb) = layer.buf[usize::try_from(y - layer.top_left.y).unwrap()]
                         [usize::try_from(x - layer.top_left.x).unwrap()]
                     {
