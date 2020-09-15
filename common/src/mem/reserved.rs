@@ -1,12 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::constant::{
-    BYTES_KERNEL_HEAP, FREE_PAGE_ADDR, KERNEL_ADDR, KERNEL_HEAP_ADDR, NUM_OF_PAGES_STACK,
-    STACK_LOWER, VRAM_ADDR,
+use {
+    crate::{
+        constant::{
+            BYTES_KERNEL_HEAP, FREE_PAGE_ADDR, KERNEL_ADDR, KERNEL_HEAP_ADDR, NUM_OF_PAGES_STACK,
+            STACK_LOWER, VRAM_ADDR,
+        },
+        vram,
+    },
+    os_units::{Bytes, Size},
+    x86_64::{PhysAddr, VirtAddr},
 };
-use crate::vram;
-use os_units::{Bytes, Size};
-use x86_64::{PhysAddr, VirtAddr};
 
 pub struct KernelPhysRange {
     start: PhysAddr,
