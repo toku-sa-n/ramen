@@ -87,7 +87,7 @@ $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 	mcopy -i $@ $(EFI_FILE) ::/efi/boot
 
 release:
-	make clean && make RELEASE_FLAGS=--release
+	make RELEASE_FLAGS=--release -B
 
 release_run:
 	make release && make run
@@ -112,7 +112,7 @@ $(EFI_FILE):$(EFI_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(EFI_DIR)/
 	cd $(EFI_DIR) && $(RUSTCC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
 
 $(BUILD_DIR):
-	mkdir $@
+	mkdir $@ -p
 
 clippy:
 	(cd $(KERNEL_DIR) && $(RUSTCC) clippy)

@@ -2,6 +2,7 @@
 
 #![no_std]
 #![feature(alloc_error_handler)]
+#![feature(linked_list_remove)]
 #![feature(const_fn)]
 #![feature(wake_trait)]
 #![feature(asm)]
@@ -15,6 +16,7 @@
 #[macro_use]
 #[allow(unused_imports)]
 extern crate common;
+#[macro_use]
 extern crate alloc;
 #[macro_use]
 extern crate log;
@@ -40,7 +42,10 @@ use {
     },
     core::convert::TryFrom,
     device::{keyboard, mouse},
-    graphics::{screen, Vram},
+    graphics::{
+        screen::{self, desktop::Desktop, layer},
+        Vram,
+    },
     multitask::{executor::Executor, task::Task},
 };
 
@@ -61,16 +66,12 @@ fn initialization(boot_info: &kernelboot::Info) {
 
     FrameManager::init(boot_info.mem_map());
 
-    unsafe {
-        ALLOCATOR.lock().init(
-            usize::try_from(KERNEL_HEAP_ADDR.as_u64()).unwrap(),
-            BYTES_KERNEL_HEAP.as_usize(),
-        )
-    }
+    allocator::init_heap();
 
     screen::log::init().unwrap();
 
-    graphics::screen::draw_desktop();
+    let desktop = Desktop::new();
+    desktop.draw();
 
     info!("Hello Ramen OS!");
     info!("Vram information: {}", Vram::display());
