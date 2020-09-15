@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::graphics::screen::MouseCursor,
+    crate::graphics::screen::cursor::Cursor,
     common::constant::{PORT_KEY_CMD, PORT_KEY_DATA},
     conquer_once::spin::OnceCell,
     core::{
@@ -28,7 +28,7 @@ pub async fn task() {
     let mut packet_stream = PacketStream;
 
     let mut device = Device::new();
-    let mut cursor = MouseCursor::new();
+    let mut cursor = Cursor::new();
 
     while let Some(packet) = packet_stream.next().await {
         device.put_data(packet);
