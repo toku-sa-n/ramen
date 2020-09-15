@@ -132,7 +132,7 @@ impl MouseCursor {
         }
     }
 
-    pub fn draw_offset(&mut self, offset: Vec2<i32>) {
+    pub fn move_offset(&mut self, offset: Vec2<i32>) {
         let new_coord = self.coord + offset;
         self.coord = new_coord;
         self.draw(new_coord)

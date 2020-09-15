@@ -35,7 +35,7 @@ pub async fn task() {
         if device.data_available() {
             device.purse_data();
             device.print_click_info();
-            cursor.draw_offset(device.get_speed());
+            cursor.move_offset(device.get_speed());
         }
     }
 }
