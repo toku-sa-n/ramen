@@ -55,8 +55,8 @@ impl Controller {
         for layer in &self.0 {
             for y in layer.top_left.y..(layer.top_left.y + layer.len.y) {
                 for x in 0..(layer.top_left.x + layer.len.x) {
-                    if let Some(rgb) =
-                        layer.buf[usize::try_from(y).unwrap()][usize::try_from(x).unwrap()]
+                    if let Some(rgb) = layer.buf[usize::try_from(y - layer.top_left.y).unwrap()]
+                        [usize::try_from(x - layer.top_left.x).unwrap()]
                     {
                         unsafe { Vram::set_color(Vec2::new(x, y), rgb) }
                     }
