@@ -53,12 +53,12 @@ impl Controller {
 
     fn repaint(&self, vram_top_left: Vec2<i32>, len: Vec2<i32>) {
         for layer in &self.0 {
-            for y in 0..layer.len.y {
-                for x in 0..layer.len.x {
+            for y in layer.top_left.y..(layer.top_left.y + layer.len.y) {
+                for x in 0..(layer.top_left.x + layer.len.x) {
                     if let Some(rgb) =
                         layer.buf[usize::try_from(y).unwrap()][usize::try_from(x).unwrap()]
                     {
-                        unsafe { Vram::set_color(layer.top_left + Vec2::new(x, y), rgb) }
+                        unsafe { Vram::set_color(Vec2::new(x, y), rgb) }
                     }
                 }
             }
