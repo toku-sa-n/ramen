@@ -57,10 +57,11 @@ impl Controller {
 
     pub fn slide_layer(&mut self, id: Id, new_top_left: Vec2<i32>) -> Result<(), Error> {
         let layer = self.id_to_layer(id)?;
-        let layer_top_left = layer.top_left;
+        let old_top_left = layer.top_left;
         let layer_len = layer.len;
         layer.slide(new_top_left);
-        self.repaint(layer_top_left, layer_len);
+        self.repaint(old_top_left, layer_len);
+        self.repaint(new_top_left, layer_len);
         Ok(())
     }
 
