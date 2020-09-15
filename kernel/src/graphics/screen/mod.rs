@@ -138,7 +138,7 @@ impl MouseCursor {
         self.draw(new_coord)
     }
 
-    pub fn draw(&mut self, coord: Vec2<i32>) {
+    fn draw(&mut self, coord: Vec2<i32>) {
         layer::CONTROLLER
             .lock()
             .slide_layer(self.id, coord)
