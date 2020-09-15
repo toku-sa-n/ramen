@@ -10,12 +10,12 @@ use {
     vek::Vec2,
 };
 
-pub struct MouseCursor {
+pub struct Cursor {
     coord: Vec2<i32>,
     id: layer::Id,
 }
 
-impl MouseCursor {
+impl Cursor {
     pub fn new() -> Self {
         let layer = Layer::new(
             Vec2::zero(),
