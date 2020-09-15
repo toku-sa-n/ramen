@@ -54,7 +54,7 @@ impl Controller {
     fn repaint(&self, vram_top_left: Vec2<i32>, len: Vec2<i32>) {
         for layer in &self.0 {
             for y in layer.top_left.y..(layer.top_left.y + layer.len.y) {
-                for x in 0..(layer.top_left.x + layer.len.x) {
+                for x in layer.top_left.x..(layer.top_left.x + layer.len.x) {
                     if let Some(rgb) = layer.buf[usize::try_from(y - layer.top_left.y).unwrap()]
                         [usize::try_from(x - layer.top_left.x).unwrap()]
                     {
