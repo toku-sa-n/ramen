@@ -135,9 +135,14 @@ impl MouseCursor {
     pub fn move_offset(&mut self, offset: Vec2<i32>) {
         let new_coord = self.coord + offset;
         self.coord = new_coord;
+        self.fit_in_screen();
         layer::CONTROLLER
             .lock()
             .slide_layer(self.id, new_coord)
             .expect("Layer of mouse cursor should be added.");
+    }
+
+    fn fit_in_screen(&mut self) {
+        self.coord = Vec2::<i32>::max(Vec2::min(self.coord, *Vram::resolution()), Vec2::zero());
     }
 }
