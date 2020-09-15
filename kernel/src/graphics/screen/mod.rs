@@ -138,37 +138,10 @@ impl MouseCursor {
         self.draw(new_coord)
     }
 
-    fn put_coord_on_screen(mut coord: Vec2<i32>) -> Vec2<i32> {
-        coord.x = cmp::max(coord.x, 0);
-        coord.y = cmp::max(coord.y, 0);
-
-        coord.x = cmp::min(
-            coord.x,
-            Vram::resolution().x - i32::try_from(MOUSE_CURSOR_WIDTH).unwrap() - 1,
-        );
-        coord.y = cmp::min(
-            coord.y,
-            Vram::resolution().y - i32::try_from(MOUSE_CURSOR_HEIGHT).unwrap() - 1,
-        );
-
-        coord
-    }
-
     pub fn draw(&mut self, coord: Vec2<i32>) {
         layer::CONTROLLER
             .lock()
             .slide_layer(self.id, coord)
             .expect("Layer of mouse cursor should be added.");
-    }
-
-    fn remove_previous_cursor(&self) {
-        Screen::draw_rectangle(
-            RGB8::new(0, 0x84, 0x84),
-            Vec2::new(self.coord.x, self.coord.y),
-            Vec2::new(
-                self.coord.x + i32::try_from(MOUSE_CURSOR_WIDTH).unwrap(),
-                self.coord.y + i32::try_from(MOUSE_CURSOR_HEIGHT).unwrap(),
-            ),
-        );
     }
 }
