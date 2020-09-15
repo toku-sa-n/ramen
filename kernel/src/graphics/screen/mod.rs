@@ -135,13 +135,9 @@ impl MouseCursor {
     pub fn move_offset(&mut self, offset: Vec2<i32>) {
         let new_coord = self.coord + offset;
         self.coord = new_coord;
-        self.draw(new_coord)
-    }
-
-    fn draw(&mut self, coord: Vec2<i32>) {
         layer::CONTROLLER
             .lock()
-            .slide_layer(self.id, coord)
+            .slide_layer(self.id, new_coord)
             .expect("Layer of mouse cursor should be added.");
     }
 }
