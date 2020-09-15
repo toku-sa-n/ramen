@@ -37,7 +37,7 @@ impl Controller {
         let layer_top_left = layer.top_left;
         let layer_len = layer.len;
         f(layer);
-        self.repaint(layer_top_left, layer_len);
+        self.redraw(layer_top_left, layer_len);
         Ok(())
     }
 
@@ -46,12 +46,12 @@ impl Controller {
         let old_top_left = layer.top_left;
         let layer_len = layer.len;
         layer.slide(new_top_left);
-        self.repaint(old_top_left, layer_len);
-        self.repaint(new_top_left, layer_len);
+        self.redraw(old_top_left, layer_len);
+        self.redraw(new_top_left, layer_len);
         Ok(())
     }
 
-    fn repaint(&self, mut vram_top_left: Vec2<i32>, len: Vec2<i32>) {
+    fn redraw(&self, mut vram_top_left: Vec2<i32>, len: Vec2<i32>) {
         vram_top_left =
             Vec2::<i32>::max(Vec2::min(vram_top_left, *Vram::resolution()), Vec2::zero());
 
