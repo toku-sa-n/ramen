@@ -143,6 +143,9 @@ impl MouseCursor {
     }
 
     fn fit_in_screen(&mut self) {
-        self.coord = Vec2::<i32>::max(Vec2::min(self.coord, *Vram::resolution()), Vec2::zero());
+        self.coord = Vec2::<i32>::max(
+            Vec2::min(self.coord, *Vram::resolution() - Vec2::one()),
+            Vec2::zero(),
+        );
     }
 }
