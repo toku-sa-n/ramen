@@ -41,6 +41,16 @@ impl Controller {
         Ok(())
     }
 
+    pub fn slide_layer(&mut self, id: Id, new_top_left: Vec2<i32>) -> Result<(), Error> {
+        let layer = self.id_to_layer(id)?;
+        let old_top_left = layer.top_left;
+        let layer_len = layer.len;
+        layer.slide(new_top_left);
+        self.repaint(old_top_left, layer_len);
+        self.repaint(new_top_left, layer_len);
+        Ok(())
+    }
+
     fn repaint(&self, vram_top_left: Vec2<i32>, len: Vec2<i32>) {
         for layer in &self.0 {
             for y in 0..layer.len.y {
@@ -53,16 +63,6 @@ impl Controller {
                 }
             }
         }
-    }
-
-    pub fn slide_layer(&mut self, id: Id, new_top_left: Vec2<i32>) -> Result<(), Error> {
-        let layer = self.id_to_layer(id)?;
-        let old_top_left = layer.top_left;
-        let layer_len = layer.len;
-        layer.slide(new_top_left);
-        self.repaint(old_top_left, layer_len);
-        self.repaint(new_top_left, layer_len);
-        Ok(())
     }
 
     fn bring_layer_to_front(&mut self, id: Id) -> Result<(), Error> {
