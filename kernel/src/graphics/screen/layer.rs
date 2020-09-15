@@ -34,12 +34,14 @@ impl Controller {
         T: Fn(&mut Layer),
     {
         let layer = self.id_to_layer(id)?;
+        let layer_top_left = layer.top_left;
+        let layer_len = layer.len;
         f(layer);
-        self.repaint();
+        self.repaint(layer_top_left, layer_len);
         Ok(())
     }
 
-    fn repaint(&self) {
+    fn repaint(&self, vram_top_left: Vec2<i32>, len: Vec2<i32>) {
         for layer in &self.0 {
             for y in 0..layer.len.y {
                 for x in 0..layer.len.x {
@@ -55,8 +57,10 @@ impl Controller {
 
     pub fn slide_layer(&mut self, id: Id, new_top_left: Vec2<i32>) -> Result<(), Error> {
         let layer = self.id_to_layer(id)?;
+        let layer_top_left = layer.top_left;
+        let layer_len = layer.len;
         layer.slide(new_top_left);
-        self.repaint();
+        self.repaint(layer_top_left, layer_len);
         Ok(())
     }
 
