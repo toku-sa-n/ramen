@@ -68,20 +68,6 @@ const MOUSE_GRAPHIC: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] = [
     ],
 ];
 
-#[macro_export]
-macro_rules! print_with_pos {
-    ($coord:expr,$color:expr,$text:expr,$($args:expr),*) => {
-        let mut screen_write =
-            crate::graphics::screen::writer::Writer::new($coord, $color);
-
-        // To narrow the scope of `use core::fmt::Write;`, enclose sentences by curly braces.
-        {
-            use core::fmt::Write;
-            write!(screen_write, $text, $($args,)*).unwrap();
-        }
-    };
-}
-
 pub struct Screen;
 
 impl Screen {

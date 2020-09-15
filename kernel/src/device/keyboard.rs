@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::{graphics::screen::Screen, print_with_pos},
+    crate::graphics::screen::Screen,
     common::constant::{
         KEY_CMD_MODE, KEY_CMD_WRITE_MODE, KEY_STATUS_SEND_NOT_READY, PORT_KEY_CMD, PORT_KEY_DATA,
         PORT_KEY_STATUS,
@@ -78,7 +78,7 @@ pub async fn task() {
             Vec2::new(0, 16),
             Vec2::new(15, 31),
         );
-        print_with_pos!(Vec2::new(0, 16), RGB8::new(0xff, 0xff, 0xff), "{:X}", code);
+        info!("{:} pressed.", code as char);
     }
 }
 

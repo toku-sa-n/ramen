@@ -2,7 +2,6 @@
 
 use crate::graphics::screen::Screen;
 use crate::graphics::Vram;
-use crate::print_with_pos;
 use rgb::RGB8;
 use vek::Vec2;
 
@@ -15,9 +14,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
     );
 
     if let Some(location) = info.location() {
-        print_with_pos!(
-            Vec2::new(0, 0),
-            RGB8::new(0xff, 0xff, 0xff),
+        error!(
             "Panic in {} at ({}, {}):{}",
             location.file(),
             location.line(),
