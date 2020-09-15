@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::graphics::screen::MouseCursor,
+    crate::graphics::screen::cursor::MouseCursor,
     common::constant::{PORT_KEY_CMD, PORT_KEY_DATA},
     conquer_once::spin::OnceCell,
     core::{
