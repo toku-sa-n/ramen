@@ -24,7 +24,7 @@ impl Xhci {
         }
     }
 
-    fn get_ownership_from_bios(&self) {
+    fn get_ownership_from_bios() {
         info!("Getting ownership from BIOS...");
         todo!();
         info!("Done");
