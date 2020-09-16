@@ -36,7 +36,11 @@ enum Error {
 }
 
 pub fn iter_devices() -> impl Iterator<Item = Xhci> {
-    super::pci::iter_devices()
-        .filter(config::Space::is_xhci)
-        .map(|device| Xhci::new(device).unwrap())
+    super::pci::iter_devices().filter_map(|device| {
+        if device.is_xhci() {
+            Xhci::new(device).ok()
+        } else {
+            None
+        }
+    })
 }
