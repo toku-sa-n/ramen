@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::constant::{
-    BYTES_KERNEL_HEAP, KERNEL_ADDR, KERNEL_HEAP_ADDR, NUM_OF_PAGES_STACK, STACK_LOWER, VRAM_ADDR,
+use {
+    crate::{
+        constant::{
+            BYTES_KERNEL_HEAP, FREE_PAGE_ADDR, KERNEL_ADDR, KERNEL_HEAP_ADDR, NUM_OF_PAGES_STACK,
+            STACK_LOWER, VRAM_ADDR,
+        },
+        vram,
+    },
+    os_units::{Bytes, Size},
+    x86_64::{PhysAddr, VirtAddr},
 };
-use crate::vram;
-use os_units::{Bytes, Size};
-use x86_64::{PhysAddr, VirtAddr};
 
 pub struct KernelPhysRange {
     start: PhysAddr,
@@ -29,14 +34,14 @@ impl Map {
         kernel: &KernelPhysRange,
         phys_addr_stack: PhysAddr,
         vram: &vram::Info,
-        heap: PhysAddr,
+        free_page: PhysAddr,
     ) -> Self {
         Self {
             0: [
                 Range::kernel(&kernel),
                 Range::stack(phys_addr_stack),
                 Range::vram(vram),
-                Range::heap(heap),
+                Range::free_page(free_page),
             ],
         }
     }
@@ -57,7 +62,7 @@ pub struct Range {
 
 impl Range {
     #[must_use]
-    pub fn kernel(kernel: &KernelPhysRange) -> Self {
+    fn kernel(kernel: &KernelPhysRange) -> Self {
         Self {
             virt: KERNEL_ADDR,
             phys: kernel.start,
@@ -66,7 +71,7 @@ impl Range {
     }
 
     #[must_use]
-    pub fn vram(vram: &vram::Info) -> Self {
+    fn vram(vram: &vram::Info) -> Self {
         Self {
             virt: VRAM_ADDR,
             phys: vram.phys_ptr(),
@@ -75,7 +80,7 @@ impl Range {
     }
 
     #[must_use]
-    pub fn stack(phys: PhysAddr) -> Self {
+    fn stack(phys: PhysAddr) -> Self {
         Self {
             virt: STACK_LOWER,
             phys,
@@ -84,11 +89,11 @@ impl Range {
     }
 
     #[must_use]
-    pub fn heap(phys: PhysAddr) -> Self {
+    fn free_page(phys: PhysAddr) -> Self {
         Self {
-            virt: KERNEL_HEAP_ADDR,
+            virt: FREE_PAGE_ADDR,
             phys,
-            bytes: BYTES_KERNEL_HEAP,
+            bytes: Size::new(0x1000),
         }
     }
 

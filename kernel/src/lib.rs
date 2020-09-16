@@ -2,6 +2,9 @@
 
 #![no_std]
 #![feature(alloc_error_handler)]
+#![feature(linked_list_remove)]
+#![feature(const_fn)]
+#![feature(wake_trait)]
 #![feature(asm)]
 #![feature(panic_info_message)]
 #![feature(start)]
@@ -13,7 +16,10 @@
 #[macro_use]
 #[allow(unused_imports)]
 extern crate common;
+#[macro_use]
 extern crate alloc;
+#[macro_use]
+extern crate log;
 extern crate x86_64;
 
 #[macro_use]
@@ -23,99 +29,79 @@ mod device;
 mod gdt;
 mod idt;
 mod interrupt;
+mod mem;
+mod multitask;
 mod panic;
 
-use allocator::ALLOCATOR;
-use common::{
-    constant::{BYTES_KERNEL_HEAP, KERNEL_HEAP_ADDR},
-    kernelboot,
+use {
+    allocator::{FrameManager, ALLOCATOR},
+    common::{
+        constant::{BYTES_KERNEL_HEAP, KERNEL_HEAP_ADDR},
+        kernelboot,
+    },
+    core::convert::TryFrom,
+    device::{keyboard, mouse},
+    graphics::{
+        screen::{self, desktop::Desktop, layer},
+        Vram,
+    },
+    multitask::{executor::Executor, task::Task},
 };
-use core::convert::TryFrom;
-use graphics::{screen, screen::Coord, screen::MouseCursor, Vram, RGB};
-use interrupt::{handler, mouse};
-use x86_64::instructions::interrupts;
 
 #[no_mangle]
 #[start]
 pub extern "win64" fn os_main(boot_info: kernelboot::Info) -> ! {
-    let (mut mouse_device, mut cursor) = initialization(&boot_info);
+    initialization(&boot_info);
 
-    main_loop(&mut mouse_device, &mut cursor)
+    run_tasks();
 }
 
-fn initialization(boot_info: &kernelboot::Info) -> (mouse::Device, MouseCursor) {
+fn initialization(boot_info: &kernelboot::Info) {
     Vram::init(&boot_info);
 
     gdt::init();
     idt::init();
     interrupt::init_pic();
 
-    unsafe {
-        ALLOCATOR.lock().init(
-            usize::try_from(KERNEL_HEAP_ADDR.as_u64()).unwrap(),
-            BYTES_KERNEL_HEAP.as_usize(),
-        )
-    }
+    FrameManager::init(boot_info.mem_map());
 
-    let mouse_device = mouse::Device::new();
-    let mut mouse_cursor = MouseCursor::new(RGB::new(0x0000_8484), screen::MOUSE_GRAPHIC);
+    allocator::init_heap();
 
-    graphics::screen::draw_desktop();
+    screen::log::init().unwrap();
 
-    print_with_pos!(
-        graphics::screen::Coord::new(16, 64),
-        graphics::RGB::new(0x00FF_FFFF),
-        "x_len = {}",
-        Vram::resolution().x
-    );
+    let desktop = Desktop::new();
+    desktop.draw();
 
-    print_with_pos!(
-        Coord::new(100, 100),
-        RGB::new(0x00ff_ffff),
+    info!("Hello Ramen OS!");
+    info!("Vram information: {}", Vram::display());
+
+    info!(
         "The number of PCI devices: {}",
         device::pci::iter_devices().count()
     );
 
-    print_with_pos!(
-        Coord::new(200, 200),
-        RGB::new(0x00ff_ffff),
-        "The number of xhci devices: {}",
+    info!(
+        "The number of xhc: {}",
         device::xhci::iter_devices().count()
     );
 
     interrupt::set_init_pic_bits();
-    interrupt::init_keyboard();
-    mouse::Device::enable();
-
-    mouse_cursor.draw_offset(graphics::screen::Coord::new(300, 300));
-
-    (mouse_device, mouse_cursor)
 }
 
 #[cfg(not(feature = "qemu_test"))]
-fn main_loop(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseCursor) -> ! {
-    loop {
-        loop_main(mouse_device, mouse_cursor)
-    }
+fn run_tasks() -> ! {
+    let mut executor = Executor::new();
+    executor.spawn(Task::new(keyboard::task()));
+    executor.spawn(Task::new(mouse::task()));
+    executor.run();
 }
 
 #[cfg(feature = "qemu_test")]
-fn main_loop(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseCursor) -> ! {
-    // Because of `hlt` instruction, running `loop_main` many times is impossible.
-    loop_main(mouse_device, mouse_cursor);
-
+fn run_tasks() -> ! {
+    // Currently there is no way to test multitasking. If this OS suppports timer, the situation
+    // may change.
+    //
     // If you change the value `0xf4` and `0x10`, don't forget to change the correspond values in
     // `Makefile`!
     qemu_exit::x86::exit::<u32, 0xf4>(0x10);
-}
-
-fn loop_main(mouse_device: &mut mouse::Device, mouse_cursor: &mut screen::MouseCursor) {
-    interrupts::disable();
-    if interrupt::KEY_QUEUE.lock().len() > 0 {
-        handler::keyboard_data();
-    } else if mouse::QUEUE.lock().len() > 0 {
-        handler::mouse_data(mouse_device, mouse_cursor);
-    } else {
-        interrupts::enable_interrupts_and_hlt();
-    }
 }

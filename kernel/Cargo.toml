@@ -30,7 +30,13 @@ bench = false
 [dependencies]
 common = { path = "../common" }
 conquer-once = { version = "0.2.1", default-features = false }
-spinning_top = "0.2.2"
+spinning_top = { version = "0.2.2", features = ["nightly"] }
 qemu-exit = "0.1.3"
 x86_64 = "0.11.4"
 linked_list_allocator = "0.8.0"
+log = "0.4.11"
+vek = { version = "0.12.0", default-features = false, features = ["libm"] }
+rgb = "0.8.25"
+uefi = "0.5.0"
+crossbeam-queue = { version = "0.2.3", default-features = false, features = ["alloc"] }
+futures-util = { version = "0.3.4", default-features = false, features = ["alloc"] }
