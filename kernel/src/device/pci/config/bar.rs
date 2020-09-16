@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::ConfigAddress;
+use {super::ConfigAddress, x86_64::PhysAddr};
 
 #[derive(Debug)]
-pub(super) struct Bar {
+pub struct Bar {
     ty: BarType,
     prefetch: bool,
     base_addr: u64,
@@ -26,6 +26,10 @@ impl Bar {
             prefetch: low_bar & 0b100 == 0b100,
             base_addr: u64::from(high_bar) << 32 | u64::from(low_bar & 0xffff_fff0),
         }
+    }
+
+    pub fn base_addr(&self) -> PhysAddr {
+        PhysAddr::new(self.base_addr)
     }
 }
 

@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod bar;
+pub mod bar;
 
 use bar::Bar;
 use core::convert::TryFrom;
-use x86_64::instructions::port::{PortReadOnly, PortWriteOnly};
+use x86_64::{
+    instructions::port::{PortReadOnly, PortWriteOnly},
+    PhysAddr,
+};
 
 #[derive(Debug)]
 pub struct Space {
@@ -17,24 +20,28 @@ pub struct Space {
 impl Space {
     pub fn fetch(bus: u8, device: u8) -> Option<Self> {
         let id = Id::fetch(bus, device);
+        if !id.is_valid() {
+            return None;
+        }
+
         let bar = Bar::fetch(bus, device);
         let class = Class::fetch(bus, device);
         let interface = Interface::fetch(bus, device);
 
-        if id.is_valid() {
-            Some(Self {
-                id,
-                bar,
-                class,
-                interface,
-            })
-        } else {
-            None
-        }
+        Some(Self {
+            id,
+            bar,
+            class,
+            interface,
+        })
     }
 
     pub fn is_xhci(&self) -> bool {
         self.class.base == 0x0c && self.class.sub == 0x03 && self.interface.0 == 0x30
+    }
+
+    pub fn bar(&self) -> &Bar {
+        &self.bar
     }
 }
 
@@ -97,7 +104,7 @@ impl Id {
     }
 
     fn is_valid(&self) -> bool {
-        self.vendor == 0xffff
+        self.vendor != 0xffff
     }
 }
 
