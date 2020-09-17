@@ -10,6 +10,17 @@ use {
     },
 };
 
+// TODO: Deallocate after calling passed closure.
+pub fn map_temporary<T>(f: T)
+where
+    T: Fn(VirtAddr),
+{
+    match search_first_unused_page() {
+        Some(addr) => f(addr.start_address()),
+        None => panic!("OOM during `map_temporary`"),
+    }
+}
+
 pub fn search_first_unused_page() -> Option<Page> {
     for addr in (0..LIMIT_VIRT_ADDR.as_u64()).step_by(usize::try_from(Size4KiB::SIZE).unwrap()) {
         let virt_addr = VirtAddr::new(addr);
