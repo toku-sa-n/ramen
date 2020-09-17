@@ -3,10 +3,8 @@
 #![allow(clippy::too_many_arguments)]
 use {
     crate::mem::paging::pml4::PML4,
-    common::constant::{
-        BYTES_KERNEL_HEAP, CHANGE_FREE_PAGE_ADDR, FREE_PAGE_ADDR, KERNEL_HEAP_ADDR,
-    },
-    conquer_once::spin::{Lazy, OnceCell},
+    common::constant::{BYTES_KERNEL_HEAP, CHANGE_FREE_PAGE_ADDR, KERNEL_HEAP_ADDR},
+    conquer_once::spin::Lazy,
     core::{alloc::Layout, convert::TryFrom, ptr},
     linked_list_allocator::LockedHeap,
     spinning_top::Spinlock,

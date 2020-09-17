@@ -2,10 +2,7 @@
 
 use {
     crate::{
-        constant::{
-            BYTES_KERNEL_HEAP, FREE_PAGE_ADDR, KERNEL_ADDR, KERNEL_HEAP_ADDR, NUM_OF_PAGES_STACK,
-            STACK_LOWER, VRAM_ADDR,
-        },
+        constant::{FREE_PAGE_ADDR, KERNEL_ADDR, NUM_OF_PAGES_STACK, STACK_LOWER, VRAM_ADDR},
         vram,
     },
     os_units::{Bytes, Size},
