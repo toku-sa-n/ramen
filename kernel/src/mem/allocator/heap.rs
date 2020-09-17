@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+// WORKAROUND: https://stackoverflow.com/questions/63933070/clippy-says-too-many-arguments-to-static-declaration
+#![allow(clippy::too_many_arguments)]
+
 use {
     super::{super::paging::pml4::PML4, phys::FRAME_MANAGER},
     common::constant::{BYTES_KERNEL_HEAP, KERNEL_HEAP_ADDR},
