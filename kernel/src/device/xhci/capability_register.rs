@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{allocator::FRAME_MANAGER, device::pci::config::bar::Bar, mem::paging::pml4::PML4};
+use crate::{
+    device::pci::config::bar::Bar, mem::allocator::phys::FRAME_MANAGER, mem::paging::pml4::PML4,
+};
 use common::constant::XHCI_CAPABILITY_REGISTER_ADDR;
 use core::ptr;
 use x86_64::{

@@ -1,4 +1,4 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pub mod allocator;
-pub mod paging;
+pub mod heap;
+pub mod phys;
