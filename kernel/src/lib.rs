@@ -21,7 +21,6 @@ extern crate alloc;
 extern crate log;
 extern crate x86_64;
 
-mod allocator;
 mod device;
 mod gdt;
 mod idt;
@@ -34,13 +33,13 @@ mod panic;
 mod graphics;
 
 use {
-    allocator::FrameManager,
     common::kernelboot,
     device::{keyboard, mouse},
     graphics::{
         screen::{self, desktop::Desktop, layer},
         Vram,
     },
+    mem::allocator::{heap, phys::FrameManager},
     multitask::{executor::Executor, task::Task},
 };
 
@@ -61,7 +60,7 @@ fn initialization(boot_info: &kernelboot::Info) {
 
     FrameManager::init(boot_info.mem_map());
 
-    allocator::init_heap();
+    heap::init();
 
     layer::init();
 
