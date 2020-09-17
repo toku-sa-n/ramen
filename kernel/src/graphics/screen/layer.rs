@@ -3,7 +3,7 @@
 use {
     super::Vram,
     conquer_once::spin::OnceCell,
-    core::ops::Deref,
+    core::convert::TryFrom,
     screen_layer::{self, Layer},
     spinning_top::Spinlock,
 };
@@ -16,8 +16,8 @@ pub fn init() {
             Spinlock::new(unsafe {
                 screen_layer::Controller::new(
                     Vram::resolution().as_(),
-                    Vram::bpp() as _,
-                    Vram::ptr().as_u64() as _,
+                    usize::try_from(Vram::bpp()).unwrap(),
+                    usize::try_from(Vram::ptr().as_u64()).unwrap(),
                 )
             })
         })
