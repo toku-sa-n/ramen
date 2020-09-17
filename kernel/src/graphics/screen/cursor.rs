@@ -1,18 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{
-        layer::{self, Layer},
-        MOUSE_CURSOR_HEIGHT, MOUSE_CURSOR_WIDTH, MOUSE_GRAPHIC,
-    },
+    super::{layer, MOUSE_CURSOR_HEIGHT, MOUSE_CURSOR_WIDTH, MOUSE_GRAPHIC},
     crate::graphics::Vram,
     rgb::RGB8,
+    screen_layer::{self, Layer},
     vek::Vec2,
 };
 
 pub struct Cursor {
     coord: Vec2<i32>,
-    id: layer::Id,
+    id: screen_layer::Id,
 }
 
 impl Cursor {
@@ -22,9 +20,9 @@ impl Cursor {
             Vec2::new(MOUSE_CURSOR_WIDTH, MOUSE_CURSOR_HEIGHT).as_(),
         );
 
-        let id = layer::CONTROLLER.lock().add_layer(layer);
+        let id = layer::get_controller().lock().add_layer(layer);
 
-        layer::CONTROLLER
+        layer::get_controller()
             .lock()
             .edit_layer(id, |layer: &mut Layer| {
                 for y in 0..MOUSE_CURSOR_HEIGHT {
@@ -49,9 +47,9 @@ impl Cursor {
         let new_coord = self.coord + offset;
         self.coord = new_coord;
         self.fit_in_screen();
-        layer::CONTROLLER
+        layer::get_controller()
             .lock()
-            .slide_layer(self.id, self.coord)
+            .slide_layer(self.id, self.coord.as_())
             .expect("Layer of mouse cursor should be added.");
     }
 

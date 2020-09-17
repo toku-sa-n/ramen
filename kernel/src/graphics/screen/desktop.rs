@@ -1,23 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{
-        layer::{self, Layer},
-        Vram,
-    },
+    super::{layer, Vram},
     core::convert::TryFrom,
     rgb::RGB8,
+    screen_layer::Layer,
     vek::Vec2,
 };
 
 pub struct Desktop {
-    id: layer::Id,
+    id: screen_layer::Id,
 }
 
 impl Desktop {
     pub fn new() -> Self {
-        let layer = Layer::new(Vec2::new(0, 0), *Vram::resolution());
-        let id = layer::CONTROLLER.lock().add_layer(layer);
+        let layer = Layer::new(Vec2::new(0, 0), Vram::resolution().as_());
+        let id = layer::get_controller().lock().add_layer(layer);
 
         Self { id }
     }
@@ -63,7 +61,7 @@ impl Desktop {
             draw_desktop_part(0x00FF_FFFF, x_len - 3, y_len - 24, x_len - 3, y_len - 3);
         };
 
-        layer::CONTROLLER
+        layer::get_controller()
             .lock()
             .edit_layer(self.id, edit)
             .expect("Desktop layer is not added.")
