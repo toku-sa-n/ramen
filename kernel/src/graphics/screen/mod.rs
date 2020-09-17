@@ -8,7 +8,6 @@ pub mod writer;
 
 use {
     super::{font, Vram},
-    core::{cmp, convert::TryFrom},
     rgb::RGB8,
     vek::Vec2,
 };

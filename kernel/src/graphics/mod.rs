@@ -7,7 +7,7 @@ pub mod screen;
 
 use common::{constant::VRAM_ADDR, kernelboot};
 use conquer_once::spin::{Lazy, OnceCell};
-use core::{convert::TryFrom, fmt, ptr};
+use core::{fmt, ptr};
 use rgb::RGB8;
 use vek::Vec2;
 use x86_64::VirtAddr;

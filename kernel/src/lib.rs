@@ -16,7 +16,6 @@
 #[macro_use]
 #[allow(unused_imports)]
 extern crate common;
-#[macro_use]
 extern crate alloc;
 #[macro_use]
 extern crate log;
@@ -35,12 +34,8 @@ mod panic;
 mod graphics;
 
 use {
-    allocator::{FrameManager, ALLOCATOR},
-    common::{
-        constant::{BYTES_KERNEL_HEAP, KERNEL_HEAP_ADDR},
-        kernelboot,
-    },
-    core::convert::TryFrom,
+    allocator::FrameManager,
+    common::kernelboot,
     device::{keyboard, mouse},
     graphics::{
         screen::{self, desktop::Desktop, layer},

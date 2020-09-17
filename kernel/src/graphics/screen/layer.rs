@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::Vram,
-    conquer_once::spin::OnceCell,
-    core::convert::TryFrom,
-    screen_layer::{self, Layer},
+    super::Vram, conquer_once::spin::OnceCell, core::convert::TryFrom, screen_layer,
     spinning_top::Spinlock,
 };
 
