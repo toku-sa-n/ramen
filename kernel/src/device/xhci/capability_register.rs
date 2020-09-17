@@ -44,7 +44,7 @@ impl CapabilityRegister {
     }
 }
 
-struct XhciExtendedCapabilitiesPointer(PhysAddr);
+pub(super) struct XhciExtendedCapabilitiesPointer(PhysAddr);
 impl XhciExtendedCapabilitiesPointer {
     /// Safety: `XHCI_CAPABILITY_REGISTER_ADDR` must point the base of MMID.
     unsafe fn fetch() -> Self {
@@ -57,5 +57,9 @@ impl XhciExtendedCapabilitiesPointer {
                     .offset(0x10),
             ) >> 16,
         ))
+    }
+
+    pub fn get(&self) -> PhysAddr {
+        self.0
     }
 }

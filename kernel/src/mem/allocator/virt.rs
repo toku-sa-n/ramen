@@ -11,9 +11,9 @@ use {
 };
 
 // TODO: Deallocate after calling passed closure.
-pub fn map_temporary<T>(f: T)
+pub fn map_temporary<T, U>(f: T) -> U
 where
-    T: Fn(VirtAddr),
+    T: Fn(VirtAddr) -> U,
 {
     match search_first_unused_page() {
         Some(addr) => f(addr.start_address()),
