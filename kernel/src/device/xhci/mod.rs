@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 mod capability_register;
+mod register;
 mod usb_leg_sup;
 
 use super::pci::config;
