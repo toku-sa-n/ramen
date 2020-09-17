@@ -68,6 +68,8 @@ fn initialization(boot_info: &kernelboot::Info) {
 
     allocator::init_heap();
 
+    layer::init();
+
     screen::log::init().unwrap();
 
     let desktop = Desktop::new();

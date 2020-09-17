@@ -9,7 +9,6 @@ pub mod writer;
 use {
     super::{font, Vram},
     core::{cmp, convert::TryFrom},
-    layer::Layer,
     rgb::RGB8,
     vek::Vec2,
 };
