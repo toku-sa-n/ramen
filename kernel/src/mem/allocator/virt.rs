@@ -1,14 +1,39 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::mem::paging::pml4::PML4,
+    crate::mem::{allocator::phys::FRAME_MANAGER, paging::pml4::PML4},
     common::constant::LIMIT_VIRT_ADDR,
     core::convert::TryFrom,
     x86_64::{
-        structures::paging::{MapperAllSizes, Page, PageSize, Size4KiB},
-        VirtAddr,
+        structures::paging::{
+            Mapper, MapperAllSizes, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB,
+        },
+        PhysAddr, VirtAddr,
     },
 };
+
+pub fn map_to_phys_temporary<T, U>(addr: PhysAddr, f: T) -> U
+where
+    T: Fn(VirtAddr) -> U,
+{
+    map_temporary(|virt| {
+        let page = Page::<Size4KiB>::containing_address(virt);
+        let frame = PhysFrame::containing_address(addr);
+        unsafe {
+            PML4.lock()
+                .map_to(
+                    page,
+                    frame,
+                    PageTableFlags::PRESENT,
+                    &mut *FRAME_MANAGER.lock(),
+                )
+                .expect("OOM during `map_to_phys_temporary")
+                .flush()
+        };
+
+        f(virt)
+    })
+}
 
 // TODO: Deallocate after calling passed closure.
 pub fn map_temporary<T, U>(f: T) -> U
