@@ -6,7 +6,8 @@ use {
     core::convert::TryFrom,
     x86_64::{
         structures::paging::{
-            Mapper, MapperAllSizes, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB,
+            FrameDeallocator, Mapper, MapperAllSizes, Page, PageSize, PageTableFlags, PhysFrame,
+            Size4KiB,
         },
         PhysAddr, VirtAddr,
     },
@@ -31,11 +32,17 @@ where
                 .flush()
         };
 
-        f(virt)
+        let return_value = f(virt);
+
+        let (frame, flush) = PML4.lock().unmap(page).unwrap();
+        flush.flush();
+
+        unsafe { FRAME_MANAGER.lock().deallocate_frame(frame) }
+
+        return_value
     })
 }
 
-// TODO: Deallocate after calling passed closure.
 fn map_temporary<T, U>(f: T) -> U
 where
     T: Fn(VirtAddr) -> U,
