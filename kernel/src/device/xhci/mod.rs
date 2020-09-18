@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod capability_register;
 mod register;
 
 use {
@@ -9,7 +8,6 @@ use {
         HCCapabilityParameters1, HccapabilityParameters1Field, UsbLegacySupportCapability,
         UsbLegacySupportCapabilityField,
     },
-    x86_64::PhysAddr,
 };
 
 pub struct Xhci {

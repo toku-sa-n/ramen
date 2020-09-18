@@ -4,10 +4,7 @@ pub mod bar;
 
 use bar::Bar;
 use core::convert::TryFrom;
-use x86_64::{
-    instructions::port::{PortReadOnly, PortWriteOnly},
-    PhysAddr,
-};
+use x86_64::instructions::port::{PortReadOnly, PortWriteOnly};
 
 #[derive(Debug)]
 pub struct Space {
