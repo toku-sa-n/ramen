@@ -17,11 +17,11 @@ use {
 
 struct Register {
     visibility: Visibility,
-    struct_token: Token![struct],
+    _struct_token: Token![struct],
     name: Ident,
-    colon_token: Token![:],
+    _colon_token: Token![:],
     ty: Type,
-    brace_token: Brace,
+    _brace_token: Brace,
     fields: Punctuated<Field, Token![,]>,
 }
 
@@ -38,11 +38,11 @@ impl Parse for Register {
 
         Ok(Self {
             visibility,
-            struct_token,
+            _struct_token: struct_token,
             name,
-            colon_token,
+            _colon_token: colon_token,
             ty,
-            brace_token,
+            _brace_token: brace_token,
             fields: content.parse_terminated(Field::parse)?,
         })
     }
@@ -50,7 +50,7 @@ impl Parse for Register {
 
 struct Field {
     name: Ident,
-    colon_token: Token![:],
+    _colon_token: Token![:],
     range: ExprRange,
 }
 
@@ -58,7 +58,7 @@ impl Parse for Field {
     fn parse(input: ParseStream) -> Result<Self> {
         Ok(Self {
             name: input.parse()?,
-            colon_token: input.parse()?,
+            _colon_token: input.parse()?,
             range: input.parse()?,
         })
     }
@@ -68,11 +68,11 @@ impl Parse for Field {
 pub fn add_register_type(stream: TokenStream) -> TokenStream {
     let Register {
         visibility,
-        struct_token: _,
+        _struct_token: _,
         name,
-        colon_token: _,
+        _colon_token: _,
         ty,
-        brace_token: _,
+        _brace_token: _,
         fields,
     } = parse_macro_input!(stream as Register);
 
