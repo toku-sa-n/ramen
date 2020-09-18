@@ -11,11 +11,12 @@ use {
         parse_macro_input,
         punctuated::Punctuated,
         token::Brace,
-        ExprRange, Ident, Token, Type,
+        ExprRange, Ident, Token, Type, Visibility,
     },
 };
 
 struct Register {
+    visibility: Visibility,
     struct_token: Token![struct],
     name: Ident,
     colon_token: Token![:],
@@ -26,6 +27,7 @@ struct Register {
 
 impl Parse for Register {
     fn parse(input: ParseStream) -> Result<Self> {
+        let visibility = input.parse()?;
         let struct_token = input.parse()?;
         let name = input.parse()?;
         let colon_token = input.parse()?;
@@ -35,6 +37,7 @@ impl Parse for Register {
         let brace_token = braced!(content in input);
 
         Ok(Self {
+            visibility,
             struct_token,
             name,
             colon_token,
@@ -64,6 +67,7 @@ impl Parse for Field {
 #[proc_macro]
 pub fn add_register_type(stream: TokenStream) -> TokenStream {
     let Register {
+        visibility,
         struct_token: _,
         name,
         colon_token: _,
@@ -85,7 +89,7 @@ pub fn add_register_type(stream: TokenStream) -> TokenStream {
     let bit_range = fields.iter().map(|field| &field.range).collect::<Vec<_>>();
 
     let expanded = quote! {
-        struct #name;
+        #visibility struct #name;
         impl #name{
             fn get(base_addr:x86_64::PhysAddr,field:#enum_name)->#ty{
                 let raw=Self::fetch_raw(base_addr);
