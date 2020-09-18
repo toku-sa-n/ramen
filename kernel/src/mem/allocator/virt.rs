@@ -36,7 +36,7 @@ where
 }
 
 // TODO: Deallocate after calling passed closure.
-pub fn map_temporary<T, U>(f: T) -> U
+fn map_temporary<T, U>(f: T) -> U
 where
     T: Fn(VirtAddr) -> U,
 {
@@ -46,7 +46,7 @@ where
     }
 }
 
-pub fn search_first_unused_page() -> Option<Page> {
+fn search_first_unused_page() -> Option<Page> {
     for addr in
         (0..BYTES_AVAILABLE_RAM.as_usize()).step_by(usize::try_from(Size4KiB::SIZE).unwrap())
     {
