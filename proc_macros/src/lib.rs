@@ -116,7 +116,7 @@ pub fn add_register_type(stream: TokenStream) -> TokenStream {
 
         }
 
-        enum #enum_name{
+        #visibility enum #enum_name{
             #(#enum_variants,)*
         }
     };
