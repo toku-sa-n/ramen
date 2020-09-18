@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    common::constant::CHANGE_FREE_PAGE_ADDR,
+    common::constant::{CHANGE_FREE_PAGE_ADDR, FREE_PAGE_ADDR},
     conquer_once::spin::Lazy,
     core::ptr,
     spinning_top::Spinlock,
     uefi::table::boot::{self, MemoryType},
     x86_64::{
         instructions::tlb,
-        structures::paging::{FrameAllocator, PageSize, PhysFrame, Size4KiB},
+        structures::paging::{FrameAllocator, FrameDeallocator, PageSize, PhysFrame, Size4KiB},
         PhysAddr,
     },
 };
@@ -90,5 +90,14 @@ unsafe impl FrameAllocator<Size4KiB> for FrameManager {
                 Some(PhysFrame::containing_address(addr))
             }
         }
+    }
+}
+
+impl FrameDeallocator<Size4KiB> for FrameManager {
+    unsafe fn deallocate_frame(&mut self, frame: PhysFrame<Size4KiB>) {
+        let addr = frame.start_address();
+        Self::change_free_page_ptr(addr);
+        ptr::write(FREE_PAGE_ADDR.as_mut_ptr(), self.head);
+        self.head = Some(addr);
     }
 }
