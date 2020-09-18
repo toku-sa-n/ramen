@@ -108,7 +108,7 @@ pub fn add_register_type(stream: TokenStream) -> TokenStream {
                 );
             }
 
-            #visibility fn fetch_raw(addr:x86_64::PhysAddr)->#ty{
+            fn fetch_raw(addr:x86_64::PhysAddr)->#ty{
                 crate::mem::allocator::virt::map_to_phys_temporary(addr,|virt_addr| unsafe{
                     core::ptr::read(virt_addr.as_mut_ptr())}
                 )
