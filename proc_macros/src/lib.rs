@@ -91,14 +91,14 @@ pub fn add_register_type(stream: TokenStream) -> TokenStream {
     let expanded = quote! {
         #visibility struct #name;
         impl #name{
-            fn get(base_addr:x86_64::PhysAddr,field:#enum_name)->#ty{
+            #visibility fn get(base_addr:x86_64::PhysAddr,field:#enum_name)->#ty{
                 let raw=Self::fetch_raw(base_addr);
                 match field{
                     #(#enum_name::#enum_variants => raw.bit_range(#bit_range),)*
                 }
             }
 
-            fn set(base_addr:x86_64::PhysAddr,field:#enum_name,value:#ty){
+            #visibility fn set(base_addr:x86_64::PhysAddr,field:#enum_name,value:#ty){
                 let mut raw=Self::fetch_raw(base_addr);
                 let val=match field{
                     #(#enum_name::#enum_variants => raw.set_bit_range(#bit_range,value),)*
@@ -108,7 +108,7 @@ pub fn add_register_type(stream: TokenStream) -> TokenStream {
                 );
             }
 
-            fn fetch_raw(addr:x86_64::PhysAddr)->#ty{
+            #visibility fn fetch_raw(addr:x86_64::PhysAddr)->#ty{
                 crate::mem::allocator::virt::map_to_phys_temporary(addr,|virt_addr| unsafe{
                     core::ptr::read(virt_addr.as_mut_ptr())}
                 )
