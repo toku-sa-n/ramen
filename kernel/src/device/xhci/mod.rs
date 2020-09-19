@@ -24,6 +24,7 @@ impl Xhci {
     pub fn init(&self) {
         self.get_ownership_from_bios();
         self.wait_until_controller_is_ready();
+        self.set_num_of_enabled_slots();
     }
 
     fn get_ownership_from_bios(&self) {
@@ -45,6 +46,17 @@ impl Xhci {
         } {}
 
         info!("Done");
+    }
+
+    fn set_num_of_enabled_slots(&self) {
+        info!("Setting the number of slots...");
+        let num_of_slots = self
+            .structural_parameters_1
+            .get(StructuralParameters1Field::NumberOfDeviceSlots);
+
+        self.configure_register
+            .set(ConfigureRegisterField::MaxDeviceSlotsEnabled, num_of_slots);
+        info!("Done.");
     }
 
     fn new(config_space: config::Space) -> Result<Self, Error> {
