@@ -78,7 +78,7 @@ fn initialization(boot_info: &kernelboot::Info) {
     );
 
     for xhci in device::xhci::iter_devices() {
-        xhci.get_ownership_from_bios();
+        xhci.init();
     }
 
     interrupt::set_init_pic_bits();

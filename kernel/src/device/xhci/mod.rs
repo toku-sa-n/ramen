@@ -5,19 +5,25 @@ mod register;
 use {
     super::pci::config,
     register::{
-        CapabilityRegistersLength, HCCapabilityParameters1, HccapabilityParameters1Field,
-        UsbLegacySupportCapability, UsbLegacySupportCapabilityField,
+        CapabilityRegistersLength, CapabilityRegistersLengthField, HCCapabilityParameters1,
+        HccapabilityParameters1Field, UsbLegacySupportCapability, UsbLegacySupportCapabilityField,
+        UsbStatusRegister, UsbStatusRegisterField,
     },
     x86_64::PhysAddr,
 };
 
 pub struct Xhci {
     usb_legacy_support_capability: UsbLegacySupportCapability,
-    capability_registers_length: CapabilityRegistersLength,
+    usb_status_register: UsbStatusRegister,
 }
 
 impl Xhci {
-    pub fn get_ownership_from_bios(&self) {
+    pub fn init(&self) {
+        self.get_ownership_from_bios();
+        self.wait_until_controller_is_ready();
+    }
+
+    fn get_ownership_from_bios(&self) {
         type LegacySupport = UsbLegacySupportCapability;
         type LegacySupportField = UsbLegacySupportCapabilityField;
 
@@ -52,14 +58,28 @@ impl Xhci {
                 Self::fetch_usb_legacy_support_capability(capability_base);
 
             let capability_registers_length = Self::fetch_capability_registers_length(mmio_base);
+            let operational_base = mmio_base
+                + capability_registers_length.get(CapabilityRegistersLengthField::Len) as usize;
+
+            let usb_status_register = Self::fetch_usb_status_register(operational_base);
 
             Ok(Self {
                 usb_legacy_support_capability,
-                capability_registers_length,
+                usb_status_register,
             })
         } else {
             Err(Error::NotXhciDevice)
         }
+    }
+
+    fn wait_until_controller_is_ready(&self) {
+        info!("Waiting until controller is ready...");
+        while self
+            .usb_status_register
+            .get(UsbStatusRegisterField::ControllerNotReady)
+            == 1
+        {}
+        info!("Controller is ready");
     }
 
     fn fetch_hc_capability_parameters1(mmio_base: PhysAddr) -> HCCapabilityParameters1 {
@@ -83,6 +103,13 @@ impl Xhci {
         let usb_legacy_support_capability = UsbLegacySupportCapability::new(capability_base);
         info!("Done.");
         usb_legacy_support_capability
+    }
+
+    fn fetch_usb_status_register(operational_base: PhysAddr) -> UsbStatusRegister {
+        info!("Fetch UsbStatusRegister...");
+        let status = UsbStatusRegister::new(operational_base + 0x04usize);
+        info!("Done.");
+        status
     }
 }
 #[derive(Debug)]
