@@ -25,34 +25,32 @@ impl Xhci {
     }
 
     pub fn get_ownership_from_bios(&self) {
+        type Param1 = HCCapabilityParameters1;
+        type Param1Field = HccapabilityParameters1Field;
+        type LegacySupport = UsbLegacySupportCapability;
+        type LegacySupportField = UsbLegacySupportCapabilityField;
+
         info!("Getting ownership from BIOS...");
         let mmio_base = self.config_space.bar().base_addr();
 
-        let xhci_extended_capabilities_pointer = HCCapabilityParameters1::get(
-            mmio_base,
-            HccapabilityParameters1Field::XhciExtendedCapabilitiesPointer,
-        );
+        Param1::edit(mmio_base, |param1| {
+            let capability_ptr = param1.get(Param1Field::XhciExtendedCapabilitiesPointer);
+            let capability_base = mmio_base + (capability_ptr << 2) as usize;
 
-        let usb_legacy_support_capability_base =
-            mmio_base + (xhci_extended_capabilities_pointer << 2) as usize;
-        UsbLegacySupportCapability::set(
-            usb_legacy_support_capability_base,
-            UsbLegacySupportCapabilityField::HcOsOwnedSemaphore,
-            1,
-        );
+            let bios_owns_semaphore = LegacySupportField::HcBiosOwnedSemaphore;
+            let os_owns_semaphore = LegacySupportField::HcOsOwnedSemaphore;
 
-        while {
-            let bios_owns = UsbLegacySupportCapability::get(
-                usb_legacy_support_capability_base,
-                UsbLegacySupportCapabilityField::HcBiosOwnedSemaphore,
-            ) == 0;
-            let os_owns = UsbLegacySupportCapability::get(
-                usb_legacy_support_capability_base,
-                UsbLegacySupportCapabilityField::HcOsOwnedSemaphore,
-            ) == 1;
+            LegacySupport::edit(capability_base, |legacy_support| {
+                legacy_support.set(bios_owns_semaphore, 1);
 
-            os_owns && !bios_owns
-        } {}
+                while {
+                    let bios_owns = legacy_support.get(bios_owns_semaphore) == 0;
+                    let os_owns = legacy_support.get(os_owns_semaphore) == 1;
+
+                    os_owns && !bios_owns
+                } {}
+            })
+        });
         info!("Done");
     }
 }

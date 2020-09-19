@@ -89,33 +89,35 @@ pub fn add_register_type(stream: TokenStream) -> TokenStream {
     let bit_range = fields.iter().map(|field| &field.range).collect::<Vec<_>>();
 
     let expanded = quote! {
-        #visibility struct #name;
+        #visibility struct #name{
+            val:#ty,
+        }
+
         impl #name{
-            #visibility fn get(base_addr:x86_64::PhysAddr,field:#enum_name)->#ty{
-                let raw=Self::fetch_raw(base_addr);
+            #visibility fn edit<T>(addr:x86_64::PhysAddr,f:T) where T:Fn(&mut #name){
+                crate::mem::allocator::virt::map_to_phys_temporary(addr,|virt_addr|{
+                    let val=unsafe{core::ptr::read(virt_addr.as_mut_ptr())};
+                    let mut reg=Self{val};
+                    f(&mut reg);
+                    unsafe{core::ptr::write(virt_addr.as_mut_ptr(),reg.val)}
+                })
+            }
+
+            #visibility fn get(&self,field:#enum_name)->#ty{
                 match field{
-                    #(#enum_name::#enum_variants => raw.bit_range(#bit_range),)*
+                    #(#enum_name::#enum_variants => self.val.bit_range(#bit_range),)*
                 }
             }
 
-            #visibility fn set(base_addr:x86_64::PhysAddr,field:#enum_name,value:#ty){
-                let mut raw=Self::fetch_raw(base_addr);
+            #visibility fn set(&mut self,field:#enum_name,value:#ty){
                 let val=match field{
-                    #(#enum_name::#enum_variants => raw.set_bit_range(#bit_range,value),)*
+                    #(#enum_name::#enum_variants => self.val.set_bit_range(#bit_range,value),)*
                 };
-                crate::mem::allocator::virt::map_to_phys_temporary(base_addr,|virt_addr| unsafe{
-                    core::ptr::write(virt_addr.as_mut_ptr(),*val)}
-                );
-            }
-
-            fn fetch_raw(addr:x86_64::PhysAddr)->#ty{
-                crate::mem::allocator::virt::map_to_phys_temporary(addr,|virt_addr| unsafe{
-                    core::ptr::read(virt_addr.as_mut_ptr())}
-                )
             }
 
         }
 
+        #[derive(Copy,Clone)]
         #visibility enum #enum_name{
             #(#enum_variants,)*
         }
