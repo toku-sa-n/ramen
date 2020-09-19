@@ -43,17 +43,7 @@ where
     })
 }
 
-fn map_temporary<T, U>(f: T) -> U
-where
-    T: Fn(VirtAddr) -> U,
-{
-    match search_first_unused_page() {
-        Some(addr) => f(addr.start_address()),
-        None => panic!("OOM during `map_temporary`"),
-    }
-}
-
-fn search_first_unused_page() -> Option<Page> {
+pub fn search_first_unused_page() -> Option<Page> {
     for addr in
         (0..BYTES_AVAILABLE_RAM.as_usize()).step_by(usize::try_from(Size4KiB::SIZE).unwrap())
     {
@@ -63,4 +53,14 @@ fn search_first_unused_page() -> Option<Page> {
         }
     }
     None
+}
+
+fn map_temporary<T, U>(f: T) -> U
+where
+    T: Fn(VirtAddr) -> U,
+{
+    match search_first_unused_page() {
+        Some(addr) => f(addr.start_address()),
+        None => panic!("OOM during `map_temporary`"),
+    }
 }
