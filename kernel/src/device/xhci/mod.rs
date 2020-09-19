@@ -12,8 +12,6 @@ use {
 };
 
 pub struct Xhci {
-    config_space: config::Space,
-    hc_capability_parameters1: HCCapabilityParameters1,
     usb_legacy_support_capability: UsbLegacySupportCapability,
     capability_registers_length: CapabilityRegistersLength,
 }
@@ -56,8 +54,6 @@ impl Xhci {
             let capability_registers_length = Self::fetch_capability_registers_length(mmio_base);
 
             Ok(Self {
-                config_space,
-                hc_capability_parameters1,
                 usb_legacy_support_capability,
                 capability_registers_length,
             })
