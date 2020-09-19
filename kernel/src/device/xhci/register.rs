@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use bit::BitIndex;
-use proc_macros::add_register_type;
+use {bit::BitIndex, proc_macros::add_register_type};
 
 pub trait Register {
     fn name() -> &'static str;
