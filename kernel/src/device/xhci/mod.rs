@@ -64,23 +64,24 @@ impl Xhci {
             info!("xHC found.");
 
             let mmio_base = config_space.bar().base_addr();
-            let hc_capability_parameters1 = Self::fetch::<HCCapabilityParameters1>(mmio_base);
+            let hc_capability_parameters1 = Self::fetch::<HCCapabilityParameters1>(mmio_base, 0x10);
 
             let capability_ptr = hc_capability_parameters1
                 .get(HccapabilityParameters1Field::XhciExtendedCapabilitiesPointer);
             let capability_base = mmio_base + (capability_ptr << 2) as usize;
             let usb_legacy_support_capability =
-                Self::fetch::<UsbLegacySupportCapability>(capability_base);
+                Self::fetch::<UsbLegacySupportCapability>(capability_base, 0);
 
-            let capability_registers_length = Self::fetch::<CapabilityRegistersLength>(mmio_base);
+            let capability_registers_length =
+                Self::fetch::<CapabilityRegistersLength>(mmio_base, 0);
             let operational_base = mmio_base
                 + capability_registers_length.get(CapabilityRegistersLengthField::Len) as usize;
 
-            let usb_status_register = Self::fetch::<UsbStatusRegister>(operational_base);
+            let usb_status_register = Self::fetch::<UsbStatusRegister>(operational_base, 0x04);
 
-            let structural_parameters_1 = Self::fetch::<StructuralParameters1>(mmio_base);
+            let structural_parameters_1 = Self::fetch::<StructuralParameters1>(mmio_base, 0x04);
 
-            let configure_register = Self::fetch::<ConfigureRegister>(operational_base);
+            let configure_register = Self::fetch::<ConfigureRegister>(operational_base, 0x38);
 
             Ok(Self {
                 usb_legacy_support_capability,
@@ -103,9 +104,9 @@ impl Xhci {
         info!("Controller is ready");
     }
 
-    fn fetch<T: register::Register>(base: PhysAddr) -> T {
+    fn fetch<T: register::Register>(base: PhysAddr, offset: usize) -> T {
         info!("Fetching {}...", T::name());
-        let r = T::new(base);
+        let r = T::new(base + offset);
         info!("Done.");
         r
     }
