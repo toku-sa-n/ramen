@@ -52,23 +52,23 @@ impl Xhci {
             info!("xHC found.");
 
             let mmio_base = config_space.bar().base_addr();
-            let hc_capability_parameters1 = Self::fetch_hc_capability_parameters1(mmio_base);
+            let hc_capability_parameters1 = Self::fetch::<HCCapabilityParameters1>(mmio_base);
 
             let capability_ptr = hc_capability_parameters1
                 .get(HccapabilityParameters1Field::XhciExtendedCapabilitiesPointer);
             let capability_base = mmio_base + (capability_ptr << 2) as usize;
             let usb_legacy_support_capability =
-                Self::fetch_usb_legacy_support_capability(capability_base);
+                Self::fetch::<UsbLegacySupportCapability>(capability_base);
 
-            let capability_registers_length = Self::fetch_capability_registers_length(mmio_base);
+            let capability_registers_length = Self::fetch::<CapabilityRegistersLength>(mmio_base);
             let operational_base = mmio_base
                 + capability_registers_length.get(CapabilityRegistersLengthField::Len) as usize;
 
-            let usb_status_register = Self::fetch_usb_status_register(operational_base);
+            let usb_status_register = Self::fetch::<UsbStatusRegister>(operational_base);
 
-            let structural_parameters_1 = Self::fetch_structural_parameters1(mmio_base);
+            let structural_parameters_1 = Self::fetch::<StructuralParameters1>(mmio_base);
 
-            let configure_register = Self::fetch_configure_register(operational_base);
+            let configure_register = Self::fetch::<ConfigureRegister>(operational_base);
 
             Ok(Self {
                 usb_legacy_support_capability,
@@ -91,48 +91,11 @@ impl Xhci {
         info!("Controller is ready");
     }
 
-    fn fetch_hc_capability_parameters1(mmio_base: PhysAddr) -> HCCapabilityParameters1 {
-        info!("Fetching HCCapabilityParameters1...");
-        let hc_capability_parameters1 = HCCapabilityParameters1::new(mmio_base + 0x10usize);
+    fn fetch<T: register::Register>(base: PhysAddr) -> T {
+        info!("Fetching {}...", T::name());
+        let r = T::new(base);
         info!("Done.");
-        hc_capability_parameters1
-    }
-
-    fn fetch_capability_registers_length(mmio_base: PhysAddr) -> CapabilityRegistersLength {
-        info!("Fetching CapabilityRegistersLength...");
-        let len = CapabilityRegistersLength::new(mmio_base);
-        info!("Done.");
-        len
-    }
-
-    fn fetch_usb_legacy_support_capability(
-        capability_base: PhysAddr,
-    ) -> UsbLegacySupportCapability {
-        info!("Fetching UsbLegacySupportCapability...");
-        let usb_legacy_support_capability = UsbLegacySupportCapability::new(capability_base);
-        info!("Done.");
-        usb_legacy_support_capability
-    }
-
-    fn fetch_usb_status_register(operational_base: PhysAddr) -> UsbStatusRegister {
-        info!("Fetch UsbStatusRegister...");
-        let status = UsbStatusRegister::new(operational_base + 0x04usize);
-        info!("Done.");
-        status
-    }
-
-    fn fetch_structural_parameters1(mmio_base: PhysAddr) -> StructuralParameters1 {
-        info!("Fetching StructuralParameters1...");
-        let val = StructuralParameters1::new(mmio_base + 0x04usize);
-        info!("Done.");
-        val
-    }
-
-    fn fetch_configure_register(operational_base: PhysAddr) -> ConfigureRegister {
-        info!("Fetching ConfigureRegister...");
-        let val = ConfigureRegister::new(operational_base + 0x10usize);
-        info!("Done.");
-        val
+        r
     }
 }
 #[derive(Debug)]

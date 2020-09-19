@@ -3,6 +3,11 @@
 use bit::BitIndex;
 use proc_macros::add_register_type;
 
+pub trait Register {
+    fn name() -> &'static str;
+    fn new(phys_base: x86_64::PhysAddr) -> Self;
+}
+
 add_register_type! {
     pub struct UsbLegacySupportCapability: u32{
         capability_id: 0..8,
@@ -26,5 +31,17 @@ add_register_type! {
 add_register_type! {
     pub struct CapabilityRegistersLength:u8{
         len:0..8,
+    }
+}
+
+add_register_type! {
+    pub struct StructuralParameters1:u32{
+        number_of_device_slots:0..8,
+    }
+}
+
+add_register_type! {
+    pub struct ConfigureRegister:u32{
+        max_device_slots_enabled:0..8,
     }
 }

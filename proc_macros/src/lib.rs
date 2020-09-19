@@ -88,31 +88,13 @@ pub fn add_register_type(stream: TokenStream) -> TokenStream {
 
     let bit_range = fields.iter().map(|field| &field.range).collect::<Vec<_>>();
 
+    let typename = format!("{}", name);
     let expanded = quote! {
         #visibility struct #name{
             base:x86_64::VirtAddr,
         }
 
         impl #name{
-            #visibility fn new(phys_base:x86_64::PhysAddr)->Self{
-                use {x86_64::structures::paging::{PhysFrame,Mapper,PageTableFlags},crate::mem::{allocator::{phys::FRAME_MANAGER,virt},paging::pml4::PML4}};
-
-                const PANIC_MSG:&str="OOM during creating a new instance of register type.";
-
-                let page=virt::search_first_unused_page().expect(PANIC_MSG);
-                info!("Addr: {:X}",page.start_address().as_u64());
-                let frame=PhysFrame::containing_address(phys_base);
-
-                unsafe{PML4.lock().map_to(
-                    page,frame,PageTableFlags::PRESENT,&mut *FRAME_MANAGER.lock()).expect(PANIC_MSG).flush()};
-
-                let frame_offset=phys_base.as_u64()&0xfff;
-                let base=page.start_address()+frame_offset;
-
-                Self{
-                    base
-                }
-            }
 
             #visibility fn get(&self,field:#enum_name)->#ty{
                 let raw=self.get_raw();
@@ -144,6 +126,32 @@ pub fn add_register_type(stream: TokenStream) -> TokenStream {
                 flush.flush();
 
                 unsafe{crate::mem::allocator::phys::FRAME_MANAGER.lock().deallocate_frame(frame);}
+            }
+        }
+
+        impl Register for #name{
+            fn name()->&'static str{
+                #typename
+            }
+
+            fn new(phys_base:x86_64::PhysAddr)->Self{
+                use {x86_64::structures::paging::{PhysFrame,Mapper,PageTableFlags},crate::mem::{allocator::{phys::FRAME_MANAGER,virt},paging::pml4::PML4}};
+
+                const PANIC_MSG:&str="OOM during creating a new instance of register type.";
+
+                let page=virt::search_first_unused_page().expect(PANIC_MSG);
+                info!("Addr: {:X}",page.start_address().as_u64());
+                let frame=PhysFrame::containing_address(phys_base);
+
+                unsafe{PML4.lock().map_to(
+                    page,frame,PageTableFlags::PRESENT,&mut *FRAME_MANAGER.lock()).expect(PANIC_MSG).flush()};
+
+                let frame_offset=phys_base.as_u64()&0xfff;
+                let base=page.start_address()+frame_offset;
+
+                Self{
+                    base
+                }
             }
         }
 
