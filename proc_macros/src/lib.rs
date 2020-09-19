@@ -135,6 +135,18 @@ pub fn add_register_type(stream: TokenStream) -> TokenStream {
             }
         }
 
+        impl core::ops::Drop for #name{
+            fn drop(&mut self){
+                use x86_64::structures::paging::{Page,FrameDeallocator,Mapper};
+
+                let page= Page::containing_address(self.base);
+                let (frame,flush)=crate::mem::paging::pml4::PML4.lock().unmap(page).unwrap();
+                flush.flush();
+
+                unsafe{crate::mem::allocator::phys::FRAME_MANAGER.lock().deallocate_frame(frame);}
+            }
+        }
+
         #[derive(Copy,Clone)]
         #visibility enum #enum_name{
             #(#enum_variants,)*
