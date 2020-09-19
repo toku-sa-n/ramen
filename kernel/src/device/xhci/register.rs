@@ -16,3 +16,9 @@ add_register_type! {
         xhci_extended_capabilities_pointer:16..32,
     }
 }
+
+add_register_type! {
+    pub struct UsbStatusRegister:u32{
+        controller_not_ready:11..12,
+    }
+}
