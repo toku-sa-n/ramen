@@ -5,9 +5,10 @@ mod register;
 use {
     super::pci::config,
     register::{
-        CapabilityRegistersLength, CapabilityRegistersLengthField, HCCapabilityParameters1,
-        HccapabilityParameters1Field, UsbLegacySupportCapability, UsbLegacySupportCapabilityField,
-        UsbStatusRegister, UsbStatusRegisterField,
+        CapabilityRegistersLength, CapabilityRegistersLengthField, ConfigureRegister,
+        ConfigureRegisterField, HCCapabilityParameters1, HccapabilityParameters1Field,
+        StructuralParameters1, StructuralParameters1Field, UsbLegacySupportCapability,
+        UsbLegacySupportCapabilityField, UsbStatusRegister, UsbStatusRegisterField,
     },
     x86_64::PhysAddr,
 };
@@ -15,6 +16,8 @@ use {
 pub struct Xhci {
     usb_legacy_support_capability: UsbLegacySupportCapability,
     usb_status_register: UsbStatusRegister,
+    structural_parameters_1: StructuralParameters1,
+    configure_register: ConfigureRegister,
 }
 
 impl Xhci {
@@ -63,9 +66,15 @@ impl Xhci {
 
             let usb_status_register = Self::fetch_usb_status_register(operational_base);
 
+            let structural_parameters_1 = Self::fetch_structural_parameters1(mmio_base);
+
+            let configure_register = Self::fetch_configure_register(operational_base);
+
             Ok(Self {
                 usb_legacy_support_capability,
                 usb_status_register,
+                structural_parameters_1,
+                configure_register,
             })
         } else {
             Err(Error::NotXhciDevice)
@@ -110,6 +119,20 @@ impl Xhci {
         let status = UsbStatusRegister::new(operational_base + 0x04usize);
         info!("Done.");
         status
+    }
+
+    fn fetch_structural_parameters1(mmio_base: PhysAddr) -> StructuralParameters1 {
+        info!("Fetching StructuralParameters1...");
+        let val = StructuralParameters1::new(mmio_base + 0x04usize);
+        info!("Done.");
+        val
+    }
+
+    fn fetch_configure_register(operational_base: PhysAddr) -> ConfigureRegister {
+        info!("Fetching ConfigureRegister...");
+        let val = ConfigureRegister::new(operational_base + 0x10usize);
+        info!("Done.");
+        val
     }
 }
 #[derive(Debug)]
