@@ -15,15 +15,6 @@ pub struct Xhci {
 }
 
 impl Xhci {
-    fn new(config_space: config::Space) -> Result<Self, Error> {
-        if config_space.is_xhci() {
-            info!("base: {:X}", &config_space.bar().base_addr().as_u64());
-            Ok(Self { config_space })
-        } else {
-            Err(Error::NotXhciDevice)
-        }
-    }
-
     pub fn get_ownership_from_bios(&self) {
         type Param1 = HCCapabilityParameters1;
         type Param1Field = HccapabilityParameters1Field;
@@ -52,6 +43,15 @@ impl Xhci {
             })
         });
         info!("Done");
+    }
+
+    fn new(config_space: config::Space) -> Result<Self, Error> {
+        if config_space.is_xhci() {
+            info!("base: {:X}", &config_space.bar().base_addr().as_u64());
+            Ok(Self { config_space })
+        } else {
+            Err(Error::NotXhciDevice)
+        }
     }
 }
 #[derive(Debug)]
