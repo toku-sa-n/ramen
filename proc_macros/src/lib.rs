@@ -90,31 +90,49 @@ pub fn add_register_type(stream: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         #visibility struct #name{
-            val:#ty,
+            base:x86_64::VirtAddr,
         }
 
         impl #name{
-            #visibility fn edit<T>(addr:x86_64::PhysAddr,f:T) where T:Fn(&mut #name){
-                crate::mem::allocator::virt::map_to_phys_temporary(addr,|virt_addr|{
-                    let val=unsafe{core::ptr::read(virt_addr.as_mut_ptr())};
-                    let mut reg=Self{val};
-                    f(&mut reg);
-                    unsafe{core::ptr::write(virt_addr.as_mut_ptr(),reg.val)}
-                })
-            }
+            #visibility fn new(phys_base:x86_64::PhysAddr)->Self{
+                use {x86_64::structures::paging::{PhysFrame,Mapper,PageTableFlags},crate::mem::{allocator::{phys::FRAME_MANAGER,virt},paging::pml4::PML4}};
 
-            #visibility fn get(&self,field:#enum_name)->#ty{
-                match field{
-                    #(#enum_name::#enum_variants => self.val.bit_range(#bit_range),)*
+                const PANIC_MSG:&str="OOM during creating a new instance of register type.";
+
+                let page=virt::search_first_unused_page().expect(PANIC_MSG);
+                info!("Addr: {:X}",page.start_address().as_u64());
+                let frame=PhysFrame::containing_address(phys_base);
+
+                unsafe{PML4.lock().map_to(
+                    page,frame,PageTableFlags::PRESENT,&mut *FRAME_MANAGER.lock()).expect(PANIC_MSG).flush()};
+
+                let frame_offset=phys_base.as_u64()&0xfff;
+                let base=page.start_address()+frame_offset;
+
+                Self{
+                    base
                 }
             }
 
-            #visibility fn set(&mut self,field:#enum_name,value:#ty){
-                let val=match field{
-                    #(#enum_name::#enum_variants => self.val.set_bit_range(#bit_range,value),)*
-                };
+            #visibility fn get(&self,field:#enum_name)->#ty{
+                let raw=self.get_raw();
+                match field{
+                    #(#enum_name::#enum_variants => raw.bit_range(#bit_range),)*
+                }
             }
 
+            #visibility fn set(&self,field:#enum_name,value:#ty){
+                let mut raw=self.get_raw();
+                match field{
+                    #(#enum_name::#enum_variants => raw.set_bit_range(#bit_range,value),)*
+                };
+
+                unsafe{core::ptr::write(self.base.as_mut_ptr(),raw)}
+            }
+
+            fn get_raw(&self)->#ty{
+                unsafe{core::ptr::read(self.base.as_mut_ptr())}
+            }
         }
 
         #[derive(Copy,Clone)]

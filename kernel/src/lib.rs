@@ -77,11 +77,6 @@ fn initialization(boot_info: &kernelboot::Info) {
         device::pci::iter_devices().count()
     );
 
-    info!(
-        "The number of xhc: {}",
-        device::xhci::iter_devices().count()
-    );
-
     for xhci in device::xhci::iter_devices() {
         xhci.get_ownership_from_bios();
     }

@@ -8,50 +8,74 @@ use {
         HCCapabilityParameters1, HccapabilityParameters1Field, UsbLegacySupportCapability,
         UsbLegacySupportCapabilityField,
     },
+    x86_64::PhysAddr,
 };
 
 pub struct Xhci {
     config_space: config::Space,
+    hc_capability_parameters1: HCCapabilityParameters1,
+    usb_legacy_support_capability: UsbLegacySupportCapability,
 }
 
 impl Xhci {
     pub fn get_ownership_from_bios(&self) {
-        type Param1 = HCCapabilityParameters1;
-        type Param1Field = HccapabilityParameters1Field;
         type LegacySupport = UsbLegacySupportCapability;
         type LegacySupportField = UsbLegacySupportCapabilityField;
 
         info!("Getting ownership from BIOS...");
-        let mmio_base = self.config_space.bar().base_addr();
 
-        Param1::edit(mmio_base, |param1| {
-            let capability_ptr = param1.get(Param1Field::XhciExtendedCapabilitiesPointer);
-            let capability_base = mmio_base + (capability_ptr << 2) as usize;
+        let bios_owns_semaphore = LegacySupportField::HcBiosOwnedSemaphore;
+        let os_owns_semaphore = LegacySupportField::HcOsOwnedSemaphore;
 
-            let bios_owns_semaphore = LegacySupportField::HcBiosOwnedSemaphore;
-            let os_owns_semaphore = LegacySupportField::HcOsOwnedSemaphore;
+        self.usb_legacy_support_capability.set(os_owns_semaphore, 1);
 
-            LegacySupport::edit(capability_base, |legacy_support| {
-                legacy_support.set(bios_owns_semaphore, 1);
+        while {
+            let bios_owns = self.usb_legacy_support_capability.get(bios_owns_semaphore) == 0;
+            let os_owns = self.usb_legacy_support_capability.get(os_owns_semaphore) == 1;
 
-                while {
-                    let bios_owns = legacy_support.get(bios_owns_semaphore) == 0;
-                    let os_owns = legacy_support.get(os_owns_semaphore) == 1;
+            os_owns && !bios_owns
+        } {}
 
-                    os_owns && !bios_owns
-                } {}
-            })
-        });
         info!("Done");
     }
 
     fn new(config_space: config::Space) -> Result<Self, Error> {
         if config_space.is_xhci() {
-            info!("base: {:X}", &config_space.bar().base_addr().as_u64());
-            Ok(Self { config_space })
+            info!("xHC found.");
+
+            let mmio_base = config_space.bar().base_addr();
+            let hc_capability_parameters1 = Self::fetch_hc_capability_parameters1(mmio_base);
+
+            let capability_ptr = hc_capability_parameters1
+                .get(HccapabilityParameters1Field::XhciExtendedCapabilitiesPointer);
+            let capability_base = mmio_base + (capability_ptr << 2) as usize;
+            let usb_legacy_support_capability =
+                Self::fetch_usb_legacy_support_capability(capability_base);
+
+            Ok(Self {
+                config_space,
+                hc_capability_parameters1,
+                usb_legacy_support_capability,
+            })
         } else {
             Err(Error::NotXhciDevice)
         }
+    }
+
+    fn fetch_hc_capability_parameters1(mmio_base: PhysAddr) -> HCCapabilityParameters1 {
+        info!("Fetching HCCapabilityParameters1...");
+        let hc_capability_parameters1 = HCCapabilityParameters1::new(mmio_base + 0x10usize);
+        info!("Done.");
+        hc_capability_parameters1
+    }
+
+    fn fetch_usb_legacy_support_capability(
+        capability_base: PhysAddr,
+    ) -> UsbLegacySupportCapability {
+        info!("Fetching UsbLegacySupportCapability...");
+        let usb_legacy_support_capability = UsbLegacySupportCapability::new(capability_base);
+        info!("Done.");
+        usb_legacy_support_capability
     }
 }
 #[derive(Debug)]
