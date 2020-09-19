@@ -5,8 +5,8 @@ mod register;
 use {
     super::pci::config,
     register::{
-        HCCapabilityParameters1, HccapabilityParameters1Field, UsbLegacySupportCapability,
-        UsbLegacySupportCapabilityField,
+        CapabilityRegistersLength, HCCapabilityParameters1, HccapabilityParameters1Field,
+        UsbLegacySupportCapability, UsbLegacySupportCapabilityField,
     },
     x86_64::PhysAddr,
 };
@@ -67,6 +67,13 @@ impl Xhci {
         let hc_capability_parameters1 = HCCapabilityParameters1::new(mmio_base + 0x10usize);
         info!("Done.");
         hc_capability_parameters1
+    }
+
+    fn fetch_capability_registers_length(mmio_base: PhysAddr) -> CapabilityRegistersLength {
+        info!("Fetching CapabilityRegistersLength...");
+        let len = CapabilityRegistersLength::new(mmio_base);
+        info!("Done.");
+        len
     }
 
     fn fetch_usb_legacy_support_capability(
