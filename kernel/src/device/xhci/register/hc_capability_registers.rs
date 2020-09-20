@@ -8,16 +8,19 @@ use {
 pub struct HCCapabilityRegisters {
     pub cap_length: CapabilityRegistersLength,
     pub hcs_params_1: StructuralParameters1,
+    pub hc_cp_params_1: HCCapabilityParameters1,
 }
 
 impl HCCapabilityRegisters {
     pub fn new(mmio_base: PhysAddr) -> Self {
         let cap_length = CapabilityRegistersLength::new(mmio_base, 0);
         let hcs_params_1 = StructuralParameters1::new(mmio_base, 0x04);
+        let hc_cp_params_1 = HCCapabilityParameters1::new(mmio_base, 0x10);
 
         Self {
             cap_length,
             hcs_params_1,
+            hc_cp_params_1,
         }
     }
 }
@@ -31,5 +34,11 @@ add_register_type! {
 add_register_type! {
     pub struct StructuralParameters1:u32{
         number_of_device_slots:0..8,
+    }
+}
+
+add_register_type! {
+    pub struct HCCapabilityParameters1:u32{
+        xhci_extended_capabilities_pointer:16..32,
     }
 }

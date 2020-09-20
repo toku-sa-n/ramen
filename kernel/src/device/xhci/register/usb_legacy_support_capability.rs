@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::device::xhci::register::Register, bit::BitIndex, proc_macros::add_register_type,
+    crate::device::xhci::register::{
+        hc_capability_registers::{HCCapabilityRegisters, HccapabilityParameters1Field},
+        Register,
+    },
+    bit::BitIndex,
+    proc_macros::add_register_type,
     x86_64::PhysAddr,
 };
 
@@ -10,8 +15,11 @@ pub struct UsbLegacySupportCapability {
 }
 
 impl UsbLegacySupportCapability {
-    pub fn new(mmio_base: PhysAddr, xecp: usize) -> Self {
-        let base = mmio_base + (xecp << 2);
+    pub fn new(mmio_base: PhysAddr, hc_capability_registers: &HCCapabilityRegisters) -> Self {
+        let xecp = hc_capability_registers
+            .hc_cp_params_1
+            .get(HccapabilityParameters1Field::XhciExtendedCapabilitiesPointer);
+        let base = mmio_base + (xecp << 2) as usize;
         let usb_leg_sup = UsbLegacySupportCapabilityRegister::new(base, 0);
 
         Self { usb_leg_sup }

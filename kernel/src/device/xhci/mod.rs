@@ -6,24 +6,24 @@ use {
     super::pci::config,
     register::{
         hc_capability_registers::{
-            CapabilityRegistersLength, CapabilityRegistersLengthField, HCCapabilityRegisters,
+            HCCapabilityParameters1, HCCapabilityRegisters, HccapabilityParameters1Field,
             StructuralParameters1Field,
+        },
+        hc_operational_registers::{
+            ConfigureRegisterField, HCOperationalRegisters, UsbStatusRegisterField,
         },
         usb_legacy_support_capability::{
             UsbLegacySupportCapability, UsbLegacySupportCapabilityRegister,
             UsbLegacySupportCapabilityRegisterField,
         },
-        ConfigureRegister, ConfigureRegisterField, HCCapabilityParameters1,
-        HccapabilityParameters1Field, UsbStatusRegister, UsbStatusRegisterField,
     },
     x86_64::PhysAddr,
 };
 
 pub struct Xhci {
     usb_legacy_support_capability: UsbLegacySupportCapability,
-    usb_status_register: UsbStatusRegister,
-    configure_register: ConfigureRegister,
     hc_capability_registers: HCCapabilityRegisters,
+    hc_operational_registers: HCOperationalRegisters,
 }
 
 impl Xhci {
@@ -34,7 +34,6 @@ impl Xhci {
     }
 
     fn get_ownership_from_bios(&self) {
-        type LegacySupport = UsbLegacySupportCapabilityRegister;
         type LegacySupportField = UsbLegacySupportCapabilityRegisterField;
 
         info!("Getting ownership from BIOS...");
@@ -63,7 +62,8 @@ impl Xhci {
             .hcs_params_1
             .get(StructuralParameters1Field::NumberOfDeviceSlots);
 
-        self.configure_register
+        self.hc_operational_registers
+            .config
             .set(ConfigureRegisterField::MaxDeviceSlotsEnabled, num_of_slots);
         info!("Done.");
     }
@@ -73,28 +73,18 @@ impl Xhci {
             info!("xHC found.");
 
             let mmio_base = config_space.bar().base_addr();
-            let hc_capability_parameters1 = Self::fetch::<HCCapabilityParameters1>(mmio_base, 0x10);
-
-            let xecp = hc_capability_parameters1
-                .get(HccapabilityParameters1Field::XhciExtendedCapabilitiesPointer);
-            let usb_legacy_support_capability =
-                UsbLegacySupportCapability::new(mmio_base, xecp as usize);
 
             let hc_capability_registers = HCCapabilityRegisters::new(mmio_base);
-            let operational_base = mmio_base
-                + hc_capability_registers
-                    .cap_length
-                    .get(CapabilityRegistersLengthField::Len) as usize;
+            let usb_legacy_support_capability =
+                UsbLegacySupportCapability::new(mmio_base, &hc_capability_registers);
 
-            let usb_status_register = Self::fetch::<UsbStatusRegister>(operational_base, 0x04);
-
-            let configure_register = Self::fetch::<ConfigureRegister>(operational_base, 0x38);
+            let hc_operational_registers =
+                HCOperationalRegisters::new(mmio_base, &hc_capability_registers.cap_length);
 
             Ok(Self {
                 usb_legacy_support_capability,
-                usb_status_register,
-                configure_register,
                 hc_capability_registers,
+                hc_operational_registers,
             })
         } else {
             Err(Error::NotXhciDevice)
@@ -104,7 +94,8 @@ impl Xhci {
     fn wait_until_controller_is_ready(&self) {
         info!("Waiting until controller is ready...");
         while self
-            .usb_status_register
+            .hc_operational_registers
+            .usb_sts
             .get(UsbStatusRegisterField::ControllerNotReady)
             == 1
         {}
