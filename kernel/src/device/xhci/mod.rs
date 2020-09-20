@@ -28,6 +28,7 @@ pub struct Xhci {
     usb_legacy_support_capability: UsbLegacySupportCapability,
     hc_capability_registers: HCCapabilityRegisters,
     hc_operational_registers: HCOperationalRegisters,
+    dcbaa: DeviceContextBaseAddressArray,
 }
 
 impl Xhci {
@@ -84,11 +85,13 @@ impl Xhci {
 
             let hc_operational_registers =
                 HCOperationalRegisters::new(mmio_base, &hc_capability_registers.cap_length);
+            let dcbaa = DeviceContextBaseAddressArray::new();
 
             Ok(Self {
                 usb_legacy_support_capability,
                 hc_capability_registers,
                 hc_operational_registers,
+                dcbaa,
             })
         } else {
             Err(Error::NotXhciDevice)
@@ -112,7 +115,7 @@ const MAX_DEVICE_SLOT: usize = 255;
 struct DeviceContextBaseAddressArray([usize; MAX_DEVICE_SLOT]);
 
 impl DeviceContextBaseAddressArray {
-    fn new(num_of_enabled_slots: usize) -> Self {
+    fn new() -> Self {
         Self([0; MAX_DEVICE_SLOT])
     }
 }
