@@ -60,6 +60,17 @@ impl Xhci {
         info!("Done");
     }
 
+    fn wait_until_controller_is_ready(&self) {
+        info!("Waiting until controller is ready...");
+        while self
+            .hc_operational_registers
+            .usb_sts
+            .get(UsbStatusRegisterField::ControllerNotReady)
+            == 1
+        {}
+        info!("Controller is ready");
+    }
+
     fn set_num_of_enabled_slots(&self) {
         info!("Setting the number of slots...");
         let num_of_slots = self
@@ -96,17 +107,6 @@ impl Xhci {
         } else {
             Err(Error::NotXhciDevice)
         }
-    }
-
-    fn wait_until_controller_is_ready(&self) {
-        info!("Waiting until controller is ready...");
-        while self
-            .hc_operational_registers
-            .usb_sts
-            .get(UsbStatusRegisterField::ControllerNotReady)
-            == 1
-        {}
-        info!("Controller is ready");
     }
 }
 
