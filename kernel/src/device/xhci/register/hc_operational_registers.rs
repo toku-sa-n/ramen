@@ -12,6 +12,7 @@ use {
 
 pub struct HCOperationalRegisters {
     pub usb_sts: UsbStatusRegister,
+    pub dcbaap: DeviceContextBaseAddressArrayPointer,
     pub config: ConfigureRegister,
 }
 
@@ -21,9 +22,14 @@ impl HCOperationalRegisters {
             mmio_base + cap_length.get(CapabilityRegistersLengthField::Len) as usize;
 
         let usb_sts = UsbStatusRegister::new(operational_base, 0x04);
+        let dcbaap = DeviceContextBaseAddressArrayPointer::new(operational_base, 0x30);
         let config = ConfigureRegister::new(operational_base, 0x38);
 
-        Self { usb_sts, config }
+        Self {
+            usb_sts,
+            dcbaap,
+            config,
+        }
     }
 }
 
@@ -36,5 +42,11 @@ add_register_type! {
 add_register_type! {
     pub struct ConfigureRegister:u32{
         max_device_slots_enabled:0..8,
+    }
+}
+
+add_register_type! {
+    pub struct DeviceContextBaseAddressArrayPointer:u64{
+        pointer:6..64,
     }
 }
