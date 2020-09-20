@@ -84,7 +84,7 @@ unsafe impl FrameAllocator<Size4KiB> for FrameManager {
             Some(addr) => {
                 Self::change_free_page_ptr(addr);
                 unsafe {
-                    self.head = ptr::read(addr.as_u64() as _);
+                    self.head = ptr::read(FREE_PAGE_ADDR.as_mut_ptr());
                 }
 
                 Some(PhysFrame::containing_address(addr))
