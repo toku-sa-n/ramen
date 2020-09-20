@@ -5,11 +5,14 @@ mod register;
 use {
     super::pci::config,
     register::{
+        usb_legacy_support_capability::{
+            UsbLegacySupportCapability, UsbLegacySupportCapabilityRegister,
+            UsbLegacySupportCapabilityRegisterField,
+        },
         CapabilityRegistersLength, CapabilityRegistersLengthField, ConfigureRegister,
         ConfigureRegisterField, HCCapabilityParameters1, HccapabilityParameters1Field,
-        StructuralParameters1, StructuralParameters1Field, UsbLegacySupportCapability,
-        UsbLegacySupportCapabilityRegister, UsbLegacySupportCapabilityRegisterField,
-        UsbStatusRegister, UsbStatusRegisterField,
+        StructuralParameters1, StructuralParameters1Field, UsbStatusRegister,
+        UsbStatusRegisterField,
     },
     x86_64::PhysAddr,
 };

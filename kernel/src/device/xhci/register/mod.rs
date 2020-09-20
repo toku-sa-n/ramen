@@ -1,18 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {bit::BitIndex, proc_macros::add_register_type, x86_64::PhysAddr};
+use {bit::BitIndex, proc_macros::add_register_type};
+
+pub mod usb_legacy_support_capability;
 
 pub trait Register {
     fn name() -> &'static str;
     fn new(base: x86_64::PhysAddr, offset: usize) -> Self;
-}
-
-add_register_type! {
-    pub struct UsbLegacySupportCapabilityRegister: u32{
-        capability_id: 0..8,
-        hc_bios_owned_semaphore: 16..17,
-        hc_os_owned_semaphore: 24..25,
-    }
 }
 
 add_register_type! {
@@ -42,18 +36,5 @@ add_register_type! {
 add_register_type! {
     pub struct ConfigureRegister:u32{
         max_device_slots_enabled:0..8,
-    }
-}
-
-pub(super) struct UsbLegacySupportCapability {
-    pub usb_leg_sup: UsbLegacySupportCapabilityRegister,
-}
-
-impl UsbLegacySupportCapability {
-    pub fn new(mmio_base: PhysAddr, xecp: usize) -> Self {
-        let base = mmio_base + (xecp << 2);
-        let usb_leg_sup = UsbLegacySupportCapabilityRegister::new(base, 0);
-
-        Self { usb_leg_sup }
     }
 }
