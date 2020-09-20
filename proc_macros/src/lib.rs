@@ -141,7 +141,6 @@ pub fn add_register_type(stream: TokenStream) -> TokenStream {
                 const PANIC_MSG:&str="OOM during creating a new instance of register type.";
 
                 let page=virt::search_first_unused_page().expect(PANIC_MSG);
-                info!("Addr: {:X}",page.start_address().as_u64());
                 let frame=PhysFrame::containing_address(base);
 
                 unsafe{PML4.lock().map_to(
