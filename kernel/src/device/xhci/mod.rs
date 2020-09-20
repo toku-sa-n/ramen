@@ -5,19 +5,14 @@ mod register;
 use {
     super::pci::config,
     register::{
-        hc_capability_registers::{
-            HCCapabilityParameters1, HCCapabilityRegisters, HccapabilityParameters1Field,
-            StructuralParameters1Field,
-        },
+        hc_capability_registers::{HCCapabilityRegisters, StructuralParameters1Field},
         hc_operational_registers::{
             ConfigureRegisterField, HCOperationalRegisters, UsbStatusRegisterField,
         },
         usb_legacy_support_capability::{
-            UsbLegacySupportCapability, UsbLegacySupportCapabilityRegister,
-            UsbLegacySupportCapabilityRegisterField,
+            UsbLegacySupportCapability, UsbLegacySupportCapabilityRegisterField,
         },
     },
-    x86_64::PhysAddr,
 };
 
 pub struct Xhci {
@@ -100,13 +95,6 @@ impl Xhci {
             == 1
         {}
         info!("Controller is ready");
-    }
-
-    fn fetch<T: register::Register>(base: PhysAddr, offset: usize) -> T {
-        info!("Fetching {}...", T::name());
-        let r = T::new(base, offset);
-        info!("Done.");
-        r
     }
 }
 
