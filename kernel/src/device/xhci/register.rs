@@ -46,12 +46,12 @@ add_register_type! {
 }
 
 pub(super) struct UsbLegacySupportCapability {
-    usb_leg_sup: UsbLegacySupportCapabilityRegister,
+    pub usb_leg_sup: UsbLegacySupportCapabilityRegister,
 }
 
 impl UsbLegacySupportCapability {
-    fn new(mmio_base: PhysAddr, xecp: usize) -> Self {
-        let base = mmio_base + xecp;
+    pub fn new(mmio_base: PhysAddr, xecp: usize) -> Self {
+        let base = mmio_base + (xecp << 2);
         let usb_leg_sup = UsbLegacySupportCapabilityRegister::new(base, 0);
 
         Self { usb_leg_sup }

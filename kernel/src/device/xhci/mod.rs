@@ -7,14 +7,15 @@ use {
     register::{
         CapabilityRegistersLength, CapabilityRegistersLengthField, ConfigureRegister,
         ConfigureRegisterField, HCCapabilityParameters1, HccapabilityParameters1Field,
-        StructuralParameters1, StructuralParameters1Field, UsbLegacySupportCapabilityRegister,
-        UsbLegacySupportCapabilityRegisterField, UsbStatusRegister, UsbStatusRegisterField,
+        StructuralParameters1, StructuralParameters1Field, UsbLegacySupportCapability,
+        UsbLegacySupportCapabilityRegister, UsbLegacySupportCapabilityRegisterField,
+        UsbStatusRegister, UsbStatusRegisterField,
     },
     x86_64::PhysAddr,
 };
 
 pub struct Xhci {
-    usb_legacy_support_capability: UsbLegacySupportCapabilityRegister,
+    usb_legacy_support_capability: UsbLegacySupportCapability,
     usb_status_register: UsbStatusRegister,
     structural_parameters_1: StructuralParameters1,
     configure_register: ConfigureRegister,
@@ -33,14 +34,16 @@ impl Xhci {
 
         info!("Getting ownership from BIOS...");
 
+        let usb_leg_sup = &self.usb_legacy_support_capability.usb_leg_sup;
+
         let bios_owns_semaphore = LegacySupportField::HcBiosOwnedSemaphore;
         let os_owns_semaphore = LegacySupportField::HcOsOwnedSemaphore;
 
-        self.usb_legacy_support_capability.set(os_owns_semaphore, 1);
+        usb_leg_sup.set(os_owns_semaphore, 1);
 
         while {
-            let bios_owns = self.usb_legacy_support_capability.get(bios_owns_semaphore) == 0;
-            let os_owns = self.usb_legacy_support_capability.get(os_owns_semaphore) == 1;
+            let bios_owns = usb_leg_sup.get(bios_owns_semaphore) == 0;
+            let os_owns = usb_leg_sup.get(os_owns_semaphore) == 1;
 
             os_owns && !bios_owns
         } {}
@@ -66,11 +69,10 @@ impl Xhci {
             let mmio_base = config_space.bar().base_addr();
             let hc_capability_parameters1 = Self::fetch::<HCCapabilityParameters1>(mmio_base, 0x10);
 
-            let capability_ptr = hc_capability_parameters1
+            let xecp = hc_capability_parameters1
                 .get(HccapabilityParameters1Field::XhciExtendedCapabilitiesPointer);
-            let capability_base = mmio_base + (capability_ptr << 2) as usize;
             let usb_legacy_support_capability =
-                Self::fetch::<UsbLegacySupportCapabilityRegister>(capability_base, 0);
+                UsbLegacySupportCapability::new(mmio_base, xecp as usize);
 
             let capability_registers_length =
                 Self::fetch::<CapabilityRegistersLength>(mmio_base, 0);
