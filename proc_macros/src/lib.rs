@@ -138,6 +138,7 @@ pub fn add_register_type(stream: TokenStream) -> TokenStream {
             }
 
             fn new(base:x86_64::PhysAddr,offset:usize)->Self{
+                info!("Getting {}...",Self::name());
                 let base=base+offset;
                 use {x86_64::structures::paging::{PhysFrame,Mapper,PageTableFlags},crate::mem::{allocator::{phys::FRAME_MANAGER,virt},paging::pml4::PML4}};
 
@@ -151,6 +152,8 @@ pub fn add_register_type(stream: TokenStream) -> TokenStream {
 
                 let frame_offset=base.as_u64()&0xfff;
                 let base=page.start_address()+frame_offset;
+
+                info!("Done.");
 
                 Self{
                     base
