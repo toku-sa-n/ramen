@@ -107,37 +107,13 @@ impl Xhci {
     }
 }
 
-struct DeviceContextBaseAddressArray(&'static mut [usize]);
+const MAX_DEVICE_SLOT: usize = 255;
+
+struct DeviceContextBaseAddressArray([usize; MAX_DEVICE_SLOT]);
 
 impl DeviceContextBaseAddressArray {
     fn new(num_of_enabled_slots: usize) -> Self {
-        const PANIC_MSG: &str =
-            "OOM during creating a new instance of DeviceContextBaseAddressArray";
-
-        let page = virt::search_first_unused_page().expect(PANIC_MSG);
-        let frame = FRAME_MANAGER.lock().allocate_frame().expect(PANIC_MSG);
-
-        unsafe {
-            PML4.lock()
-                .map_to(
-                    page,
-                    frame,
-                    PageTableFlags::PRESENT,
-                    &mut *FRAME_MANAGER.lock(),
-                )
-                .expect(PANIC_MSG)
-                .flush()
-        };
-
-        Self(unsafe {
-            slice::from_raw_parts_mut(page.start_address().as_mut_ptr(), num_of_enabled_slots)
-        })
-    }
-
-    fn init(&mut self) {
-        for addr in &mut *self.0 {
-            *addr = 0;
-        }
+        Self([0; MAX_DEVICE_SLOT])
     }
 }
 
