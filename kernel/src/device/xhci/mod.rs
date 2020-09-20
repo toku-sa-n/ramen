@@ -68,7 +68,7 @@ impl Xhci {
         info!("Done.");
     }
 
-    fn new(config_space: config::Space) -> Result<Self, Error> {
+    fn new(config_space: &config::Space) -> Result<Self, Error> {
         if config_space.is_xhci() {
             info!("xHC found.");
 
@@ -117,7 +117,7 @@ enum Error {
 pub fn iter_devices() -> impl Iterator<Item = Xhci> {
     super::pci::iter_devices().filter_map(|device| {
         if device.is_xhci() {
-            Xhci::new(device).ok()
+            Xhci::new(&device).ok()
         } else {
             None
         }
