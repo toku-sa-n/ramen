@@ -4,7 +4,7 @@ use {bit::BitIndex, proc_macros::add_register_type};
 
 pub trait Register {
     fn name() -> &'static str;
-    fn new(phys_base: x86_64::PhysAddr) -> Self;
+    fn new(base: x86_64::PhysAddr, offset: usize) -> Self;
 }
 
 add_register_type! {

@@ -106,7 +106,7 @@ impl Xhci {
 
     fn fetch<T: register::Register>(base: PhysAddr, offset: usize) -> T {
         info!("Fetching {}...", T::name());
-        let r = T::new(base + offset);
+        let r = T::new(base, offset);
         info!("Done.");
         r
     }

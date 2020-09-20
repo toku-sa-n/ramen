@@ -134,19 +134,20 @@ pub fn add_register_type(stream: TokenStream) -> TokenStream {
                 #typename
             }
 
-            fn new(phys_base:x86_64::PhysAddr)->Self{
+            fn new(base:x86_64::PhysAddr,offset:usize)->Self{
+                let base=base+offset;
                 use {x86_64::structures::paging::{PhysFrame,Mapper,PageTableFlags},crate::mem::{allocator::{phys::FRAME_MANAGER,virt},paging::pml4::PML4}};
 
                 const PANIC_MSG:&str="OOM during creating a new instance of register type.";
 
                 let page=virt::search_first_unused_page().expect(PANIC_MSG);
                 info!("Addr: {:X}",page.start_address().as_u64());
-                let frame=PhysFrame::containing_address(phys_base);
+                let frame=PhysFrame::containing_address(base);
 
                 unsafe{PML4.lock().map_to(
                     page,frame,PageTableFlags::PRESENT,&mut *FRAME_MANAGER.lock()).expect(PANIC_MSG).flush()};
 
-                let frame_offset=phys_base.as_u64()&0xfff;
+                let frame_offset=base.as_u64()&0xfff;
                 let base=page.start_address()+frame_offset;
 
                 Self{
