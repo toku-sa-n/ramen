@@ -10,14 +10,9 @@ use {
     },
     core::slice,
     register::{
-        hc_capability_registers::{HCCapabilityRegisters, StructuralParameters1Field},
-        hc_operational_registers::{
-            ConfigureRegisterField, DeviceContextBaseAddressArrayPointerField,
-            HCOperationalRegisters, UsbStatusRegisterField,
-        },
-        usb_legacy_support_capability::{
-            UsbLegacySupportCapability, UsbLegacySupportCapabilityRegisterField,
-        },
+        hc_capability_registers::HCCapabilityRegisters,
+        hc_operational_registers::HCOperationalRegisters,
+        usb_legacy_support_capability::UsbLegacySupportCapability,
     },
     x86_64::{
         structures::paging::{FrameAllocator, Mapper, MapperAllSizes, PageTableFlags},
@@ -41,20 +36,15 @@ impl Xhci {
     }
 
     fn get_ownership_from_bios(&self) {
-        type LegacySupportField = UsbLegacySupportCapabilityRegisterField;
-
         info!("Getting ownership from BIOS...");
 
         let usb_leg_sup = &self.usb_legacy_support_capability.usb_leg_sup;
 
-        let bios_owns_semaphore = LegacySupportField::HcBiosOwnedSemaphore;
-        let os_owns_semaphore = LegacySupportField::HcOsOwnedSemaphore;
-
-        usb_leg_sup.set(os_owns_semaphore, 1);
+        usb_leg_sup.set_hc_os_owned_semaphore(1);
 
         while {
-            let bios_owns = usb_leg_sup.get(bios_owns_semaphore) == 0;
-            let os_owns = usb_leg_sup.get(os_owns_semaphore) == 1;
+            let bios_owns = usb_leg_sup.get_hc_bios_owned_semaphore() == 0;
+            let os_owns = usb_leg_sup.get_hc_os_owned_semaphore() == 1;
 
             os_owns && !bios_owns
         } {}
@@ -67,7 +57,7 @@ impl Xhci {
         while self
             .hc_operational_registers
             .usb_sts
-            .get(UsbStatusRegisterField::ControllerNotReady)
+            .get_controller_not_ready()
             == 1
         {}
         info!("Controller is ready");
@@ -78,11 +68,11 @@ impl Xhci {
         let num_of_slots = self
             .hc_capability_registers
             .hcs_params_1
-            .get(StructuralParameters1Field::NumberOfDeviceSlots);
+            .get_number_of_device_slots();
 
         self.hc_operational_registers
             .config
-            .set(ConfigureRegisterField::MaxDeviceSlotsEnabled, num_of_slots);
+            .set_max_device_slots_enabled(num_of_slots);
         info!("Done.");
     }
 
@@ -93,10 +83,9 @@ impl Xhci {
             .translate_addr(VirtAddr::new(&self.dcbaa as *const _ as u64))
             .expect("Failed to fetch the physical address of DCBAA");
 
-        self.hc_operational_registers.dcbaap.set(
-            DeviceContextBaseAddressArrayPointerField::Pointer,
-            phys_addr_of_dcbaa.as_u64() >> 6,
-        );
+        self.hc_operational_registers
+            .dcbaap
+            .set_pointer(phys_addr_of_dcbaa.as_u64() >> 6);
         info!("Done.");
     }
 

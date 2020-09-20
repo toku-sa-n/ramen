@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    inflector::cases::pascalcase::to_pascal_case,
     proc_macro::TokenStream,
     proc_macro2::Span,
     quote::quote,
@@ -76,14 +75,24 @@ pub fn add_register_type(stream: TokenStream) -> TokenStream {
         fields,
     } = parse_macro_input!(stream as Register);
 
-    let enum_name = Ident::new(
-        &format!("{}{}", to_pascal_case(&name.to_string()), "Field"),
-        Span::call_site(),
-    );
-
-    let enum_variants = fields
+    let setter_name = fields
         .iter()
-        .map(|field| Ident::new(&to_pascal_case(&field.name.to_string()), Span::call_site()))
+        .map(|field| {
+            Ident::new(
+                &format!("set_{}", &field.name.to_string()),
+                Span::call_site(),
+            )
+        })
+        .collect::<Vec<_>>();
+
+    let getter_name = fields
+        .iter()
+        .map(|field| {
+            Ident::new(
+                &format!("get_{}", &field.name.to_string()),
+                Span::call_site(),
+            )
+        })
         .collect::<Vec<_>>();
 
     let bit_range = fields.iter().map(|field| &field.range).collect::<Vec<_>>();
@@ -95,22 +104,16 @@ pub fn add_register_type(stream: TokenStream) -> TokenStream {
         }
 
         impl #name{
-
-            #visibility fn get(&self,field:#enum_name)->#ty{
-                let raw=self.get_raw();
-                match field{
-                    #(#enum_name::#enum_variants => raw.bit_range(#bit_range),)*
-                }
+            #(#visibility fn #getter_name(&self)->#ty{
+                self.get_raw().bit_range(#bit_range)
             }
 
-            #visibility fn set(&self,field:#enum_name,value:#ty){
+            #visibility fn #setter_name(&self,value:#ty){
                 let mut raw=self.get_raw();
-                match field{
-                    #(#enum_name::#enum_variants => raw.set_bit_range(#bit_range,value),)*
-                };
+                raw.set_bit_range(#bit_range,value);
 
                 unsafe{core::ptr::write(self.base.as_mut_ptr(),raw)}
-            }
+            })*
 
             fn get_raw(&self)->#ty{
                 unsafe{core::ptr::read(self.base.as_mut_ptr())}
@@ -153,11 +156,6 @@ pub fn add_register_type(stream: TokenStream) -> TokenStream {
                     base
                 }
             }
-        }
-
-        #[derive(Copy,Clone)]
-        #visibility enum #enum_name{
-            #(#enum_variants,)*
         }
     };
 
