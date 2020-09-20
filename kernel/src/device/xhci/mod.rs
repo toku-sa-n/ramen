@@ -12,14 +12,15 @@ use {
     register::{
         hc_capability_registers::{HCCapabilityRegisters, StructuralParameters1Field},
         hc_operational_registers::{
-            ConfigureRegisterField, HCOperationalRegisters, UsbStatusRegisterField,
+            ConfigureRegisterField, DeviceContextBaseAddressArrayPointerField,
+            HCOperationalRegisters, UsbStatusRegisterField,
         },
         usb_legacy_support_capability::{
             UsbLegacySupportCapability, UsbLegacySupportCapabilityRegisterField,
         },
     },
     x86_64::{
-        structures::paging::{FrameAllocator, Mapper, PageTableFlags},
+        structures::paging::{FrameAllocator, Mapper, MapperAllSizes, PageTableFlags},
         VirtAddr,
     },
 };
@@ -36,6 +37,7 @@ impl Xhci {
         self.get_ownership_from_bios();
         self.wait_until_controller_is_ready();
         self.set_num_of_enabled_slots();
+        self.set_dcbaap();
     }
 
     fn get_ownership_from_bios(&self) {
@@ -81,6 +83,20 @@ impl Xhci {
         self.hc_operational_registers
             .config
             .set(ConfigureRegisterField::MaxDeviceSlotsEnabled, num_of_slots);
+        info!("Done.");
+    }
+
+    fn set_dcbaap(&self) {
+        info!("Set DCBAAP...");
+        let phys_addr_of_dcbaa = PML4
+            .lock()
+            .translate_addr(VirtAddr::new(&self.dcbaa as *const _ as u64))
+            .expect("Failed to fetch the physical address of DCBAA");
+
+        self.hc_operational_registers.dcbaap.set(
+            DeviceContextBaseAddressArrayPointerField::Pointer,
+            phys_addr_of_dcbaa.as_u64() >> 6,
+        );
         info!("Done.");
     }
 
