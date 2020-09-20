@@ -8,7 +8,7 @@ pub trait Register {
 }
 
 add_register_type! {
-    pub struct UsbLegacySupportCapability: u32{
+    pub struct UsbLegacySupportCapabilityRegister: u32{
         capability_id: 0..8,
         hc_bios_owned_semaphore: 16..17,
         hc_os_owned_semaphore: 24..25,

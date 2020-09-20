@@ -7,14 +7,14 @@ use {
     register::{
         CapabilityRegistersLength, CapabilityRegistersLengthField, ConfigureRegister,
         ConfigureRegisterField, HCCapabilityParameters1, HccapabilityParameters1Field,
-        StructuralParameters1, StructuralParameters1Field, UsbLegacySupportCapability,
-        UsbLegacySupportCapabilityField, UsbStatusRegister, UsbStatusRegisterField,
+        StructuralParameters1, StructuralParameters1Field, UsbLegacySupportCapabilityRegister,
+        UsbLegacySupportCapabilityRegisterField, UsbStatusRegister, UsbStatusRegisterField,
     },
     x86_64::PhysAddr,
 };
 
 pub struct Xhci {
-    usb_legacy_support_capability: UsbLegacySupportCapability,
+    usb_legacy_support_capability: UsbLegacySupportCapabilityRegister,
     usb_status_register: UsbStatusRegister,
     structural_parameters_1: StructuralParameters1,
     configure_register: ConfigureRegister,
@@ -28,8 +28,8 @@ impl Xhci {
     }
 
     fn get_ownership_from_bios(&self) {
-        type LegacySupport = UsbLegacySupportCapability;
-        type LegacySupportField = UsbLegacySupportCapabilityField;
+        type LegacySupport = UsbLegacySupportCapabilityRegister;
+        type LegacySupportField = UsbLegacySupportCapabilityRegisterField;
 
         info!("Getting ownership from BIOS...");
 
@@ -70,7 +70,7 @@ impl Xhci {
                 .get(HccapabilityParameters1Field::XhciExtendedCapabilitiesPointer);
             let capability_base = mmio_base + (capability_ptr << 2) as usize;
             let usb_legacy_support_capability =
-                Self::fetch::<UsbLegacySupportCapability>(capability_base, 0);
+                Self::fetch::<UsbLegacySupportCapabilityRegister>(capability_base, 0);
 
             let capability_registers_length =
                 Self::fetch::<CapabilityRegistersLength>(mmio_base, 0);
