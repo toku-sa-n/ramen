@@ -109,6 +109,7 @@ impl Xhci {
         r
     }
 }
+
 #[derive(Debug)]
 enum Error {
     NotXhciDevice,
