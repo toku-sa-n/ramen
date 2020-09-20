@@ -133,6 +133,12 @@ impl DeviceContextBaseAddressArray {
             slice::from_raw_parts_mut(page.start_address().as_mut_ptr(), num_of_enabled_slots)
         })
     }
+
+    fn init(&mut self) {
+        for addr in &mut *self.0 {
+            *addr = 0;
+        }
+    }
 }
 
 #[derive(Debug)]
