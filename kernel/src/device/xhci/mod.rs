@@ -4,6 +4,11 @@ mod register;
 
 use {
     super::pci::config,
+    crate::mem::{
+        allocator::{phys::FRAME_MANAGER, virt},
+        paging::pml4::PML4,
+    },
+    core::slice,
     register::{
         hc_capability_registers::{HCCapabilityRegisters, StructuralParameters1Field},
         hc_operational_registers::{
@@ -12,6 +17,10 @@ use {
         usb_legacy_support_capability::{
             UsbLegacySupportCapability, UsbLegacySupportCapabilityRegisterField,
         },
+    },
+    x86_64::{
+        structures::paging::{FrameAllocator, Mapper, PageTableFlags},
+        VirtAddr,
     },
 };
 
@@ -95,6 +104,34 @@ impl Xhci {
             == 1
         {}
         info!("Controller is ready");
+    }
+}
+
+struct DeviceContextBaseAddressArray(&'static mut [usize]);
+
+impl DeviceContextBaseAddressArray {
+    fn new(num_of_enabled_slots: usize) -> Self {
+        const PANIC_MSG: &str =
+            "OOM during creating a new instance of DeviceContextBaseAddressArray";
+
+        let page = virt::search_first_unused_page().expect(PANIC_MSG);
+        let frame = FRAME_MANAGER.lock().allocate_frame().expect(PANIC_MSG);
+
+        unsafe {
+            PML4.lock()
+                .map_to(
+                    page,
+                    frame,
+                    PageTableFlags::PRESENT,
+                    &mut *FRAME_MANAGER.lock(),
+                )
+                .expect(PANIC_MSG)
+                .flush()
+        };
+
+        Self(unsafe {
+            slice::from_raw_parts_mut(page.start_address().as_mut_ptr(), num_of_enabled_slots)
+        })
     }
 }
 
