@@ -5,14 +5,16 @@ mod register;
 use {
     super::pci::config,
     register::{
+        hc_capability_registers::{
+            CapabilityRegistersLength, CapabilityRegistersLengthField, HCCapabilityRegisters,
+            StructuralParameters1Field,
+        },
         usb_legacy_support_capability::{
             UsbLegacySupportCapability, UsbLegacySupportCapabilityRegister,
             UsbLegacySupportCapabilityRegisterField,
         },
-        CapabilityRegistersLength, CapabilityRegistersLengthField, ConfigureRegister,
-        ConfigureRegisterField, HCCapabilityParameters1, HccapabilityParameters1Field,
-        StructuralParameters1, StructuralParameters1Field, UsbStatusRegister,
-        UsbStatusRegisterField,
+        ConfigureRegister, ConfigureRegisterField, HCCapabilityParameters1,
+        HccapabilityParameters1Field, UsbStatusRegister, UsbStatusRegisterField,
     },
     x86_64::PhysAddr,
 };
@@ -20,8 +22,8 @@ use {
 pub struct Xhci {
     usb_legacy_support_capability: UsbLegacySupportCapability,
     usb_status_register: UsbStatusRegister,
-    structural_parameters_1: StructuralParameters1,
     configure_register: ConfigureRegister,
+    hc_capability_registers: HCCapabilityRegisters,
 }
 
 impl Xhci {
@@ -57,7 +59,8 @@ impl Xhci {
     fn set_num_of_enabled_slots(&self) {
         info!("Setting the number of slots...");
         let num_of_slots = self
-            .structural_parameters_1
+            .hc_capability_registers
+            .hcs_params_1
             .get(StructuralParameters1Field::NumberOfDeviceSlots);
 
         self.configure_register
@@ -77,22 +80,21 @@ impl Xhci {
             let usb_legacy_support_capability =
                 UsbLegacySupportCapability::new(mmio_base, xecp as usize);
 
-            let capability_registers_length =
-                Self::fetch::<CapabilityRegistersLength>(mmio_base, 0);
+            let hc_capability_registers = HCCapabilityRegisters::new(mmio_base);
             let operational_base = mmio_base
-                + capability_registers_length.get(CapabilityRegistersLengthField::Len) as usize;
+                + hc_capability_registers
+                    .cap_length
+                    .get(CapabilityRegistersLengthField::Len) as usize;
 
             let usb_status_register = Self::fetch::<UsbStatusRegister>(operational_base, 0x04);
-
-            let structural_parameters_1 = Self::fetch::<StructuralParameters1>(mmio_base, 0x04);
 
             let configure_register = Self::fetch::<ConfigureRegister>(operational_base, 0x38);
 
             Ok(Self {
                 usb_legacy_support_capability,
                 usb_status_register,
-                structural_parameters_1,
                 configure_register,
+                hc_capability_registers,
             })
         } else {
             Err(Error::NotXhciDevice)
