@@ -10,9 +10,10 @@ use {
         paging::pml4::PML4,
     },
     core::{
+        iter::Iterator,
         marker::PhantomData,
         mem::size_of,
-        ops::{Deref, DerefMut},
+        ops::{Deref, DerefMut, Drop},
     },
     os_units::Size,
     x86_64::{
@@ -85,5 +86,35 @@ impl<'a, T: 'a + Register> Deref for Accessor<'a, T> {
 impl<'a, T: 'a + Register> DerefMut for Accessor<'a, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { &mut *self.base.as_mut_ptr() }
+    }
+}
+
+struct IterPages {
+    current: (PhysAddr, VirtAddr),
+    last: (PhysAddr, VirtAddr),
+}
+
+impl IterPages {
+    fn new(current: (PhysAddr, VirtAddr), last: (PhysAddr, VirtAddr)) -> Self {
+        Self { current, last }
+    }
+}
+
+impl Iterator for IterPages {
+    type Item = (PhysFrame, Page);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.current > self.last {
+            None
+        } else {
+            let item = (
+                PhysFrame::containing_address(self.current.0),
+                Page::containing_address(self.current.1),
+            );
+            self.current.0 += Size4KiB::SIZE;
+            self.current.1 += Size4KiB::SIZE;
+
+            Some(item)
+        }
     }
 }
