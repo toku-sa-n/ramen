@@ -5,20 +5,13 @@ mod transfer_ring;
 
 use {
     super::pci::config,
-    crate::mem::{
-        allocator::{phys::FRAME_MANAGER, virt},
-        paging::pml4::PML4,
-    },
-    core::slice,
+    crate::mem::paging::pml4::PML4,
     register::{
         hc_capability_registers::HCCapabilityRegisters,
         hc_operational_registers::HCOperationalRegisters,
         usb_legacy_support_capability::UsbLegacySupportCapability,
     },
-    x86_64::{
-        structures::paging::{FrameAllocator, Mapper, MapperAllSizes, PageTableFlags},
-        VirtAddr,
-    },
+    x86_64::{structures::paging::MapperAllSizes, VirtAddr},
 };
 
 pub struct Xhci {
