@@ -41,6 +41,12 @@ add_register_type! {
     }
 }
 
+impl CommandRingControl {
+    pub fn set_ptr(&self, addr: PhysAddr) {
+        self.set_pointer(addr.as_u64() >> 6);
+    }
+}
+
 add_register_type! {
     pub struct ConfigureRegister:u32{
         max_device_slots_enabled:0..8,
