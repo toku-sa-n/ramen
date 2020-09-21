@@ -71,7 +71,7 @@ impl FrameManager {
                 addr.as_u64() | PAGE_EXISTS,
             )
         }
-        tlb::flush(CHANGE_FREE_PAGE_ADDR);
+        tlb::flush(FREE_PAGE_ADDR);
     }
 
     fn available(ty: boot::MemoryType) -> bool {
