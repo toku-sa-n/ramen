@@ -16,10 +16,14 @@ pub fn search_first_unused_page() -> Option<Page> {
         (0..BYTES_AVAILABLE_RAM.as_usize()).step_by(usize::try_from(Size4KiB::SIZE).unwrap())
     {
         let virt_addr = VirtAddr::new(addr as _);
-        if PML4.lock().translate_addr(virt_addr).is_none() && virt_addr != VirtAddr::zero() {
+        if available(virt_addr) {
             info!("Found: {:?}", virt_addr);
             return Some(Page::containing_address(virt_addr));
         }
     }
     None
+}
+
+fn available(addr: VirtAddr) -> bool {
+    PML4.lock().translate_addr(addr).is_none() && addr != VirtAddr::zero()
 }
