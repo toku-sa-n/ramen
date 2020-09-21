@@ -29,6 +29,7 @@ impl<'a> Xhci<'a> {
         self.wait_until_controller_is_ready();
         self.set_num_of_enabled_slots();
         self.set_dcbaap();
+        self.set_command_ring_pointer();
     }
 
     fn get_ownership_from_bios(&mut self) {
