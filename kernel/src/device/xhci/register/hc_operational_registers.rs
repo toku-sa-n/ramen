@@ -9,6 +9,7 @@ use {
 
 pub struct HCOperationalRegisters {
     pub usb_sts: UsbStatusRegister,
+    pub crcr: CommandRingControlRegister,
     pub dcbaap: DeviceContextBaseAddressArrayPointer,
     pub config: ConfigureRegister,
 }
@@ -18,11 +19,13 @@ impl HCOperationalRegisters {
         let operational_base = mmio_base + cap_length.get_len() as usize;
 
         let usb_sts = UsbStatusRegister::new(operational_base, 0x04);
+        let crcr = CommandRingControlRegister::new(operational_base, 0x18);
         let dcbaap = DeviceContextBaseAddressArrayPointer::new(operational_base, 0x30);
         let config = ConfigureRegister::new(operational_base, 0x38);
 
         Self {
             usb_sts,
+            crcr,
             dcbaap,
             config,
         }
@@ -36,12 +39,12 @@ add_register_type! {
 }
 
 add_register_type! {
-    pub struct CommandRingControl:u64{
+    pub struct CommandRingControlRegister:u64{
         pointer:6..64,
     }
 }
 
-impl CommandRingControl {
+impl CommandRingControlRegister {
     pub fn set_ptr(&self, addr: PhysAddr) {
         self.set_pointer(addr.as_u64() >> 6);
     }

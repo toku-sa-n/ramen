@@ -85,6 +85,13 @@ impl<'a> Xhci<'a> {
         info!("Done.");
     }
 
+    fn set_command_ring_pointer(&self) {
+        let virt_addr = self.command_ring.addr();
+        let phys_addr = PML4.lock().translate_addr(virt_addr).unwrap();
+
+        self.hc_operational_registers.crcr.set_ptr(phys_addr);
+    }
+
     fn new(config_space: &config::Space) -> Result<Self, Error> {
         if config_space.is_xhci() {
             info!("xHC found.");
