@@ -1,32 +1,34 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::device::xhci::register::{hc_capability_registers::HCCapabilityRegisters, Register},
-    bit::BitIndex,
-    proc_macros::add_register_type,
+    crate::device::xhci::register::{
+        hc_capability_registers::HCCapabilityRegisters, Accessor, Register,
+    },
+    bitfield::bitfield,
     x86_64::PhysAddr,
 };
 
-pub struct UsbLegacySupportCapability {
-    pub usb_leg_sup: UsbLegacySupportCapabilityRegister,
+pub struct UsbLegacySupportCapability<'a> {
+    pub usb_leg_sup: Accessor<'a, UsbLegacySupportCapabilityRegister>,
 }
 
-impl UsbLegacySupportCapability {
+impl<'a> UsbLegacySupportCapability<'a> {
     pub fn new(mmio_base: PhysAddr, hc_capability_registers: &HCCapabilityRegisters) -> Self {
         let xecp = hc_capability_registers
             .hc_cp_params_1
-            .get_xhci_extended_capabilities_pointer();
+            .xhci_extended_capabilities_pointer();
         let base = mmio_base + (xecp << 2) as usize;
-        let usb_leg_sup = UsbLegacySupportCapabilityRegister::new(base, 0);
+        let usb_leg_sup = Accessor::new(base, 0);
 
         Self { usb_leg_sup }
     }
 }
 
-add_register_type! {
-    pub struct UsbLegacySupportCapabilityRegister: u32{
-        capability_id: 0..8,
-        hc_bios_owned_semaphore: 16..17,
-        hc_os_owned_semaphore: 24..25,
-    }
+bitfield! {
+    pub struct UsbLegacySupportCapabilityRegister(u32);
+
+    pub bios_owns_hc, _: 16;
+    pub os_owns_hc, request_hc_ownership: 24;
 }
+
+impl Register for UsbLegacySupportCapabilityRegister {}

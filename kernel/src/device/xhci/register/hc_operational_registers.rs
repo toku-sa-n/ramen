@@ -1,27 +1,28 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::device::xhci::register::{hc_capability_registers::CapabilityRegistersLength, Register},
-    bit::BitIndex,
-    proc_macros::add_register_type,
+    crate::device::xhci::register::{
+        hc_capability_registers::CapabilityRegistersLength, Accessor, Register,
+    },
+    bitfield::bitfield,
     x86_64::PhysAddr,
 };
 
-pub struct HCOperationalRegisters {
-    pub usb_sts: UsbStatusRegister,
-    pub crcr: CommandRingControlRegister,
-    pub dcbaap: DeviceContextBaseAddressArrayPointer,
-    pub config: ConfigureRegister,
+pub struct HCOperationalRegisters<'a> {
+    pub usb_sts: Accessor<'a, UsbStatusRegister>,
+    pub crcr: Accessor<'a, CommandRingControlRegister>,
+    pub dcbaap: Accessor<'a, DeviceContextBaseAddressArrayPointer>,
+    pub config: Accessor<'a, ConfigureRegister>,
 }
 
-impl HCOperationalRegisters {
-    pub fn new(mmio_base: PhysAddr, cap_length: &CapabilityRegistersLength) -> Self {
-        let operational_base = mmio_base + cap_length.get_len() as usize;
+impl<'a> HCOperationalRegisters<'a> {
+    pub fn new(mmio_base: PhysAddr, cap_length: &mut CapabilityRegistersLength) -> Self {
+        let operational_base = mmio_base + cap_length.len();
 
-        let usb_sts = UsbStatusRegister::new(operational_base, 0x04);
-        let crcr = CommandRingControlRegister::new(operational_base, 0x18);
-        let dcbaap = DeviceContextBaseAddressArrayPointer::new(operational_base, 0x30);
-        let config = ConfigureRegister::new(operational_base, 0x38);
+        let usb_sts = Accessor::new(operational_base, 0x04);
+        let crcr = Accessor::new(operational_base, 0x18);
+        let dcbaap = Accessor::new(operational_base, 0x30);
+        let config = Accessor::new(operational_base, 0x38);
 
         Self {
             usb_sts,
@@ -32,32 +33,50 @@ impl HCOperationalRegisters {
     }
 }
 
-add_register_type! {
-    pub struct UsbStatusRegister:u32{
-        controller_not_ready:11..12,
-    }
+bitfield! {
+    pub struct UsbStatusRegister(u32);
+
+    pub controller_not_ready,_:11;
 }
 
-add_register_type! {
-    pub struct CommandRingControlRegister:u64{
-        pointer:6..64,
-    }
+impl Register for UsbStatusRegister {}
+
+bitfield! {
+    pub struct CommandRingControlRegister(u64);
+
+    ptr,set_pointer:63,6;
 }
+
+impl Register for CommandRingControlRegister {}
 
 impl CommandRingControlRegister {
-    pub fn set_ptr(&self, addr: PhysAddr) {
-        self.set_pointer(addr.as_u64() >> 6);
+    pub fn set_ptr(&mut self, ptr: PhysAddr) {
+        let ptr = ptr.as_u64() >> 6;
+
+        self.set_pointer(ptr);
     }
 }
 
-add_register_type! {
-    pub struct ConfigureRegister:u32{
-        max_device_slots_enabled:0..8,
-    }
+bitfield! {
+    pub struct ConfigureRegister(u32);
+
+    pub max_device_slots_enabled,set_max_device_slots_enabled:7,0;
 }
 
-add_register_type! {
-    pub struct DeviceContextBaseAddressArrayPointer:u64{
-        pointer:6..64,
+impl Register for ConfigureRegister {}
+
+bitfield! {
+    pub struct DeviceContextBaseAddressArrayPointer(u64);
+
+    ptr,set_pointer:63,6;
+}
+
+impl Register for DeviceContextBaseAddressArrayPointer {}
+
+impl DeviceContextBaseAddressArrayPointer {
+    pub fn set_ptr(&mut self, ptr: PhysAddr) {
+        let ptr = ptr.as_u64() >> 6;
+
+        self.set_pointer(ptr);
     }
 }

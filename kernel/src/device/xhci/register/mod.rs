@@ -23,7 +23,7 @@ use {
 
 pub trait Register {}
 
-struct Accessor<'a, T: 'a + Register> {
+pub struct Accessor<'a, T: 'a + Register> {
     base: VirtAddr,
     _marker: PhantomData<&'a T>,
 }
@@ -44,8 +44,8 @@ impl<'a, T: 'a + Register> Accessor<'a, T> {
         let start_frame_addr = start.align_down(Size4KiB::SIZE);
         let end_frame_addr = (start + size_of::<T>()).align_down(Size4KiB::SIZE);
 
-        let num_pages =
-            Size::new((end_frame_addr - start_frame_addr) as _).as_num_of_pages::<Size4KiB>();
+        let num_pages = Size::new((end_frame_addr - start_frame_addr) as usize + 1)
+            .as_num_of_pages::<Size4KiB>();
 
         let virt = virt::search_free_addr(num_pages)
             .expect("OOM during creating a new accessor to a register.");
