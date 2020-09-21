@@ -42,6 +42,5 @@ crossbeam-queue = { version = "0.2.3", default-features = false, features = ["al
 futures-util = { version = "0.3.4", default-features = false, features = ["alloc"] }
 screen_layer = "0.1.0"
 proc_macros = { path = "../proc_macros" }
-bit = "0.1.1"
 os_units = "0.1.1"
 bitfield = "0.13.2"
