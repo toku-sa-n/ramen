@@ -39,10 +39,7 @@ use {
         screen::{self, desktop::Desktop, layer},
         Vram,
     },
-    mem::{
-        allocator::{heap, phys::FrameManager},
-        paging,
-    },
+    mem::allocator::{heap, phys::FrameManager},
     multitask::{executor::Executor, task::Task},
 };
 
@@ -68,8 +65,6 @@ fn initialization(boot_info: &kernelboot::Info) {
     layer::init();
 
     screen::log::init().unwrap();
-
-    paging::mark_pages_as_unused();
 
     let desktop = Desktop::new();
     desktop.draw();

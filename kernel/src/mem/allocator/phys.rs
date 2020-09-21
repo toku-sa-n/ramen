@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
+    crate::mem::paging,
     common::constant::{CHANGE_FREE_PAGE_ADDR, FREE_PAGE_ADDR},
     conquer_once::spin::Lazy,
     core::ptr,
@@ -28,6 +29,7 @@ pub struct FrameManager {
 impl FrameManager {
     pub fn init(mem_map: &[boot::MemoryDescriptor]) {
         FRAME_MANAGER.lock().init_static(mem_map);
+        paging::mark_pages_as_unused();
     }
 
     fn init_static(&mut self, mem_map: &[boot::MemoryDescriptor]) {
