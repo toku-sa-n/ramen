@@ -87,3 +87,21 @@ impl<'a, T: 'a + Register> DerefMut for Accessor<'a, T> {
         unsafe { &mut *self.base.as_mut_ptr() }
     }
 }
+
+impl<'a, T: 'a + Register> Drop for Accessor<'a, T> {
+    fn drop(&mut self) {
+        let start_frame_addr = self.base.align_down(Size4KiB::SIZE);
+        let end_frame_addr = (self.base + size_of::<T>()).align_down(Size4KiB::SIZE);
+
+        let num_pages =
+            Size::new((end_frame_addr - start_frame_addr) as _).as_num_of_pages::<Size4KiB>();
+
+        for i in 0..num_pages.as_usize() {
+            let page =
+                Page::<Size4KiB>::containing_address(start_frame_addr + Size4KiB::SIZE * i as u64);
+
+            let (_, flush) = PML4.lock().unmap(page).unwrap();
+            flush.flush();
+        }
+    }
+}
