@@ -36,6 +36,12 @@ add_register_type! {
 }
 
 add_register_type! {
+    pub struct CommandRingControl:u64{
+        pointer:6..64,
+    }
+}
+
+add_register_type! {
     pub struct ConfigureRegister:u32{
         max_device_slots_enabled:0..8,
     }
