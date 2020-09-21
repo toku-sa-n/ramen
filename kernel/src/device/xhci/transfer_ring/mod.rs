@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod transfer_request_block;
+pub mod transfer_request_block;
 
 use {
     crate::mem::{
@@ -15,12 +15,12 @@ use {
 // 4KB / size_of(TRB) = 256.
 const NUM_OF_TRB_IN_QUEUE: usize = 256;
 
-struct RingQueue<'a, T: TRB> {
+pub struct RingQueue<'a, T: TRB> {
     queue: &'a mut [T],
 }
 
 impl<'a, T: TRB> RingQueue<'a, T> {
-    fn new() -> Self {
+    pub fn new() -> Self {
         let page = virt::search_first_unused_page().unwrap();
         let frame = FRAME_MANAGER.lock().allocate_frame().unwrap();
 

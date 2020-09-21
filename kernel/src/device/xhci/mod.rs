@@ -11,17 +11,19 @@ use {
         hc_operational_registers::HCOperationalRegisters,
         usb_legacy_support_capability::UsbLegacySupportCapability,
     },
+    transfer_ring::{transfer_request_block::Command, RingQueue},
     x86_64::{structures::paging::MapperAllSizes, VirtAddr},
 };
 
-pub struct Xhci {
+pub struct Xhci<'a> {
     usb_legacy_support_capability: UsbLegacySupportCapability,
     hc_capability_registers: HCCapabilityRegisters,
     hc_operational_registers: HCOperationalRegisters,
     dcbaa: DeviceContextBaseAddressArray,
+    command_ring: RingQueue<'a, Command>,
 }
 
-impl Xhci {
+impl<'a> Xhci<'a> {
     pub fn init(&self) {
         self.get_ownership_from_bios();
         self.wait_until_controller_is_ready();
@@ -112,6 +114,7 @@ impl Xhci {
                 hc_capability_registers,
                 hc_operational_registers,
                 dcbaa,
+                command_ring: RingQueue::new(),
             })
         } else {
             Err(Error::NotXhciDevice)
@@ -134,7 +137,7 @@ enum Error {
     NotXhciDevice,
 }
 
-pub fn iter_devices() -> impl Iterator<Item = Xhci> {
+pub fn iter_devices<'a>() -> impl Iterator<Item = Xhci<'a>> {
     super::pci::iter_devices().filter_map(|device| {
         if device.is_xhci() {
             Xhci::new(&device).ok()
