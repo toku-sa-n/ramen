@@ -21,10 +21,7 @@ use {
     },
 };
 
-pub trait Register {
-    fn name() -> &'static str;
-    fn new(base: x86_64::PhysAddr, offset: usize) -> Self;
-}
+pub trait Register {}
 
 struct Accessor<'a, T: 'a + Register> {
     base: VirtAddr,
