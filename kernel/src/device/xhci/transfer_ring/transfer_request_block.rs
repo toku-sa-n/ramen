@@ -3,3 +3,6 @@
 pub trait TRB {
     const SIZE: usize = 16;
 }
+
+pub struct Command;
+impl TRB for Command {}
