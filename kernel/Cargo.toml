@@ -44,3 +44,4 @@ screen_layer = "0.1.0"
 proc_macros = { path = "../proc_macros" }
 bit = "0.1.1"
 os_units = "0.1.1"
+bitfield = "0.13.2"
