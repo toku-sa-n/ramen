@@ -42,7 +42,7 @@ impl<'a> Xhci<'a> {
             let bios_owns = usb_leg_sup.bios_owns_hc();
             let os_owns = usb_leg_sup.os_owns_hc();
 
-            os_owns && !bios_owns
+            !os_owns || bios_owns
         } {}
 
         info!("Done");
