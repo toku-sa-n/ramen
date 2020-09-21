@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 mod register;
+mod transfer_ring;
 
 use {
     super::pci::config,
