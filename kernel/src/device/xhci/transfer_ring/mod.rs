@@ -9,7 +9,10 @@ use {
     },
     core::{ptr, slice},
     transfer_request_block::TRB,
-    x86_64::structures::paging::{FrameAllocator, Mapper, PageSize, PageTableFlags, Size4KiB},
+    x86_64::{
+        structures::paging::{FrameAllocator, Mapper, PageSize, PageTableFlags, Size4KiB},
+        VirtAddr,
+    },
 };
 
 // 4KB / size_of(TRB) = 256.
@@ -43,5 +46,9 @@ impl<'a, T: TRB> RingQueue<'a, T> {
         Self {
             queue: unsafe { slice::from_raw_parts_mut(ptr, NUM_OF_TRB_IN_QUEUE) },
         }
+    }
+
+    pub fn addr(&self) -> VirtAddr {
+        VirtAddr::new(self.queue.as_ptr() as u64)
     }
 }
