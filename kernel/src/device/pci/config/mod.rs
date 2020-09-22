@@ -12,6 +12,7 @@ pub struct Space {
     bar: Bar,
     class: Class,
     interface: Interface,
+    capability_ptr: CapabilityPtr,
 }
 
 impl Space {
@@ -24,12 +25,14 @@ impl Space {
         let bar = Bar::fetch(bus, device);
         let class = Class::fetch(bus, device);
         let interface = Interface::fetch(bus, device);
+        let capability_ptr = CapabilityPtr::fetch(bus, device);
 
         Some(Self {
             id,
             bar,
             class,
             interface,
+            capability_ptr,
         })
     }
 
@@ -132,5 +135,17 @@ impl Interface {
         let raw_data = unsafe { config_addr.read() };
 
         Self(u8::try_from((raw_data >> 8) & 0xff).unwrap())
+    }
+}
+
+#[derive(Debug)]
+struct CapabilityPtr(u8);
+
+impl CapabilityPtr {
+    fn fetch(bus: u8, device: u8) -> Self {
+        let config_addr = ConfigAddress::new(bus, device, 0, 0x34);
+        let raw_data = unsafe { config_addr.read() };
+
+        Self(u8::try_from(raw_data & 0xff).unwrap())
     }
 }
