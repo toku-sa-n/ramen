@@ -7,14 +7,13 @@ use {
         mem::size_of,
         ops::{Index, IndexMut},
     },
+    os_units::{Bytes, Size},
     x86_64::VirtAddr,
 };
 
-bitfield! {
-    pub struct MsiX([u32]);
-    u32;
-    capability_id, _: 7, 0;
-    table_size, _: 25, 16;
+struct MsiXDescriptor {
+    bir: usize,
+    table_offset: Size<Bytes>,
 }
 
 struct Table<'a> {
