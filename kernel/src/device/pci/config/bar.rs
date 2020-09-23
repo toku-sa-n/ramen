@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{Bus, ConfigAddress, Device, Function, Register},
+    super::{Bus, ConfigAddress, Device, Function, Offset},
     x86_64::PhysAddr,
 };
 
@@ -14,12 +14,10 @@ pub struct Bar {
 
 impl Bar {
     pub(super) fn fetch(bus: Bus, device: Device) -> Self {
-        let config_addr_low =
-            ConfigAddress::new(bus, device, Function::zero(), Register::new(0x10));
+        let config_addr_low = ConfigAddress::new(bus, device, Function::zero(), Offset::new(0x10));
         let low_bar = unsafe { config_addr_low.read() };
 
-        let config_addr_high =
-            ConfigAddress::new(bus, device, Function::zero(), Register::new(0x14));
+        let config_addr_high = ConfigAddress::new(bus, device, Function::zero(), Offset::new(0x14));
         let high_bar = unsafe { config_addr_high.read() };
 
         Self {

@@ -51,7 +51,7 @@ struct ConfigAddress {
     bus: Bus,
     device: Device,
     function: Function,
-    register: Register,
+    register: Offset,
 }
 
 impl ConfigAddress {
@@ -59,7 +59,7 @@ impl ConfigAddress {
     const PORT_CONFIG_DATA: PortReadOnly<u32> = PortReadOnly::new(0xcfc);
 
     #[allow(clippy::too_many_arguments)]
-    fn new(bus: Bus, device: Device, function: Function, register: Register) -> Self {
+    fn new(bus: Bus, device: Device, function: Function, register: Offset) -> Self {
         Self {
             bus,
             device,
@@ -93,7 +93,7 @@ struct Id {
 
 impl Id {
     fn fetch(bus: Bus, device: Device) -> Self {
-        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Register::zero());
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::zero());
         let raw_ids = unsafe { config_addr.read() };
         Self {
             vendor: raw_ids & 0xffff,
@@ -114,7 +114,7 @@ struct Class {
 
 impl Class {
     fn fetch(bus: Bus, device: Device) -> Self {
-        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Register::new(8));
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(8));
         let raw_data = unsafe { config_addr.read() };
 
         Self {
@@ -129,7 +129,7 @@ struct Interface(u32);
 
 impl Interface {
     fn fetch(bus: Bus, device: Device) -> Self {
-        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Register::new(8));
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(8));
         let raw_data = unsafe { config_addr.read() };
 
         Self((raw_data >> 8) & 0xff)
@@ -141,7 +141,7 @@ struct CapabilityPtr(u32);
 
 impl CapabilityPtr {
     fn fetch(bus: Bus, device: Device) -> Self {
-        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Register::new(0x34));
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(0x34));
         let raw_data = unsafe { config_addr.read() };
 
         Self(raw_data & 0xff)
@@ -191,11 +191,11 @@ impl Function {
 }
 
 #[derive(Copy, Clone)]
-pub struct Register(u32);
-impl Register {
-    pub fn new(register: u32) -> Self {
-        assert!(register.trailing_zeros() >= 2);
-        Self(register)
+pub struct Offset(u32);
+impl Offset {
+    pub fn new(offset: u32) -> Self {
+        assert!(offset.trailing_zeros() >= 2);
+        Self(offset)
     }
 
     fn zero() -> Self {

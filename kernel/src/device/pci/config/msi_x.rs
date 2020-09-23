@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::device::pci::config::{Bus, CapabilityPtr, ConfigAddress, Device, Function, Register},
+    crate::device::pci::config::{Bus, CapabilityPtr, ConfigAddress, Device, Function, Offset},
     alloc::vec::Vec,
     bitfield::bitfield,
     core::{
@@ -22,52 +22,33 @@ impl MsiX {
 }
 
 struct MsiXDescriptor {
-    bir: usize,
-    table_offset: Size<Bytes>,
+    bir: Bir,
 }
 
 impl MsiXDescriptor {
-    fn new(bus: Bus, device: Device, offset_from_config_space_base: u8) -> Self {
-        let raw_data: [u32; 3];
-        for i in 0..3 {
-            let config_address = ConfigAddress::new(
-                bus,
-                device,
-                Function::zero(),
-                Register::new(offset_from_config_space_base + i * 8),
-            );
-            raw_data[i as usize] = unsafe { config_address.read() };
-        }
-
-        assert_eq!(Self::capability_id(raw_data), 0x11);
+    fn new(bus: Bus, device: Device, base: Offset) -> Self {
         Self {
-            bir: Self::bir(raw_data),
-            table_offset: Self::table_offset(raw_data),
+            bir: Bir::new(bus, device, base),
         }
-    }
-
-    fn capability_id(raw_data: [u32; 3]) -> u8 {
-        u8::try_from(raw_data[0] & 0xff).unwrap()
-    }
-
-    fn bir(raw_data: [u32; 3]) -> usize {
-        (raw_data[1] & 0b111) as usize
-    }
-
-    fn table_offset(raw_data: [u32; 3]) -> Size<Bytes> {
-        Size::new((raw_data[1] & !0b111) as usize)
     }
 }
 
 struct Bir(u8);
 impl Bir {
-    fn new(bus: Bus, device: Device, capability_base: Register) -> Self {
+    fn new(bus: Bus, device: Device, capability_base: Offset) -> Self {
         let config_addr = ConfigAddress::new(bus, device, Function::zero(), capability_base);
         let raw = unsafe { config_addr.read() };
         let bir = (raw & 0b111) as u8;
         assert!(bir < 6);
 
         Self(bir)
+    }
+}
+
+struct TableOffset(Size<Bytes>);
+impl TableOffset {
+    fn new(bus: Bus, device: Device, capability_base: Offset) -> Self {
+        unimplemented!()
     }
 }
 
