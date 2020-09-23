@@ -23,22 +23,24 @@ impl MsiX {
 
 struct MsiXDescriptor {
     bir: Bir,
+    table_offset: TableOffset,
 }
 
 impl MsiXDescriptor {
     fn new(bus: Bus, device: Device, base: Offset) -> Self {
         Self {
             bir: Bir::new(bus, device, base),
+            table_offset: TableOffset::new(bus, device, base),
         }
     }
 }
 
-struct Bir(u8);
+struct Bir(u32);
 impl Bir {
     fn new(bus: Bus, device: Device, capability_base: Offset) -> Self {
-        let config_addr = ConfigAddress::new(bus, device, Function::zero(), capability_base);
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), capability_base + 0x04);
         let raw = unsafe { config_addr.read() };
-        let bir = (raw & 0b111) as u8;
+        let bir = raw & 0b111;
         assert!(bir < 6);
 
         Self(bir)
@@ -48,7 +50,11 @@ impl Bir {
 struct TableOffset(Size<Bytes>);
 impl TableOffset {
     fn new(bus: Bus, device: Device, capability_base: Offset) -> Self {
-        unimplemented!()
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), capability_base);
+        let raw = unsafe { config_addr.read() };
+        let offset = Size::new((raw & !0b111) as _);
+
+        Self(offset)
     }
 }
 
