@@ -58,6 +58,17 @@ impl TableOffset {
     }
 }
 
+struct NextPtr(Offset);
+impl NextPtr {
+    fn new(bus: Bus, device: Device, capability_base: Offset) -> Self {
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), capability_base);
+        let raw = unsafe { config_addr.read() };
+        let ptr = Offset::new((raw >> 8) & 0xff);
+
+        Self(ptr)
+    }
+}
+
 struct Table<'a> {
     base: VirtAddr,
     num: usize,
