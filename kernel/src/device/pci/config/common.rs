@@ -10,7 +10,7 @@ pub(super) struct Common {
 impl Common {
     pub(super) fn fetch(bus: Bus, device: Device) -> Option<Self> {
         let id = Id::fetch(bus, device);
-        if !id.is_valid() {
+        if !id.valid() {
             return None;
         }
 
@@ -34,7 +34,7 @@ impl Id {
         }
     }
 
-    fn is_valid(&self) -> bool {
+    fn valid(&self) -> bool {
         self.vendor != 0xffff
     }
 }
