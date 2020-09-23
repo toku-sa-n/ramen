@@ -87,6 +87,16 @@ struct Table<'a> {
     _marker: PhantomData<&'a Element>,
 }
 
+impl<'a> Table<'a> {
+    fn new(base: VirtAddr, num: usize) -> Self {
+        Self {
+            base,
+            num,
+            _marker: PhantomData,
+        }
+    }
+}
+
 impl<'a> Index<usize> for Table<'a> {
     type Output = Element;
 
