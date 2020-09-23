@@ -147,6 +147,10 @@ impl CapabilityPtr {
 
         Self(Offset::new(raw_data & 0xff))
     }
+
+    fn as_offset(&self) -> Offset {
+        self.0
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
