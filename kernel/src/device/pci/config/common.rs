@@ -50,3 +50,13 @@ impl HeaderType {
         Self(raw >> 16 & 0xff)
     }
 }
+
+#[derive(Debug)]
+struct Status(u32);
+impl Status {
+    fn fetch(bus: Bus, device: Device) -> Self {
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(0x04));
+        let raw = unsafe { config_addr.read() };
+        Self(raw >> 16)
+    }
+}
