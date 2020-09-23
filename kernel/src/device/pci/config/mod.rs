@@ -191,6 +191,7 @@ pub struct Offset(u32);
 impl Offset {
     pub fn new(offset: u32) -> Self {
         assert!(offset.trailing_zeros() >= 2);
+        assert!(offset < 0x100);
         Self(offset)
     }
 
