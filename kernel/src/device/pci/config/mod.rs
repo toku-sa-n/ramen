@@ -163,7 +163,7 @@ impl Bus {
         Self(bus)
     }
 
-    fn as_u8(&self) -> u8 {
+    fn as_u8(self) -> u8 {
         self.0
     }
 }
@@ -176,7 +176,7 @@ impl Device {
         Self(device)
     }
 
-    fn as_u8(&self) -> u8 {
+    fn as_u8(self) -> u8 {
         self.0
     }
 }
