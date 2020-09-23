@@ -56,8 +56,8 @@ struct ConfigAddress {
 }
 
 impl ConfigAddress {
-    const PORT_CONFIG_ADDR: u16 = 0xcf8;
-    const PORT_CONFIG_DATA: u16 = 0xcfc;
+    const PORT_CONFIG_ADDR: PortWriteOnly<u32> = PortWriteOnly::new(0xcf8);
+    const PORT_CONFIG_DATA: PortReadOnly<u32> = PortReadOnly::new(0xcfc);
 
     #[allow(clippy::too_many_arguments)]
     fn new(bus: Bus, device: Device, function: Function, register: Register) -> Self {
@@ -81,8 +81,8 @@ impl ConfigAddress {
 
     /// Safety: `self` must contain the valid config address.
     unsafe fn read(&self) -> u32 {
-        PortWriteOnly::new(Self::PORT_CONFIG_ADDR).write(self.as_u32());
-        PortReadOnly::new(Self::PORT_CONFIG_DATA).read()
+        Self::PORT_CONFIG_ADDR.write(self.as_u32());
+        Self::PORT_CONFIG_DATA.read()
     }
 }
 
