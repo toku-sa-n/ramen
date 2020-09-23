@@ -2,6 +2,8 @@
 
 pub mod config;
 
+use config::Bus;
+
 pub fn iter_devices() -> impl Iterator<Item = config::Space> {
     IterPciDevices::new(0, 0)
 }
@@ -24,7 +26,7 @@ impl Iterator for IterPciDevices {
     fn next(&mut self) -> Option<Self::Item> {
         for bus in self.bus..=255 {
             for device in self.device..32 {
-                if let Some(space) = config::Space::fetch(bus, device) {
+                if let Some(space) = config::Space::fetch(Bus::new(bus), device) {
                     self.bus = bus;
                     self.device = device + 1;
 

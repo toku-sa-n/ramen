@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
+    crate::device::pci::config::{Bus, CapabilityPtr, ConfigAddress},
     alloc::vec::Vec,
     bitfield::bitfield,
     core::{
@@ -13,10 +14,46 @@ use {
 };
 
 struct MsiX(Vec<MsiXDescriptor>);
+impl MsiX {
+    fn new(bus: u8, device: u8, capability_ptr: &CapabilityPtr) -> Self {
+        unimplemented!();
+    }
+}
 
 struct MsiXDescriptor {
     bir: usize,
     table_offset: Size<Bytes>,
+}
+
+impl MsiXDescriptor {
+    fn new(bus: Bus, device: u8, offset_from_config_space_base: u8) -> Self {
+        unimplemented!();
+        let raw_data: [u32; 3];
+        for i in 0..3 {
+            let config_address =
+                ConfigAddress::new(bus, device, 0, offset_from_config_space_base + i * 8);
+            let row = unsafe { config_address.read() };
+            raw_data[i as usize] = row;
+        }
+
+        assert_eq!(Self::capability_id(raw_data), 0x11);
+        Self {
+            bir: Self::bir(raw_data),
+            table_offset: Self::table_offset(raw_data),
+        }
+    }
+
+    fn capability_id(raw_data: [u32; 3]) -> u8 {
+        (raw_data[0] & 0xff) as u8
+    }
+
+    fn bir(raw_data: [u32; 3]) -> usize {
+        (raw_data[1] & 0b111) as usize
+    }
+
+    fn table_offset(raw_data: [u32; 3]) -> Size<Bytes> {
+        Size::new((raw_data[1] & !0b111) as usize)
+    }
 }
 
 struct Table<'a> {
