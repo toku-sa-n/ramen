@@ -5,6 +5,7 @@ use super::{Bus, ConfigAddress, Device, Function, Offset};
 #[derive(Debug)]
 pub(super) struct Common {
     id: Id,
+    header_type: HeaderType,
 }
 
 impl Common {
@@ -13,8 +14,9 @@ impl Common {
         if !id.valid() {
             return None;
         }
+        let header_type = HeaderType::fetch(bus, device);
 
-        return Some(Self { id });
+        return Some(Self { id, header_type });
     }
 }
 
@@ -36,5 +38,15 @@ impl Id {
 
     fn valid(&self) -> bool {
         self.vendor != 0xffff
+    }
+}
+
+#[derive(Debug)]
+struct HeaderType(u32);
+impl HeaderType {
+    fn fetch(bus: Bus, device: Device) -> Self {
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(0x08));
+        let raw = unsafe { config_addr.read() };
+        Self(raw >> 16 & 0xff)
     }
 }
