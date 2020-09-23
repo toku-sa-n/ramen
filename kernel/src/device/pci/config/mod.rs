@@ -5,7 +5,6 @@ pub mod msi_x;
 
 use {
     bar::Bar,
-    core::convert::TryFrom,
     x86_64::instructions::port::{PortReadOnly, PortWriteOnly},
 };
 
@@ -71,10 +70,10 @@ impl ConfigAddress {
 
     fn as_u32(&self) -> u32 {
         const VALID: u32 = 0x8000_0000;
-        let bus = u32::from(self.bus.as_u8());
-        let device = u32::from(self.device.as_u8());
-        let function = u32::from(self.function.as_u8());
-        let register = u32::from(self.register.as_u8());
+        let bus = self.bus.as_u32();
+        let device = self.device.as_u32();
+        let function = self.function.as_u32();
+        let register = self.register.as_u32();
 
         VALID | bus << 16 | device << 11 | function << 8 | register
     }
@@ -88,8 +87,8 @@ impl ConfigAddress {
 
 #[derive(Debug)]
 struct Id {
-    vendor: u16,
-    device: u16,
+    vendor: u32,
+    device: u32,
 }
 
 impl Id {
@@ -97,8 +96,8 @@ impl Id {
         let config_addr = ConfigAddress::new(bus, device, Function::zero(), Register::zero());
         let raw_ids = unsafe { config_addr.read() };
         Self {
-            vendor: u16::try_from(raw_ids & 0xffff).unwrap(),
-            device: u16::try_from(raw_ids >> 16).unwrap(),
+            vendor: raw_ids & 0xffff,
+            device: raw_ids >> 16,
         }
     }
 
@@ -109,8 +108,8 @@ impl Id {
 
 #[derive(Debug)]
 struct Class {
-    base: u8,
-    sub: u8,
+    base: u32,
+    sub: u32,
 }
 
 impl Class {
@@ -119,65 +118,65 @@ impl Class {
         let raw_data = unsafe { config_addr.read() };
 
         Self {
-            base: u8::try_from((raw_data >> 24) & 0xff).unwrap(),
-            sub: u8::try_from((raw_data >> 16) & 0xff).unwrap(),
+            base: (raw_data >> 24) & 0xff,
+            sub: (raw_data >> 16) & 0xff,
         }
     }
 }
 
 #[derive(Debug)]
-struct Interface(u8);
+struct Interface(u32);
 
 impl Interface {
     fn fetch(bus: Bus, device: Device) -> Self {
         let config_addr = ConfigAddress::new(bus, device, Function::zero(), Register::new(8));
         let raw_data = unsafe { config_addr.read() };
 
-        Self(u8::try_from((raw_data >> 8) & 0xff).unwrap())
+        Self((raw_data >> 8) & 0xff)
     }
 }
 
 #[derive(Debug)]
-struct CapabilityPtr(u8);
+struct CapabilityPtr(u32);
 
 impl CapabilityPtr {
     fn fetch(bus: Bus, device: Device) -> Self {
         let config_addr = ConfigAddress::new(bus, device, Function::zero(), Register::new(0x34));
         let raw_data = unsafe { config_addr.read() };
 
-        Self(u8::try_from(raw_data & 0xff).unwrap())
+        Self(raw_data & 0xff)
     }
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct Bus(u8);
+pub struct Bus(u32);
 impl Bus {
-    pub fn new(bus: u8) -> Self {
+    pub fn new(bus: u32) -> Self {
         Self(bus)
     }
 
-    fn as_u8(self) -> u8 {
+    fn as_u32(self) -> u32 {
         self.0
     }
 }
 
 #[derive(Copy, Clone)]
-pub struct Device(u8);
+pub struct Device(u32);
 impl Device {
-    pub fn new(device: u8) -> Self {
+    pub fn new(device: u32) -> Self {
         assert!(device < 32);
         Self(device)
     }
 
-    fn as_u8(self) -> u8 {
+    fn as_u32(self) -> u32 {
         self.0
     }
 }
 
 #[derive(Copy, Clone)]
-pub struct Function(u8);
+pub struct Function(u32);
 impl Function {
-    pub fn new(function: u8) -> Self {
+    pub fn new(function: u32) -> Self {
         assert!(function < 8);
         Self(function)
     }
@@ -186,15 +185,15 @@ impl Function {
         Self(0)
     }
 
-    pub fn as_u8(self) -> u8 {
+    pub fn as_u32(self) -> u32 {
         self.0
     }
 }
 
 #[derive(Copy, Clone)]
-pub struct Register(u8);
+pub struct Register(u32);
 impl Register {
-    pub fn new(register: u8) -> Self {
+    pub fn new(register: u32) -> Self {
         assert!(register.trailing_zeros() >= 2);
         Self(register)
     }
@@ -203,7 +202,7 @@ impl Register {
         Self(0)
     }
 
-    fn as_u8(self) -> u8 {
+    fn as_u32(self) -> u32 {
         self.0
     }
 }

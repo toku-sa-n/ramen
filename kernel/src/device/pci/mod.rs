@@ -9,12 +9,12 @@ pub fn iter_devices() -> impl Iterator<Item = config::Space> {
 }
 
 struct IterPciDevices {
-    bus: u8,
-    device: u8,
+    bus: u32,
+    device: u32,
 }
 
 impl IterPciDevices {
-    fn new(bus: u8, device: u8) -> Self {
+    fn new(bus: u32, device: u32) -> Self {
         assert!(device < 32);
         Self { bus, device }
     }
