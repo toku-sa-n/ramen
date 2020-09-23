@@ -156,3 +156,10 @@ impl CapabilityPtr {
         self.0
     }
 }
+
+struct Bus(u8);
+impl Bus {
+    fn new(bus: u8) -> Self {
+        Self(bus)
+    }
+}
