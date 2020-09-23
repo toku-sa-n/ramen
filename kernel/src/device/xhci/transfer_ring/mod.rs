@@ -7,7 +7,7 @@ use {
         allocator::{phys::FRAME_MANAGER, virt},
         paging::pml4::PML4,
     },
-    core::{ptr, slice},
+    core::{convert::TryFrom, ptr, slice},
     transfer_request_block::TRB,
     x86_64::{
         structures::paging::{FrameAllocator, Mapper, PageSize, PageTableFlags, Size4KiB},
@@ -41,7 +41,7 @@ impl<'a, T: TRB> RingQueue<'a, T> {
 
         let ptr = page.start_address().as_mut_ptr();
 
-        unsafe { ptr::write_bytes(ptr as *mut u8, 0, Size4KiB::SIZE as usize) }
+        unsafe { ptr::write_bytes(ptr as *mut u8, 0, usize::try_from(Size4KiB::SIZE).unwrap()) }
 
         Self {
             queue: unsafe { slice::from_raw_parts_mut(ptr, NUM_OF_TRB_IN_QUEUE) },
