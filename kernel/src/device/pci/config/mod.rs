@@ -215,3 +215,13 @@ impl Add<u32> for Offset {
         Self(self.0 + rhs)
     }
 }
+
+struct CapabilityId(u32);
+impl CapabilityId {
+    fn new(bus: Bus, device: Device, capability_ptr: Offset) -> Self {
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), capability_ptr);
+        let raw = unsafe { config_addr.read() };
+
+        Self(raw & 0xff)
+    }
+}
