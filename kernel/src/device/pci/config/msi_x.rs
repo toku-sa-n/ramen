@@ -1,12 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use bitfield::bitfield;
+use {bitfield::bitfield, x86_64::VirtAddr};
 
 bitfield! {
     pub struct MsiX([u8]);
     u32;
     capability_id, _: 7, 0;
     table_size, _: 25, 16;
+}
+
+struct Table {
+    base: VirtAddr,
+    num: usize,
 }
 
 struct Element {
