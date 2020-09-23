@@ -5,6 +5,7 @@ use {
     alloc::vec::Vec,
     bitfield::bitfield,
     core::{
+        convert::TryFrom,
         marker::PhantomData,
         mem::size_of,
         ops::{Index, IndexMut},
@@ -44,7 +45,7 @@ impl MsiXDescriptor {
     }
 
     fn capability_id(raw_data: [u32; 3]) -> u8 {
-        (raw_data[0] & 0xff) as u8
+        u8::try_from(raw_data[0] & 0xff).unwrap()
     }
 
     fn bir(raw_data: [u32; 3]) -> usize {
@@ -67,14 +68,20 @@ impl<'a> Index<usize> for Table<'a> {
 
     fn index(&self, index: usize) -> &Self::Output {
         assert!(index < self.num);
-        unsafe { &*((self.base.as_u64() as usize + size_of::<Element>() * index) as *const _) }
+        unsafe {
+            &*((usize::try_from(self.base.as_u64()).unwrap() + size_of::<Element>() * index)
+                as *const _)
+        }
     }
 }
 
 impl<'a> IndexMut<usize> for Table<'a> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         assert!(index < self.num);
-        unsafe { &mut *((self.base.as_u64() as usize + size_of::<Element>() * index) as *mut _) }
+        unsafe {
+            &mut *((usize::try_from(self.base.as_u64()).unwrap() + size_of::<Element>() * index)
+                as *mut _)
+        }
     }
 }
 
