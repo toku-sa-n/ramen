@@ -138,14 +138,14 @@ impl Interface {
 }
 
 #[derive(Debug)]
-struct CapabilityPtr(u32);
+struct CapabilityPtr(Offset);
 
 impl CapabilityPtr {
     fn fetch(bus: Bus, device: Device) -> Self {
         let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(0x34));
         let raw_data = unsafe { config_addr.read() };
 
-        Self(raw_data & 0xff)
+        Self(Offset::new(raw_data & 0xff))
     }
 }
 
@@ -191,7 +191,7 @@ impl Function {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct Offset(u32);
 impl Offset {
     pub fn new(offset: u32) -> Self {
