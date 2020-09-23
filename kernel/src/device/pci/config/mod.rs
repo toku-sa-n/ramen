@@ -151,4 +151,8 @@ impl CapabilityPtr {
 
         Self(u8::try_from(raw_data & 0xff).unwrap())
     }
+
+    fn as_u8(&self) -> u8 {
+        self.0
+    }
 }
