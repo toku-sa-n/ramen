@@ -9,6 +9,12 @@ bitfield! {
     table_size, _: 25, 16;
 }
 
+struct Element {
+    message_address: MessageAddress,
+    message_data: MessageData,
+    vector_control: VectorControl,
+}
+
 bitfield! {
     struct MessageAddress(u64);
     u32;
