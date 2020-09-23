@@ -25,3 +25,5 @@ bitfield! {
     delivery_mode, set_delivery_mode: 10, 8;
     vector, set_vector: 7, 0;
 }
+
+struct VectorControl(u32);
