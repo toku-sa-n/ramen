@@ -6,6 +6,7 @@ use super::{Bus, ConfigAddress, Device, Function, Offset};
 pub(super) struct Common {
     id: Id,
     header_type: HeaderType,
+    status: Status,
 }
 
 impl Common {
@@ -15,8 +16,13 @@ impl Common {
             return None;
         }
         let header_type = HeaderType::fetch(bus, device);
+        let status = Status::fetch(bus, device);
 
-        Some(Self { id, header_type })
+        Some(Self {
+            id,
+            header_type,
+            status,
+        })
     }
 }
 
