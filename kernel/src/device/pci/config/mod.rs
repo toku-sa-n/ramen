@@ -216,6 +216,7 @@ impl Add<u32> for Offset {
     }
 }
 
+#[derive(Copy, Clone)]
 struct CapabilityId(u32);
 impl CapabilityId {
     fn new(bus: Bus, device: Device, capability_ptr: Offset) -> Self {
@@ -223,5 +224,9 @@ impl CapabilityId {
         let raw = unsafe { config_addr.read() };
 
         Self(raw & 0xff)
+    }
+
+    fn is_msi_x(self) -> bool {
+        self.0 == 0x11
     }
 }
