@@ -5,6 +5,7 @@ mod common;
 pub mod msi_x;
 
 use {
+    self::common::Common,
     bar::Bar,
     core::ops::Add,
     msi_x::MsiX,
@@ -13,7 +14,7 @@ use {
 
 #[derive(Debug)]
 pub struct Space {
-    id: Id,
+    common: Common,
     bar: Bar,
     class: Class,
     interface: Interface,
@@ -23,11 +24,7 @@ pub struct Space {
 
 impl Space {
     pub fn fetch(bus: Bus, device: Device) -> Option<Self> {
-        let id = Id::fetch(bus, device);
-        if !id.is_valid() {
-            return None;
-        }
-
+        let common = Common::fetch(bus, device)?;
         let bar = Bar::fetch(bus, device);
         let class = Class::fetch(bus, device);
         let interface = Interface::fetch(bus, device);
@@ -40,7 +37,7 @@ impl Space {
         };
 
         Some(Self {
-            id,
+            common,
             bar,
             class,
             interface,
@@ -93,27 +90,6 @@ impl ConfigAddress {
     unsafe fn read(&self) -> u32 {
         Self::PORT_CONFIG_ADDR.write(self.as_u32());
         Self::PORT_CONFIG_DATA.read()
-    }
-}
-
-#[derive(Debug)]
-struct Id {
-    vendor: u32,
-    device: u32,
-}
-
-impl Id {
-    fn fetch(bus: Bus, device: Device) -> Self {
-        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::zero());
-        let raw_ids = unsafe { config_addr.read() };
-        Self {
-            vendor: raw_ids & 0xffff,
-            device: raw_ids >> 16,
-        }
-    }
-
-    fn is_valid(&self) -> bool {
-        self.vendor != 0xffff
     }
 }
 
