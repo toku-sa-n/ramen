@@ -16,7 +16,7 @@ impl Common {
         }
         let header_type = HeaderType::fetch(bus, device);
 
-        return Some(Self { id, header_type });
+        Some(Self { id, header_type })
     }
 }
 
