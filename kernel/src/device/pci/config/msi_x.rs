@@ -28,7 +28,6 @@ struct MsiXDescriptor {
 
 impl MsiXDescriptor {
     fn new(bus: Bus, device: Device, offset_from_config_space_base: u8) -> Self {
-        unimplemented!();
         let raw_data: [u32; 3];
         for i in 0..3 {
             let config_address = ConfigAddress::new(
@@ -37,8 +36,7 @@ impl MsiXDescriptor {
                 Function::zero(),
                 Register::new(offset_from_config_space_base + i * 8),
             );
-            let row = unsafe { config_address.read() };
-            raw_data[i as usize] = row;
+            raw_data[i as usize] = unsafe { config_address.read() };
         }
 
         assert_eq!(Self::capability_id(raw_data), 0x11);
@@ -58,6 +56,18 @@ impl MsiXDescriptor {
 
     fn table_offset(raw_data: [u32; 3]) -> Size<Bytes> {
         Size::new((raw_data[1] & !0b111) as usize)
+    }
+}
+
+struct Bir(u8);
+impl Bir {
+    fn new(bus: Bus, device: Device, capability_base: Register) -> Self {
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), capability_base);
+        let raw = unsafe { config_addr.read() };
+        let bir = (raw & 0b111) as u8;
+        assert!(bir < 6);
+
+        Self(bir)
     }
 }
 
