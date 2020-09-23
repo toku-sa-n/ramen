@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {bitfield::bitfield, x86_64::VirtAddr};
+use {
+    bitfield::bitfield,
+    core::{
+        marker::PhantomData,
+        mem::size_of,
+        ops::{Index, IndexMut},
+    },
+    x86_64::VirtAddr,
+};
 
 bitfield! {
     pub struct MsiX([u8]);
@@ -9,9 +17,26 @@ bitfield! {
     table_size, _: 25, 16;
 }
 
-struct Table {
+struct Table<'a> {
     base: VirtAddr,
     num: usize,
+    _marker: PhantomData<&'a Element>,
+}
+
+impl<'a> Index<usize> for Table<'a> {
+    type Output = Element;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        assert!(index < self.num);
+        unsafe { &*((self.base.as_u64() as usize + size_of::<Element>() * index) as *const _) }
+    }
+}
+
+impl<'a> IndexMut<usize> for Table<'a> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        assert!(index < self.num);
+        unsafe { &mut *((self.base.as_u64() as usize + size_of::<Element>() * index) as *mut _) }
+    }
 }
 
 struct Element {
