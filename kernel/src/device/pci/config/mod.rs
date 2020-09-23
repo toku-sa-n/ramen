@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 pub mod bar;
-pub mod msi_x;
 
-use bar::Bar;
-use core::convert::TryFrom;
-use x86_64::instructions::port::{PortReadOnly, PortWriteOnly};
+use {
+    bar::Bar,
+    core::convert::TryFrom,
+    x86_64::instructions::port::{PortReadOnly, PortWriteOnly},
+};
 
 #[derive(Debug)]
 pub struct Space {
