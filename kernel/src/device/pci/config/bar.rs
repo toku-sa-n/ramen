@@ -7,7 +7,6 @@ use {
 
 #[derive(Debug)]
 pub struct Bar {
-    prefetch: bool,
     base_addr: u64,
 }
 
@@ -20,7 +19,6 @@ impl Bar {
         let high_bar = unsafe { config_addr_high.read() };
 
         Self {
-            prefetch: low_bar & 0b100 == 0b100,
             base_addr: u64::from(high_bar) << 32 | u64::from(low_bar & 0xffff_fff0),
         }
     }
