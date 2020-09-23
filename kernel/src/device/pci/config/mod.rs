@@ -5,6 +5,7 @@ pub mod msi_x;
 
 use {
     bar::Bar,
+    core::ops::Add,
     x86_64::instructions::port::{PortReadOnly, PortWriteOnly},
 };
 
@@ -204,5 +205,13 @@ impl Offset {
 
     fn as_u32(self) -> u32 {
         self.0
+    }
+}
+
+impl Add<u32> for Offset {
+    type Output = Offset;
+
+    fn add(self, rhs: u32) -> Self::Output {
+        Self(self.0 + rhs)
     }
 }
