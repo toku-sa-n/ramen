@@ -15,7 +15,7 @@ pub struct Space {
     bar: Bar,
     class: Class,
     interface: Interface,
-    capability_ptr: CapabilityPtr,
+    capability_ptr: Offset,
 }
 
 impl Space {
@@ -28,7 +28,7 @@ impl Space {
         let bar = Bar::fetch(bus, device);
         let class = Class::fetch(bus, device);
         let interface = Interface::fetch(bus, device);
-        let capability_ptr = CapabilityPtr::fetch(bus, device);
+        let capability_ptr = fetch_capability_ptr(bus, device);
 
         Some(Self {
             id,
@@ -137,20 +137,11 @@ impl Interface {
     }
 }
 
-#[derive(Debug)]
-struct CapabilityPtr(Offset);
+fn fetch_capability_ptr(bus: Bus, device: Device) -> Offset {
+    let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(0x34));
+    let raw_data = unsafe { config_addr.read() };
 
-impl CapabilityPtr {
-    fn fetch(bus: Bus, device: Device) -> Self {
-        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(0x34));
-        let raw_data = unsafe { config_addr.read() };
-
-        Self(Offset::new(raw_data & 0xff))
-    }
-
-    fn as_offset(&self) -> Offset {
-        self.0
-    }
+    Offset::new(raw_data & 0xff)
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -209,6 +200,10 @@ impl Offset {
 
     fn as_u32(self) -> u32 {
         self.0
+    }
+
+    fn is_null(self) -> bool {
+        self.0 == 0
     }
 }
 

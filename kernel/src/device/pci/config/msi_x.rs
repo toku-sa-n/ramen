@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::device::pci::config::{Bus, CapabilityPtr, ConfigAddress, Device, Function, Offset},
+    crate::device::pci::config::{Bus, ConfigAddress, Device, Function, Offset},
     alloc::vec::Vec,
     bitfield::bitfield,
     core::{
@@ -16,15 +16,26 @@ use {
 
 struct MsiX(Vec<MsiXDescriptor>);
 impl MsiX {
-    fn new(bus: Bus, device: Device, capability_ptr: &CapabilityPtr) -> Self {
-        unimplemented!();
+    fn new(bus: Bus, device: Device, capability_ptr: Offset) -> Self {
+        let mut msi_x_collection = Vec::new();
+        let mut next_ptr = capability_ptr;
+
+        while {
+            let descriptor = MsiXDescriptor::new(bus, device, next_ptr);
+            next_ptr = descriptor.next_ptr;
+            msi_x_collection.push(descriptor);
+
+            !next_ptr.is_null()
+        } {}
+
+        Self(msi_x_collection)
     }
 }
 
 struct MsiXDescriptor {
     bir: Bir,
     table_offset: TableOffset,
-    next_ptr: NextPtr,
+    next_ptr: Offset,
 }
 
 impl MsiXDescriptor {
@@ -32,7 +43,7 @@ impl MsiXDescriptor {
         Self {
             bir: Bir::new(bus, device, base),
             table_offset: TableOffset::new(bus, device, base),
-            next_ptr: NextPtr::new(bus, device, base),
+            next_ptr: fetch_next_ptr(bus, device, base),
         }
     }
 }
@@ -60,15 +71,10 @@ impl TableOffset {
     }
 }
 
-struct NextPtr(Offset);
-impl NextPtr {
-    fn new(bus: Bus, device: Device, capability_base: Offset) -> Self {
-        let config_addr = ConfigAddress::new(bus, device, Function::zero(), capability_base);
-        let raw = unsafe { config_addr.read() };
-        let ptr = Offset::new((raw >> 8) & 0xff);
-
-        Self(ptr)
-    }
+fn fetch_next_ptr(bus: Bus, device: Device, capability_base: Offset) -> Offset {
+    let config_addr = ConfigAddress::new(bus, device, Function::zero(), capability_base);
+    let raw = unsafe { config_addr.read() };
+    Offset::new((raw >> 8) & 0xff)
 }
 
 struct Table<'a> {
