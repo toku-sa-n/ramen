@@ -6,6 +6,7 @@ pub mod msi_x;
 use {
     bar::Bar,
     core::ops::Add,
+    msi_x::MsiX,
     x86_64::instructions::port::{PortReadOnly, PortWriteOnly},
 };
 
@@ -16,6 +17,7 @@ pub struct Space {
     class: Class,
     interface: Interface,
     capability_ptr: Offset,
+    msi_x: Option<MsiX>,
 }
 
 impl Space {
@@ -30,12 +32,19 @@ impl Space {
         let interface = Interface::fetch(bus, device);
         let capability_ptr = fetch_capability_ptr(bus, device);
 
+        let msi_x = if CapabilityId::new(bus, device, capability_ptr).is_msi_x() {
+            Some(MsiX::new(bus, device, capability_ptr))
+        } else {
+            None
+        };
+
         Some(Self {
             id,
             bar,
             class,
             interface,
             capability_ptr,
+            msi_x,
         })
     }
 

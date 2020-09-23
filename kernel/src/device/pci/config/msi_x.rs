@@ -14,9 +14,10 @@ use {
     x86_64::VirtAddr,
 };
 
-struct MsiX(Vec<MsiXDescriptor>);
+#[derive(Debug)]
+pub struct MsiX(Vec<MsiXDescriptor>);
 impl MsiX {
-    fn new(bus: Bus, device: Device, capability_ptr: Offset) -> Self {
+    pub fn new(bus: Bus, device: Device, capability_ptr: Offset) -> Self {
         let mut msi_x_collection = Vec::new();
         let mut next_ptr = capability_ptr;
 
@@ -32,6 +33,7 @@ impl MsiX {
     }
 }
 
+#[derive(Debug)]
 struct MsiXDescriptor {
     bir: Bir,
     table_offset: TableOffset,
@@ -48,6 +50,7 @@ impl MsiXDescriptor {
     }
 }
 
+#[derive(Debug)]
 struct Bir(u32);
 impl Bir {
     fn new(bus: Bus, device: Device, capability_base: Offset) -> Self {
@@ -60,6 +63,7 @@ impl Bir {
     }
 }
 
+#[derive(Debug)]
 struct TableOffset(Size<Bytes>);
 impl TableOffset {
     fn new(bus: Bus, device: Device, capability_base: Offset) -> Self {
