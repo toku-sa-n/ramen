@@ -6,9 +6,7 @@ use {
 };
 
 #[derive(Debug)]
-pub struct Bar {
-    base_addr: u64,
-}
+pub struct Bar(u64);
 
 impl Bar {
     pub(super) fn fetch(bus: Bus, device: Device) -> Self {
@@ -18,12 +16,10 @@ impl Bar {
         let config_addr_high = ConfigAddress::new(bus, device, Function::zero(), Offset::new(0x14));
         let high_bar = unsafe { config_addr_high.read() };
 
-        Self {
-            base_addr: u64::from(high_bar) << 32 | u64::from(low_bar & 0xffff_fff0),
-        }
+        Self(u64::from(high_bar) << 32 | u64::from(low_bar & 0xffff_fff0))
     }
 
     pub fn base_addr(&self) -> PhysAddr {
-        PhysAddr::new(self.base_addr)
+        PhysAddr::new(self.0)
     }
 }
