@@ -11,7 +11,7 @@ use {
 };
 
 bitfield! {
-    pub struct MsiX([u8]);
+    pub struct MsiX([u32]);
     u32;
     capability_id, _: 7, 0;
     table_size, _: 25, 16;
