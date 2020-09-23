@@ -65,4 +65,8 @@ impl Status {
         let raw = unsafe { config_addr.read() };
         Self(raw >> 16)
     }
+
+    fn capability_pointer_exists(self) -> bool {
+        self.0 & 0b1000 != 0
+    }
 }
