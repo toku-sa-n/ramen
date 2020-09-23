@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 pub mod bar;
+pub mod msi_x;
 
 use bar::Bar;
 use core::convert::TryFrom;
