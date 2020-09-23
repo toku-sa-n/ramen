@@ -16,7 +16,7 @@ use {
 
 struct MsiX(Vec<MsiXDescriptor>);
 impl MsiX {
-    fn new(bus: u8, device: u8, capability_ptr: &CapabilityPtr) -> Self {
+    fn new(bus: Bus, device: Device, capability_ptr: &CapabilityPtr) -> Self {
         unimplemented!();
     }
 }
