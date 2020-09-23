@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
+    alloc::vec::Vec,
     bitfield::bitfield,
     core::{
         marker::PhantomData,
@@ -10,6 +11,8 @@ use {
     os_units::{Bytes, Size},
     x86_64::VirtAddr,
 };
+
+struct MsiX(Vec<MsiXDescriptor>);
 
 struct MsiXDescriptor {
     bir: usize,
