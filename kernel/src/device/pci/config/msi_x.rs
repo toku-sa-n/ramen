@@ -24,6 +24,7 @@ impl MsiX {
 struct MsiXDescriptor {
     bir: Bir,
     table_offset: TableOffset,
+    next_ptr: NextPtr,
 }
 
 impl MsiXDescriptor {
@@ -31,6 +32,7 @@ impl MsiXDescriptor {
         Self {
             bir: Bir::new(bus, device, base),
             table_offset: TableOffset::new(bus, device, base),
+            next_ptr: NextPtr::new(bus, device, base),
         }
     }
 }
