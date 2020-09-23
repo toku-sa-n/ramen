@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::device::pci::config::{Bus, CapabilityPtr, ConfigAddress},
+    crate::device::pci::config::{Bus, CapabilityPtr, ConfigAddress, Device},
     alloc::vec::Vec,
     bitfield::bitfield,
     core::{
@@ -26,7 +26,7 @@ struct MsiXDescriptor {
 }
 
 impl MsiXDescriptor {
-    fn new(bus: Bus, device: u8, offset_from_config_space_base: u8) -> Self {
+    fn new(bus: Bus, device: Device, offset_from_config_space_base: u8) -> Self {
         unimplemented!();
         let raw_data: [u32; 3];
         for i in 0..3 {
