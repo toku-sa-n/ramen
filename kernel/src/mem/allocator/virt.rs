@@ -52,5 +52,5 @@ pub fn search_free_addr(num_pages: Size<NumOfPages<Size4KiB>>) -> Option<VirtAdd
 }
 
 fn available(addr: VirtAddr) -> bool {
-    PML4.lock().translate_addr(addr).is_none() && addr != VirtAddr::zero()
+    PML4.lock().translate_addr(addr).is_none() && !addr.is_null()
 }
