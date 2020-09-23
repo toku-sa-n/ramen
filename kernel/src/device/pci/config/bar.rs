@@ -7,7 +7,6 @@ use {
 
 #[derive(Debug)]
 pub struct Bar {
-    ty: BarType,
     prefetch: bool,
     base_addr: u64,
 }
@@ -21,11 +20,6 @@ impl Bar {
         let high_bar = unsafe { config_addr_high.read() };
 
         Self {
-            ty: if (low_bar >> 1).trailing_zeros() >= 2 {
-                BarType::Space32
-            } else {
-                BarType::Space64
-            },
             prefetch: low_bar & 0b100 == 0b100,
             base_addr: u64::from(high_bar) << 32 | u64::from(low_bar & 0xffff_fff0),
         }
@@ -34,10 +28,4 @@ impl Bar {
     pub fn base_addr(&self) -> PhysAddr {
         PhysAddr::new(self.base_addr)
     }
-}
-
-#[derive(Debug)]
-enum BarType {
-    Space32,
-    Space64,
 }
