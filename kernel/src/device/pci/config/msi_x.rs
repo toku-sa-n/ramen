@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::device::pci::config::{Bus, CapabilityPtr, ConfigAddress, Device},
+    crate::device::pci::config::{Bus, CapabilityPtr, ConfigAddress, Device, Function},
     alloc::vec::Vec,
     bitfield::bitfield,
     core::{
@@ -31,8 +31,12 @@ impl MsiXDescriptor {
         unimplemented!();
         let raw_data: [u32; 3];
         for i in 0..3 {
-            let config_address =
-                ConfigAddress::new(bus, device, 0, offset_from_config_space_base + i * 8);
+            let config_address = ConfigAddress::new(
+                bus,
+                device,
+                Function::zero(),
+                offset_from_config_space_base + i * 8,
+            );
             let row = unsafe { config_address.read() };
             raw_data[i as usize] = row;
         }

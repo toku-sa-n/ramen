@@ -51,7 +51,7 @@ impl Space {
 struct ConfigAddress {
     bus: Bus,
     device: Device,
-    function: u8,
+    function: Function,
     register: u8,
 }
 
@@ -60,8 +60,7 @@ impl ConfigAddress {
     const PORT_CONFIG_DATA: u16 = 0xcfc;
 
     #[allow(clippy::too_many_arguments)]
-    fn new(bus: Bus, device: Device, function: u8, register: u8) -> Self {
-        assert!(function < 8);
+    fn new(bus: Bus, device: Device, function: Function, register: u8) -> Self {
         assert!(register.trailing_zeros() >= 2);
 
         Self {
@@ -76,7 +75,7 @@ impl ConfigAddress {
         const VALID: u32 = 0x8000_0000;
         let bus = u32::from(self.bus.as_u8());
         let device = u32::from(self.device.as_u8());
-        let function = u32::from(self.function);
+        let function = u32::from(self.function.as_u8());
         let register = u32::from(self.register);
 
         VALID | bus << 16 | device << 11 | function << 8 | register
@@ -97,7 +96,7 @@ struct Id {
 
 impl Id {
     fn fetch(bus: Bus, device: Device) -> Self {
-        let config_addr = ConfigAddress::new(bus, device, 0, 0);
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), 0);
         let raw_ids = unsafe { config_addr.read() };
         Self {
             vendor: u16::try_from(raw_ids & 0xffff).unwrap(),
@@ -118,7 +117,7 @@ struct Class {
 
 impl Class {
     fn fetch(bus: Bus, device: Device) -> Self {
-        let config_addr = ConfigAddress::new(bus, device, 0, 8);
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), 8);
         let raw_data = unsafe { config_addr.read() };
 
         Self {
@@ -133,7 +132,7 @@ struct Interface(u8);
 
 impl Interface {
     fn fetch(bus: Bus, device: Device) -> Self {
-        let config_addr = ConfigAddress::new(bus, device, 0, 8);
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), 8);
         let raw_data = unsafe { config_addr.read() };
 
         Self(u8::try_from((raw_data >> 8) & 0xff).unwrap())
@@ -145,7 +144,7 @@ struct CapabilityPtr(u8);
 
 impl CapabilityPtr {
     fn fetch(bus: Bus, device: Device) -> Self {
-        let config_addr = ConfigAddress::new(bus, device, 0, 0x34);
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), 0x34);
         let raw_data = unsafe { config_addr.read() };
 
         Self(u8::try_from(raw_data & 0xff).unwrap())
@@ -177,6 +176,23 @@ impl Device {
     }
 
     fn as_u8(self) -> u8 {
+        self.0
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct Function(u8);
+impl Function {
+    pub fn new(function: u8) -> Self {
+        assert!(function < 8);
+        Self(function)
+    }
+
+    pub fn zero() -> Self {
+        Self(0)
+    }
+
+    pub fn as_u8(self) -> u8 {
         self.0
     }
 }
