@@ -4,7 +4,7 @@ mod register;
 mod transfer_ring;
 
 use {
-    super::pci::config,
+    super::pci::config::{self, bar::BarIndex},
     crate::mem::paging::pml4::PML4,
     register::{
         hc_capability_registers::HCCapabilityRegisters,
@@ -92,7 +92,10 @@ impl<'a> Xhci<'a> {
         if config_space.is_xhci() {
             info!("xHC found.");
 
-            let mmio_base = config_space.bar().base_addr();
+            let endpoint = config_space
+                .endpoint()
+                .expect("PCI Config Space doesn't have endpoint-specific header.");
+            let mmio_base = endpoint.base_addr(BarIndex::new(0));
 
             info!("Getting HCCapabilityRegisters...");
             let mut hc_capability_registers = HCCapabilityRegisters::new(mmio_base);
