@@ -21,6 +21,7 @@ pub struct Xhci<'a> {
     hc_operational_registers: HCOperationalRegisters<'a>,
     dcbaa: DeviceContextBaseAddressArray,
     command_ring: RingQueue<'a, Command>,
+    config_space: config::Space<'a>,
 }
 
 impl<'a> Xhci<'a> {
@@ -88,7 +89,7 @@ impl<'a> Xhci<'a> {
         self.hc_operational_registers.crcr.set_ptr(phys_addr);
     }
 
-    fn new(config_space: &config::Space) -> Result<Self, Error> {
+    fn new(config_space: config::Space<'a>) -> Result<Self, Error> {
         if config_space.is_xhci() {
             info!("xHC found.");
 
@@ -122,6 +123,7 @@ impl<'a> Xhci<'a> {
                 hc_operational_registers,
                 dcbaa,
                 command_ring: RingQueue::new(),
+                config_space,
             })
         } else {
             Err(Error::NotXhciDevice)
@@ -147,7 +149,7 @@ enum Error {
 pub fn iter_devices<'a>() -> impl Iterator<Item = Xhci<'a>> {
     super::pci::iter_devices().filter_map(|device| {
         if device.is_xhci() {
-            Xhci::new(&device).ok()
+            Xhci::new(device).ok()
         } else {
             None
         }
