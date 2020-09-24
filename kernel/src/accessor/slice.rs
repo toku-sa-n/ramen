@@ -11,6 +11,7 @@ use {
     x86_64::{PhysAddr, VirtAddr},
 };
 
+#[derive(Debug)]
 pub struct Accessor<'a, T: 'a> {
     base: VirtAddr,
     num_elements: usize,

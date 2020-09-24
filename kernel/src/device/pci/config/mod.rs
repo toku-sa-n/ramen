@@ -7,7 +7,7 @@ pub mod msi_x;
 
 use {
     self::common::Common,
-    bar::{Bar, BarType, Index},
+    bar::Bar,
     core::ops::Add,
     endpoint::EndPoint,
     msi_x::MsiX,
@@ -15,14 +15,14 @@ use {
 };
 
 #[derive(Debug)]
-pub struct Space {
+pub struct Space<'a> {
     common: Common,
     endpoint: Option<EndPoint>,
     capability_ptr: Option<Offset>,
-    msi_x: Option<MsiX>,
+    msi_x: Option<MsiX<'a>>,
 }
 
-impl Space {
+impl<'a> Space<'a> {
     pub fn fetch(bus: Bus, device: Device) -> Option<Self> {
         let common = Common::fetch(bus, device)?;
 

@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::device::pci::config::{bar, Bus, ConfigAddress, Device, EndPoint, Function, Offset},
+    crate::{
+        accessor,
+        device::pci::config::{bar, Bus, ConfigAddress, Device, EndPoint, Function, Offset},
+    },
     alloc::vec::Vec,
     bitfield::bitfield,
     os_units::{Bytes, Size},
 };
 
 #[derive(Debug)]
-pub struct MsiX(Vec<MsiXDescriptor>);
-impl MsiX {
+pub struct MsiX<'a>(Vec<MsiXDescriptor<'a>>);
+impl<'a> MsiX<'a> {
     pub fn new(bus: Bus, device: Device, capability_ptr: Offset, endpoint: &EndPoint) -> Self {
         let mut msi_x_collection = Vec::new();
         let mut next_ptr = capability_ptr;
@@ -27,17 +30,24 @@ impl MsiX {
 }
 
 #[derive(Debug)]
-struct MsiXDescriptor {
-    bir: bar::Index,
-    table_offset: TableOffset,
+struct MsiXDescriptor<'a> {
+    table: accessor::slice::Accessor<'a, Element>,
     next_ptr: Offset,
 }
 
-impl MsiXDescriptor {
+impl<'a> MsiXDescriptor<'a> {
     fn new(bus: Bus, device: Device, base: Offset, endpoint: &EndPoint) -> Self {
+        let bir = fetch_bir(bus, device, base);
+        let table_offset = TableOffset::new(bus, device, base);
+        let table_base = endpoint.base_addr(bir);
+        let num_elements = TableSize::new(bus, device, base);
+
         Self {
-            bir: fetch_bir(bus, device, base),
-            table_offset: TableOffset::new(bus, device, base),
+            table: accessor::slice::Accessor::new(
+                table_base,
+                table_offset.as_bytes().as_usize(),
+                num_elements.as_u32() as usize,
+            ),
             next_ptr: fetch_next_ptr(bus, device, base),
         }
     }
@@ -65,6 +75,10 @@ impl TableSize {
 
         Self(size)
     }
+
+    fn as_u32(self) -> u32 {
+        self.0
+    }
 }
 
 #[derive(Debug)]
@@ -77,6 +91,10 @@ impl TableOffset {
 
         Self(offset)
     }
+
+    fn as_bytes(self) -> Size<Bytes> {
+        self.0
+    }
 }
 
 fn fetch_next_ptr(bus: Bus, device: Device, capability_base: Offset) -> Offset {
@@ -85,6 +103,7 @@ fn fetch_next_ptr(bus: Bus, device: Device, capability_base: Offset) -> Offset {
     Offset::new((raw >> 8) & 0xff)
 }
 
+#[derive(Debug)]
 struct Element {
     message_address: MessageAddress,
     message_data: MessageData,
@@ -92,6 +111,7 @@ struct Element {
 }
 
 bitfield! {
+    #[derive(Debug)]
     struct MessageAddress(u64);
     u32;
     destination_id, set_destination_id: 19, 12;
@@ -100,6 +120,7 @@ bitfield! {
 }
 
 bitfield! {
+    #[derive(Debug)]
     struct MessageData(u32);
 
     trigger_mode, set_trigger_mode: 15;
@@ -108,4 +129,5 @@ bitfield! {
     vector, set_vector: 7, 0;
 }
 
+#[derive(Debug)]
 struct VectorControl(u32);
