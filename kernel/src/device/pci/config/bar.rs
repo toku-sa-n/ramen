@@ -7,6 +7,7 @@ use {
 
 #[derive(Debug)]
 pub struct Bar {
+    ty: BarType,
     base: PhysAddr,
 }
 
@@ -18,11 +19,20 @@ impl Bar {
             Function::zero(),
             Offset::new(0x10 + bar_index.as_u32() * 4),
         );
-        let bar = unsafe { config_addr.read() };
+        let raw = unsafe { config_addr.read() };
+        let ty = {
+            let ty_raw = (raw >> 1) & 0b11;
+            if ty_raw == 0 {
+                BarType::Bar32Bit
+            } else if ty_raw == 0x02 {
+                BarType::Bar64Bit
+            } else {
+                unreachable!();
+            }
+        };
+        let base = PhysAddr::new(raw as u64 & !0xf);
 
-        Self {
-            base: PhysAddr::new(bar as u64 & !0xF),
-        }
+        Self { ty, base }
     }
 }
 
@@ -39,6 +49,7 @@ impl BarIndex {
     }
 }
 
+#[derive(Debug, Copy, Clone)]
 enum BarType {
     Bar32Bit,
     Bar64Bit,
