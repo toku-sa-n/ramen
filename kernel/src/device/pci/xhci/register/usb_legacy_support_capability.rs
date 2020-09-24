@@ -3,7 +3,7 @@
 use {
     crate::{
         accessor::single_object::Accessor,
-        device::xhci::register::hc_capability_registers::HCCapabilityRegisters,
+        device::pci::xhci::register::hc_capability_registers::HCCapabilityRegisters,
     },
     bitfield::bitfield,
     x86_64::PhysAddr,

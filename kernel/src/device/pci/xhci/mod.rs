@@ -4,7 +4,7 @@ mod register;
 mod transfer_ring;
 
 use {
-    super::pci::config::{self, bar},
+    super::config::{self, bar},
     crate::mem::paging::pml4::PML4,
     register::{
         hc_capability_registers::HCCapabilityRegisters,
@@ -147,7 +147,7 @@ enum Error {
 }
 
 pub fn iter_devices<'a>() -> impl Iterator<Item = Xhci<'a>> {
-    super::pci::iter_devices().filter_map(|device| {
+    super::iter_devices().filter_map(|device| {
         if device.is_xhci() {
             Xhci::new(device).ok()
         } else {

@@ -78,7 +78,7 @@ fn initialization(boot_info: &kernelboot::Info) {
         device::pci::iter_devices().count()
     );
 
-    for mut xhci in device::xhci::iter_devices() {
+    for mut xhci in device::pci::xhci::iter_devices() {
         xhci.init();
     }
 
