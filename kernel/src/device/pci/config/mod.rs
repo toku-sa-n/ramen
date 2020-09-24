@@ -95,7 +95,7 @@ impl RawSpace {
         let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::zero());
         let id = unsafe { config_addr.read() };
 
-        id == !0
+        id != !0
     }
 
     fn as_slice(&self) -> &[u32] {
