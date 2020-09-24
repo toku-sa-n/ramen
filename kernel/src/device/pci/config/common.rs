@@ -61,8 +61,8 @@ impl Id {
     }
 
     fn parse_raw(raw: &RawSpace) -> Self {
-        let vendor = (raw.as_slice()[0] & 0xff) as u16;
-        let device = ((raw.as_slice()[0] >> 16) & 0xff) as u16;
+        let vendor = (raw.as_slice()[0] & 0xffff) as u16;
+        let device = ((raw.as_slice()[0] >> 16) & 0xffff) as u16;
 
         Self { vendor, device }
     }
