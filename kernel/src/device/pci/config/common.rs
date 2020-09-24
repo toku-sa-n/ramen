@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{Bus, ConfigAddress, Device, Function, Offset};
+use super::{Bus, ConfigAddress, Device, Function, Offset, RawSpace};
 
 #[derive(Debug)]
 pub(super) struct Common {
@@ -58,6 +58,13 @@ impl Id {
             vendor: (raw_ids & 0xffff) as u16,
             device: (raw_ids >> 16) as u16,
         }
+    }
+
+    fn parse_raw(raw: &RawSpace) -> Self {
+        let vendor = (raw.as_slice()[0] & 0xff) as u16;
+        let device = ((raw.as_slice()[0] >> 16) & 0xff) as u16;
+
+        Self { vendor, device }
     }
 
     fn valid(&self) -> bool {
