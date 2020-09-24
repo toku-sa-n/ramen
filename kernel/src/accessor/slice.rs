@@ -29,17 +29,13 @@ impl<'a, T: 'a> Accessor<'a, T> {
     pub fn new(phys_base: PhysAddr, offset: usize, num_elements: usize) -> Self {
         let phys_base = phys_base + offset;
 
-        let base = Self::map_pages(phys_base, num_elements);
+        let base = super::map_pages(phys_base, Size::new(size_of::<T>() * num_elements));
 
         Self {
             base,
             num_elements,
             _marker: PhantomData,
         }
-    }
-
-    fn map_pages(start: PhysAddr, num_elements: usize) -> VirtAddr {
-        super::map_pages(start, Size::new(size_of::<T>() * num_elements))
     }
 
     fn object_size(num_elements: usize) -> usize {
