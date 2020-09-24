@@ -21,7 +21,7 @@ impl Bar {
         let bar = unsafe { config_addr.read() };
 
         Self {
-            base: PhysAddr::new(bar as u64),
+            base: PhysAddr::new(bar as u64 & !0xF),
         }
     }
 }
