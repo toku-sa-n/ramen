@@ -76,12 +76,12 @@ impl HeaderType {
 }
 
 #[derive(Debug, Copy, Clone)]
-struct Status(u32);
+struct Status(u16);
 impl Status {
     fn fetch(bus: Bus, device: Device) -> Self {
         let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(0x04));
         let raw = unsafe { config_addr.read() };
-        Self(raw >> 16)
+        Self((raw >> 16) as u16)
     }
 
     fn capability_pointer_exists(self) -> bool {
