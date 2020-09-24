@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::device::xhci::register::{hc_capability_registers::CapabilityRegistersLength, Accessor},
+    crate::{
+        accessor::Accessor,
+        device::xhci::register::hc_capability_registers::CapabilityRegistersLength,
+    },
     bitfield::bitfield,
     x86_64::PhysAddr,
 };
