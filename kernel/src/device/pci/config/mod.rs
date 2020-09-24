@@ -26,7 +26,8 @@ pub struct Space<'a> {
 
 impl<'a> Space<'a> {
     pub fn fetch(bus: Bus, device: Device) -> Option<Self> {
-        let common = Common::fetch(bus, device)?;
+        let raw = RawSpace::fetch(bus, device)?;
+        let common = Common::parse_raw(&raw);
 
         let capability_ptr;
         let msi_x;
