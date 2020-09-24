@@ -20,7 +20,7 @@ impl EndPoint {
         Self { bar }
     }
 
-    pub(super) fn base_addr(&self, index: BarIndex) -> PhysAddr {
+    pub fn base_addr(&self, index: BarIndex) -> PhysAddr {
         let index = index.as_u32() as usize;
 
         if index == 5 && self.bar[index].ty() == BarType::Bar64Bit {
