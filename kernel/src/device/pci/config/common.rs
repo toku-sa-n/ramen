@@ -108,13 +108,13 @@ impl Class {
 }
 
 #[derive(Debug)]
-struct Interface(u32);
+struct Interface(u8);
 
 impl Interface {
     fn fetch(bus: Bus, device: Device) -> Self {
         let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(8));
         let raw_data = unsafe { config_addr.read() };
 
-        Self((raw_data >> 8) & 0xff)
+        Self(((raw_data >> 8) & 0xff) as u8)
     }
 }
