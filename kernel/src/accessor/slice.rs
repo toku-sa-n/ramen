@@ -39,33 +39,7 @@ impl<'a, T: 'a> Accessor<'a, T> {
     }
 
     fn map_pages(start: PhysAddr, num_elements: usize) -> VirtAddr {
-        let start_frame_addr = start.align_down(Size4KiB::SIZE);
-        let end_frame_addr = (start + Self::object_size(num_elements)).align_down(Size4KiB::SIZE);
-
-        let num_pages = Size::new(usize::try_from(end_frame_addr - start_frame_addr).unwrap() + 1)
-            .as_num_of_pages::<Size4KiB>();
-
-        let virt = virt::search_free_addr(num_pages)
-            .expect("OOM during creating a new accessor to a register.");
-
-        for i in 0..num_pages.as_usize() {
-            let page = Page::<Size4KiB>::containing_address(virt + Size4KiB::SIZE * i as u64);
-            let frame = PhysFrame::containing_address(start_frame_addr + Size4KiB::SIZE * i as u64);
-
-            unsafe {
-                PML4.lock()
-                    .map_to(
-                        page,
-                        frame,
-                        PageTableFlags::PRESENT,
-                        &mut *FRAME_MANAGER.lock(),
-                    )
-                    .unwrap()
-                    .flush()
-            }
-        }
-
-        virt
+        super::map_pages(start, Size::new(size_of::<T>() * num_elements))
     }
 
     fn object_size(num_elements: usize) -> usize {
