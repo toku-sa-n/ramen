@@ -92,7 +92,7 @@ fn fetch_capability_ptr(bus: Bus, device: Device) -> Offset {
     let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(0x34));
     let raw_data = unsafe { config_addr.read() };
 
-    Offset::new(raw_data & 0xff)
+    Offset::new(raw_data & 0xfc)
 }
 
 #[derive(Debug, Copy, Clone)]
