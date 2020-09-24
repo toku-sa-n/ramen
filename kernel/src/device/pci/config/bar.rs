@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{Bus, ConfigAddress, Device, Function, Offset};
+use super::{bar, Bus, ConfigAddress, Device, Function, Offset};
 
 #[derive(Debug, Copy, Clone, Default)]
 pub struct Bar(u32);
 
 impl Bar {
-    pub(super) fn fetch(bus: Bus, device: Device, bar_index: BarIndex) -> Self {
+    pub(super) fn fetch(bus: Bus, device: Device, bar_index: bar::Index) -> Self {
         let config_addr = ConfigAddress::new(
             bus,
             device,
@@ -33,8 +33,8 @@ impl Bar {
 }
 
 #[derive(Copy, Clone)]
-pub struct BarIndex(u32);
-impl BarIndex {
+pub struct Index(u32);
+impl Index {
     pub fn new(index: u32) -> Self {
         assert!(index < 6);
         Self(index)

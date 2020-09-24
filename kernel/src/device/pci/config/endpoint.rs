@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{Bar, BarIndex, BarType, Bus, Device},
+    super::{
+        bar::{self, BarType},
+        Bar, Bus, Device,
+    },
     x86_64::PhysAddr,
 };
 
@@ -14,13 +17,13 @@ impl EndPoint {
     pub(super) fn fetch(bus: Bus, device: Device) -> Self {
         let mut bar: [Bar; 6] = [Bar::default(); 6];
         for i in 0..6u32 {
-            bar[i as usize] = Bar::fetch(bus, device, BarIndex::new(i));
+            bar[i as usize] = Bar::fetch(bus, device, bar::Index::new(i));
         }
 
         Self { bar }
     }
 
-    pub fn base_addr(&self, index: BarIndex) -> PhysAddr {
+    pub fn base_addr(&self, index: bar::Index) -> PhysAddr {
         let index = index.as_u32() as usize;
 
         if index == 5 && self.bar[index].ty() == BarType::Bar64Bit {

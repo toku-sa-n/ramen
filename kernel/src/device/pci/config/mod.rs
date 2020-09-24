@@ -7,7 +7,7 @@ pub mod msi_x;
 
 use {
     self::common::Common,
-    bar::{Bar, BarIndex, BarType},
+    bar::{Bar, BarType, Index},
     core::ops::Add,
     endpoint::EndPoint,
     msi_x::MsiX,
