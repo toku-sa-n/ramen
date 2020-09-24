@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::device::pci::config::{Bus, ConfigAddress, Device, EndPoint, Function, Offset},
+    crate::device::pci::config::{bar, Bus, ConfigAddress, Device, EndPoint, Function, Offset},
     alloc::vec::Vec,
     bitfield::bitfield,
     os_units::{Bytes, Size},
@@ -28,7 +28,7 @@ impl MsiX {
 
 #[derive(Debug)]
 struct MsiXDescriptor {
-    bir: Bir,
+    bir: bar::Index,
     table_offset: TableOffset,
     next_ptr: Offset,
 }
@@ -36,7 +36,7 @@ struct MsiXDescriptor {
 impl MsiXDescriptor {
     fn new(bus: Bus, device: Device, base: Offset, endpoint: &EndPoint) -> Self {
         Self {
-            bir: Bir::new(bus, device, base),
+            bir: fetch_bir(bus, device, base),
             table_offset: TableOffset::new(bus, device, base),
             next_ptr: fetch_next_ptr(bus, device, base),
         }
@@ -47,17 +47,13 @@ impl MsiXDescriptor {
     }
 }
 
-#[derive(Debug)]
-struct Bir(u32);
-impl Bir {
-    fn new(bus: Bus, device: Device, capability_base: Offset) -> Self {
-        let config_addr = ConfigAddress::new(bus, device, Function::zero(), capability_base + 0x04);
-        let raw = unsafe { config_addr.read() };
-        let bir = raw & 0b111;
-        assert!(bir < 6);
+fn fetch_bir(bus: Bus, device: Device, capability_base: Offset) -> bar::Index {
+    let config_addr = ConfigAddress::new(bus, device, Function::zero(), capability_base + 0x04);
+    let raw = unsafe { config_addr.read() };
+    let bir = raw & 0b111;
+    assert!(bir < 6);
 
-        Self(bir)
-    }
+    bar::Index::new(bir)
 }
 
 struct TableSize(u32);
