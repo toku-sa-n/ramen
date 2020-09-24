@@ -1,15 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::{Bus, ConfigAddress, Device, Function, Offset},
-    x86_64::PhysAddr,
-};
+use super::{Bus, ConfigAddress, Device, Function, Offset};
 
 #[derive(Debug)]
-pub struct Bar {
-    ty: BarType,
-    base: PhysAddr,
-}
+pub struct Bar(u32);
 
 impl Bar {
     pub(super) fn fetch(bus: Bus, device: Device, bar_index: BarIndex) -> Self {
@@ -19,24 +13,18 @@ impl Bar {
             Function::zero(),
             Offset::new(0x10 + bar_index.as_u32() * 4),
         );
-        let raw = unsafe { config_addr.read() };
-        let ty = {
-            let ty_raw = (raw >> 1) & 0b11;
-            if ty_raw == 0 {
-                BarType::Bar32Bit
-            } else if ty_raw == 0x02 {
-                BarType::Bar64Bit
-            } else {
-                unreachable!();
-            }
-        };
-        let base = PhysAddr::new(raw as u64 & !0xf);
-
-        Self { ty, base }
+        Self(unsafe { config_addr.read() })
     }
 
     pub(super) fn ty(&self) -> BarType {
-        self.ty
+        let ty_raw = self.0 & 0b11;
+        if ty_raw == 0 {
+            BarType::Bar32Bit
+        } else if ty_raw == 0x02 {
+            BarType::Bar64Bit
+        } else {
+            unreachable!();
+        }
     }
 }
 
