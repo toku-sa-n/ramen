@@ -14,7 +14,7 @@ use {
     x86_64::instructions::port::{PortReadOnly, PortWriteOnly},
 };
 
-const NUM_REGISTERS: usize = 0x40;
+const NUM_REGISTERS: usize = 16;
 
 #[derive(Debug)]
 pub struct Space<'a> {
@@ -73,7 +73,7 @@ impl<'a> Space<'a> {
     }
 
     // FIXME: Use constant after the fix of https://github.com/rust-lang/rust/issues/77140
-    fn fetch_raw(bus: Bus, device: Device) -> [u32; 0x40] {
+    fn fetch_raw(bus: Bus, device: Device) -> [u32; 16] {
         let mut raw = [0u32; NUM_REGISTERS];
         for i in (0..NUM_REGISTERS).step_by(4) {
             let config_addr =
