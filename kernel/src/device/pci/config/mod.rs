@@ -9,6 +9,7 @@ use {
     self::common::Common,
     bar::{Bar, BarIndex},
     core::ops::Add,
+    endpoint::EndPoint,
     msi_x::MsiX,
     x86_64::instructions::port::{PortReadOnly, PortWriteOnly},
 };
@@ -16,7 +17,7 @@ use {
 #[derive(Debug)]
 pub struct Space {
     common: Common,
-    bar: Bar,
+    endpoint: Option<EndPoint>,
     capability_ptr: Option<Offset>,
     msi_x: Option<MsiX>,
 }
@@ -24,7 +25,6 @@ pub struct Space {
 impl Space {
     pub fn fetch(bus: Bus, device: Device) -> Option<Self> {
         let common = Common::fetch(bus, device)?;
-        let bar = Bar::fetch(bus, device);
 
         let capability_ptr;
         let msi_x;
@@ -41,9 +41,15 @@ impl Space {
             msi_x = None;
         };
 
+        let endpoint = if common.is_endpoint() {
+            Some(EndPoint::fetch(bus, device))
+        } else {
+            None
+        };
+
         Some(Self {
             common,
-            bar,
+            endpoint,
             capability_ptr,
             msi_x,
         })
