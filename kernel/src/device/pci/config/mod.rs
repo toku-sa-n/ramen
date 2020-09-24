@@ -17,7 +17,6 @@ use {
 pub struct Space {
     common: Common,
     bar: Bar,
-    class: Class,
     interface: Interface,
     capability_ptr: Offset,
     msi_x: Option<MsiX>,
@@ -27,7 +26,6 @@ impl Space {
     pub fn fetch(bus: Bus, device: Device) -> Option<Self> {
         let common = Common::fetch(bus, device)?;
         let bar = Bar::fetch(bus, device);
-        let class = Class::fetch(bus, device);
         let interface = Interface::fetch(bus, device);
         let capability_ptr = fetch_capability_ptr(bus, device);
 
@@ -40,7 +38,6 @@ impl Space {
         Some(Self {
             common,
             bar,
-            class,
             interface,
             capability_ptr,
             msi_x,
@@ -91,24 +88,6 @@ impl ConfigAddress {
     unsafe fn read(&self) -> u32 {
         Self::PORT_CONFIG_ADDR.write(self.as_u32());
         Self::PORT_CONFIG_DATA.read()
-    }
-}
-
-#[derive(Debug)]
-struct Class {
-    base: u32,
-    sub: u32,
-}
-
-impl Class {
-    fn fetch(bus: Bus, device: Device) -> Self {
-        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(8));
-        let raw_data = unsafe { config_addr.read() };
-
-        Self {
-            base: (raw_data >> 24) & 0xff,
-            sub: (raw_data >> 16) & 0xff,
-        }
     }
 }
 
