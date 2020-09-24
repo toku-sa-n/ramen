@@ -34,6 +34,10 @@ impl Common {
     pub(super) fn is_xhci(&self) -> bool {
         self.class.base == 0x0c && self.class.sub == 0x03 && self.interface.0 == 0x30
     }
+
+    pub(super) fn has_capability_ptr(&self) -> bool {
+        self.status.capability_pointer_exists()
+    }
 }
 
 #[derive(Debug)]
