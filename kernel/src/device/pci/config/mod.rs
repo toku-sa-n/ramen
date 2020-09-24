@@ -58,6 +58,10 @@ impl Space {
     pub fn is_xhci(&self) -> bool {
         self.common.is_xhci()
     }
+
+    pub fn endpoint(&self) -> Option<EndPoint> {
+        self.endpoint
+    }
 }
 
 struct ConfigAddress {
