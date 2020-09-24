@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    crate::device::xhci::register::{Accessor, Register},
-    bitfield::bitfield,
-    x86_64::PhysAddr,
-};
+use {crate::device::xhci::register::Accessor, bitfield::bitfield, x86_64::PhysAddr};
 
 pub struct HCCapabilityRegisters<'a> {
     pub cap_length: Accessor<'a, CapabilityRegistersLength>,
@@ -28,7 +24,6 @@ impl<'a> HCCapabilityRegisters<'a> {
 
 #[repr(transparent)]
 pub struct CapabilityRegistersLength(u8);
-impl Register for CapabilityRegistersLength {}
 
 impl CapabilityRegistersLength {
     pub fn len(&mut self) -> usize {
@@ -40,10 +35,8 @@ bitfield! {
     pub struct StructuralParameters1(u32);
     pub number_of_device_slots, _: 7, 0;
 }
-impl Register for StructuralParameters1 {}
 
 bitfield! {
     pub struct HCCapabilityParameters1(u32);
     pub xhci_extended_capabilities_pointer,_: 31,16;
 }
-impl Register for HCCapabilityParameters1 {}

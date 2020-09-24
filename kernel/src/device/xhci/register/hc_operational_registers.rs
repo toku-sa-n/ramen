@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::device::xhci::register::{
-        hc_capability_registers::CapabilityRegistersLength, Accessor, Register,
-    },
+    crate::device::xhci::register::{hc_capability_registers::CapabilityRegistersLength, Accessor},
     bitfield::bitfield,
     x86_64::PhysAddr,
 };
@@ -39,15 +37,11 @@ bitfield! {
     pub controller_not_ready,_:11;
 }
 
-impl Register for UsbStatusRegister {}
-
 bitfield! {
     pub struct CommandRingControlRegister(u64);
 
     ptr,set_pointer:63,6;
 }
-
-impl Register for CommandRingControlRegister {}
 
 impl CommandRingControlRegister {
     pub fn set_ptr(&mut self, ptr: PhysAddr) {
@@ -63,15 +57,11 @@ bitfield! {
     pub max_device_slots_enabled,set_max_device_slots_enabled:7,0;
 }
 
-impl Register for ConfigureRegister {}
-
 bitfield! {
     pub struct DeviceContextBaseAddressArrayPointer(u64);
 
     ptr,set_pointer:63,6;
 }
-
-impl Register for DeviceContextBaseAddressArrayPointer {}
 
 impl DeviceContextBaseAddressArrayPointer {
     pub fn set_ptr(&mut self, ptr: PhysAddr) {

@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::device::xhci::register::{
-        hc_capability_registers::HCCapabilityRegisters, Accessor, Register,
-    },
+    crate::device::xhci::register::{hc_capability_registers::HCCapabilityRegisters, Accessor},
     bitfield::bitfield,
     x86_64::PhysAddr,
 };
@@ -30,5 +28,3 @@ bitfield! {
     pub bios_owns_hc, _: 16;
     pub os_owns_hc, request_hc_ownership: 24;
 }
-
-impl Register for UsbLegacySupportCapabilityRegister {}

@@ -22,14 +22,12 @@ use {
     },
 };
 
-pub trait Register {}
-
-pub struct Accessor<'a, T: 'a + Register> {
+pub struct Accessor<'a, T: 'a> {
     base: VirtAddr,
     _marker: PhantomData<&'a T>,
 }
 
-impl<'a, T: 'a + Register> Accessor<'a, T> {
+impl<'a, T: 'a> Accessor<'a, T> {
     pub fn new(phys_base: PhysAddr, offset: usize) -> Self {
         let phys_base = phys_base + offset;
 
@@ -72,7 +70,7 @@ impl<'a, T: 'a + Register> Accessor<'a, T> {
     }
 }
 
-impl<'a, T: 'a + Register> Deref for Accessor<'a, T> {
+impl<'a, T: 'a> Deref for Accessor<'a, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -80,13 +78,13 @@ impl<'a, T: 'a + Register> Deref for Accessor<'a, T> {
     }
 }
 
-impl<'a, T: 'a + Register> DerefMut for Accessor<'a, T> {
+impl<'a, T: 'a> DerefMut for Accessor<'a, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { &mut *self.base.as_mut_ptr() }
     }
 }
 
-impl<'a, T: 'a + Register> Drop for Accessor<'a, T> {
+impl<'a, T: 'a> Drop for Accessor<'a, T> {
     fn drop(&mut self) {
         let start_frame_addr = self.base.align_down(Size4KiB::SIZE);
         let end_frame_addr = (self.base + size_of::<T>()).align_down(Size4KiB::SIZE);
