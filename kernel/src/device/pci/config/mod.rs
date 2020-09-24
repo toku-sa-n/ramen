@@ -69,6 +69,19 @@ impl<'a> Space<'a> {
     pub fn endpoint(&self) -> &Option<EndPoint> {
         &self.endpoint
     }
+
+    // FIXME: Use constant after the fix of https://github.com/rust-lang/rust/issues/77140
+    const NUM_REGISTERS: usize = 0x40;
+    fn fetch_raw(bus: Bus, device: Device) -> [u32; 0x40] {
+        let mut raw = [0u32; Self::NUM_REGISTERS];
+        for i in (0..Self::NUM_REGISTERS).step_by(4) {
+            let config_addr =
+                ConfigAddress::new(bus, device, Function::zero(), Offset::new(i as _));
+            raw[i / 4] = unsafe { config_addr.read() };
+        }
+
+        raw
+    }
 }
 
 struct ConfigAddress {
