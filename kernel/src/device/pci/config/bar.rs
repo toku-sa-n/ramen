@@ -2,7 +2,7 @@
 
 use super::{Bus, ConfigAddress, Device, Function, Offset};
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct Bar(u32);
 
 impl Bar {
