@@ -4,14 +4,7 @@ use {
     crate::device::pci::config::{Bus, ConfigAddress, Device, Function, Offset},
     alloc::vec::Vec,
     bitfield::bitfield,
-    core::{
-        convert::TryFrom,
-        marker::PhantomData,
-        mem::size_of,
-        ops::{Index, IndexMut},
-    },
     os_units::{Bytes, Size},
-    x86_64::VirtAddr,
 };
 
 #[derive(Debug)]
@@ -49,7 +42,7 @@ impl MsiXDescriptor {
         }
     }
 
-    fn table(&self) -> Table {
+    fn table(&mut self) -> &mut [Element] {
         unimplemented!()
     }
 }
@@ -94,28 +87,6 @@ fn fetch_next_ptr(bus: Bus, device: Device, capability_base: Offset) -> Offset {
     let config_addr = ConfigAddress::new(bus, device, Function::zero(), capability_base);
     let raw = unsafe { config_addr.read() };
     Offset::new((raw >> 8) & 0xff)
-}
-
-struct Table<'a>(&'a mut [Element]);
-
-impl<'a> Table<'a> {
-    fn new(table: &'a mut [Element]) -> Self {
-        Self(table)
-    }
-}
-
-impl<'a> Index<usize> for Table<'a> {
-    type Output = Element;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.0[index]
-    }
-}
-
-impl<'a> IndexMut<usize> for Table<'a> {
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.0[index]
-    }
 }
 
 struct Element {
