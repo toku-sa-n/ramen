@@ -23,3 +23,11 @@ impl Bar {
         PhysAddr::new(self.0)
     }
 }
+
+struct BarIndex(u32);
+impl BarIndex {
+    fn new(index: u32) -> Self {
+        assert!(index < 6);
+        Self(index)
+    }
+}
