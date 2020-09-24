@@ -16,6 +16,10 @@ impl Bar {
         Self(unsafe { config_addr.read() })
     }
 
+    fn new(bar: u32) -> Self {
+        Self(bar)
+    }
+
     pub(super) fn ty(&self) -> BarType {
         let ty_raw = self.0 & 0b11;
         if ty_raw == 0 {
