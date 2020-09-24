@@ -53,7 +53,7 @@ impl<'a> MsiXDescriptor<'a> {
     }
 
     fn table(&mut self) -> &mut [Element] {
-        unimplemented!()
+        &mut *self.table
     }
 }
 
