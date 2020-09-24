@@ -34,6 +34,10 @@ impl Bar {
 
         Self { ty, base }
     }
+
+    pub(super) fn ty(&self) -> BarType {
+        self.ty
+    }
 }
 
 #[derive(Copy, Clone)]
@@ -50,7 +54,7 @@ impl BarIndex {
 }
 
 #[derive(Debug, Copy, Clone)]
-enum BarType {
+pub(super) enum BarType {
     Bar32Bit,
     Bar64Bit,
 }
