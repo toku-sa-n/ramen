@@ -86,6 +86,10 @@ impl RawSpace {
 
         Self(raw)
     }
+
+    fn as_slice(&self) -> &[u32] {
+        &self.0
+    }
 }
 
 struct ConfigAddress {
