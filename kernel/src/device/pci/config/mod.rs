@@ -86,6 +86,13 @@ impl RawSpace {
         Self(raw)
     }
 
+    fn valid(bus: Bus, device: Device) -> bool {
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::zero());
+        let id = unsafe { config_addr.read() };
+
+        id == !0
+    }
+
     fn as_slice(&self) -> &[u32] {
         &self.0
     }
