@@ -85,6 +85,8 @@ impl<'a> Space<'a> {
     }
 }
 
+struct RawSpace([u32; NUM_REGISTERS]);
+
 struct ConfigAddress {
     bus: Bus,
     device: Device,
