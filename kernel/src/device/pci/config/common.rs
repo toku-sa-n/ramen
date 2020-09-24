@@ -97,6 +97,12 @@ impl Status {
         Self((raw >> 16) as u16)
     }
 
+    fn parse_raw(raw: &RawSpace) -> Self {
+        let status = ((raw.as_slice()[1] >> 16) & 0xffff) as u16;
+
+        Self(status)
+    }
+
     fn capability_pointer_exists(self) -> bool {
         self.0 & 0b1000 != 0
     }
