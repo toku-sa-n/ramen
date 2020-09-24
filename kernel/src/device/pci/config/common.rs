@@ -69,7 +69,7 @@ impl Id {
 struct HeaderType(u32);
 impl HeaderType {
     fn fetch(bus: Bus, device: Device) -> Self {
-        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(0x08));
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(0x0c));
         let raw = unsafe { config_addr.read() };
         Self(raw >> 16 & 0xff)
     }
