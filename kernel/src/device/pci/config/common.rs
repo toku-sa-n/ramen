@@ -46,8 +46,8 @@ impl Common {
 
 #[derive(Debug)]
 struct Id {
-    vendor: u32,
-    device: u32,
+    vendor: u16,
+    device: u16,
 }
 
 impl Id {
@@ -55,8 +55,8 @@ impl Id {
         let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::zero());
         let raw_ids = unsafe { config_addr.read() };
         Self {
-            vendor: raw_ids & 0xffff,
-            device: raw_ids >> 16,
+            vendor: (raw_ids & 0xffff) as u16,
+            device: (raw_ids >> 16) as u16,
         }
     }
 
