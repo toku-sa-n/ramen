@@ -44,7 +44,7 @@ impl BarIndex {
         Self(index)
     }
 
-    fn as_u32(self) -> u32 {
+    pub(super) fn as_u32(self) -> u32 {
         self.0
     }
 }
