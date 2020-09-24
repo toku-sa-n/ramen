@@ -53,7 +53,7 @@ impl BarIndex {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub(super) enum BarType {
     Bar32Bit,
     Bar64Bit,
