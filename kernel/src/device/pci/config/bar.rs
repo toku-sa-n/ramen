@@ -30,4 +30,8 @@ impl BarIndex {
         assert!(index < 6);
         Self(index)
     }
+
+    fn as_u32(self) -> u32 {
+        self.0
+    }
 }
