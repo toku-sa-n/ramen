@@ -80,6 +80,12 @@ impl HeaderType {
         let raw = unsafe { config_addr.read() };
         Self((raw >> 16 & 0xff) as u8)
     }
+
+    fn parse_raw(raw: &RawSpace) -> Self {
+        let header = ((raw.as_slice()[3] >> 16) & 0xff) as u8;
+
+        Self(header)
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
