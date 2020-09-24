@@ -2,7 +2,7 @@
 
 use {
     crate::{
-        accessor::Accessor,
+        accessor::single_object::Accessor,
         device::xhci::register::hc_capability_registers::CapabilityRegistersLength,
     },
     bitfield::bitfield,
