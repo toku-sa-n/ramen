@@ -3,7 +3,7 @@
 version: 2
 updates:
 - package-ecosystem: cargo
-  directory: "/common_items"
+  directory: "/common"
   schedule:
     interval: daily
     time: "20:00"
