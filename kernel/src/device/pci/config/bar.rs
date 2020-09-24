@@ -37,7 +37,7 @@ impl Bar {
 }
 
 #[derive(Copy, Clone)]
-struct BarIndex(u32);
+pub(super) struct BarIndex(u32);
 impl BarIndex {
     fn new(index: u32) -> Self {
         assert!(index < 6);
