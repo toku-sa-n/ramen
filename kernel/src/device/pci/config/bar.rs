@@ -34,3 +34,8 @@ impl BarIndex {
         self.0
     }
 }
+
+enum BarType {
+    Bar32Bit,
+    Bar64Bit,
+}
