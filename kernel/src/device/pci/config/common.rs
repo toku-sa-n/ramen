@@ -91,8 +91,8 @@ impl Status {
 
 #[derive(Debug)]
 struct Class {
-    base: u32,
-    sub: u32,
+    base: u8,
+    sub: u8,
 }
 
 impl Class {
@@ -101,8 +101,8 @@ impl Class {
         let raw_data = unsafe { config_addr.read() };
 
         Self {
-            base: (raw_data >> 24) & 0xff,
-            sub: (raw_data >> 16) & 0xff,
+            base: ((raw_data >> 24) & 0xff) as u8,
+            sub: ((raw_data >> 16) & 0xff) as u8,
         }
     }
 }
