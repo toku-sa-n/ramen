@@ -8,6 +8,7 @@ pub(super) struct Common {
     header_type: HeaderType,
     status: Status,
     class: Class,
+    interface: Interface,
 }
 
 impl Common {
@@ -19,12 +20,14 @@ impl Common {
         let header_type = HeaderType::fetch(bus, device);
         let status = Status::fetch(bus, device);
         let class = Class::fetch(bus, device);
+        let interface = Interface::fetch(bus, device);
 
         Some(Self {
             id,
             header_type,
             status,
             class,
+            interface,
         })
     }
 }
@@ -89,5 +92,17 @@ impl Class {
             base: (raw_data >> 24) & 0xff,
             sub: (raw_data >> 16) & 0xff,
         }
+    }
+}
+
+#[derive(Debug)]
+struct Interface(u32);
+
+impl Interface {
+    fn fetch(bus: Bus, device: Device) -> Self {
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(8));
+        let raw_data = unsafe { config_addr.read() };
+
+        Self((raw_data >> 8) & 0xff)
     }
 }

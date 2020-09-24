@@ -17,7 +17,6 @@ use {
 pub struct Space {
     common: Common,
     bar: Bar,
-    interface: Interface,
     capability_ptr: Offset,
     msi_x: Option<MsiX>,
 }
@@ -26,7 +25,6 @@ impl Space {
     pub fn fetch(bus: Bus, device: Device) -> Option<Self> {
         let common = Common::fetch(bus, device)?;
         let bar = Bar::fetch(bus, device);
-        let interface = Interface::fetch(bus, device);
         let capability_ptr = fetch_capability_ptr(bus, device);
 
         let msi_x = if CapabilityId::new(bus, device, capability_ptr).is_msi_x() {
@@ -38,7 +36,6 @@ impl Space {
         Some(Self {
             common,
             bar,
-            interface,
             capability_ptr,
             msi_x,
         })
@@ -88,18 +85,6 @@ impl ConfigAddress {
     unsafe fn read(&self) -> u32 {
         Self::PORT_CONFIG_ADDR.write(self.as_u32());
         Self::PORT_CONFIG_DATA.read()
-    }
-}
-
-#[derive(Debug)]
-struct Interface(u32);
-
-impl Interface {
-    fn fetch(bus: Bus, device: Device) -> Self {
-        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(8));
-        let raw_data = unsafe { config_addr.read() };
-
-        Self((raw_data >> 8) & 0xff)
     }
 }
 
