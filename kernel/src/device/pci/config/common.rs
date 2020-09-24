@@ -66,12 +66,12 @@ impl Id {
 }
 
 #[derive(Debug)]
-struct HeaderType(u32);
+struct HeaderType(u8);
 impl HeaderType {
     fn fetch(bus: Bus, device: Device) -> Self {
         let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(0x0c));
         let raw = unsafe { config_addr.read() };
-        Self(raw >> 16 & 0xff)
+        Self((raw >> 16 & 0xff) as u8)
     }
 }
 
