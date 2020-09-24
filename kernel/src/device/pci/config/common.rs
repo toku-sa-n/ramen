@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{Bus, ConfigAddress, Device, Function, Offset};
+use super::{Bus, ConfigAddress, Device, Function, Offset, RawSpace};
 
 #[derive(Debug)]
 pub(super) struct Common {
@@ -51,6 +51,10 @@ struct Id {
 }
 
 impl Id {
+    fn new(vendor: u16, device: u16) -> Self {
+        Self { vendor, device }
+    }
+
     fn fetch(bus: Bus, device: Device) -> Self {
         let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::zero());
         let raw_ids = unsafe { config_addr.read() };
@@ -68,6 +72,10 @@ impl Id {
 #[derive(Debug)]
 struct HeaderType(u8);
 impl HeaderType {
+    fn new(ty: u8) -> Self {
+        Self(ty)
+    }
+
     fn fetch(bus: Bus, device: Device) -> Self {
         let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(0x0c));
         let raw = unsafe { config_addr.read() };
@@ -78,6 +86,10 @@ impl HeaderType {
 #[derive(Debug, Copy, Clone)]
 struct Status(u16);
 impl Status {
+    fn new(status: u16) -> Self {
+        Self(status)
+    }
+
     fn fetch(bus: Bus, device: Device) -> Self {
         let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(0x04));
         let raw = unsafe { config_addr.read() };
@@ -96,6 +108,10 @@ struct Class {
 }
 
 impl Class {
+    fn new(base: u8, sub: u8) -> Self {
+        Self { base, sub }
+    }
+
     fn fetch(bus: Bus, device: Device) -> Self {
         let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(8));
         let raw_data = unsafe { config_addr.read() };
@@ -111,6 +127,10 @@ impl Class {
 struct Interface(u8);
 
 impl Interface {
+    fn new(interface: u8) -> Self {
+        Self(interface)
+    }
+
     fn fetch(bus: Bus, device: Device) -> Self {
         let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(8));
         let raw_data = unsafe { config_addr.read() };
