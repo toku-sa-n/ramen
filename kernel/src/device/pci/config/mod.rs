@@ -136,8 +136,11 @@ impl ConfigAddress {
 
     /// Safety: `self` must contain the valid config address.
     unsafe fn read(&self) -> u32 {
-        Self::PORT_CONFIG_ADDR.write(self.as_u32());
-        Self::PORT_CONFIG_DATA.read()
+        let mut addr = Self::PORT_CONFIG_ADDR;
+        addr.write(self.as_u32());
+
+        let mut data = Self::PORT_CONFIG_DATA;
+        data.read()
     }
 }
 
