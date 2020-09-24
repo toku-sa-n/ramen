@@ -42,7 +42,7 @@ impl Space {
     }
 
     pub fn is_xhci(&self) -> bool {
-        self.class.base == 0x0c && self.class.sub == 0x03 && self.interface.0 == 0x30
+        self.common.is_xhci()
     }
 
     pub fn bar(&self) -> &Bar {
