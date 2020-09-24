@@ -25,16 +25,20 @@ impl Space {
     pub fn fetch(bus: Bus, device: Device) -> Option<Self> {
         let common = Common::fetch(bus, device)?;
         let bar = Bar::fetch(bus, device);
-        let capability_ptr = if common.has_capability_ptr() {
-            Some(fetch_capability_ptr(bus, device))
-        } else {
-            None
-        };
 
-        let msi_x = if CapabilityId::new(bus, device, capability_ptr).is_msi_x() {
-            Some(MsiX::new(bus, device, capability_ptr))
+        let capability_ptr;
+        let msi_x;
+
+        if common.has_capability_ptr() {
+            capability_ptr = Some(fetch_capability_ptr(bus, device));
+            msi_x = if CapabilityId::new(bus, device, capability_ptr.unwrap()).is_msi_x() {
+                Some(MsiX::new(bus, device, capability_ptr.unwrap()))
+            } else {
+                None
+            };
         } else {
-            None
+            capability_ptr = None;
+            msi_x = None;
         };
 
         Some(Self {
