@@ -4,6 +4,7 @@ pub mod bar;
 mod common;
 mod endpoint;
 pub mod msi_x;
+mod type_spec;
 
 use {
     self::common::Common,
