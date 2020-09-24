@@ -75,7 +75,11 @@ impl<'a> Space<'a> {
 
 struct RawSpace([u32; NUM_REGISTERS]);
 impl RawSpace {
-    fn fetch(bus: Bus, device: Device) -> Self {
+    fn fetch(bus: Bus, device: Device) -> Option<Self> {
+        if !Self::valid(bus, device) {
+            return None;
+        }
+
         let mut raw = [0u32; NUM_REGISTERS];
         for i in (0..NUM_REGISTERS).step_by(4) {
             let config_addr =
@@ -83,7 +87,7 @@ impl RawSpace {
             raw[i / 4] = unsafe { config_addr.read() };
         }
 
-        Self(raw)
+        Some(Self(raw))
     }
 
     fn valid(bus: Bus, device: Device) -> bool {
