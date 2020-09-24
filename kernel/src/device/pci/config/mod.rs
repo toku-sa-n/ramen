@@ -75,7 +75,6 @@ impl<'a> Space<'a> {
 
 struct RawSpace([u32; NUM_REGISTERS]);
 impl RawSpace {
-    // FIXME: Use constant after the fix of https://github.com/rust-lang/rust/issues/77140
     fn fetch(bus: Bus, device: Device) -> Self {
         let mut raw = [0u32; NUM_REGISTERS];
         for i in (0..NUM_REGISTERS).step_by(4) {
