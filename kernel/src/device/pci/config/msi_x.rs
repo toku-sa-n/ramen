@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::device::pci::config::{Bus, ConfigAddress, Device, Function, Offset},
+    crate::device::pci::config::{Bus, ConfigAddress, Device, EndPoint, Function, Offset},
     alloc::vec::Vec,
     bitfield::bitfield,
     os_units::{Bytes, Size},
@@ -10,12 +10,12 @@ use {
 #[derive(Debug)]
 pub struct MsiX(Vec<MsiXDescriptor>);
 impl MsiX {
-    pub fn new(bus: Bus, device: Device, capability_ptr: Offset) -> Self {
+    pub fn new(bus: Bus, device: Device, capability_ptr: Offset, endpoint: &EndPoint) -> Self {
         let mut msi_x_collection = Vec::new();
         let mut next_ptr = capability_ptr;
 
         while {
-            let descriptor = MsiXDescriptor::new(bus, device, next_ptr);
+            let descriptor = MsiXDescriptor::new(bus, device, next_ptr, endpoint);
             next_ptr = descriptor.next_ptr;
             msi_x_collection.push(descriptor);
 
@@ -34,7 +34,7 @@ struct MsiXDescriptor {
 }
 
 impl MsiXDescriptor {
-    fn new(bus: Bus, device: Device, base: Offset) -> Self {
+    fn new(bus: Bus, device: Device, base: Offset, endpoint: &EndPoint) -> Self {
         Self {
             bir: Bir::new(bus, device, base),
             table_offset: TableOffset::new(bus, device, base),

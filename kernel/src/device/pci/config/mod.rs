@@ -29,22 +29,29 @@ impl Space {
         let capability_ptr;
         let msi_x;
 
+        let endpoint = if common.is_endpoint() {
+            Some(EndPoint::fetch(bus, device))
+        } else {
+            None
+        };
+
         if common.has_capability_ptr() {
             capability_ptr = Some(fetch_capability_ptr(bus, device));
-            msi_x = if CapabilityId::new(bus, device, capability_ptr.unwrap()).is_msi_x() {
-                Some(MsiX::new(bus, device, capability_ptr.unwrap()))
+            msi_x = if CapabilityId::new(bus, device, capability_ptr.unwrap()).is_msi_x()
+                && common.is_endpoint()
+            {
+                Some(MsiX::new(
+                    bus,
+                    device,
+                    capability_ptr.unwrap(),
+                    endpoint.as_ref().unwrap(),
+                ))
             } else {
                 None
             };
         } else {
             capability_ptr = None;
             msi_x = None;
-        };
-
-        let endpoint = if common.is_endpoint() {
-            Some(EndPoint::fetch(bus, device))
-        } else {
-            None
         };
 
         Some(Self {
