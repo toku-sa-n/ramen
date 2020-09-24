@@ -71,9 +71,12 @@ impl<'a> Space<'a> {
     pub fn endpoint(&self) -> &Option<EndPoint> {
         &self.endpoint
     }
+}
 
+struct RawSpace([u32; NUM_REGISTERS]);
+impl RawSpace {
     // FIXME: Use constant after the fix of https://github.com/rust-lang/rust/issues/77140
-    fn fetch_raw(bus: Bus, device: Device) -> [u32; 16] {
+    fn fetch(bus: Bus, device: Device) -> Self {
         let mut raw = [0u32; NUM_REGISTERS];
         for i in (0..NUM_REGISTERS).step_by(4) {
             let config_addr =
@@ -81,11 +84,9 @@ impl<'a> Space<'a> {
             raw[i / 4] = unsafe { config_addr.read() };
         }
 
-        raw
+        Self(raw)
     }
 }
-
-struct RawSpace([u32; NUM_REGISTERS]);
 
 struct ConfigAddress {
     bus: Bus,
