@@ -7,7 +7,7 @@ pub mod msi_x;
 
 use {
     self::common::Common,
-    bar::Bar,
+    bar::{Bar, BarIndex},
     core::ops::Add,
     msi_x::MsiX,
     x86_64::instructions::port::{PortReadOnly, PortWriteOnly},
