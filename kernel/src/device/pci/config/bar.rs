@@ -16,7 +16,7 @@ impl Bar {
         Self(unsafe { config_addr.read() })
     }
 
-    fn new(bar: u32) -> Self {
+    pub(super) fn new(bar: u32) -> Self {
         Self(bar)
     }
 
