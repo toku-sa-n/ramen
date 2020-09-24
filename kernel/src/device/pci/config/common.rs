@@ -124,6 +124,13 @@ impl Class {
             sub: ((raw_data >> 16) & 0xff) as u8,
         }
     }
+
+    fn parse_raw(raw: &RawSpace) -> Self {
+        let base = ((raw.as_slice()[2] >> 24) & 0xff) as u8;
+        let sub = ((raw.as_slice()[2] >> 16) & 0xff) as u8;
+
+        Self { base, sub }
+    }
 }
 
 #[derive(Debug)]
