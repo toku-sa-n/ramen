@@ -2,6 +2,7 @@
 
 use super::{Bar, BarIndex, Bus, Device};
 
+#[derive(Debug)]
 pub(super) struct EndPoint {
     bar: [Bar; 6],
 }
