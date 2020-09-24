@@ -2,4 +2,4 @@
 
 mod non_bridge;
 
-use super::Bar;
+use super::{Bar, RawSpace};
