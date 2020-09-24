@@ -38,6 +38,10 @@ impl Common {
     pub(super) fn has_capability_ptr(&self) -> bool {
         self.status.capability_pointer_exists()
     }
+
+    pub(super) fn is_endpoint(&self) -> bool {
+        self.header_type.0 == 0
+    }
 }
 
 #[derive(Debug)]
