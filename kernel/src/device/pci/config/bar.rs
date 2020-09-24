@@ -26,6 +26,10 @@ impl Bar {
             unreachable!();
         }
     }
+
+    pub(super) fn as_u32(self) -> u32 {
+        self.0
+    }
 }
 
 #[derive(Copy, Clone)]
