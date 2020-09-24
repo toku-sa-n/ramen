@@ -81,19 +81,11 @@ fn fetch_next_ptr(bus: Bus, device: Device, capability_base: Offset) -> Offset {
     Offset::new((raw >> 8) & 0xff)
 }
 
-struct Table<'a> {
-    base: VirtAddr,
-    num: usize,
-    _marker: PhantomData<&'a Element>,
-}
+struct Table<'a>(&'a mut [Element]);
 
 impl<'a> Table<'a> {
-    fn new(base: VirtAddr, num: usize) -> Self {
-        Self {
-            base,
-            num,
-            _marker: PhantomData,
-        }
+    fn new(table: &'a mut [Element]) -> Self {
+        Self(table)
     }
 }
 
@@ -101,21 +93,13 @@ impl<'a> Index<usize> for Table<'a> {
     type Output = Element;
 
     fn index(&self, index: usize) -> &Self::Output {
-        assert!(index < self.num);
-        unsafe {
-            &*((usize::try_from(self.base.as_u64()).unwrap() + size_of::<Element>() * index)
-                as *const _)
-        }
+        &self.0[index]
     }
 }
 
 impl<'a> IndexMut<usize> for Table<'a> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        assert!(index < self.num);
-        unsafe {
-            &mut *((usize::try_from(self.base.as_u64()).unwrap() + size_of::<Element>() * index)
-                as *mut _)
-        }
+        &mut self.0[index]
     }
 }
 
