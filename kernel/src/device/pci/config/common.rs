@@ -31,6 +31,22 @@ impl Common {
         })
     }
 
+    pub(super) fn parse_raw(raw: &RawSpace) -> Self {
+        let id = Id::parse_raw(raw);
+        let header_type = HeaderType::parse_raw(raw);
+        let status = Status::parse_raw(raw);
+        let class = Class::parse_raw(raw);
+        let interface = Interface::parse_raw(raw);
+
+        Self {
+            id,
+            header_type,
+            status,
+            class,
+            interface,
+        }
+    }
+
     pub(super) fn is_xhci(&self) -> bool {
         self.class.base == 0x0c && self.class.sub == 0x03 && self.interface.0 == 0x30
     }
