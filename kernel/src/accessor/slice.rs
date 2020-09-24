@@ -59,19 +59,6 @@ impl<'a, T: 'a> DerefMut for Accessor<'a, T> {
 
 impl<'a, T: 'a> Drop for Accessor<'a, T> {
     fn drop(&mut self) {
-        let start_frame_addr = self.base.align_down(Size4KiB::SIZE);
-        let end_frame_addr =
-            (self.base + Self::object_size(self.num_elements)).align_down(Size4KiB::SIZE);
-
-        let num_pages = Size::new(usize::try_from(end_frame_addr - start_frame_addr).unwrap())
-            .as_num_of_pages::<Size4KiB>();
-
-        for i in 0..num_pages.as_usize() {
-            let page =
-                Page::<Size4KiB>::containing_address(start_frame_addr + Size4KiB::SIZE * i as u64);
-
-            let (_, flush) = PML4.lock().unmap(page).unwrap();
-            flush.flush();
-        }
+        super::unmap_pages(self.base, Size::new(Self::object_size(self.num_elements)))
     }
 }

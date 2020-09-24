@@ -45,3 +45,19 @@ fn map_pages(start: PhysAddr, object_size: Size<Bytes>) -> VirtAddr {
 
     virt
 }
+
+fn unmap_pages(start: VirtAddr, object_size: Size<Bytes>) {
+    let start_frame_addr = start.align_down(Size4KiB::SIZE);
+    let end_frame_addr = (start + object_size.as_usize()).align_down(Size4KiB::SIZE);
+
+    let num_pages = Size::new(usize::try_from(end_frame_addr - start_frame_addr).unwrap())
+        .as_num_of_pages::<Size4KiB>();
+
+    for i in 0..num_pages.as_usize() {
+        let page =
+            Page::<Size4KiB>::containing_address(start_frame_addr + Size4KiB::SIZE * i as u64);
+
+        let (_, flush) = PML4.lock().unmap(page).unwrap();
+        flush.flush();
+    }
+}
