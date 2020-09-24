@@ -67,6 +67,17 @@ impl Bir {
     }
 }
 
+struct TableSize(u32);
+impl TableSize {
+    fn new(bus: Bus, device: Device, capability_base: Offset) -> Self {
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), capability_base);
+        let raw = unsafe { config_addr.read() };
+        let size = (raw >> 16) & 0x7ff;
+
+        Self(size)
+    }
+}
+
 #[derive(Debug)]
 struct TableOffset(Size<Bytes>);
 impl TableOffset {
