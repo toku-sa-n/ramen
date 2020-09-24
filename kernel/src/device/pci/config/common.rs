@@ -143,4 +143,10 @@ impl Interface {
 
         Self(((raw_data >> 8) & 0xff) as u8)
     }
+
+    fn parse_raw(raw: &RawSpace) -> Self {
+        let interface = ((raw.as_slice()[2] >> 8) & 0xff) as u8;
+
+        Self(interface)
+    }
 }
