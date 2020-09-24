@@ -48,6 +48,10 @@ impl MsiXDescriptor {
             next_ptr: fetch_next_ptr(bus, device, base),
         }
     }
+
+    fn table(&self) -> Table {
+        unimplemented!()
+    }
 }
 
 #[derive(Debug)]
