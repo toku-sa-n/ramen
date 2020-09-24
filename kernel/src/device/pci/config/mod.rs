@@ -59,8 +59,8 @@ impl Space {
         self.common.is_xhci()
     }
 
-    pub fn endpoint(&self) -> Option<EndPoint> {
-        self.endpoint
+    pub fn endpoint(&self) -> &Option<EndPoint> {
+        &self.endpoint
     }
 }
 

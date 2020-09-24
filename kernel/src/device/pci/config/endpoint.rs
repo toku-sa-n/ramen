@@ -6,7 +6,7 @@ use {
 };
 
 #[derive(Debug)]
-pub(super) struct EndPoint {
+pub struct EndPoint {
     bar: [Bar; 6],
 }
 
@@ -30,7 +30,7 @@ impl EndPoint {
         let addr = match self.bar[index].ty() {
             BarType::Bar32Bit => (self.bar[index].as_u32() & !0xf) as u64,
             BarType::Bar64Bit => {
-                (self.bar[index + 1].as_u32() << 32) as u64 & self.bar[index].as_u32() as u64
+                ((self.bar[index + 1].as_u32() as u64) << 32) & self.bar[index].as_u32() as u64
             }
         };
 

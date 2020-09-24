@@ -75,7 +75,7 @@ impl HeaderType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct Status(u32);
 impl Status {
     fn fetch(bus: Bus, device: Device) -> Self {

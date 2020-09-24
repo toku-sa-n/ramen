@@ -92,10 +92,11 @@ impl<'a> Xhci<'a> {
         if config_space.is_xhci() {
             info!("xHC found.");
 
-            let endpoint = config_space
+            let mmio_base = config_space
                 .endpoint()
-                .expect("PCI Config Space doesn't have endpoint-specific header.");
-            let mmio_base = endpoint.base_addr(BarIndex::new(0));
+                .as_ref()
+                .expect("PCI Config Space doesn't have endpoint-specific header.")
+                .base_addr(BarIndex::new(0));
 
             info!("Getting HCCapabilityRegisters...");
             let mut hc_capability_registers = HCCapabilityRegisters::new(mmio_base);
