@@ -79,7 +79,7 @@ impl Registers {
 impl Index<RegisterIndex> for Registers {
     type Output = u32;
     fn index(&self, index: RegisterIndex) -> &Self::Output {
-        &self[index]
+        &self.0[index.as_u32() as usize]
     }
 }
 
