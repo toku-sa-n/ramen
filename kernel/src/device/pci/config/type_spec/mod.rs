@@ -13,7 +13,7 @@ pub enum TypeSpec {
 }
 
 impl TypeSpec {
-    pub(super) fn parse_raw(raw: &RawSpace, common: &Common) -> Self {
+    pub fn parse_raw(raw: &RawSpace, common: &Common) -> Self {
         match common.header_type() & !0b10000000 {
             0 => TypeSpec::NonBridge(TypeSpecNonBridge::parse_raw(raw)),
             e => panic!("Not implemented: {}\ncommon:{:?}", e, common),

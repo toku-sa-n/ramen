@@ -5,7 +5,7 @@ pub mod xhci;
 
 use config::{Bus, Device};
 
-pub fn iter_devices() -> impl Iterator<Item = config::Space> {
+pub fn iter_devices() -> impl Iterator<Item = config::Space<'static>> {
     IterPciDevices::new(0, 0)
 }
 
@@ -22,7 +22,7 @@ impl IterPciDevices {
 }
 
 impl Iterator for IterPciDevices {
-    type Item = config::Space;
+    type Item = config::Space<'static>;
 
     fn next(&mut self) -> Option<Self::Item> {
         for bus in self.bus..=255 {

@@ -10,6 +10,7 @@ use {
     self::common::Common,
     bar::Bar,
     core::ops::{Add, Index},
+    extended_capability::ExtendedCapabilities,
     type_spec::TypeSpec,
     x86_64::instructions::port::{PortReadOnly, PortWriteOnly},
 };
@@ -17,12 +18,13 @@ use {
 const NUM_REGISTERS: usize = 64;
 
 #[derive(Debug)]
-pub struct Space {
+pub struct Space<'a> {
     common: Common,
     type_spec: TypeSpec,
+    extended_capabilities: Option<ExtendedCapabilities<'a>>,
 }
 
-impl Space {
+impl<'a> Space<'a> {
     pub fn fetch(bus: Bus, device: Device) -> Option<Self> {
         let raw = RawSpace::fetch(bus, device)?;
         Some(Self::parse_raw(&raw))
@@ -31,8 +33,13 @@ impl Space {
     fn parse_raw(raw: &RawSpace) -> Self {
         let common = Common::parse_raw(&raw);
         let type_spec = TypeSpec::parse_raw(&raw, &common);
+        let extended_capabilities = ExtendedCapabilities::new(raw, &common, &type_spec);
 
-        Self { common, type_spec }
+        Self {
+            common,
+            type_spec,
+            extended_capabilities,
+        }
     }
 
     pub fn is_xhci(&self) -> bool {
@@ -44,7 +51,7 @@ impl Space {
     }
 }
 
-struct RawSpace([u32; NUM_REGISTERS]);
+pub struct RawSpace([u32; NUM_REGISTERS]);
 impl RawSpace {
     fn fetch(bus: Bus, device: Device) -> Option<Self> {
         if !Self::valid(bus, device) {
@@ -76,7 +83,7 @@ impl RawSpace {
 impl Index<Offset> for RawSpace {
     type Output = u32;
     fn index(&self, index: Offset) -> &Self::Output {
-        &self.as_slice()[index.as_u32() as usize]
+        &self.as_slice()[index.as_u32() as usize / 4]
     }
 }
 

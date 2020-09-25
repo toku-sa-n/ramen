@@ -21,7 +21,7 @@ pub struct Xhci<'a> {
     hc_operational_registers: HCOperationalRegisters<'a>,
     dcbaa: DeviceContextBaseAddressArray,
     command_ring: RingQueue<'a, Command>,
-    config_space: config::Space,
+    config_space: config::Space<'a>,
 }
 
 impl<'a> Xhci<'a> {
@@ -89,7 +89,7 @@ impl<'a> Xhci<'a> {
         self.hc_operational_registers.crcr.set_ptr(phys_addr);
     }
 
-    fn new(config_space: config::Space) -> Result<Self, Error> {
+    fn new(config_space: config::Space<'a>) -> Result<Self, Error> {
         if config_space.is_xhci() {
             info!("xHC found.");
 
