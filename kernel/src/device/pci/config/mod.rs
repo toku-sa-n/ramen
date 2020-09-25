@@ -2,7 +2,6 @@
 
 pub mod bar;
 mod common;
-mod endpoint;
 pub mod msi_x;
 pub mod type_spec;
 
