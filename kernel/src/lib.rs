@@ -19,7 +19,6 @@ extern crate common;
 extern crate alloc;
 #[macro_use]
 extern crate log;
-extern crate proc_macros;
 extern crate x86_64;
 
 #[macro_use]
