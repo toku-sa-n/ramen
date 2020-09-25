@@ -43,4 +43,4 @@ futures-util = { version = "0.3.4", default-features = false, features = ["alloc
 screen_layer = "0.1.0"
 os_units = "0.1.1"
 bitfield = "0.13.2"
-strum = "0.19.2"
+strum_macros = "0.19.2"
