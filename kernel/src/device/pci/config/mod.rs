@@ -2,6 +2,7 @@
 
 pub mod bar;
 mod common;
+mod extended_capability;
 pub mod msi_x;
 pub mod type_spec;
 
