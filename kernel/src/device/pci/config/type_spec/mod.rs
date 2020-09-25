@@ -3,3 +3,7 @@
 mod non_bridge;
 
 use super::{Bar, RawSpace};
+
+enum TypeSpec {
+    NonBridge(non_bridge::TypeSpecNonBridge),
+}
