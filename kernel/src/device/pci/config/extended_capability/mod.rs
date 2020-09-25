@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use alloc::vec::Vec;
+mod msi_x;
+
+use {alloc::vec::Vec, msi_x::CapabilitySpecMsiX};
 
 struct ExtendedCapabilities(Vec<ExtendedCapability>);
 
@@ -10,4 +12,6 @@ pub struct ExtendedCapability {
     capability_spec: CapabilitySpec,
 }
 
-enum CapabilitySpec {}
+enum CapabilitySpec {
+    MsiX(CapabilitySpecMsiX),
+}
