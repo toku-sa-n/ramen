@@ -36,10 +36,6 @@ impl Common {
         self.status.capability_pointer_exists()
     }
 
-    pub(super) fn is_endpoint(&self) -> bool {
-        self.header_type.0 == 0
-    }
-
     pub(super) fn header_type(&self) -> u8 {
         self.header_type.as_u8()
     }
