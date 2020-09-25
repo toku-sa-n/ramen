@@ -9,7 +9,7 @@ pub mod type_spec;
 use {
     self::common::Common,
     bar::Bar,
-    core::ops::Add,
+    core::ops::{Add, Index},
     type_spec::TypeSpec,
     x86_64::instructions::port::{PortReadOnly, PortWriteOnly},
 };
@@ -70,6 +70,13 @@ impl RawSpace {
 
     fn as_slice(&self) -> &[u32] {
         &self.0
+    }
+}
+
+impl Index<Offset> for RawSpace {
+    type Output = u32;
+    fn index(&self, index: Offset) -> &Self::Output {
+        &self.as_slice()[index.as_u32() as usize]
     }
 }
 
