@@ -195,6 +195,20 @@ impl Add<usize> for RegisterIndex {
     }
 }
 
+#[derive(Debug, Copy, Clone)]
+pub struct Offset(usize);
+impl Offset {
+    pub fn new(offset: usize) -> Self {
+        assert!(offset.trailing_zeros() >= 2);
+        assert!(offset < 256);
+        Self(offset)
+    }
+
+    pub fn as_register_index(self) -> RegisterIndex {
+        RegisterIndex::new(self.0 / 4)
+    }
+}
+
 #[derive(Copy, Clone)]
 struct CapabilityId(u32);
 impl CapabilityId {
