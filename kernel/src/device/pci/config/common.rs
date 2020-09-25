@@ -3,7 +3,7 @@
 use super::RawSpace;
 
 #[derive(Debug)]
-pub(super) struct Common {
+pub struct Common {
     id: Id,
     header_type: HeaderType,
     status: Status,
@@ -84,7 +84,7 @@ impl Status {
     }
 
     fn capability_pointer_exists(self) -> bool {
-        self.0 & 0b1000 != 0
+        self.0 & 0b10000 != 0
     }
 }
 
