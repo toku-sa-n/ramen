@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{Offset, RawSpace},
+    super::{RawSpace, RegisterIndex},
     crate::accessor,
     crate::device::pci::config::{bar, type_spec::TypeSpec},
     bitfield::bitfield,
@@ -15,7 +15,7 @@ pub struct CapabilitySpecMsiX<'a> {
 }
 
 impl<'a> CapabilitySpecMsiX<'a> {
-    pub fn new(raw: &RawSpace, base: Offset, type_spec: &TypeSpec) -> Self {
+    pub fn new(raw: &RawSpace, base: RegisterIndex, type_spec: &TypeSpec) -> Self {
         let bir = Bir::parse_raw(raw, base);
         let table_offset = TableOffset::parse_raw(raw, base);
 
@@ -39,7 +39,7 @@ impl<'a> CapabilitySpecMsiX<'a> {
 
 struct Bir(bar::Index);
 impl Bir {
-    fn parse_raw(raw: &RawSpace, base: Offset) -> Self {
+    fn parse_raw(raw: &RawSpace, base: RegisterIndex) -> Self {
         Self(bar::Index::new(raw[base + 4] & 0b111))
     }
 
@@ -50,7 +50,7 @@ impl Bir {
 
 struct TableOffset(Size<Bytes>);
 impl TableOffset {
-    fn parse_raw(raw: &RawSpace, base: Offset) -> Self {
+    fn parse_raw(raw: &RawSpace, base: RegisterIndex) -> Self {
         Self(Size::new((raw[base + 4] & !0xf) as usize))
     }
 
@@ -61,7 +61,7 @@ impl TableOffset {
 
 struct TableSize(u32);
 impl TableSize {
-    fn parse_raw(raw: &RawSpace, base: Offset) -> Self {
+    fn parse_raw(raw: &RawSpace, base: RegisterIndex) -> Self {
         // Table size is N - 1 encoded.
         // See: https://wiki.osdev.org/PCI#Enabling_MSI-X
         Self(((raw[base] >> 16) & 0x7ff) + 1)

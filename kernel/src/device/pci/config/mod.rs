@@ -61,7 +61,7 @@ impl RawSpace {
         let mut raw = [0u32; NUM_REGISTERS];
         for i in (0..NUM_REGISTERS).step_by(4) {
             let config_addr =
-                ConfigAddress::new(bus, device, Function::zero(), Offset::new(i as _));
+                ConfigAddress::new(bus, device, Function::zero(), RegisterIndex::new(i as _));
             raw[i / 4] = unsafe { config_addr.read() };
         }
 
@@ -69,7 +69,7 @@ impl RawSpace {
     }
 
     fn valid(bus: Bus, device: Device) -> bool {
-        let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::zero());
+        let config_addr = ConfigAddress::new(bus, device, Function::zero(), RegisterIndex::zero());
         let id = unsafe { config_addr.read() };
 
         id != !0
@@ -80,9 +80,9 @@ impl RawSpace {
     }
 }
 
-impl Index<Offset> for RawSpace {
+impl Index<RegisterIndex> for RawSpace {
     type Output = u32;
-    fn index(&self, index: Offset) -> &Self::Output {
+    fn index(&self, index: RegisterIndex) -> &Self::Output {
         &self.as_slice()[index.as_u32() as usize / 4]
     }
 }
@@ -91,7 +91,7 @@ struct ConfigAddress {
     bus: Bus,
     device: Device,
     function: Function,
-    register: Offset,
+    register: RegisterIndex,
 }
 
 impl ConfigAddress {
@@ -99,7 +99,7 @@ impl ConfigAddress {
     const PORT_CONFIG_DATA: PortReadOnly<u32> = PortReadOnly::new(0xcfc);
 
     #[allow(clippy::too_many_arguments)]
-    fn new(bus: Bus, device: Device, function: Function, register: Offset) -> Self {
+    fn new(bus: Bus, device: Device, function: Function, register: RegisterIndex) -> Self {
         Self {
             bus,
             device,
@@ -171,8 +171,8 @@ impl Function {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct Offset(u32);
-impl Offset {
+pub struct RegisterIndex(u32);
+impl RegisterIndex {
     pub fn new(offset: u32) -> Self {
         assert!(offset.trailing_zeros() >= 2);
         assert!(offset < 0x100);
@@ -192,8 +192,8 @@ impl Offset {
     }
 }
 
-impl Add<u32> for Offset {
-    type Output = Offset;
+impl Add<u32> for RegisterIndex {
+    type Output = RegisterIndex;
 
     fn add(self, rhs: u32) -> Self::Output {
         Self(self.0 + rhs)
@@ -203,7 +203,7 @@ impl Add<u32> for Offset {
 #[derive(Copy, Clone)]
 struct CapabilityId(u32);
 impl CapabilityId {
-    fn new(bus: Bus, device: Device, capability_ptr: Offset) -> Self {
+    fn new(bus: Bus, device: Device, capability_ptr: RegisterIndex) -> Self {
         let config_addr = ConfigAddress::new(bus, device, Function::zero(), capability_ptr);
         let raw = unsafe { config_addr.read() };
 

@@ -3,7 +3,7 @@
 mod msi_x;
 
 use {
-    super::{Common, Offset, RawSpace, TypeSpec},
+    super::{Common, RawSpace, RegisterIndex, TypeSpec},
     alloc::vec::Vec,
     msi_x::CapabilitySpecMsiX,
 };
@@ -28,9 +28,9 @@ impl<'a> ExtendedCapabilities<'a> {
         Some(Self(capabilities))
     }
 
-    fn parse_raw_to_get_capability_ptr(raw: &RawSpace, common: &Common) -> Option<Offset> {
+    fn parse_raw_to_get_capability_ptr(raw: &RawSpace, common: &Common) -> Option<RegisterIndex> {
         if common.has_capability_ptr() {
-            Some(Offset::new(raw.as_slice()[0x0d] & 0xfc))
+            Some(RegisterIndex::new(raw.as_slice()[0x0d] & 0xfc))
         } else {
             None
         }
@@ -40,14 +40,14 @@ impl<'a> ExtendedCapabilities<'a> {
 #[derive(Debug)]
 pub struct ExtendedCapability<'a> {
     id: Id,
-    next_ptr: Offset,
+    next_ptr: RegisterIndex,
     capability_spec: Option<CapabilitySpec<'a>>,
 }
 
 impl<'a> ExtendedCapability<'a> {
-    fn new(raw: &RawSpace, offset: Offset, type_spec: &TypeSpec) -> Self {
+    fn new(raw: &RawSpace, offset: RegisterIndex, type_spec: &TypeSpec) -> Self {
         let id = Id::parse_raw(raw, offset);
-        let next_ptr = Offset::new((raw[offset] >> 8) & 0xff);
+        let next_ptr = RegisterIndex::new((raw[offset] >> 8) & 0xff);
         let capability_spec = CapabilitySpec::new(raw, offset, id, type_spec);
 
         Self {
@@ -57,7 +57,7 @@ impl<'a> ExtendedCapability<'a> {
         }
     }
 
-    fn next_ptr(&self) -> Offset {
+    fn next_ptr(&self) -> RegisterIndex {
         self.next_ptr
     }
 }
@@ -68,7 +68,7 @@ enum CapabilitySpec<'a> {
 }
 
 impl<'a> CapabilitySpec<'a> {
-    fn new(raw: &RawSpace, offset: Offset, id: Id, type_spec: &TypeSpec) -> Option<Self> {
+    fn new(raw: &RawSpace, offset: RegisterIndex, id: Id, type_spec: &TypeSpec) -> Option<Self> {
         if id.0 == 0x11 {
             Some(Self::MsiX(CapabilitySpecMsiX::new(raw, offset, type_spec)))
         } else {
@@ -80,7 +80,7 @@ impl<'a> CapabilitySpec<'a> {
 #[derive(Debug, Copy, Clone)]
 struct Id(u8);
 impl Id {
-    fn parse_raw(raw: &RawSpace, offset: Offset) -> Self {
+    fn parse_raw(raw: &RawSpace, offset: RegisterIndex) -> Self {
         Self((raw[offset] & 0xff) as u8)
     }
 }
