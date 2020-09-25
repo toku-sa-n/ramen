@@ -30,13 +30,7 @@ impl Space {
 
         let type_spec = TypeSpec::parse_raw(&raw, &common);
 
-        let capability_ptr;
-
-        if common.has_capability_ptr() {
-            capability_ptr = Some(fetch_capability_ptr(bus, device));
-        } else {
-            capability_ptr = None;
-        };
+        let capability_ptr = parse_raw_to_get_capability_ptr(&raw, &common);
 
         Some(Self {
             common,
@@ -124,11 +118,12 @@ impl ConfigAddress {
     }
 }
 
-fn fetch_capability_ptr(bus: Bus, device: Device) -> Offset {
-    let config_addr = ConfigAddress::new(bus, device, Function::zero(), Offset::new(0x34));
-    let raw_data = unsafe { config_addr.read() };
-
-    Offset::new(raw_data & 0xfc)
+fn parse_raw_to_get_capability_ptr(raw: &RawSpace, common: &Common) -> Option<Offset> {
+    if common.has_capability_ptr() {
+        Some(Offset::new(raw.as_slice()[0x0d] & 0xfc))
+    } else {
+        None
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
