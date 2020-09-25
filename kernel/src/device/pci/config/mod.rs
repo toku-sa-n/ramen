@@ -14,13 +14,12 @@ use {
     x86_64::instructions::port::{PortReadOnly, PortWriteOnly},
 };
 
-const NUM_REGISTERS: usize = 16;
+const NUM_REGISTERS: usize = 64;
 
 #[derive(Debug)]
 pub struct Space {
     common: Common,
     type_spec: TypeSpec,
-    capability_ptr: Option<Offset>,
 }
 
 impl Space {
@@ -32,13 +31,8 @@ impl Space {
     fn parse_raw(raw: &RawSpace) -> Self {
         let common = Common::parse_raw(&raw);
         let type_spec = TypeSpec::parse_raw(&raw, &common);
-        let capability_ptr = parse_raw_to_get_capability_ptr(&raw, &common);
 
-        Self {
-            common,
-            type_spec,
-            capability_ptr,
-        }
+        Self { common, type_spec }
     }
 
     pub fn is_xhci(&self) -> bool {
@@ -117,14 +111,6 @@ impl ConfigAddress {
 
         let mut data = Self::PORT_CONFIG_DATA;
         data.read()
-    }
-}
-
-fn parse_raw_to_get_capability_ptr(raw: &RawSpace, common: &Common) -> Option<Offset> {
-    if common.has_capability_ptr() {
-        Some(Offset::new(raw.as_slice()[0x0d] & 0xfc))
-    } else {
-        None
     }
 }
 
