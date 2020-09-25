@@ -3,20 +3,20 @@
 mod non_bridge;
 
 use {
-    super::{Bar, Common, RawSpace},
+    super::{bar, Bar, Common, RawSpace},
     non_bridge::TypeSpecNonBridge,
 };
 
 #[derive(Debug)]
-pub(super) enum TypeSpec {
+pub enum TypeSpec {
     NonBridge(TypeSpecNonBridge),
 }
 
 impl TypeSpec {
     pub(super) fn parse_raw(raw: &RawSpace, common: &Common) -> Self {
-        match common.header_type() {
+        match common.header_type() & !0b10000000 {
             0 => TypeSpec::NonBridge(TypeSpecNonBridge::parse_raw(raw)),
-            _ => todo!(),
+            e => panic!("Not implemented: {}\ncommon:{:?}", e, common),
         }
     }
 }

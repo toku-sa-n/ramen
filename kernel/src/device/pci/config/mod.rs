@@ -4,14 +4,12 @@ pub mod bar;
 mod common;
 mod endpoint;
 pub mod msi_x;
-mod type_spec;
+pub mod type_spec;
 
 use {
     self::common::Common,
     bar::Bar,
     core::ops::Add,
-    endpoint::EndPoint,
-    msi_x::MsiX,
     type_spec::TypeSpec,
     x86_64::instructions::port::{PortReadOnly, PortWriteOnly},
 };
@@ -19,14 +17,13 @@ use {
 const NUM_REGISTERS: usize = 16;
 
 #[derive(Debug)]
-pub struct Space<'a> {
+pub struct Space {
     common: Common,
     type_spec: TypeSpec,
     capability_ptr: Option<Offset>,
-    msi_x: Option<MsiX<'a>>,
 }
 
-impl<'a> Space<'a> {
+impl Space {
     pub fn fetch(bus: Bus, device: Device) -> Option<Self> {
         let raw = RawSpace::fetch(bus, device)?;
         let common = Common::parse_raw(&raw);
@@ -34,43 +31,26 @@ impl<'a> Space<'a> {
         let type_spec = TypeSpec::parse_raw(&raw, &common);
 
         let capability_ptr;
-        let msi_x;
-
-        let endpoint = if common.is_endpoint() {
-            Some(EndPoint::fetch(bus, device))
-        } else {
-            None
-        };
 
         if common.has_capability_ptr() {
             capability_ptr = Some(fetch_capability_ptr(bus, device));
-            msi_x = if CapabilityId::new(bus, device, capability_ptr.unwrap()).is_msi_x()
-                && common.is_endpoint()
-            {
-                Some(MsiX::new(
-                    bus,
-                    device,
-                    capability_ptr.unwrap(),
-                    endpoint.as_ref().unwrap(),
-                ))
-            } else {
-                None
-            };
         } else {
             capability_ptr = None;
-            msi_x = None;
         };
 
         Some(Self {
             common,
             type_spec,
             capability_ptr,
-            msi_x,
         })
     }
 
     pub fn is_xhci(&self) -> bool {
         self.common.is_xhci()
+    }
+
+    pub fn type_spec(&self) -> &TypeSpec {
+        &self.type_spec
     }
 }
 

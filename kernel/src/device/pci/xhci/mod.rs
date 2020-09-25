@@ -4,7 +4,7 @@ mod register;
 mod transfer_ring;
 
 use {
-    super::config::{self, bar},
+    super::config::{self, bar, type_spec::TypeSpec},
     crate::mem::paging::pml4::PML4,
     register::{
         hc_capability_registers::HCCapabilityRegisters,
@@ -21,7 +21,7 @@ pub struct Xhci<'a> {
     hc_operational_registers: HCOperationalRegisters<'a>,
     dcbaa: DeviceContextBaseAddressArray,
     command_ring: RingQueue<'a, Command>,
-    config_space: config::Space<'a>,
+    config_space: config::Space,
 }
 
 impl<'a> Xhci<'a> {
@@ -89,42 +89,42 @@ impl<'a> Xhci<'a> {
         self.hc_operational_registers.crcr.set_ptr(phys_addr);
     }
 
-    fn new(config_space: config::Space<'a>) -> Result<Self, Error> {
+    fn new(config_space: config::Space) -> Result<Self, Error> {
         if config_space.is_xhci() {
             info!("xHC found.");
 
-            let mmio_base = config_space
-                .endpoint()
-                .as_ref()
-                .expect("PCI Config Space doesn't have endpoint-specific header.")
-                .base_addr(bar::Index::new(0));
+            if let TypeSpec::NonBridge(non_bridge) = config_space.type_spec() {
+                let mmio_base = non_bridge.base_addr(bar::Index::new(0));
 
-            info!("Getting HCCapabilityRegisters...");
-            let mut hc_capability_registers = HCCapabilityRegisters::new(mmio_base);
-            info!("Done.");
+                info!("Getting HCCapabilityRegisters...");
+                let mut hc_capability_registers = HCCapabilityRegisters::new(mmio_base);
+                info!("Done.");
 
-            info!("Getting UsbLegacySupportCapability...");
-            let usb_legacy_support_capability =
-                UsbLegacySupportCapability::new(mmio_base, &hc_capability_registers);
-            info!("Done.");
+                info!("Getting UsbLegacySupportCapability...");
+                let usb_legacy_support_capability =
+                    UsbLegacySupportCapability::new(mmio_base, &hc_capability_registers);
+                info!("Done.");
 
-            info!("Getting HCOperationalRegisters...");
-            let hc_operational_registers =
-                HCOperationalRegisters::new(mmio_base, &mut hc_capability_registers.cap_length);
-            info!("Done.");
+                info!("Getting HCOperationalRegisters...");
+                let hc_operational_registers =
+                    HCOperationalRegisters::new(mmio_base, &mut hc_capability_registers.cap_length);
+                info!("Done.");
 
-            info!("Getting DCBAA...");
-            let dcbaa = DeviceContextBaseAddressArray::new();
-            info!("Done.");
+                info!("Getting DCBAA...");
+                let dcbaa = DeviceContextBaseAddressArray::new();
+                info!("Done.");
 
-            Ok(Self {
-                usb_legacy_support_capability,
-                hc_capability_registers,
-                hc_operational_registers,
-                dcbaa,
-                command_ring: RingQueue::new(),
-                config_space,
-            })
+                Ok(Self {
+                    usb_legacy_support_capability,
+                    hc_capability_registers,
+                    hc_operational_registers,
+                    dcbaa,
+                    command_ring: RingQueue::new(),
+                    config_space,
+                })
+            } else {
+                Err(Error::NotXhciDevice)
+            }
         } else {
             Err(Error::NotXhciDevice)
         }

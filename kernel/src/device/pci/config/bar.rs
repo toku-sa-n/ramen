@@ -1,24 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::{bar, Bus, ConfigAddress, Device, Function, Offset},
-    x86_64::PhysAddr,
-};
+use x86_64::PhysAddr;
 
 #[derive(Debug, Copy, Clone, Default)]
 pub struct Bar(u32);
 
 impl Bar {
-    pub(super) fn fetch(bus: Bus, device: Device, bar_index: bar::Index) -> Self {
-        let config_addr = ConfigAddress::new(
-            bus,
-            device,
-            Function::zero(),
-            Offset::new(0x10 + bar_index.as_u32() * 4),
-        );
-        Self(unsafe { config_addr.read() })
-    }
-
     pub(super) fn new(bar: u32) -> Self {
         Self(bar)
     }
