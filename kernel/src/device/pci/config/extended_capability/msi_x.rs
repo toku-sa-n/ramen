@@ -35,6 +35,10 @@ impl<'a> CapabilitySpecMsiX<'a> {
             ),
         }
     }
+
+    pub fn table(&mut self) -> &mut accessor::slice::Accessor<'a, Element> {
+        &mut self.table
+    }
 }
 
 struct Bir(bar::Index);
@@ -74,7 +78,7 @@ impl TableSize {
 
 bitfield! {
     #[derive(Debug)]
-    struct Element(u128);
+    pub struct Element(u128);
 
     u32, from into MessageAddress, message_address,set_message_address: 31, 0;
     u32, from into MessageData, message_data, set_message_data: 95, 64;
