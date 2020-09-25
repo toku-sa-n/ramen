@@ -39,6 +39,10 @@ impl Common {
     pub(super) fn is_endpoint(&self) -> bool {
         self.header_type.0 == 0
     }
+
+    pub(super) fn header_type(&self) -> u8 {
+        self.header_type.as_u8()
+    }
 }
 
 #[derive(Debug)]
@@ -56,13 +60,17 @@ impl Id {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct HeaderType(u8);
 impl HeaderType {
     fn parse_raw(raw: &RawSpace) -> Self {
         let header = ((raw.as_slice()[3] >> 16) & 0xff) as u8;
 
         Self(header)
+    }
+
+    fn as_u8(self) -> u8 {
+        self.0
     }
 }
 
