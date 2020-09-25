@@ -47,7 +47,6 @@ impl<'a> Xhci<'a> {
             !os_owns || bios_owns
         } {}
 
-        info!("Done");
     }
 
     fn wait_until_controller_is_ready(&self) {
@@ -66,7 +65,6 @@ impl<'a> Xhci<'a> {
         self.hc_operational_registers
             .config
             .set_max_device_slots_enabled(num_of_slots);
-        info!("Done.");
     }
 
     fn set_dcbaap(&mut self) {
@@ -79,7 +77,6 @@ impl<'a> Xhci<'a> {
         self.hc_operational_registers
             .dcbaap
             .set_ptr(phys_addr_of_dcbaa);
-        info!("Done.");
     }
 
     fn set_command_ring_pointer(&mut self) {
@@ -98,21 +95,17 @@ impl<'a> Xhci<'a> {
 
                 info!("Getting HCCapabilityRegisters...");
                 let mut hc_capability_registers = HCCapabilityRegisters::new(mmio_base);
-                info!("Done.");
 
                 info!("Getting UsbLegacySupportCapability...");
                 let usb_legacy_support_capability =
                     UsbLegacySupportCapability::new(mmio_base, &hc_capability_registers);
-                info!("Done.");
 
                 info!("Getting HCOperationalRegisters...");
                 let hc_operational_registers =
                     HCOperationalRegisters::new(mmio_base, &mut hc_capability_registers.cap_length);
-                info!("Done.");
 
                 info!("Getting DCBAA...");
                 let dcbaa = DeviceContextBaseAddressArray::new();
-                info!("Done.");
 
                 Ok(Self {
                     usb_legacy_support_capability,
