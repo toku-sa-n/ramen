@@ -2,11 +2,11 @@
 
 use super::{Bar, RawSpace};
 
-pub(super) struct NonBridge {
+pub(super) struct TypeSpecNonBridge {
     bar: [Bar; 6],
 }
 
-impl NonBridge {
+impl TypeSpecNonBridge {
     fn parse_raw(raw: &RawSpace) -> Self {
         let mut bar = [Bar::default(); 6];
         for i in 0..6 {
