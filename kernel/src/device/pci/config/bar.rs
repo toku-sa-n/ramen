@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{bar, Bus, ConfigAddress, Device, Function, Offset};
+use {
+    super::{bar, Bus, ConfigAddress, Device, Function, Offset},
+    x86_64::PhysAddr,
+};
 
 #[derive(Debug, Copy, Clone, Default)]
 pub struct Bar(u32);
@@ -33,6 +36,30 @@ impl Bar {
 
     pub(super) fn as_u32(self) -> u32 {
         self.0
+    }
+
+    pub(super) fn base_addr(self, upper: Option<Bar>) -> Option<PhysAddr> {
+        if self.ty() == BarType::Bar64Bit && upper.is_some() {
+            self.base_addr_64(upper.unwrap())
+        } else {
+            self.base_addr_32()
+        }
+    }
+
+    fn base_addr_32(self) -> Option<PhysAddr> {
+        match self.ty() {
+            BarType::Bar32Bit => Some(PhysAddr::new((self.0 & !0xf) as u64)),
+            BarType::Bar64Bit => None,
+        }
+    }
+
+    fn base_addr_64(self, upper: Bar) -> Option<PhysAddr> {
+        match self.ty() {
+            BarType::Bar32Bit => None,
+            BarType::Bar64Bit => Some(PhysAddr::new(
+                (self.0 & !0xf) as u64 | (upper.0 as u64) << 32,
+            )),
+        }
     }
 }
 
