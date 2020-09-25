@@ -7,12 +7,13 @@ use {
     non_bridge::TypeSpecNonBridge,
 };
 
-enum TypeSpec {
-    NonBridge(non_bridge::TypeSpecNonBridge),
+#[derive(Debug)]
+pub(super) enum TypeSpec {
+    NonBridge(TypeSpecNonBridge),
 }
 
 impl TypeSpec {
-    fn parse_raw(raw: &RawSpace, common: &Common) -> Self {
+    pub(super) fn parse_raw(raw: &RawSpace, common: &Common) -> Self {
         match common.header_type() {
             0 => TypeSpec::NonBridge(TypeSpecNonBridge::parse_raw(raw)),
             _ => todo!(),

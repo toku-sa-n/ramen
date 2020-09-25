@@ -2,7 +2,8 @@
 
 use super::{Bar, RawSpace};
 
-pub(super) struct TypeSpecNonBridge {
+#[derive(Debug)]
+pub struct TypeSpecNonBridge {
     bar: [Bar; 6],
 }
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{Bus, ConfigAddress, Device, Function, Offset, RawSpace};
+use super::RawSpace;
 
 #[derive(Debug)]
 pub(super) struct Common {

@@ -12,6 +12,7 @@ use {
     core::ops::Add,
     endpoint::EndPoint,
     msi_x::MsiX,
+    type_spec::TypeSpec,
     x86_64::instructions::port::{PortReadOnly, PortWriteOnly},
 };
 
@@ -20,7 +21,7 @@ const NUM_REGISTERS: usize = 16;
 #[derive(Debug)]
 pub struct Space<'a> {
     common: Common,
-    endpoint: Option<EndPoint>,
+    type_spec: TypeSpec,
     capability_ptr: Option<Offset>,
     msi_x: Option<MsiX<'a>>,
 }
@@ -29,6 +30,8 @@ impl<'a> Space<'a> {
     pub fn fetch(bus: Bus, device: Device) -> Option<Self> {
         let raw = RawSpace::fetch(bus, device)?;
         let common = Common::parse_raw(&raw);
+
+        let type_spec = TypeSpec::parse_raw(&raw, &common);
 
         let capability_ptr;
         let msi_x;
@@ -60,7 +63,7 @@ impl<'a> Space<'a> {
 
         Some(Self {
             common,
-            endpoint,
+            type_spec,
             capability_ptr,
             msi_x,
         })
@@ -68,10 +71,6 @@ impl<'a> Space<'a> {
 
     pub fn is_xhci(&self) -> bool {
         self.common.is_xhci()
-    }
-
-    pub fn endpoint(&self) -> &Option<EndPoint> {
-        &self.endpoint
     }
 }
 
