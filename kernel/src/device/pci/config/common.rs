@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::RawSpace;
+use super::Registers;
 
 #[derive(Debug)]
 pub struct Common {
@@ -12,7 +12,7 @@ pub struct Common {
 }
 
 impl Common {
-    pub(super) fn parse_raw(raw: &RawSpace) -> Self {
+    pub(super) fn parse_raw(raw: &Registers) -> Self {
         let id = Id::parse_raw(raw);
         let header_type = HeaderType::parse_raw(raw);
         let status = Status::parse_raw(raw);
@@ -48,7 +48,7 @@ struct Id {
 }
 
 impl Id {
-    fn parse_raw(raw: &RawSpace) -> Self {
+    fn parse_raw(raw: &Registers) -> Self {
         let vendor = (raw.as_slice()[0] & 0xffff) as u16;
         let device = ((raw.as_slice()[0] >> 16) & 0xffff) as u16;
 
@@ -59,7 +59,7 @@ impl Id {
 #[derive(Debug, Copy, Clone)]
 struct HeaderType(u8);
 impl HeaderType {
-    fn parse_raw(raw: &RawSpace) -> Self {
+    fn parse_raw(raw: &Registers) -> Self {
         let header = ((raw.as_slice()[3] >> 16) & 0xff) as u8;
 
         Self(header)
@@ -73,7 +73,7 @@ impl HeaderType {
 #[derive(Debug, Copy, Clone)]
 struct Status(u16);
 impl Status {
-    fn parse_raw(raw: &RawSpace) -> Self {
+    fn parse_raw(raw: &Registers) -> Self {
         let status = ((raw.as_slice()[1] >> 16) & 0xffff) as u16;
 
         Self(status)
@@ -91,7 +91,7 @@ struct Class {
 }
 
 impl Class {
-    fn parse_raw(raw: &RawSpace) -> Self {
+    fn parse_raw(raw: &Registers) -> Self {
         let base = ((raw.as_slice()[2] >> 24) & 0xff) as u8;
         let sub = ((raw.as_slice()[2] >> 16) & 0xff) as u8;
 
@@ -103,7 +103,7 @@ impl Class {
 struct Interface(u8);
 
 impl Interface {
-    fn parse_raw(raw: &RawSpace) -> Self {
+    fn parse_raw(raw: &Registers) -> Self {
         let interface = ((raw.as_slice()[2] >> 8) & 0xff) as u8;
 
         Self(interface)

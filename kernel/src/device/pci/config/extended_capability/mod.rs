@@ -3,7 +3,7 @@
 mod msi_x;
 
 use {
-    super::{Common, RawSpace, RegisterIndex, TypeSpec},
+    super::{Common, RegisterIndex, Registers, TypeSpec},
     alloc::vec::Vec,
     msi_x::CapabilitySpecMsiX,
 };
@@ -12,7 +12,7 @@ use {
 pub struct ExtendedCapabilities<'a>(Vec<ExtendedCapability<'a>>);
 
 impl<'a> ExtendedCapabilities<'a> {
-    pub fn new(raw: &RawSpace, common: &Common, type_spec: &TypeSpec) -> Option<Self> {
+    pub fn new(raw: &Registers, common: &Common, type_spec: &TypeSpec) -> Option<Self> {
         let mut base = Self::parse_raw_to_get_capability_ptr(raw, common)?;
         let mut capabilities = Vec::new();
 
@@ -28,7 +28,7 @@ impl<'a> ExtendedCapabilities<'a> {
         Some(Self(capabilities))
     }
 
-    fn parse_raw_to_get_capability_ptr(raw: &RawSpace, common: &Common) -> Option<RegisterIndex> {
+    fn parse_raw_to_get_capability_ptr(raw: &Registers, common: &Common) -> Option<RegisterIndex> {
         if common.has_capability_ptr() {
             Some(RegisterIndex::new(raw.as_slice()[0x0d] & 0xfc))
         } else {
@@ -45,7 +45,7 @@ pub struct ExtendedCapability<'a> {
 }
 
 impl<'a> ExtendedCapability<'a> {
-    fn new(raw: &RawSpace, offset: RegisterIndex, type_spec: &TypeSpec) -> Self {
+    fn new(raw: &Registers, offset: RegisterIndex, type_spec: &TypeSpec) -> Self {
         let id = Id::parse_raw(raw, offset);
         let next_ptr = RegisterIndex::new((raw[offset] >> 8) & 0xff);
         let capability_spec = CapabilitySpec::new(raw, offset, id, type_spec);
@@ -68,7 +68,7 @@ enum CapabilitySpec<'a> {
 }
 
 impl<'a> CapabilitySpec<'a> {
-    fn new(raw: &RawSpace, offset: RegisterIndex, id: Id, type_spec: &TypeSpec) -> Option<Self> {
+    fn new(raw: &Registers, offset: RegisterIndex, id: Id, type_spec: &TypeSpec) -> Option<Self> {
         if id.0 == 0x11 {
             Some(Self::MsiX(CapabilitySpecMsiX::new(raw, offset, type_spec)))
         } else {
@@ -80,7 +80,7 @@ impl<'a> CapabilitySpec<'a> {
 #[derive(Debug, Copy, Clone)]
 struct Id(u8);
 impl Id {
-    fn parse_raw(raw: &RawSpace, offset: RegisterIndex) -> Self {
+    fn parse_raw(raw: &Registers, offset: RegisterIndex) -> Self {
         Self((raw[offset] & 0xff) as u8)
     }
 }

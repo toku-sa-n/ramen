@@ -3,7 +3,7 @@
 mod non_bridge;
 
 use {
-    super::{bar, Bar, Common, RawSpace},
+    super::{bar, Bar, Common, Registers},
     non_bridge::TypeSpecNonBridge,
 };
 
@@ -13,7 +13,7 @@ pub enum TypeSpec {
 }
 
 impl TypeSpec {
-    pub fn parse_raw(raw: &RawSpace, common: &Common) -> Self {
+    pub fn parse_raw(raw: &Registers, common: &Common) -> Self {
         match common.header_type() & !0b10000000 {
             0 => TypeSpec::NonBridge(TypeSpecNonBridge::parse_raw(raw)),
             e => panic!("Not implemented: {}\ncommon:{:?}", e, common),

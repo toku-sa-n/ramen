@@ -26,11 +26,11 @@ pub struct Space<'a> {
 
 impl<'a> Space<'a> {
     pub fn fetch(bus: Bus, device: Device) -> Option<Self> {
-        let raw = RawSpace::fetch(bus, device)?;
+        let raw = Registers::fetch(bus, device)?;
         Some(Self::parse_raw(&raw))
     }
 
-    fn parse_raw(raw: &RawSpace) -> Self {
+    fn parse_raw(raw: &Registers) -> Self {
         let common = Common::parse_raw(&raw);
         let type_spec = TypeSpec::parse_raw(&raw, &common);
         let extended_capabilities = ExtendedCapabilities::new(raw, &common, &type_spec);
@@ -51,8 +51,8 @@ impl<'a> Space<'a> {
     }
 }
 
-pub struct RawSpace([u32; NUM_REGISTERS]);
-impl RawSpace {
+pub struct Registers([u32; NUM_REGISTERS]);
+impl Registers {
     fn fetch(bus: Bus, device: Device) -> Option<Self> {
         if !Self::valid(bus, device) {
             return None;
@@ -80,7 +80,7 @@ impl RawSpace {
     }
 }
 
-impl Index<RegisterIndex> for RawSpace {
+impl Index<RegisterIndex> for Registers {
     type Output = u32;
     fn index(&self, index: RegisterIndex) -> &Self::Output {
         &self.as_slice()[index.as_u32() as usize / 4]
