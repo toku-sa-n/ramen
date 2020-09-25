@@ -26,17 +26,19 @@ pub struct Space {
 impl Space {
     pub fn fetch(bus: Bus, device: Device) -> Option<Self> {
         let raw = RawSpace::fetch(bus, device)?;
+        Some(Self::parse_raw(&raw))
+    }
+
+    fn parse_raw(raw: &RawSpace) -> Self {
         let common = Common::parse_raw(&raw);
-
         let type_spec = TypeSpec::parse_raw(&raw, &common);
-
         let capability_ptr = parse_raw_to_get_capability_ptr(&raw, &common);
 
-        Some(Self {
+        Self {
             common,
             type_spec,
             capability_ptr,
-        })
+        }
     }
 
     pub fn is_xhci(&self) -> bool {
