@@ -59,10 +59,10 @@ impl Registers {
         }
 
         let mut raw = [0u32; NUM_REGISTERS];
-        for i in (0..NUM_REGISTERS).step_by(4) {
+        for i in 0..NUM_REGISTERS {
             let config_addr =
                 ConfigAddress::new(bus, device, Function::zero(), RegisterIndex::new(i as _));
-            raw[i / 4] = unsafe { config_addr.read() };
+            raw[i] = unsafe { config_addr.read() };
         }
 
         Some(Self(raw))
