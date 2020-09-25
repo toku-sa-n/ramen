@@ -42,6 +42,13 @@ bitfield! {
     trigger_mode, set_trigger_mode: 15;
 }
 
+impl MessageData {
+    fn set_level_trigger(&mut self) {
+        self.set_trigger_mode(true);
+        self.set_level(true);
+    }
+}
+
 impl From<MessageData> for u32 {
     fn from(address: MessageData) -> Self {
         address.0
