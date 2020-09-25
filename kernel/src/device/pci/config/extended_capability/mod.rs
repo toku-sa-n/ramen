@@ -30,7 +30,9 @@ impl<'a> ExtendedCapabilities<'a> {
 
     fn parse_raw_to_get_capability_ptr(raw: &Registers, common: &Common) -> Option<RegisterIndex> {
         if common.has_capability_ptr() {
-            Some(RegisterIndex::new(raw[RegisterIndex::new(0x0d)] & 0xfc))
+            Some(RegisterIndex::new(
+                (raw[RegisterIndex::new(0x0d)] & 0xfc) as usize,
+            ))
         } else {
             None
         }
@@ -47,7 +49,7 @@ pub struct ExtendedCapability<'a> {
 impl<'a> ExtendedCapability<'a> {
     fn new(raw: &Registers, offset: RegisterIndex, type_spec: &TypeSpec) -> Self {
         let id = Id::parse_raw(raw, offset);
-        let next_ptr = RegisterIndex::new((raw[offset] >> 8) & 0xff);
+        let next_ptr = RegisterIndex::new(((raw[offset] >> 8) & 0xff) as usize);
         let capability_spec = CapabilitySpec::new(raw, offset, id, type_spec);
 
         Self {

@@ -79,7 +79,7 @@ impl Registers {
 impl Index<RegisterIndex> for Registers {
     type Output = u32;
     fn index(&self, index: RegisterIndex) -> &Self::Output {
-        &self.0[index.as_u32() as usize]
+        &self.0[index.as_usize() as usize]
     }
 }
 
@@ -109,7 +109,7 @@ impl ConfigAddress {
         let bus = self.bus.as_u32();
         let device = self.device.as_u32();
         let function = self.function.as_u32();
-        let register = self.register.as_u32();
+        let register = self.register.as_usize() as u32;
 
         VALID | bus << 16 | device << 11 | function << 8 | register << 2
     }
@@ -167,10 +167,10 @@ impl Function {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct RegisterIndex(u32);
+pub struct RegisterIndex(usize);
 impl RegisterIndex {
-    pub fn new(offset: u32) -> Self {
-        assert!(offset < NUM_REGISTERS as u32);
+    pub fn new(offset: usize) -> Self {
+        assert!(offset < NUM_REGISTERS);
         Self(offset)
     }
 
@@ -178,7 +178,7 @@ impl RegisterIndex {
         Self(0)
     }
 
-    fn as_u32(self) -> u32 {
+    fn as_usize(self) -> usize {
         self.0
     }
 
@@ -187,10 +187,10 @@ impl RegisterIndex {
     }
 }
 
-impl Add<u32> for RegisterIndex {
+impl Add<usize> for RegisterIndex {
     type Output = RegisterIndex;
 
-    fn add(self, rhs: u32) -> Self::Output {
+    fn add(self, rhs: usize) -> Self::Output {
         Self(self.0 + rhs)
     }
 }
