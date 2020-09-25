@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{Bar, RawSpace};
+use {
+    super::{bar, Bar, RawSpace},
+    x86_64::PhysAddr,
+};
 
 #[derive(Debug)]
 pub struct TypeSpecNonBridge {
@@ -15,5 +18,16 @@ impl TypeSpecNonBridge {
         }
 
         Self { bar }
+    }
+
+    pub fn base_addr(&self, index: bar::Index) -> PhysAddr {
+        let index = index.as_usize();
+        let upper = if index == 5 {
+            None
+        } else {
+            Some(self.bar[index + 1])
+        };
+
+        self.bar[index].base_addr(upper).unwrap()
     }
 }
