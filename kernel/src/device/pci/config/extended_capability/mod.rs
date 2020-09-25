@@ -3,7 +3,7 @@
 mod msi_x;
 
 use {
-    super::{Common, RegisterIndex, Registers, TypeSpec},
+    super::{Common, Offset, RegisterIndex, Registers, TypeSpec},
     alloc::vec::Vec,
     msi_x::CapabilitySpecMsiX,
 };
@@ -30,9 +30,7 @@ impl<'a> ExtendedCapabilities<'a> {
 
     fn parse_raw_to_get_capability_ptr(raw: &Registers, common: &Common) -> Option<RegisterIndex> {
         if common.has_capability_ptr() {
-            Some(RegisterIndex::new(
-                (raw[RegisterIndex::new(0x0d)] & 0xfc) as usize,
-            ))
+            Some(Offset::new((raw[RegisterIndex::new(0x0d)] & 0xfc) as usize).as_register_index())
         } else {
             None
         }
