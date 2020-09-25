@@ -2,9 +2,10 @@
 
 use super::{Bar, RawSpace};
 
-struct NonBridge {
+pub(super) struct NonBridge {
     bar: [Bar; 6],
 }
+
 impl NonBridge {
     fn parse_raw(raw: &RawSpace) -> Self {
         let mut bar = [Bar::default(); 6];
