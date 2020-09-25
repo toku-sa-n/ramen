@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::Registers;
+use super::{RegisterIndex, Registers};
 
 #[derive(Debug)]
 pub struct Common {
@@ -49,8 +49,8 @@ struct Id {
 
 impl Id {
     fn parse_raw(raw: &Registers) -> Self {
-        let vendor = (raw.as_slice()[0] & 0xffff) as u16;
-        let device = ((raw.as_slice()[0] >> 16) & 0xffff) as u16;
+        let vendor = (raw[RegisterIndex::zero()] & 0xffff) as u16;
+        let device = ((raw[RegisterIndex::zero()] >> 16) & 0xffff) as u16;
 
         Self { vendor, device }
     }
@@ -60,7 +60,7 @@ impl Id {
 struct HeaderType(u8);
 impl HeaderType {
     fn parse_raw(raw: &Registers) -> Self {
-        let header = ((raw.as_slice()[3] >> 16) & 0xff) as u8;
+        let header = ((raw[RegisterIndex::new(3)] >> 16) & 0xff) as u8;
 
         Self(header)
     }
@@ -74,7 +74,7 @@ impl HeaderType {
 struct Status(u16);
 impl Status {
     fn parse_raw(raw: &Registers) -> Self {
-        let status = ((raw.as_slice()[1] >> 16) & 0xffff) as u16;
+        let status = ((raw[RegisterIndex::new(1)] >> 16) & 0xffff) as u16;
 
         Self(status)
     }
@@ -92,8 +92,8 @@ struct Class {
 
 impl Class {
     fn parse_raw(raw: &Registers) -> Self {
-        let base = ((raw.as_slice()[2] >> 24) & 0xff) as u8;
-        let sub = ((raw.as_slice()[2] >> 16) & 0xff) as u8;
+        let base = ((raw[RegisterIndex::new(2)] >> 24) & 0xff) as u8;
+        let sub = ((raw[RegisterIndex::new(2)] >> 16) & 0xff) as u8;
 
         Self { base, sub }
     }
@@ -104,7 +104,7 @@ struct Interface(u8);
 
 impl Interface {
     fn parse_raw(raw: &Registers) -> Self {
-        let interface = ((raw.as_slice()[2] >> 8) & 0xff) as u8;
+        let interface = ((raw[RegisterIndex::new(2)] >> 8) & 0xff) as u8;
 
         Self(interface)
     }

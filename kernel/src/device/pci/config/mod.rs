@@ -74,16 +74,12 @@ impl Registers {
 
         id != !0
     }
-
-    fn as_slice(&self) -> &[u32] {
-        &self.0
-    }
 }
 
 impl Index<RegisterIndex> for Registers {
     type Output = u32;
     fn index(&self, index: RegisterIndex) -> &Self::Output {
-        &self.as_slice()[index.as_u32() as usize / 4]
+        &self[index]
     }
 }
 
@@ -113,7 +109,7 @@ impl ConfigAddress {
         let bus = self.bus.as_u32();
         let device = self.device.as_u32();
         let function = self.function.as_u32();
-        let register = self.register.as_u32();
+        let register = self.register.as_u32() * 4;
 
         VALID | bus << 16 | device << 11 | function << 8 | register
     }
@@ -174,8 +170,7 @@ impl Function {
 pub struct RegisterIndex(u32);
 impl RegisterIndex {
     pub fn new(offset: u32) -> Self {
-        assert!(offset.trailing_zeros() >= 2);
-        assert!(offset < 0x100);
+        assert!(offset < NUM_REGISTERS as u32);
         Self(offset)
     }
 

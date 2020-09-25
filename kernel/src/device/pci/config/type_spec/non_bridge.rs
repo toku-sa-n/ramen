@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{bar, Bar, Registers},
+    super::{bar, Bar, RegisterIndex, Registers},
     x86_64::PhysAddr,
 };
 
@@ -14,7 +14,7 @@ impl TypeSpecNonBridge {
     pub(super) fn parse_raw(raw: &Registers) -> Self {
         let mut bar = [Bar::default(); 6];
         for i in 0..6 {
-            bar[i] = Bar::new(raw.as_slice()[i + 4]);
+            bar[i] = Bar::new(raw[RegisterIndex::new((i + 4) as u32)]);
         }
 
         Self { bar }

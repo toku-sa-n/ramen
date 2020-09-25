@@ -3,7 +3,7 @@
 mod non_bridge;
 
 use {
-    super::{bar, Bar, Common, Registers},
+    super::{bar, Bar, Common, RegisterIndex, Registers},
     non_bridge::TypeSpecNonBridge,
 };
 

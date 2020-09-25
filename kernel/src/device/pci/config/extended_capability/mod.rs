@@ -30,7 +30,7 @@ impl<'a> ExtendedCapabilities<'a> {
 
     fn parse_raw_to_get_capability_ptr(raw: &Registers, common: &Common) -> Option<RegisterIndex> {
         if common.has_capability_ptr() {
-            Some(RegisterIndex::new(raw.as_slice()[0x0d] & 0xfc))
+            Some(RegisterIndex::new(raw[RegisterIndex::new(0x0d)] & 0xfc))
         } else {
             None
         }
