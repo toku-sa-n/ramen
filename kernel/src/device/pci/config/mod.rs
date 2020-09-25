@@ -109,9 +109,9 @@ impl ConfigAddress {
         let bus = self.bus.as_u32();
         let device = self.device.as_u32();
         let function = self.function.as_u32();
-        let register = self.register.as_u32() * 4;
+        let register = self.register.as_u32();
 
-        VALID | bus << 16 | device << 11 | function << 8 | register
+        VALID | bus << 16 | device << 11 | function << 8 | register << 2
     }
 
     /// Safety: `self` must contain the valid config address.
