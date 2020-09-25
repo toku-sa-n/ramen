@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #[repr(C, packed)]
-pub struct ExtendedCapability<T: CapabilitySpecific> {
+pub struct ExtendedCapability {
     capability_id: u8,
     next_ptr: u8,
-    capability_specific: T,
+    capability_spec: CapabilitySpec,
 }
 
-pub trait CapabilitySpecific {}
+enum CapabilitySpec {}
