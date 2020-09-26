@@ -46,7 +46,6 @@ impl<'a> Xhci<'a> {
 
             !os_owns || bios_owns
         } {}
-
     }
 
     fn wait_until_controller_is_ready(&self) {
