@@ -52,10 +52,10 @@ pub struct Registers {
 }
 impl Registers {
     fn new(bus: Bus, device: Device) -> Option<Self> {
-        if !Self::valid(bus, device) {
-            None
-        } else {
+        if Self::valid(bus, device) {
             Some(Self { bus, device })
+        } else {
+            None
         }
     }
 
