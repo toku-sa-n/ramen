@@ -37,7 +37,7 @@ impl Bar {
 
     fn base_addr_32(self) -> Option<PhysAddr> {
         match self.ty() {
-            BarType::Bar32Bit => Some(PhysAddr::new((self.0 & !0xf) as u64)),
+            BarType::Bar32Bit => Some(PhysAddr::new(u64::from(self.0 & !0xf))),
             BarType::Bar64Bit => None,
         }
     }
