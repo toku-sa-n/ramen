@@ -110,7 +110,7 @@ impl<'a> Class<'a> {
     }
 
     fn base(&self) -> u8 {
-        ((self.registers.get(RegisterIndex::new(2)) >> 24) & 0xff) as u8
+        u8::try_from((self.registers.get(RegisterIndex::new(2)) >> 24) & 0xff).unwrap()
     }
 
     fn sub(&self) -> u8 {
