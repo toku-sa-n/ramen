@@ -71,7 +71,7 @@ impl TableSize {
         Self(((raw.get(base) >> 16) & 0x7ff) + 1)
     }
 
-    fn as_usize(self) -> usize {
+    fn as_usize(&self) -> usize {
         self.0 as usize
     }
 }
