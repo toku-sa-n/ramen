@@ -44,7 +44,7 @@ impl<'a> CapabilitySpecMsiX<'a> {
 struct Bir(bar::Index);
 impl Bir {
     fn parse_raw(raw: &Registers, base: RegisterIndex) -> Self {
-        Self(bar::Index::new(raw[base + 4] & 0b111))
+        Self(bar::Index::new(raw.get(base + 4) & 0b111))
     }
 
     fn get(self) -> bar::Index {
@@ -55,7 +55,7 @@ impl Bir {
 struct TableOffset(Size<Bytes>);
 impl TableOffset {
     fn parse_raw(raw: &Registers, base: RegisterIndex) -> Self {
-        Self(Size::new((raw[base + 4] & !0xf) as usize))
+        Self(Size::new((raw.get(base + 4) & !0xf) as usize))
     }
 
     fn as_bytes(self) -> Size<Bytes> {
@@ -68,7 +68,7 @@ impl TableSize {
     fn parse_raw(raw: &Registers, base: RegisterIndex) -> Self {
         // Table size is N - 1 encoded.
         // See: https://wiki.osdev.org/PCI#Enabling_MSI-X
-        Self(((raw[base] >> 16) & 0x7ff) + 1)
+        Self(((raw.get(base) >> 16) & 0x7ff) + 1)
     }
 
     fn as_usize(self) -> usize {

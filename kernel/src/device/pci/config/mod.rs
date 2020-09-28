@@ -55,21 +55,24 @@ impl<'a> Space<'a> {
     }
 }
 
-pub struct Registers([u32; NUM_REGISTERS]);
+pub struct Registers {
+    bus: Bus,
+    device: Device,
+}
 impl Registers {
     fn fetch(bus: Bus, device: Device) -> Option<Self> {
         if !Self::valid(bus, device) {
             return None;
         }
 
-        let mut raw = [0u32; NUM_REGISTERS];
-        for i in 0..NUM_REGISTERS {
-            let config_addr =
-                ConfigAddress::new(bus, device, Function::zero(), RegisterIndex::new(i as _));
-            raw[i] = unsafe { config_addr.read() };
-        }
+        // let mut raw = [0u32; NUM_REGISTERS];
+        // for i in 0..NUM_REGISTERS {
+        //     let config_addr =
+        //         ConfigAddress::new(bus, device, Function::zero(), RegisterIndex::new(i as _));
+        //     raw[i] = unsafe { config_addr.read() };
+        // }
 
-        Some(Self(raw))
+        Some(Self { bus, device })
     }
 
     fn valid(bus: Bus, device: Device) -> bool {
@@ -78,12 +81,10 @@ impl Registers {
 
         id != !0
     }
-}
 
-impl Index<RegisterIndex> for Registers {
-    type Output = u32;
-    fn index(&self, index: RegisterIndex) -> &Self::Output {
-        &self.0[index.as_usize() as usize]
+    fn get(&self, index: RegisterIndex) -> u32 {
+        let accessor = ConfigAddress::new(self.bus, self.device, Function::zero(), index);
+        unsafe { accessor.read() }
     }
 }
 
