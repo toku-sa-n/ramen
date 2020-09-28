@@ -10,7 +10,7 @@ impl Bar {
         Self(bar)
     }
 
-    pub(super) fn ty(&self) -> BarType {
+    pub(super) fn ty(self) -> BarType {
         let ty_raw = self.0 & 0b11;
         if ty_raw == 0 {
             BarType::Bar32Bit
