@@ -3,65 +3,56 @@
 mod msi_x;
 
 use {
-    super::{Common, Offset, RegisterIndex, Registers, TypeSpec},
+    super::{Common, RegisterIndex, Registers, TypeSpec},
     alloc::vec::Vec,
-    core::convert::TryFrom,
+    core::{
+        convert::{From, TryFrom},
+        iter::Iterator,
+    },
 };
 
-#[derive(Debug)]
-pub struct ExtendedCapabilities<'a>(Vec<ExtendedCapability<'a>>);
-
-impl<'a> ExtendedCapabilities<'a> {
-    pub fn new(raw: &Registers, common: &Common, type_spec: &TypeSpec) -> Option<Self> {
-        let mut base = Self::parse_raw_to_get_capability_ptr(raw, common)?;
-        let mut capabilities = Vec::new();
-
-        while {
-            let extended_capability = ExtendedCapability::new(&raw, base, type_spec);
-            base = extended_capability.next_ptr();
-            info!("Extended Capability: {:?}", extended_capability);
-            capabilities.push(extended_capability);
-
-            !base.is_null()
-        } {}
-
-        Some(Self(capabilities))
+pub struct Iter<'a> {
+    registers: &'a Registers,
+    base: RegisterIndex,
+}
+impl<'a> Iter<'a> {
+    pub fn new(registers: &'a Registers, base: RegisterIndex) -> Self {
+        Self { registers, base }
     }
+}
+impl<'a> Iterator for Iter<'a> {
+    type Item = ExtendedCapability<'a>;
 
-    fn parse_raw_to_get_capability_ptr(raw: &Registers, common: &Common) -> Option<RegisterIndex> {
-        if common.has_capability_ptr() {
-            Some(
-                Offset::new((raw.get(RegisterIndex::new(0x0d)) & 0xfc) as usize)
-                    .as_register_index(),
-            )
-        } else {
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.base.is_null() {
             None
+        } else {
+            let extended_capability = ExtendedCapability::new(self.registers, self.base);
+            let next_pointer = extended_capability.next_ptr();
+            self.base = next_pointer.into();
+
+            Some(extended_capability)
         }
     }
 }
 
 #[derive(Debug)]
 pub struct ExtendedCapability<'a> {
-    id: Id,
-    next_ptr: RegisterIndex,
-    capability_spec: Option<CapabilitySpec<'a>>,
+    registers: &'a Registers,
+    base: RegisterIndex,
 }
 
 impl<'a> ExtendedCapability<'a> {
-    fn new(raw: &Registers, offset: RegisterIndex, type_spec: &TypeSpec) -> Self {
-        let id = Id::parse_raw(raw, offset);
-        let next_ptr = RegisterIndex::new(((raw.get(offset) >> 8) & 0xff) as usize);
-        let capability_spec = CapabilitySpec::new(raw, offset, id, type_spec);
+    fn new(registers: &'a Registers, base: RegisterIndex) -> Self {
+        // let id = Id::parse_raw(raw, base);
+        // let next_ptr = RegisterIndex::new(((raw.get(base) >> 8) & 0xff) as usize);
+        // let capability_spec = CapabilitySpec::new(raw, base, id, type_spec);
 
-        Self {
-            id,
-            next_ptr,
-            capability_spec,
-        }
+        Self { registers, base }
     }
 
-    fn next_ptr(&self) -> RegisterIndex {
-        self.next_ptr
+    fn next_ptr(&self) -> NextPointer {
+        NextPointer::new(self.registers, self.base)
     }
 }
 
@@ -87,5 +78,23 @@ struct Id(u8);
 impl Id {
     fn parse_raw(raw: &Registers, offset: RegisterIndex) -> Self {
         Self(u8::try_from(raw.get(offset) & 0xff).unwrap())
+    }
+}
+
+struct NextPointer(RegisterIndex);
+impl NextPointer {
+    fn new(registers: &Registers, base: RegisterIndex) -> Self {
+        Self(RegisterIndex::new(
+            usize::try_from((registers.get(base) >> 8) & 0xff).unwrap(),
+        ))
+    }
+
+    fn as_register_index(&self) -> RegisterIndex {
+        self.0
+    }
+}
+impl From<NextPointer> for RegisterIndex {
+    fn from(next_pointer: NextPointer) -> Self {
+        next_pointer.0
     }
 }

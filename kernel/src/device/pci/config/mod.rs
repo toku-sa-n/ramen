@@ -12,7 +12,7 @@ use {
         convert::{From, TryFrom},
         ops::Add,
     },
-    extended_capability::ExtendedCapabilities,
+    extended_capability::ExtendedCapability,
     type_spec::TypeSpec,
     x86_64::instructions::port::{PortReadOnly, PortWriteOnly},
 };
@@ -39,12 +39,19 @@ impl Space {
         TypeSpec::new(&self.registers, &self.common())
     }
 
-    pub fn extended_capabilities(&self) -> Option<ExtendedCapabilities> {
-        ExtendedCapabilities::new(&self.registers, &self.common(), &self.type_spec())
+    pub fn iter_capability_registers(&self) -> Option<impl Iterator<Item = ExtendedCapability>> {
+        Some(extended_capability::Iter::new(
+            &self.registers,
+            CapabilityPointer::new(&self.registers, &self.common())?.as_register_index(),
+        ))
     }
 
     fn common(&self) -> Common {
         Common::new(&self.registers)
+    }
+
+    fn capability_pointer_exists(&self) -> bool {
+        self.common().has_capability_ptr()
     }
 }
 
@@ -188,21 +195,21 @@ impl Add<usize> for RegisterIndex {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct Offset(usize);
-impl Offset {
-    pub fn new(offset: usize) -> Self {
-        assert!(offset.trailing_zeros() >= 2);
-        assert!(offset < 256);
-        Self(offset)
+pub struct CapabilityPointer<'a> {
+    registers: &'a Registers,
+}
+impl<'a> CapabilityPointer<'a> {
+    pub fn new(registers: &'a Registers, common: &Common) -> Option<Self> {
+        if common.has_capability_ptr() {
+            Some(Self { registers })
+        } else {
+            None
+        }
     }
 
     pub fn as_register_index(self) -> RegisterIndex {
-        RegisterIndex::new(self.0 / 4)
-    }
-}
-impl From<bar::Index> for Offset {
-    fn from(bar_index: bar::Index) -> Self {
-        Self::new(bar_index.as_usize() + 4)
+        let pointer = usize::try_from(self.registers.get(RegisterIndex::new(0x0d)) & 0xff).unwrap();
+        RegisterIndex::new(pointer >> 2)
     }
 }
 
