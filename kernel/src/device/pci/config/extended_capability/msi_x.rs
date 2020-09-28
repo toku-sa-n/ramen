@@ -58,7 +58,7 @@ impl TableOffset {
         Self(Size::new((raw.get(base + 4) & !0xf) as usize))
     }
 
-    fn as_bytes(self) -> Size<Bytes> {
+    fn as_bytes(&self) -> Size<Bytes> {
         self.0
     }
 }
