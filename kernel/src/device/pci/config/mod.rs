@@ -9,7 +9,7 @@ pub mod type_spec;
 use {
     self::common::Common,
     bar::Bar,
-    core::ops::{Add, Index},
+    core::{convert::From, ops::Add},
     extended_capability::ExtendedCapabilities,
     type_spec::TypeSpec,
     x86_64::instructions::port::{PortReadOnly, PortWriteOnly},
@@ -204,6 +204,11 @@ impl Offset {
 
     pub fn as_register_index(self) -> RegisterIndex {
         RegisterIndex::new(self.0 / 4)
+    }
+}
+impl From<bar::Index> for Offset {
+    fn from(bar_index: bar::Index) -> Self {
+        Self::new(bar_index.as_usize() + 4)
     }
 }
 
