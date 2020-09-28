@@ -28,7 +28,7 @@ impl<'a> Space<'a> {
     pub fn new(bus: Bus, device: Device) -> Option<Self> {
         let raw = Registers::fetch(bus, device)?;
         let common = Common::new(&raw);
-        let type_spec = TypeSpec::parse_raw(&raw, &common);
+        let type_spec = TypeSpec::new(&raw, &common);
         let extended_capabilities = ExtendedCapabilities::new(&raw, &common, &type_spec);
 
         Some(Self {
