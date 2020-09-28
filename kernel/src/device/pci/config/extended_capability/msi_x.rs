@@ -15,9 +15,9 @@ pub struct CapabilitySpec<'a> {
 }
 
 impl<'a> CapabilitySpec<'a> {
-    pub fn new(raw: &Registers, base: RegisterIndex, type_spec: &TypeSpec) -> Self {
-        let bir = Bir::parse_raw(raw, base);
-        let table_offset = TableOffset::parse_raw(raw, base);
+    pub fn new(registers: &Registers, base: RegisterIndex, type_spec: &TypeSpec) -> Self {
+        let bir = Bir::parse_raw(registers, base);
+        let table_offset = TableOffset::parse_raw(registers, base);
 
         let base_addr = if let TypeSpec::NonBridge(non_bridge) = type_spec {
             non_bridge.base_addr(bir.get())
@@ -25,7 +25,7 @@ impl<'a> CapabilitySpec<'a> {
             todo!()
         };
 
-        let num_elements = TableSize::parse_raw(raw, base);
+        let num_elements = TableSize::parse_raw(registers, base);
 
         Self {
             table: accessor::slice::Accessor::new(
