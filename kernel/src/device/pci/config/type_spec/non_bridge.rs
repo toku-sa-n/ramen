@@ -6,12 +6,12 @@ use {
 };
 
 #[derive(Debug)]
-pub struct TypeSpecNonBridge {
+pub struct TypeSpec {
     bar: [Bar; 6],
 }
 
-impl TypeSpecNonBridge {
-    pub(super) fn parse_raw(raw: &Registers) -> Self {
+impl TypeSpec {
+    pub(super) fn new(raw: &Registers) -> Self {
         let mut bar = [Bar::default(); 6];
         for i in 0..6 {
             bar[i] = Bar::new(raw.get(RegisterIndex::new(i + 4)));
