@@ -64,7 +64,7 @@ impl HeaderType {
         Self(header)
     }
 
-    fn bridge_type(&self) -> BridgeType {
+    fn bridge_type(self) -> BridgeType {
         match self.0 & 0x7f {
             0 => BridgeType::NonBridge,
             1 => BridgeType::PciToPci,
