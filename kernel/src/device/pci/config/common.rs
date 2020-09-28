@@ -13,7 +13,7 @@ pub struct Common {
 
 impl Common {
     pub(super) fn new(raw: &Registers) -> Self {
-        let id = Id::parse_raw(raw);
+        let id = Id::new(raw);
         let header_type = HeaderType::parse_raw(raw);
         let status = Status::parse_raw(raw);
         let class = Class::parse_raw(raw);
@@ -48,7 +48,7 @@ struct Id {
 }
 
 impl Id {
-    fn parse_raw(raw: &Registers) -> Self {
+    fn new(raw: &Registers) -> Self {
         let vendor = (raw.get(RegisterIndex::zero()) & 0xffff) as u16;
         let device = ((raw.get(RegisterIndex::zero()) >> 16) & 0xffff) as u16;
 
