@@ -31,6 +31,7 @@ impl<'a> Xhci<'a> {
         self.set_num_of_enabled_slots();
         self.set_dcbaap();
         self.set_command_ring_pointer();
+        self.run();
     }
 
     fn get_ownership_from_bios(&mut self) {
@@ -83,6 +84,10 @@ impl<'a> Xhci<'a> {
         let phys_addr = PML4.lock().translate_addr(virt_addr).unwrap();
 
         self.hc_operational_registers.crcr.set_ptr(phys_addr);
+    }
+
+    fn run(&mut self) {
+        self.hc_operational_registers.usb_cmd.set_run_stop(true)
     }
 
     fn new(config_space: config::Space<'a>) -> Result<Self, Error> {

@@ -10,6 +10,7 @@ use {
 };
 
 pub struct HCOperationalRegisters<'a> {
+    pub usb_cmd: Accessor<'a, UsbCommandRegister>,
     pub usb_sts: Accessor<'a, UsbStatusRegister>,
     pub crcr: Accessor<'a, CommandRingControlRegister>,
     pub dcbaap: Accessor<'a, DeviceContextBaseAddressArrayPointer>,
@@ -20,12 +21,14 @@ impl<'a> HCOperationalRegisters<'a> {
     pub fn new(mmio_base: PhysAddr, cap_length: &mut CapabilityRegistersLength) -> Self {
         let operational_base = mmio_base + cap_length.len();
 
+        let usb_cmd = Accessor::new(operational_base, 0x00);
         let usb_sts = Accessor::new(operational_base, 0x04);
         let crcr = Accessor::new(operational_base, 0x18);
         let dcbaap = Accessor::new(operational_base, 0x30);
         let config = Accessor::new(operational_base, 0x38);
 
         Self {
+            usb_cmd,
             usb_sts,
             crcr,
             dcbaap,
