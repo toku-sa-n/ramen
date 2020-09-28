@@ -26,10 +26,12 @@ impl Bar {
     }
 
     pub(super) fn base_addr(self, upper: Option<Bar>) -> Option<PhysAddr> {
-        if self.ty() == BarType::Bar64Bit && upper.is_some() {
-            self.base_addr_64(upper.unwrap())
-        } else {
-            self.base_addr_32()
+        match upper {
+            Some(upper) => match self.ty() {
+                BarType::Bar64Bit => self.base_addr_64(upper),
+                BarType::Bar32Bit => self.base_addr_32(),
+            },
+            None => self.base_addr_32(),
         }
     }
 
