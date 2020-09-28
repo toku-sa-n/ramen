@@ -49,6 +49,10 @@ impl<'a> Space<'a> {
     pub fn type_spec(&self) -> &TypeSpec {
         &self.type_spec
     }
+
+    pub fn extended_capabilities(&self) -> Option<&ExtendedCapabilities> {
+        self.extended_capabilities.as_ref()
+    }
 }
 
 pub struct Registers([u32; NUM_REGISTERS]);
