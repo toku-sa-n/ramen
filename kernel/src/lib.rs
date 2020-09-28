@@ -94,6 +94,7 @@ fn run_tasks() -> ! {
 
 #[cfg(feature = "qemu_test")]
 fn run_tasks() -> ! {
+    use qemu_exit::QEMUExit;
     // Currently there is no way to test multitasking. If this OS suppports timer, the situation
     // may change.
     //
