@@ -12,7 +12,7 @@ pub struct Common {
 }
 
 impl Common {
-    pub(super) fn parse_raw(raw: &Registers) -> Self {
+    pub(super) fn new(raw: &Registers) -> Self {
         let id = Id::parse_raw(raw);
         let header_type = HeaderType::parse_raw(raw);
         let status = Status::parse_raw(raw);
