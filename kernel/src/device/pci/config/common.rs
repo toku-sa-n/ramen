@@ -64,8 +64,8 @@ impl HeaderType {
     fn bridge_type(&self) -> BridgeType {
         match self.0 & 0x7f {
             0 => BridgeType::NonBridge,
-            1 => BridgeType::PciToPciBridge,
-            2 => BridgeType::PciToCardbusBridge,
+            1 => BridgeType::PciToPci,
+            2 => BridgeType::PciToCardbus,
             _ => unreachable!(),
         }
     }
@@ -74,8 +74,8 @@ impl HeaderType {
 #[derive(Debug)]
 pub enum BridgeType {
     NonBridge,
-    PciToPciBridge,
-    PciToCardbusBridge,
+    PciToPci,
+    PciToCardbus,
 }
 
 #[derive(Debug, Copy, Clone)]
