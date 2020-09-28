@@ -5,7 +5,6 @@ mod msi_x;
 use {
     super::{Common, Offset, RegisterIndex, Registers, TypeSpec},
     alloc::vec::Vec,
-    msi_x::CapabilitySpecMsiX,
 };
 
 #[derive(Debug)]
@@ -67,13 +66,15 @@ impl<'a> ExtendedCapability<'a> {
 
 #[derive(Debug)]
 enum CapabilitySpec<'a> {
-    MsiX(CapabilitySpecMsiX<'a>),
+    MsiX(msi_x::CapabilitySpec<'a>),
 }
 
 impl<'a> CapabilitySpec<'a> {
     fn new(raw: &Registers, offset: RegisterIndex, id: Id, type_spec: &TypeSpec) -> Option<Self> {
         if id.0 == 0x11 {
-            Some(Self::MsiX(CapabilitySpecMsiX::new(raw, offset, type_spec)))
+            Some(Self::MsiX(msi_x::CapabilitySpec::new(
+                raw, offset, type_spec,
+            )))
         } else {
             None
         }

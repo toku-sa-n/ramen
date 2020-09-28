@@ -10,11 +10,11 @@ use {
 };
 
 #[derive(Debug)]
-pub struct CapabilitySpecMsiX<'a> {
+pub struct CapabilitySpec<'a> {
     table: accessor::slice::Accessor<'a, Element>,
 }
 
-impl<'a> CapabilitySpecMsiX<'a> {
+impl<'a> CapabilitySpec<'a> {
     pub fn new(raw: &Registers, base: RegisterIndex, type_spec: &TypeSpec) -> Self {
         let bir = Bir::parse_raw(raw, base);
         let table_offset = TableOffset::parse_raw(raw, base);
