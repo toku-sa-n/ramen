@@ -5,6 +5,7 @@ mod msi_x;
 use {
     super::{Common, Offset, RegisterIndex, Registers, TypeSpec},
     alloc::vec::Vec,
+    core::convert::TryFrom,
 };
 
 #[derive(Debug)]
@@ -85,6 +86,6 @@ impl<'a> CapabilitySpec<'a> {
 struct Id(u8);
 impl Id {
     fn parse_raw(raw: &Registers, offset: RegisterIndex) -> Self {
-        Self((raw.get(offset) & 0xff) as u8)
+        Self(u8::try_from(raw.get(offset) & 0xff).unwrap())
     }
 }
