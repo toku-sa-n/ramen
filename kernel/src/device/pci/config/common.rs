@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{RegisterIndex, Registers};
+use {
+    super::{RegisterIndex, Registers},
+    core::convert::TryFrom,
+};
 
 #[derive(Debug)]
 pub struct Common<'a> {
@@ -45,8 +48,8 @@ struct Id {
 
 impl Id {
     fn new(raw: &Registers) -> Self {
-        let vendor = (raw.get(RegisterIndex::zero()) & 0xffff) as u16;
-        let device = ((raw.get(RegisterIndex::zero()) >> 16) & 0xffff) as u16;
+        let vendor = u16::try_from(raw.get(RegisterIndex::zero()) & 0xffff).unwrap();
+        let device = u16::try_from((raw.get(RegisterIndex::zero()) >> 16) & 0xffff).unwrap();
 
         Self { vendor, device }
     }
