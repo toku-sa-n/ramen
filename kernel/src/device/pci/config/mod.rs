@@ -8,7 +8,10 @@ pub mod type_spec;
 use {
     self::common::Common,
     bar::Bar,
-    core::{convert::From, ops::Add},
+    core::{
+        convert::{From, TryFrom},
+        ops::Add,
+    },
     extended_capability::ExtendedCapabilities,
     type_spec::TypeSpec,
     x86_64::instructions::port::{PortReadOnly, PortWriteOnly},
@@ -98,7 +101,7 @@ impl ConfigAddress {
         let bus = self.bus.as_u32();
         let device = self.device.as_u32();
         let function = self.function.as_u32();
-        let register = self.register.as_usize() as u32;
+        let register = u32::try_from(self.register.as_usize()).unwrap();
 
         VALID | bus << 16 | device << 11 | function << 8 | register << 2
     }
