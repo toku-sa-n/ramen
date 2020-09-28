@@ -26,7 +26,7 @@ pub struct Space<'a> {
 
 impl<'a> Space<'a> {
     pub fn new(bus: Bus, device: Device) -> Option<Self> {
-        let raw = Registers::fetch(bus, device)?;
+        let raw = Registers::new(bus, device)?;
         let common = Common::new(&raw);
         let type_spec = TypeSpec::new(&raw, &common);
         let extended_capabilities = ExtendedCapabilities::new(&raw, &common, &type_spec);
@@ -56,7 +56,7 @@ pub struct Registers {
     device: Device,
 }
 impl Registers {
-    fn fetch(bus: Bus, device: Device) -> Option<Self> {
+    fn new(bus: Bus, device: Device) -> Option<Self> {
         if !Self::valid(bus, device) {
             None
         } else {
