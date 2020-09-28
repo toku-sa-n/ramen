@@ -27,19 +27,15 @@ pub struct Space<'a> {
 impl<'a> Space<'a> {
     pub fn new(bus: Bus, device: Device) -> Option<Self> {
         let raw = Registers::fetch(bus, device)?;
-        Some(Self::parse_raw(&raw))
-    }
-
-    fn parse_raw(raw: &Registers) -> Self {
         let common = Common::parse_raw(&raw);
         let type_spec = TypeSpec::parse_raw(&raw, &common);
-        let extended_capabilities = ExtendedCapabilities::new(raw, &common, &type_spec);
+        let extended_capabilities = ExtendedCapabilities::new(&raw, &common, &type_spec);
 
-        Self {
+        Some(Self {
             common,
             type_spec,
             extended_capabilities,
-        }
+        })
     }
 
     pub fn is_xhci(&self) -> bool {
