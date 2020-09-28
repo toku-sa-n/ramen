@@ -35,6 +35,12 @@ impl<'a> HCOperationalRegisters<'a> {
 }
 
 bitfield! {
+    pub struct UsbCommandRegister(u32);
+
+    pub run_stop,set_run_stop: 0;
+}
+
+bitfield! {
     pub struct UsbStatusRegister(u32);
 
     pub controller_not_ready,_:11;
