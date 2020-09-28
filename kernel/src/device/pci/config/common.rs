@@ -59,7 +59,7 @@ impl Id {
 struct HeaderType(u8);
 impl HeaderType {
     fn new(register: &Registers) -> Self {
-        let header = ((register.get(RegisterIndex::new(3)) >> 16) & 0xff) as u8;
+        let header = u8::try_from((register.get(RegisterIndex::new(3)) >> 16) & 0xff).unwrap();
 
         Self(header)
     }
