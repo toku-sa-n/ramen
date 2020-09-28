@@ -25,7 +25,7 @@ pub struct Space<'a> {
 }
 
 impl<'a> Space<'a> {
-    pub fn fetch(bus: Bus, device: Device) -> Option<Self> {
+    pub fn new(bus: Bus, device: Device) -> Option<Self> {
         let raw = Registers::fetch(bus, device)?;
         Some(Self::parse_raw(&raw))
     }
