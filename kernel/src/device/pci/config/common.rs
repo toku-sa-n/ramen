@@ -40,21 +40,6 @@ impl<'a> Common<'a> {
     }
 }
 
-#[derive(Debug)]
-struct Id {
-    vendor: u16,
-    device: u16,
-}
-
-impl Id {
-    fn new(raw: &Registers) -> Self {
-        let vendor = u16::try_from(raw.get(RegisterIndex::zero()) & 0xffff).unwrap();
-        let device = u16::try_from((raw.get(RegisterIndex::zero()) >> 16) & 0xffff).unwrap();
-
-        Self { vendor, device }
-    }
-}
-
 #[derive(Debug, Copy, Clone)]
 struct HeaderType(u8);
 impl HeaderType {
