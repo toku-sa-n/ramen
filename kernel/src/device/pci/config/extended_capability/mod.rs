@@ -44,10 +44,6 @@ pub struct ExtendedCapability<'a> {
 
 impl<'a> ExtendedCapability<'a> {
     fn new(registers: &'a Registers, base: RegisterIndex) -> Self {
-        // let id = Id::parse_raw(raw, base);
-        // let next_ptr = RegisterIndex::new(((raw.get(base) >> 8) & 0xff) as usize);
-        // let capability_spec = CapabilitySpec::new(raw, base, id, type_spec);
-
         Self { registers, base }
     }
 
