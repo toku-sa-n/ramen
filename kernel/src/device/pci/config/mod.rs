@@ -62,17 +62,10 @@ pub struct Registers {
 impl Registers {
     fn fetch(bus: Bus, device: Device) -> Option<Self> {
         if !Self::valid(bus, device) {
-            return None;
+            None
+        } else {
+            Some(Self { bus, device })
         }
-
-        // let mut raw = [0u32; NUM_REGISTERS];
-        // for i in 0..NUM_REGISTERS {
-        //     let config_addr =
-        //         ConfigAddress::new(bus, device, Function::zero(), RegisterIndex::new(i as _));
-        //     raw[i] = unsafe { config_addr.read() };
-        // }
-
-        Some(Self { bus, device })
     }
 
     fn valid(bus: Bus, device: Device) -> bool {
