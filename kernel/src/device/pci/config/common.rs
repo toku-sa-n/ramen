@@ -85,7 +85,7 @@ pub enum BridgeType {
 struct Status(u16);
 impl Status {
     fn parse_raw(raw: &Registers) -> Self {
-        let status = ((raw.get(RegisterIndex::new(1)) >> 16) & 0xffff) as u16;
+        let status = u16::try_from((raw.get(RegisterIndex::new(1)) >> 16) & 0xffff).unwrap();
 
         Self(status)
     }
