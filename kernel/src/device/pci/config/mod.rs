@@ -18,39 +18,35 @@ use {
 const NUM_REGISTERS: usize = 64;
 
 #[derive(Debug)]
-pub struct Space<'a> {
-    common: Common,
-    type_spec: TypeSpec,
-    extended_capabilities: Option<ExtendedCapabilities<'a>>,
+pub struct Space {
+    registers: Registers,
 }
 
-impl<'a> Space<'a> {
+impl Space {
     pub fn new(bus: Bus, device: Device) -> Option<Self> {
-        let raw = Registers::new(bus, device)?;
-        let common = Common::new(&raw);
-        let type_spec = TypeSpec::new(&raw, &common);
-        let extended_capabilities = ExtendedCapabilities::new(&raw, &common, &type_spec);
-
         Some(Self {
-            common,
-            type_spec,
-            extended_capabilities,
+            registers: Registers::new(bus, device)?,
         })
     }
 
     pub fn is_xhci(&self) -> bool {
-        self.common.is_xhci()
+        self.common().is_xhci()
     }
 
-    pub fn type_spec(&self) -> &TypeSpec {
-        &self.type_spec
+    pub fn type_spec(&self) -> TypeSpec {
+        TypeSpec::new(&self.registers, &self.common())
     }
 
-    pub fn extended_capabilities(&self) -> Option<&ExtendedCapabilities> {
-        self.extended_capabilities.as_ref()
+    pub fn extended_capabilities(&self) -> Option<ExtendedCapabilities> {
+        ExtendedCapabilities::new(&self.registers, &self.common(), &self.type_spec())
+    }
+
+    fn common(&self) -> Common {
+        Common::new(&self.registers)
     }
 }
 
+#[derive(Debug)]
 pub struct Registers {
     bus: Bus,
     device: Device,
@@ -118,7 +114,7 @@ impl ConfigAddress {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Bus(u32);
 impl Bus {
     pub fn new(bus: u32) -> Self {
@@ -130,7 +126,7 @@ impl Bus {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Device(u32);
 impl Device {
     pub fn new(device: u32) -> Self {

@@ -21,7 +21,7 @@ pub struct Xhci<'a> {
     hc_operational_registers: HCOperationalRegisters<'a>,
     dcbaa: DeviceContextBaseAddressArray,
     command_ring: RingQueue<'a, Command>,
-    config_space: config::Space<'a>,
+    config_space: config::Space,
 }
 
 impl<'a> Xhci<'a> {
@@ -90,7 +90,7 @@ impl<'a> Xhci<'a> {
         self.hc_operational_registers.usb_cmd.set_run_stop(true)
     }
 
-    fn new(config_space: config::Space<'a>) -> Result<Self, Error> {
+    fn new(config_space: config::Space) -> Result<Self, Error> {
         if config_space.is_xhci() {
             info!("xHC found.");
 

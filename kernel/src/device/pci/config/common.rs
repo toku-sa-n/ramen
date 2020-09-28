@@ -3,41 +3,37 @@
 use super::{RegisterIndex, Registers};
 
 #[derive(Debug)]
-pub struct Common {
-    id: Id,
-    header_type: HeaderType,
-    status: Status,
-    class: Class,
-    interface: Interface,
+pub struct Common<'a> {
+    registers: &'a Registers,
 }
 
-impl Common {
-    pub(super) fn new(raw: &Registers) -> Self {
-        let id = Id::new(raw);
-        let header_type = HeaderType::parse_raw(raw);
-        let status = Status::parse_raw(raw);
-        let class = Class::parse_raw(raw);
-        let interface = Interface::parse_raw(raw);
-
-        Self {
-            id,
-            header_type,
-            status,
-            class,
-            interface,
-        }
+impl<'a> Common<'a> {
+    pub fn new(registers: &'a Registers) -> Self {
+        Self { registers }
     }
 
-    pub(super) fn is_xhci(&self) -> bool {
-        self.class.base == 0x0c && self.class.sub == 0x03 && self.interface.0 == 0x30
+    pub fn is_xhci(&self) -> bool {
+        self.class().is_xhci()
     }
 
-    pub(super) fn has_capability_ptr(&self) -> bool {
-        self.status.capability_pointer_exists()
+    pub fn has_capability_ptr(&self) -> bool {
+        self.status().capability_pointer_exists()
     }
 
-    pub(super) fn header_type(&self) -> u8 {
-        self.header_type.as_u8()
+    pub fn bridge_type(&self) -> BridgeType {
+        self.header_type().bridge_type()
+    }
+
+    fn class(&self) -> Class {
+        Class::new(self.registers)
+    }
+
+    fn status(&self) -> Status {
+        Status::parse_raw(self.registers)
+    }
+
+    fn header_type(&self) -> HeaderType {
+        HeaderType::new(self.registers)
     }
 }
 
@@ -59,15 +55,27 @@ impl Id {
 #[derive(Debug, Copy, Clone)]
 struct HeaderType(u8);
 impl HeaderType {
-    fn parse_raw(raw: &Registers) -> Self {
-        let header = ((raw.get(RegisterIndex::new(3)) >> 16) & 0xff) as u8;
+    fn new(register: &Registers) -> Self {
+        let header = ((register.get(RegisterIndex::new(3)) >> 16) & 0xff) as u8;
 
         Self(header)
     }
 
-    fn as_u8(self) -> u8 {
-        self.0
+    fn bridge_type(&self) -> BridgeType {
+        match self.0 & 0x7f {
+            0 => BridgeType::NonBridge,
+            1 => BridgeType::PciToPciBridge,
+            2 => BridgeType::PciToCardbusBridge,
+            _ => unreachable!(),
+        }
     }
+}
+
+#[derive(Debug)]
+pub enum BridgeType {
+    NonBridge,
+    PciToPciBridge,
+    PciToCardbusBridge,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -85,27 +93,28 @@ impl Status {
 }
 
 #[derive(Debug)]
-struct Class {
-    base: u8,
-    sub: u8,
+struct Class<'a> {
+    registers: &'a Registers,
 }
 
-impl Class {
-    fn parse_raw(raw: &Registers) -> Self {
-        let base = ((raw.get(RegisterIndex::new(2)) >> 24) & 0xff) as u8;
-        let sub = ((raw.get(RegisterIndex::new(2)) >> 16) & 0xff) as u8;
-
-        Self { base, sub }
+impl<'a> Class<'a> {
+    fn is_xhci(&self) -> bool {
+        self.base() == 0x0c && self.sub() == 0x03 && self.interface() == 0x30
     }
-}
 
-#[derive(Debug)]
-struct Interface(u8);
+    fn new(registers: &'a Registers) -> Self {
+        Self { registers }
+    }
 
-impl Interface {
-    fn parse_raw(raw: &Registers) -> Self {
-        let interface = ((raw.get(RegisterIndex::new(2)) >> 8) & 0xff) as u8;
+    fn base(&self) -> u8 {
+        ((self.registers.get(RegisterIndex::new(2)) >> 24) & 0xff) as u8
+    }
 
-        Self(interface)
+    fn sub(&self) -> u8 {
+        ((self.registers.get(RegisterIndex::new(2)) >> 16) & 0xff) as u8
+    }
+
+    fn interface(&self) -> u8 {
+        ((self.registers.get(RegisterIndex::new(2)) >> 8) & 0xff) as u8
     }
 }
