@@ -12,23 +12,19 @@ pub struct TypeSpec<'a> {
 
 impl<'a> TypeSpec<'a> {
     pub(super) fn new(registers: &'a Registers) -> Self {
-        // let mut bars = [Bar::default(); 6];
-        // for (i, bar) in bars.iter_mut().enumerate() {
-        //     *bar = Bar::new(raw.get(RegisterIndex::new(i + 4)));
-        // }
-
         Self { registers }
     }
 
     pub fn base_addr(&self, index: bar::Index) -> PhysAddr {
-        let index = index.as_usize();
-        let upper = if index == 5 {
+        let upper = if index == bar::Index::new(5) {
             None
         } else {
-            Some(self.bars[index + 1])
+            Some(self.bar(index + 1))
         };
 
-        self.bars[index].base_addr(upper).unwrap()
+        self.bar(index)
+            .base_addr(upper)
+            .expect("Could not calculate Base Address.")
     }
 
     pub fn bar(&self, index: bar::Index) -> Bar {
