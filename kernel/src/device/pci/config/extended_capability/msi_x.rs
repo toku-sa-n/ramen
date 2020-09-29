@@ -18,9 +18,13 @@ impl<'a> CapabilitySpec<'a> {
     pub fn new(registers: &'a Registers, base: RegisterIndex) -> Self {
         Self { registers, base }
     }
+
+    pub fn bir(&self) -> Bir {
+        Bir::new(self.registers, self.base)
+    }
 }
 
-struct Bir(bar::Index);
+pub struct Bir(bar::Index);
 impl Bir {
     fn new(raw: &Registers, base: RegisterIndex) -> Self {
         Self(bar::Index::new(raw.get(base + 4) & 0b111))
