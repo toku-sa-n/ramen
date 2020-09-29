@@ -11,7 +11,7 @@ pub struct TypeSpec<'a> {
 }
 
 impl<'a> TypeSpec<'a> {
-    pub(super) fn new(registers: &'a Registers) -> Self {
+    pub fn new(registers: &'a Registers) -> Self {
         Self { registers }
     }
 
@@ -27,7 +27,7 @@ impl<'a> TypeSpec<'a> {
             .expect("Could not calculate Base Address.")
     }
 
-    pub fn bar(&self, index: bar::Index) -> Bar {
+    fn bar(&self, index: bar::Index) -> Bar {
         Bar::new(self.registers.get(RegisterIndex::from(index)))
     }
 }
