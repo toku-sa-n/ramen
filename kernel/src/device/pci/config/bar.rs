@@ -17,17 +17,6 @@ impl Bar {
         Self(bar)
     }
 
-    pub(super) fn ty(self) -> BarType {
-        let ty_raw = self.0 & 0b11;
-        if ty_raw == 0 {
-            BarType::Bar32Bit
-        } else if ty_raw == 0x02 {
-            BarType::Bar64Bit
-        } else {
-            unreachable!();
-        }
-    }
-
     pub(super) fn base_addr(self, upper: Option<Bar>) -> Option<PhysAddr> {
         match upper {
             Some(upper) => match self.ty() {
@@ -35,6 +24,17 @@ impl Bar {
                 BarType::Bar32Bit => self.base_addr_32(),
             },
             None => self.base_addr_32(),
+        }
+    }
+
+    fn ty(self) -> BarType {
+        let ty_raw = self.0 & 0b11;
+        if ty_raw == 0 {
+            BarType::Bar32Bit
+        } else if ty_raw == 0x02 {
+            BarType::Bar64Bit
+        } else {
+            unreachable!();
         }
     }
 
