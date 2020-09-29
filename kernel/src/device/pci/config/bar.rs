@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use x86_64::PhysAddr;
+use {
+    super::RegisterIndex,
+    core::convert::{From, TryFrom},
+    x86_64::PhysAddr,
+};
 
 #[derive(Debug, Copy, Clone, Default)]
 pub struct Bar(u32);
@@ -62,6 +66,11 @@ impl Index {
 
     pub(super) fn as_usize(self) -> usize {
         self.0 as usize
+    }
+}
+impl From<Index> for RegisterIndex {
+    fn from(bar_index: Index) -> Self {
+        RegisterIndex::new(usize::try_from(bar_index.0 + 4).unwrap())
     }
 }
 
