@@ -57,10 +57,6 @@ impl Space {
     fn common(&self) -> Common {
         Common::new(&self.registers)
     }
-
-    fn capability_pointer_exists(&self) -> bool {
-        self.common().has_capability_ptr()
-    }
 }
 
 #[derive(Debug)]

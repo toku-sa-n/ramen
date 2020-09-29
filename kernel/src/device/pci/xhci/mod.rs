@@ -8,6 +8,7 @@ use {
         self, bar, extended_capability::CapabilitySpec, type_spec::TypeSpec, RegisterIndex,
     },
     crate::mem::paging::pml4::PML4,
+    os_units::{Bytes, Size},
     register::{
         hc_capability_registers::HCCapabilityRegisters,
         hc_operational_registers::HCOperationalRegisters,
@@ -89,14 +90,16 @@ impl<'a> Xhci<'a> {
         self.hc_operational_registers.crcr.set_ptr(phys_addr);
     }
 
-    fn init_msi_x_table(&mut self) {}
+    fn init_msi_x_table(&mut self) {
+        let (bar_index, table_offset) = self.get_bir_and_table_offset();
+    }
 
-    fn get_bir(&mut self) -> bar::Index {
+    fn get_bir_and_table_offset(&mut self) -> (bar::Index, Size<Bytes>) {
         let capability_iter = self.config_space.iter_capability_registers();
         for capability in capability_iter {
             let capability_spec = capability.capability_spec();
             if let Some(CapabilitySpec::MsiX(msi_x)) = capability_spec {
-                return bar::Index::from(msi_x.bir());
+                return (msi_x.bir(), msi_x.table_offset());
             }
         }
 
