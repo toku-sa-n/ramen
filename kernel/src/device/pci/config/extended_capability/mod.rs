@@ -75,7 +75,7 @@ impl<'a> CapabilitySpec<'a> {
         base: RegisterIndex,
         extended_capability: &ExtendedCapability,
     ) -> Option<Self> {
-        if let Some(ty) = extended_capability.ty() {
+        if let Some(_) = extended_capability.ty() {
             Some(Self::MsiX(msi_x::CapabilitySpec::new(registers, base)))
         } else {
             None
