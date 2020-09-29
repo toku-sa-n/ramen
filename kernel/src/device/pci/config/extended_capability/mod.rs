@@ -102,6 +102,7 @@ enum CapabilityType {
     MsiX,
 }
 
+#[derive(Debug)]
 struct NextPointer(RegisterIndex);
 impl NextPointer {
     fn new(registers: &Registers, base: RegisterIndex) -> Self {
