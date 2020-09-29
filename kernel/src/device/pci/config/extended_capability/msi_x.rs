@@ -2,7 +2,6 @@
 
 use {
     super::{RegisterIndex, Registers},
-    crate::accessor,
     crate::device::pci::config::{bar, type_spec::TypeSpec},
     bitfield::bitfield,
     core::convert::From,
@@ -29,6 +28,11 @@ impl Bir {
 
     fn get(self) -> bar::Index {
         self.0
+    }
+}
+impl From<Bir> for bar::Index {
+    fn from(bir: Bir) -> Self {
+        bir.0
     }
 }
 
