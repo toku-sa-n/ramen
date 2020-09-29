@@ -51,6 +51,10 @@ impl<'a> ExtendedCapability<'a> {
         NextPointer::new(self.registers, self.base)
     }
 
+    fn ty(&self) -> Option<CapabilityType> {
+        self.id().ty()
+    }
+
     fn id(&self) -> Id {
         Id::new(self.registers, self.base)
     }
