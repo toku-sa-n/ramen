@@ -56,7 +56,7 @@ impl Bar {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialOrd, PartialEq, Ord, Eq)]
 pub struct Index(u32);
 impl Index {
     pub fn new(index: u32) -> Self {

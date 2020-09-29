@@ -6,18 +6,18 @@ use {
 };
 
 #[derive(Debug)]
-pub struct TypeSpec {
-    bars: [Bar; 6],
+pub struct TypeSpec<'a> {
+    registers: &'a Registers,
 }
 
-impl TypeSpec {
-    pub(super) fn new(raw: &Registers) -> Self {
-        let mut bars = [Bar::default(); 6];
-        for (i, bar) in bars.iter_mut().enumerate() {
-            *bar = Bar::new(raw.get(RegisterIndex::new(i + 4)));
-        }
+impl<'a> TypeSpec<'a> {
+    pub(super) fn new(registers: &'a Registers) -> Self {
+        // let mut bars = [Bar::default(); 6];
+        // for (i, bar) in bars.iter_mut().enumerate() {
+        //     *bar = Bar::new(raw.get(RegisterIndex::new(i + 4)));
+        // }
 
-        Self { bars }
+        Self { registers }
     }
 
     pub fn base_addr(&self, index: bar::Index) -> PhysAddr {
@@ -29,5 +29,9 @@ impl TypeSpec {
         };
 
         self.bars[index].base_addr(upper).unwrap()
+    }
+
+    pub fn bar(&self, index: bar::Index) -> Bar {
+        Bar::new(self.registers.get(RegisterIndex::from(index)))
     }
 }
