@@ -3,8 +3,7 @@
 pub mod msi_x;
 
 use {
-    super::{Common, RegisterIndex, Registers, TypeSpec},
-    alloc::vec::Vec,
+    super::{RegisterIndex, Registers},
     core::{
         convert::{From, TryFrom},
         iter::Iterator,
@@ -109,10 +108,6 @@ impl NextPointer {
         Self(RegisterIndex::new(
             usize::try_from((registers.get(base) >> 8) & 0xff).unwrap(),
         ))
-    }
-
-    fn as_register_index(&self) -> RegisterIndex {
-        self.0
     }
 }
 impl From<NextPointer> for RegisterIndex {

@@ -28,10 +28,6 @@ impl Bar {
         }
     }
 
-    pub(super) fn as_u32(self) -> u32 {
-        self.0
-    }
-
     pub(super) fn base_addr(self, upper: Option<Bar>) -> Option<PhysAddr> {
         match upper {
             Some(upper) => match self.ty() {
@@ -65,10 +61,6 @@ impl Index {
     pub fn new(index: u32) -> Self {
         assert!(index < 6);
         Self(index)
-    }
-
-    pub(super) fn as_usize(self) -> usize {
-        self.0 as usize
     }
 }
 impl From<Index> for RegisterIndex {

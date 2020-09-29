@@ -9,11 +9,7 @@ use {
     self::common::Common,
     alloc::boxed::Box,
     bar::Bar,
-    core::{
-        convert::{From, TryFrom},
-        iter,
-        ops::Add,
-    },
+    core::{convert::TryFrom, iter, ops::Add},
     extended_capability::ExtendedCapability,
     type_spec::TypeSpec,
     x86_64::{
@@ -162,11 +158,6 @@ impl Device {
 #[derive(Copy, Clone)]
 pub struct Function(u32);
 impl Function {
-    pub fn new(function: u32) -> Self {
-        assert!(function < 8);
-        Self(function)
-    }
-
     pub fn zero() -> Self {
         Self(0)
     }
@@ -221,20 +212,5 @@ impl<'a> CapabilityPointer<'a> {
     pub fn as_register_index(self) -> RegisterIndex {
         let pointer = usize::try_from(self.registers.get(RegisterIndex::new(0x0d)) & 0xff).unwrap();
         RegisterIndex::new(pointer >> 2)
-    }
-}
-
-#[derive(Copy, Clone)]
-struct CapabilityId(u32);
-impl CapabilityId {
-    fn new(bus: Bus, device: Device, capability_ptr: RegisterIndex) -> Self {
-        let config_addr = ConfigAddress::new(bus, device, Function::zero(), capability_ptr);
-        let raw = unsafe { config_addr.read() };
-
-        Self(raw & 0xff)
-    }
-
-    fn is_msi_x(self) -> bool {
-        self.0 == 0x11
     }
 }

@@ -10,7 +10,6 @@ use {
         type_spec::TypeSpec,
     },
     crate::mem::paging::pml4::PML4,
-    os_units::{Bytes, Size},
     register::{
         hc_capability_registers::HCCapabilityRegisters,
         hc_operational_registers::HCOperationalRegisters,
