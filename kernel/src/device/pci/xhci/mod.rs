@@ -4,7 +4,9 @@ mod register;
 mod transfer_ring;
 
 use {
-    super::config::{self, bar, type_spec::TypeSpec},
+    super::config::{
+        self, bar, extended_capability::CapabilitySpec, type_spec::TypeSpec, RegisterIndex,
+    },
     crate::mem::paging::pml4::PML4,
     register::{
         hc_capability_registers::HCCapabilityRegisters,
@@ -31,6 +33,7 @@ impl<'a> Xhci<'a> {
         self.set_num_of_enabled_slots();
         self.set_dcbaap();
         self.set_command_ring_pointer();
+        self.init_msi_x_table();
         self.run();
     }
 
@@ -84,6 +87,20 @@ impl<'a> Xhci<'a> {
         let phys_addr = PML4.lock().translate_addr(virt_addr).unwrap();
 
         self.hc_operational_registers.crcr.set_ptr(phys_addr);
+    }
+
+    fn init_msi_x_table(&mut self) {}
+
+    fn get_bir(&mut self) -> bar::Index {
+        let capability_iter = self.config_space.iter_capability_registers();
+        for capability in capability_iter {
+            let capability_spec = capability.capability_spec();
+            if let Some(CapabilitySpec::MsiX(msi_x)) = capability_spec {
+                return bar::Index::from(msi_x.bir());
+            }
+        }
+
+        unreachable!()
     }
 
     fn run(&mut self) {
