@@ -53,7 +53,7 @@ impl TableOffset {
 
 struct TableSize(u32);
 impl TableSize {
-    fn parse_raw(raw: &Registers, base: RegisterIndex) -> Self {
+    fn new(raw: &Registers, base: RegisterIndex) -> Self {
         // Table size is N - 1 encoded.
         // See: https://wiki.osdev.org/PCI#Enabling_MSI-X
         Self(((raw.get(base) >> 16) & 0x7ff) + 1)
