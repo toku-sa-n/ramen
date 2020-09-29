@@ -19,8 +19,8 @@ impl<'a> CapabilitySpec<'a> {
         Self { registers, base }
     }
 
-    pub fn bir(&self) -> Bir {
-        Bir::new(self.registers, self.base)
+    pub fn bir(&self) -> bar::Index {
+        bar::Index::from(Bir::new(self.registers, self.base))
     }
 
     pub fn table_offset(&self) -> Size<Bytes> {
