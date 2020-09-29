@@ -16,7 +16,10 @@ use {
     },
     extended_capability::ExtendedCapability,
     type_spec::TypeSpec,
-    x86_64::instructions::port::{PortReadOnly, PortWriteOnly},
+    x86_64::{
+        instructions::port::{PortReadOnly, PortWriteOnly},
+        PhysAddr,
+    },
 };
 
 const NUM_REGISTERS: usize = 64;
@@ -39,6 +42,10 @@ impl Space {
 
     pub fn type_spec(&self) -> TypeSpec {
         TypeSpec::new(&self.registers, &self.common())
+    }
+
+    pub fn base_address(&self, index: bar::Index) -> PhysAddr {
+        self.type_spec().base_address(index)
     }
 
     pub fn iter_capability_registers<'a>(

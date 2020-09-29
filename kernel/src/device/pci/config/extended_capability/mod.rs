@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod msi_x;
+pub mod msi_x;
 
 use {
     super::{Common, RegisterIndex, Registers, TypeSpec},

@@ -7,7 +7,7 @@ use {
         ops::{Deref, DerefMut},
         slice,
     },
-    os_units::Size,
+    os_units::{Bytes, Size},
     x86_64::{PhysAddr, VirtAddr},
 };
 
@@ -19,8 +19,8 @@ pub struct Accessor<'a, T: 'a> {
 }
 
 impl<'a, T: 'a> Accessor<'a, T> {
-    pub fn new(phys_base: PhysAddr, offset: usize, num_elements: usize) -> Self {
-        let phys_base = phys_base + offset;
+    pub fn new(phys_base: PhysAddr, offset: Size<Bytes>, num_elements: usize) -> Self {
+        let phys_base = phys_base + offset.as_usize();
 
         let base = super::map_pages(phys_base, Size::new(size_of::<T>() * num_elements));
 

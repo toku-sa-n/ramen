@@ -5,7 +5,9 @@ mod transfer_ring;
 
 use {
     super::config::{
-        self, bar, extended_capability::CapabilitySpec, type_spec::TypeSpec, RegisterIndex,
+        self, bar,
+        extended_capability::{msi_x, CapabilitySpec},
+        type_spec::TypeSpec,
     },
     crate::mem::paging::pml4::PML4,
     os_units::{Bytes, Size},
@@ -91,15 +93,33 @@ impl<'a> Xhci<'a> {
     }
 
     fn init_msi_x_table(&mut self) {
-        let (bar_index, table_offset) = self.get_bir_and_table_offset();
+        let bar_index = self.get_bir();
+        let base_address = self.config_space.base_address(bar_index);
+        self.handle_msi_x(|msi_x| {
+            let table = msi_x.table(base_address);
+            let local_apic_id = unsafe { *(0xfee00020 as *const u32) >> 24 };
+            table[0]
+                .message_address()
+                .set_destination_id(local_apic_id as u8);
+            table[0].message_address().set_redirection_hint(true);
+            table[0].message_data().set_level_trigger();
+            table[0].message_data().set_vector(0x40);
+        })
     }
 
-    fn get_bir_and_table_offset(&mut self) -> (bar::Index, Size<Bytes>) {
+    fn get_bir(&mut self) -> bar::Index {
+        self.handle_msi_x(|msi_x| msi_x.bir())
+    }
+
+    fn handle_msi_x<T, U>(&mut self, f: T) -> U
+    where
+        T: Fn(msi_x::CapabilitySpec) -> U,
+    {
         let capability_iter = self.config_space.iter_capability_registers();
         for capability in capability_iter {
             let capability_spec = capability.capability_spec();
             if let Some(CapabilitySpec::MsiX(msi_x)) = capability_spec {
-                return (msi_x.bir(), msi_x.table_offset());
+                return f(msi_x);
             }
         }
 

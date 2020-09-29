@@ -2,10 +2,11 @@
 
 use {
     super::{RegisterIndex, Registers},
-    crate::device::pci::config::{bar, type_spec::TypeSpec},
+    crate::{accessor::slice, device::pci::config::bar},
     bitfield::bitfield,
-    core::convert::From,
+    core::convert::{From, TryFrom},
     os_units::{Bytes, Size},
+    x86_64::PhysAddr,
 };
 
 #[derive(Debug)]
@@ -23,8 +24,20 @@ impl<'a> CapabilitySpec<'a> {
         bar::Index::from(Bir::new(self.registers, self.base))
     }
 
-    pub fn table_offset(&self) -> Size<Bytes> {
-        TableOffset::new(self.registers, self.base).as_bytes()
+    pub fn table(&self, base_address: PhysAddr) -> slice::Accessor<Element> {
+        slice::Accessor::new(
+            base_address,
+            self.table_offset(),
+            usize::from(self.num_of_table_elements()),
+        )
+    }
+
+    fn table_offset(&self) -> Size<Bytes> {
+        Size::from(TableOffset::new(self.registers, self.base))
+    }
+
+    fn num_of_table_elements(&self) -> TableSize {
+        TableSize::new(self.registers, self.base)
     }
 }
 
@@ -45,9 +58,10 @@ impl TableOffset {
     fn new(raw: &Registers, base: RegisterIndex) -> Self {
         Self(Size::new((raw.get(base + 4) & !0xf) as usize))
     }
-
-    fn as_bytes(&self) -> Size<Bytes> {
-        self.0
+}
+impl From<TableOffset> for Size<Bytes> {
+    fn from(offset: TableOffset) -> Self {
+        offset.0
     }
 }
 
@@ -58,9 +72,10 @@ impl TableSize {
         // See: https://wiki.osdev.org/PCI#Enabling_MSI-X
         Self(((raw.get(base) >> 16) & 0x7ff) + 1)
     }
-
-    fn as_usize(&self) -> usize {
-        self.0 as usize
+}
+impl From<TableSize> for usize {
+    fn from(size: TableSize) -> Self {
+        usize::try_from(size.0).unwrap()
     }
 }
 
@@ -68,16 +83,16 @@ bitfield! {
     #[derive(Debug)]
     pub struct Element(u128);
 
-    u32, from into MessageAddress, message_address,set_message_address: 31, 0;
-    u32, from into MessageData, message_data, set_message_data: 95, 64;
+    pub u32, from into MessageAddress, message_address,set_message_address: 31, 0;
+    pub u32, from into MessageData, message_data, set_message_data: 95, 64;
     masked, set_mask: 96;
 }
 
 bitfield! {
-    struct MessageAddress(u32);
+    pub struct MessageAddress(u32);
 
-    redirection_hint, set_redirection_hint: 3;
-    destination_id, set_destination_id: 19, 12;
+    pub redirection_hint, set_redirection_hint: 3;
+    pub u8, destination_id, set_destination_id: 19, 12;
 }
 
 impl From<MessageAddress> for u32 {
@@ -93,16 +108,16 @@ impl From<u32> for MessageAddress {
 }
 
 bitfield! {
-    struct MessageData(u32);
+    pub struct MessageData(u32);
 
-    vector, set_vector: 7, 0;
-    delivery_mode, set_delivery_mode: 10, 8;
+    pub vector, set_vector: 7, 0;
+    pub delivery_mode, set_delivery_mode: 10, 8;
     level, set_level: 14;
     trigger_mode, set_trigger_mode: 15;
 }
 
 impl MessageData {
-    fn set_level_trigger(&mut self) {
+    pub fn set_level_trigger(&mut self) {
         self.set_trigger_mode(true);
         self.set_level(true);
     }
