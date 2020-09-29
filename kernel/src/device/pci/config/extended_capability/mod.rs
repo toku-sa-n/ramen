@@ -43,6 +43,10 @@ pub struct ExtendedCapability<'a> {
 }
 
 impl<'a> ExtendedCapability<'a> {
+    pub fn capability_spec(&self) -> Option<CapabilitySpec> {
+        CapabilitySpec::new(&self.registers, self.base, &self)
+    }
+
     fn new(registers: &'a Registers, base: RegisterIndex) -> Self {
         Self { registers, base }
     }
@@ -61,13 +65,17 @@ impl<'a> ExtendedCapability<'a> {
 }
 
 #[derive(Debug)]
-enum CapabilitySpec<'a> {
+pub enum CapabilitySpec<'a> {
     MsiX(msi_x::CapabilitySpec<'a>),
 }
 
 impl<'a> CapabilitySpec<'a> {
-    fn new(registers: &'a Registers, base: RegisterIndex, id: Id) -> Option<Self> {
-        if id.0 == 0x11 {
+    fn new(
+        registers: &'a Registers,
+        base: RegisterIndex,
+        extended_capability: &ExtendedCapability,
+    ) -> Option<Self> {
+        if let Some(ty) = extended_capability.ty() {
             Some(Self::MsiX(msi_x::CapabilitySpec::new(registers, base)))
         } else {
             None
