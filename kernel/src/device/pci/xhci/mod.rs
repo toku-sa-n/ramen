@@ -15,7 +15,10 @@ use {
         hc_operational_registers::HCOperationalRegisters,
         usb_legacy_support_capability::UsbLegacySupportCapability,
     },
-    transfer_ring::{transfer_request_block::Command, RingQueue},
+    transfer_ring::{
+        transfer_request_block::{Command, Event},
+        RingQueue,
+    },
     x86_64::{structures::paging::MapperAllSizes, VirtAddr},
 };
 
@@ -25,6 +28,7 @@ pub struct Xhci<'a> {
     hc_operational_registers: HCOperationalRegisters<'a>,
     dcbaa: DeviceContextBaseAddressArray,
     command_ring: RingQueue<'a, Command>,
+    event_ring: RingQueue<'a, Event>,
     config_space: config::Space,
 }
 
@@ -165,6 +169,7 @@ impl<'a> Xhci<'a> {
             dcbaa,
             command_ring: RingQueue::new(),
             config_space,
+            event_ring: RingQueue::new(),
         }
     }
 }

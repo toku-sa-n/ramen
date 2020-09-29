@@ -6,3 +6,6 @@ pub trait TRB {
 
 pub struct Command;
 impl TRB for Command {}
+
+pub struct Event;
+impl TRB for Event {}
