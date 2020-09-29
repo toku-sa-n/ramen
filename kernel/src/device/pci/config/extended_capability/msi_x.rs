@@ -65,6 +65,7 @@ impl From<TableOffset> for Size<Bytes> {
     }
 }
 
+#[derive(Debug)]
 struct TableSize(u32);
 impl TableSize {
     fn new(raw: &Registers, base: RegisterIndex) -> Self {
