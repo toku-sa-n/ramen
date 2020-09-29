@@ -28,7 +28,7 @@ impl Bar {
     }
 
     fn ty(self) -> BarType {
-        let ty_raw = self.0 & 0b11;
+        let ty_raw = (self.0 >> 1) & 0b11;
         if ty_raw == 0 {
             BarType::Bar32Bit
         } else if ty_raw == 0x02 {
