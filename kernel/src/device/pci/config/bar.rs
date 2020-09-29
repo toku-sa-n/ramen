@@ -2,7 +2,10 @@
 
 use {
     super::RegisterIndex,
-    core::convert::{From, TryFrom},
+    core::{
+        convert::{From, TryFrom},
+        ops::Add,
+    },
     x86_64::PhysAddr,
 };
 
@@ -71,6 +74,13 @@ impl Index {
 impl From<Index> for RegisterIndex {
     fn from(bar_index: Index) -> Self {
         RegisterIndex::new(usize::try_from(bar_index.0 + 4).unwrap())
+    }
+}
+impl Add<u32> for Index {
+    type Output = Self;
+
+    fn add(self, rhs: u32) -> Self::Output {
+        Self::new(self.0 + rhs)
     }
 }
 
