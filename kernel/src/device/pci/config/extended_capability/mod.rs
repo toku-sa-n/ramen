@@ -52,7 +52,7 @@ impl<'a> ExtendedCapability<'a> {
     }
 
     fn id(&self) -> Id {
-        Id::parse_raw(self.registers, self.base)
+        Id::new(self.registers, self.base)
     }
 }
 
@@ -74,8 +74,8 @@ impl<'a> CapabilitySpec<'a> {
 #[derive(Debug, Copy, Clone)]
 struct Id(u8);
 impl Id {
-    fn parse_raw(raw: &Registers, offset: RegisterIndex) -> Self {
-        Self(u8::try_from(raw.get(offset) & 0xff).unwrap())
+    fn new(registers: &Registers, base: RegisterIndex) -> Self {
+        Self(u8::try_from(registers.get(base) & 0xff).unwrap())
     }
 }
 
