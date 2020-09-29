@@ -25,10 +25,6 @@ impl Bir {
     fn new(raw: &Registers, base: RegisterIndex) -> Self {
         Self(bar::Index::new(raw.get(base + 4) & 0b111))
     }
-
-    fn get(self) -> bar::Index {
-        self.0
-    }
 }
 impl From<Bir> for bar::Index {
     fn from(bir: Bir) -> Self {
