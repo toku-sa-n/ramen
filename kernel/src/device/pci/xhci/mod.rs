@@ -95,7 +95,7 @@ impl<'a> Xhci<'a> {
         let bar_index = self.get_bir();
         let base_address = self.config_space.base_address(bar_index);
         self.handle_msi_x(|msi_x| {
-            let table = msi_x.table(base_address);
+            let mut table = msi_x.table(base_address);
             let local_apic_id = unsafe { *(0xfee00020 as *const u32) >> 24 };
             table[0]
                 .message_address()
@@ -103,6 +103,7 @@ impl<'a> Xhci<'a> {
             table[0].message_address().set_redirection_hint(true);
             table[0].message_data().set_level_trigger();
             table[0].message_data().set_vector(0x40);
+            table[0].set_mask(false);
         })
     }
 

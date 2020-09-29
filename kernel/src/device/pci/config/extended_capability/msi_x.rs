@@ -85,7 +85,7 @@ bitfield! {
 
     pub u32, from into MessageAddress, message_address,set_message_address: 31, 0;
     pub u32, from into MessageData, message_data, set_message_data: 95, 64;
-    masked, set_mask: 96;
+    pub masked, set_mask: 96;
 }
 
 bitfield! {
