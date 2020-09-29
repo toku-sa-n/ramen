@@ -50,6 +50,10 @@ impl<'a> ExtendedCapability<'a> {
     fn next_ptr(&self) -> NextPointer {
         NextPointer::new(self.registers, self.base)
     }
+
+    fn id(&self) -> Id {
+        Id::parse_raw(self.registers, self.base)
+    }
 }
 
 #[derive(Debug)]
