@@ -26,8 +26,8 @@ impl<'a> CapabilitySpec<'a> {
 
 pub struct Bir(bar::Index);
 impl Bir {
-    fn new(raw: &Registers, base: RegisterIndex) -> Self {
-        Self(bar::Index::new(raw.get(base + 4) & 0b111))
+    fn new(registers: &Registers, base: RegisterIndex) -> Self {
+        Self(bar::Index::new(registers.get(base + 4) & 0b111))
     }
 }
 impl From<Bir> for bar::Index {
