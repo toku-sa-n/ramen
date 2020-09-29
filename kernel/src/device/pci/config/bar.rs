@@ -49,7 +49,7 @@ impl Bar {
         match self.ty() {
             BarType::Bar32Bit => None,
             BarType::Bar64Bit => Some(PhysAddr::new(
-                u64::from(self.0 & !0xf) | u64::from(upper.0) << 32,
+                (u64::from(self.0 & !0xf)) | ((u64::from(upper.0)) << 32),
             )),
         }
     }
