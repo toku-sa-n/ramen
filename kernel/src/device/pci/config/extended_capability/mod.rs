@@ -58,11 +58,9 @@ enum CapabilitySpec<'a> {
 }
 
 impl<'a> CapabilitySpec<'a> {
-    fn new(raw: &Registers, offset: RegisterIndex, id: Id, type_spec: &TypeSpec) -> Option<Self> {
+    fn new(registers: &'a Registers, base: RegisterIndex, id: Id) -> Option<Self> {
         if id.0 == 0x11 {
-            Some(Self::MsiX(msi_x::CapabilitySpec::new(
-                raw, offset, type_spec,
-            )))
+            Some(Self::MsiX(msi_x::CapabilitySpec::new(registers, base)))
         } else {
             None
         }

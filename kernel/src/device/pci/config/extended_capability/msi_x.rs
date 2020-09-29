@@ -11,33 +11,13 @@ use {
 
 #[derive(Debug)]
 pub struct CapabilitySpec<'a> {
-    table: accessor::slice::Accessor<'a, Element>,
+    registers: &'a Registers,
+    base: RegisterIndex,
 }
 
 impl<'a> CapabilitySpec<'a> {
-    pub fn new(registers: &Registers, base: RegisterIndex, type_spec: &TypeSpec) -> Self {
-        let bir = Bir::parse_raw(registers, base);
-        let table_offset = TableOffset::parse_raw(registers, base);
-
-        let base_addr = if let TypeSpec::NonBridge(non_bridge) = type_spec {
-            non_bridge.base_addr(bir.get())
-        } else {
-            todo!()
-        };
-
-        let num_elements = TableSize::parse_raw(registers, base);
-
-        Self {
-            table: accessor::slice::Accessor::new(
-                base_addr,
-                table_offset.as_bytes().as_usize(),
-                num_elements.as_usize(),
-            ),
-        }
-    }
-
-    pub fn table(&mut self) -> &mut accessor::slice::Accessor<'a, Element> {
-        &mut self.table
+    pub fn new(registers: &'a Registers, base: RegisterIndex) -> Self {
+        Self { registers, base }
     }
 }
 
