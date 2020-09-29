@@ -23,7 +23,7 @@ impl<'a> CapabilitySpec<'a> {
 
 struct Bir(bar::Index);
 impl Bir {
-    fn parse_raw(raw: &Registers, base: RegisterIndex) -> Self {
+    fn new(raw: &Registers, base: RegisterIndex) -> Self {
         Self(bar::Index::new(raw.get(base + 4) & 0b111))
     }
 
