@@ -22,6 +22,10 @@ impl<'a> CapabilitySpec<'a> {
     pub fn bir(&self) -> Bir {
         Bir::new(self.registers, self.base)
     }
+
+    pub fn table_offset(&self) -> Size<Bytes> {
+        TableOffset::new(self.registers, self.base).as_bytes()
+    }
 }
 
 pub struct Bir(bar::Index);
@@ -38,7 +42,7 @@ impl From<Bir> for bar::Index {
 
 struct TableOffset(Size<Bytes>);
 impl TableOffset {
-    fn parse_raw(raw: &Registers, base: RegisterIndex) -> Self {
+    fn new(raw: &Registers, base: RegisterIndex) -> Self {
         Self(Size::new((raw.get(base + 4) & !0xf) as usize))
     }
 
