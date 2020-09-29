@@ -7,9 +7,11 @@ pub mod type_spec;
 
 use {
     self::common::Common,
+    alloc::boxed::Box,
     bar::Bar,
     core::{
         convert::{From, TryFrom},
+        iter,
         ops::Add,
     },
     extended_capability::ExtendedCapability,
@@ -39,11 +41,17 @@ impl Space {
         TypeSpec::new(&self.registers, &self.common())
     }
 
-    pub fn iter_capability_registers(&self) -> Option<impl Iterator<Item = ExtendedCapability>> {
-        Some(extended_capability::Iter::new(
-            &self.registers,
-            CapabilityPointer::new(&self.registers, &self.common())?.as_register_index(),
-        ))
+    pub fn iter_capability_registers<'a>(
+        &'a self,
+    ) -> Box<dyn Iterator<Item = ExtendedCapability> + 'a> {
+        let capability_pointer = CapabilityPointer::new(&self.registers, &self.common());
+        match capability_pointer {
+            None => Box::new(iter::empty()),
+            Some(capability_pointer) => Box::new(extended_capability::Iter::new(
+                &self.registers,
+                capability_pointer.as_register_index(),
+            )),
+        }
     }
 
     fn common(&self) -> Common {
