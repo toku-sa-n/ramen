@@ -32,11 +32,13 @@ impl CapabilityRegistersLength {
 }
 
 bitfield! {
+    #[repr(transparent)]
     pub struct StructuralParameters1(u32);
     pub number_of_device_slots, _: 7, 0;
 }
 
 bitfield! {
+    #[repr(transparent)]
     pub struct HCCapabilityParameters1(u32);
     pub xhci_extended_capabilities_pointer,_: 31,16;
 }
