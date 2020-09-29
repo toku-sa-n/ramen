@@ -9,7 +9,11 @@ use {
     self::common::Common,
     alloc::boxed::Box,
     bar::Bar,
-    core::{convert::TryFrom, iter, ops::Add},
+    core::{
+        convert::{From, TryFrom},
+        iter,
+        ops::Add,
+    },
     extended_capability::ExtendedCapability,
     type_spec::TypeSpec,
     x86_64::{
@@ -52,7 +56,7 @@ impl Space {
             None => Box::new(iter::empty()),
             Some(capability_pointer) => Box::new(extended_capability::Iter::new(
                 &self.registers,
-                capability_pointer.as_register_index(),
+                RegisterIndex::from(capability_pointer),
             )),
         }
     }
@@ -208,9 +212,12 @@ impl<'a> CapabilityPointer<'a> {
             None
         }
     }
-
-    pub fn as_register_index(self) -> RegisterIndex {
-        let pointer = usize::try_from(self.registers.get(RegisterIndex::new(0x0d)) & 0xff).unwrap();
+}
+impl<'a> From<CapabilityPointer<'a>> for RegisterIndex {
+    fn from(capability_pointer: CapabilityPointer) -> Self {
+        let pointer =
+            usize::try_from(capability_pointer.registers.get(RegisterIndex::new(0x0d)) & 0xff)
+                .unwrap();
         RegisterIndex::new(pointer >> 2)
     }
 }
