@@ -77,6 +77,18 @@ impl Id {
     fn new(registers: &Registers, base: RegisterIndex) -> Self {
         Self(u8::try_from(registers.get(base) & 0xff).unwrap())
     }
+
+    fn ty(self) -> Option<CapabilityType> {
+        if self.0 == 0x11 {
+            Some(CapabilityType::MsiX)
+        } else {
+            None
+        }
+    }
+}
+
+enum CapabilityType {
+    MsiX,
 }
 
 struct NextPointer(RegisterIndex);
