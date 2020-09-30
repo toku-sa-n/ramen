@@ -6,6 +6,7 @@ pub struct HCCapabilityRegisters<'a> {
     pub cap_length: Accessor<'a, CapabilityRegistersLength>,
     pub hcs_params_1: Accessor<'a, StructuralParameters1>,
     pub hc_cp_params_1: Accessor<'a, HCCapabilityParameters1>,
+    pub rts_off: Accessor<'a, RuntimeRegisterSpaceOffset>,
 }
 
 impl<'a> HCCapabilityRegisters<'a> {
@@ -13,11 +14,13 @@ impl<'a> HCCapabilityRegisters<'a> {
         let cap_length = Accessor::new(mmio_base, 0);
         let hcs_params_1 = Accessor::new(mmio_base, 0x04);
         let hc_cp_params_1 = Accessor::new(mmio_base, 0x10);
+        let rts_off = Accessor::new(mmio_base, 0x18);
 
         Self {
             cap_length,
             hcs_params_1,
             hc_cp_params_1,
+            rts_off,
         }
     }
 }
@@ -41,4 +44,12 @@ bitfield! {
     #[repr(transparent)]
     pub struct HCCapabilityParameters1(u32);
     pub xhci_extended_capabilities_pointer,_: 31,16;
+}
+
+#[repr(transparent)]
+pub struct RuntimeRegisterSpaceOffset(u32);
+impl RuntimeRegisterSpaceOffset {
+    pub fn get(&self) -> u32 {
+        self.0 & !0xf
+    }
 }
