@@ -11,6 +11,7 @@ use {
         type_spec::TypeSpec,
     },
     crate::mem::paging::pml4::PML4,
+    core::convert::TryFrom,
     register::{
         hc_capability_registers::HCCapabilityRegisters,
         hc_operational_registers::HCOperationalRegisters,
@@ -106,7 +107,7 @@ impl<'a> Xhci<'a> {
             let local_apic_id = unsafe { *(0xfee0_0020 as *const u32) >> 24 };
             table[0]
                 .message_address()
-                .set_destination_id(local_apic_id as u8);
+                .set_destination_id(u8::try_from(local_apic_id).unwrap());
             table[0].message_address().set_redirection_hint(true);
             table[0].message_data().set_level_trigger();
             table[0].message_data().set_vector(0x40);

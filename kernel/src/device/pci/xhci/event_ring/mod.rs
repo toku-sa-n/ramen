@@ -7,6 +7,7 @@ use {
     x86_64::structures::paging::{FrameAllocator, PageSize, Size4KiB},
 };
 
+#[allow(clippy::cast_possible_truncation)]
 const NUM_ELEMENTS_SEGMENT_TABLE: usize = Size4KiB::SIZE as usize / size_of::<SegmentTableEntry>();
 
 struct SegmentTable<'a> {
