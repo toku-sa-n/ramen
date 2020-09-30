@@ -22,10 +22,7 @@ use {
         transfer_request_block::{Command, Event},
         RingQueue,
     },
-    x86_64::{
-        structures::paging::{MapperAllSizes, PageSize, Size4KiB},
-        VirtAddr,
-    },
+    x86_64::{structures::paging::MapperAllSizes, VirtAddr},
 };
 
 pub struct Xhci<'a> {
@@ -48,6 +45,7 @@ impl<'a> Xhci<'a> {
         self.set_dcbaap();
         self.set_command_ring_pointer();
         self.init_msi_x_table();
+        self.set_event_ring_dequeue_pointer();
         self.init_event_ring_segment_table();
         self.run();
     }
@@ -139,6 +137,12 @@ impl<'a> Xhci<'a> {
         self.runtime_base_registers
             .erst_ba
             .set(self.event_ring_segment_table.address())
+    }
+
+    fn set_event_ring_dequeue_pointer(&mut self) {
+        self.runtime_base_registers
+            .erd_p
+            .set_address(self.event_ring_segment_table.address())
     }
 
     fn get_bir(&mut self) -> bar::Index {
