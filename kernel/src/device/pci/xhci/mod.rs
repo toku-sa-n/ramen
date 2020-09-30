@@ -14,6 +14,7 @@ use {
     register::{
         hc_capability_registers::HCCapabilityRegisters,
         hc_operational_registers::HCOperationalRegisters,
+        runtime_base_registers::RuntimeBaseRegisters,
         usb_legacy_support_capability::UsbLegacySupportCapability,
     },
     transfer_ring::{
@@ -30,6 +31,7 @@ pub struct Xhci<'a> {
     dcbaa: DeviceContextBaseAddressArray,
     command_ring: RingQueue<'a, Command>,
     event_ring: RingQueue<'a, Event>,
+    runtime_base_registers: RuntimeBaseRegisters<'a>,
     config_space: config::Space,
 }
 
@@ -163,6 +165,9 @@ impl<'a> Xhci<'a> {
         info!("Getting DCBAA...");
         let dcbaa = DeviceContextBaseAddressArray::new();
 
+        let runtime_base_registers =
+            RuntimeBaseRegisters::new(mmio_base, hc_capability_registers.rts_off.get() as usize);
+
         Self {
             usb_legacy_support_capability,
             hc_capability_registers,
@@ -171,6 +176,7 @@ impl<'a> Xhci<'a> {
             command_ring: RingQueue::new(),
             config_space,
             event_ring: RingQueue::new(),
+            runtime_base_registers,
         }
     }
 }
