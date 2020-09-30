@@ -96,5 +96,5 @@ fn run_tasks() -> ! {
     // If you change the value `0xf4` and `0x10`, don't forget to change the correspond values in
     // `Makefile`!
     use qemu_exit::QEMUExit;
-    qemu_exit::X86::new(0xf4, 0x10).exit_success();
+    qemu_exit::X86::new(0xf4, 33).exit_success();
 }
