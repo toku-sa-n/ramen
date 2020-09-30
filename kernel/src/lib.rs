@@ -93,7 +93,8 @@ fn run_tasks() -> ! {
     // Currently there is no way to test multitasking. If this OS suppports timer, the situation
     // may change.
     //
-    // If you change the value `0xf4` and `0x10`, don't forget to change the correspond values in
+    // If you change the value `0xf4` and `33`, don't forget to change the correspond values in
     // `Makefile`!
-    qemu_exit::x86::exit::<u32, 0xf4>(0x10);
+    use qemu_exit::QEMUExit;
+    qemu_exit::X86::new(0xf4, 33).exit_success();
 }
