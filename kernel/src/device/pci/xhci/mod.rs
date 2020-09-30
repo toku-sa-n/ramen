@@ -49,6 +49,8 @@ impl<'a> Xhci<'a> {
         self.set_command_ring_pointer();
         self.init_msi_x_table();
         self.init_event_ring_segment_table();
+        self.set_event_ring_segment_table_size();
+        self.set_event_ring_segment_table_address();
         self.run();
     }
 
@@ -126,6 +128,16 @@ impl<'a> Xhci<'a> {
             table[0].set_base_address(ring_addr);
             table[0].set_segment_size(16);
         })
+    }
+
+    fn set_event_ring_segment_table_size(&mut self) {
+        self.runtime_base_registers.erst_sz.set(1)
+    }
+
+    fn set_event_ring_segment_table_address(&mut self) {
+        self.runtime_base_registers
+            .erst_ba
+            .set(self.event_ring_segment_table.address())
     }
 
     fn get_bir(&mut self) -> bar::Index {

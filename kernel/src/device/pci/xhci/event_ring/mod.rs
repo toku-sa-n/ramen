@@ -4,27 +4,36 @@ use {
     crate::{accessor::slice, mem::allocator::phys::FRAME_MANAGER},
     core::mem::size_of,
     os_units::Size,
-    x86_64::structures::paging::{FrameAllocator, PageSize, Size4KiB},
+    x86_64::{
+        structures::paging::{FrameAllocator, PageSize, Size4KiB},
+        PhysAddr,
+    },
 };
 
 #[allow(clippy::cast_possible_truncation)]
 const NUM_ELEMENTS_SEGMENT_TABLE: usize = Size4KiB::SIZE as usize / size_of::<SegmentTableEntry>();
 
 pub struct SegmentTable<'a> {
+    addr: PhysAddr,
     table: slice::Accessor<'a, SegmentTableEntry>,
 }
 impl<'a> SegmentTable<'a> {
     pub fn new() -> Self {
         let phys_frame = FRAME_MANAGER.lock().allocate_frame().unwrap();
-        let phys_addr = phys_frame.start_address();
-        let table = slice::Accessor::new(phys_addr, Size::new(0), NUM_ELEMENTS_SEGMENT_TABLE);
-        Self { table }
+        let addr = phys_frame.start_address();
+        let table = slice::Accessor::new(addr, Size::new(0), NUM_ELEMENTS_SEGMENT_TABLE);
+        Self { addr, table }
     }
+
     pub fn edit<T, U>(&mut self, f: T) -> U
     where
         T: Fn(&mut [SegmentTableEntry]) -> U,
     {
         f(&mut *self.table)
+    }
+
+    pub fn address(&self) -> PhysAddr {
+        self.addr
     }
 }
 

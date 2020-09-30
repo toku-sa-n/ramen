@@ -33,11 +33,11 @@ impl EventRingSegmentTableSizeRegister {
 #[derive(Debug)]
 pub struct EventRingSegmentTableBaseAddressRegister(u64);
 impl EventRingSegmentTableBaseAddressRegister {
-    pub fn get(&self) -> u64 {
-        self.0
+    pub fn get(&self) -> PhysAddr {
+        PhysAddr::new(self.0)
     }
 
-    pub fn set(&mut self, val: u64) {
-        self.0 = val
+    pub fn set(&mut self, val: PhysAddr) {
+        self.0 = val.as_u64()
     }
 }
