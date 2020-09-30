@@ -49,8 +49,6 @@ impl<'a> Xhci<'a> {
         self.set_command_ring_pointer();
         self.init_msi_x_table();
         self.init_event_ring_segment_table();
-        self.set_event_ring_segment_table_size();
-        self.set_event_ring_segment_table_address();
         self.run();
     }
 
@@ -127,7 +125,10 @@ impl<'a> Xhci<'a> {
         self.event_ring_segment_table.edit(|table| {
             table[0].set_base_address(ring_addr);
             table[0].set_segment_size(16);
-        })
+        });
+
+        self.set_event_ring_segment_table_size();
+        self.set_event_ring_segment_table_address();
     }
 
     fn set_event_ring_segment_table_size(&mut self) {
