@@ -17,6 +17,7 @@ impl<'a> RuntimeBaseRegisters<'a> {
 }
 
 #[repr(transparent)]
+#[derive(Debug)]
 pub struct EventRingSegmentTableSizeRegister(u32);
 impl EventRingSegmentTableSizeRegister {
     pub fn get(&self) -> u32 {
@@ -29,6 +30,7 @@ impl EventRingSegmentTableSizeRegister {
 }
 
 #[repr(transparent)]
+#[derive(Debug)]
 pub struct EventRingSegmentTableBaseAddressRegister(u64);
 impl EventRingSegmentTableBaseAddressRegister {
     pub fn get(&self) -> u64 {
