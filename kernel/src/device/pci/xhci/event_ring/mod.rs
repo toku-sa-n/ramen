@@ -2,7 +2,7 @@
 
 use {
     crate::{accessor::slice, mem::allocator::phys::FRAME_MANAGER},
-    core::mem::size_of,
+    core::{convert::From, mem::size_of},
     os_units::Size,
     x86_64::structures::paging::{FrameAllocator, PageSize, Size4KiB},
 };
@@ -19,6 +19,11 @@ impl<'a> SegmentTable<'a> {
         let phys_addr = phys_frame.start_address();
         let table = slice::Accessor::new(phys_addr, Size::new(0), NUM_ELEMENTS_SEGMENT_TABLE);
         Self { table }
+    }
+}
+impl<'a> From<SegmentTable<'a>> for slice::Accessor<'a, SegmentTableEntry> {
+    fn from(table: SegmentTable<'a>) -> Self {
+        table.table
     }
 }
 
