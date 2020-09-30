@@ -22,7 +22,10 @@ use {
         transfer_request_block::{Command, Event},
         RingQueue,
     },
-    x86_64::{structures::paging::MapperAllSizes, VirtAddr},
+    x86_64::{
+        structures::paging::{MapperAllSizes, PageSize, Size4KiB},
+        VirtAddr,
+    },
 };
 
 pub struct Xhci<'a> {
@@ -33,6 +36,7 @@ pub struct Xhci<'a> {
     command_ring: RingQueue<'a, Command>,
     event_ring: RingQueue<'a, Event>,
     runtime_base_registers: RuntimeBaseRegisters<'a>,
+    event_ring_segment_table: event_ring::SegmentTable<'a>,
     config_space: config::Space,
 }
 
@@ -44,6 +48,7 @@ impl<'a> Xhci<'a> {
         self.set_dcbaap();
         self.set_command_ring_pointer();
         self.init_msi_x_table();
+        self.init_event_ring_segment_table();
         self.run();
     }
 
@@ -115,6 +120,14 @@ impl<'a> Xhci<'a> {
         })
     }
 
+    fn init_event_ring_segment_table(&mut self) {
+        let ring_addr = self.event_ring.addr().as_u64();
+        self.event_ring_segment_table.edit(|table| {
+            table[0].set_base_address(ring_addr);
+            table[0].set_segment_size(16);
+        })
+    }
+
     fn get_bir(&mut self) -> bar::Index {
         self.handle_msi_x(|msi_x| msi_x.bir())
     }
@@ -169,6 +182,8 @@ impl<'a> Xhci<'a> {
         let runtime_base_registers =
             RuntimeBaseRegisters::new(mmio_base, hc_capability_registers.rts_off.get() as usize);
 
+        let event_ring_segment_table = event_ring::SegmentTable::new();
+
         Self {
             usb_legacy_support_capability,
             hc_capability_registers,
@@ -178,6 +193,7 @@ impl<'a> Xhci<'a> {
             config_space,
             event_ring: RingQueue::new(),
             runtime_base_registers,
+            event_ring_segment_table,
         }
     }
 }
