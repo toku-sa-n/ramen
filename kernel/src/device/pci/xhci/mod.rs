@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+mod event_ring;
 mod register;
 mod transfer_ring;
 
