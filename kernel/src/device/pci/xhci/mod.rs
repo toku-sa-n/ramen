@@ -47,6 +47,7 @@ impl<'a> Xhci<'a> {
         self.init_msi_x_table();
         self.set_event_ring_dequeue_pointer();
         self.enable_msi_x_interrupt();
+        self.enable_system_bus_interrupt_generation();
         self.init_event_ring_segment_table();
         self.run();
     }
@@ -150,6 +151,12 @@ impl<'a> Xhci<'a> {
         self.handle_msi_x(|msi_x| {
             msi_x.enable_interrupt();
         })
+    }
+
+    fn enable_system_bus_interrupt_generation(&mut self) {
+        self.hc_operational_registers
+            .usb_cmd
+            .set_interrupt_enable(true)
     }
 
     fn get_bir(&mut self) -> bar::Index {

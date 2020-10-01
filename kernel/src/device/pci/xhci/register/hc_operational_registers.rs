@@ -41,7 +41,7 @@ bitfield! {
     pub struct UsbCommandRegister(u32);
 
     pub run_stop,set_run_stop: 0;
-    pub interrupt_enable,set_interrupt_eenable: 2;
+    pub interrupt_enable,set_interrupt_enable: 2;
 }
 
 bitfield! {
