@@ -212,7 +212,7 @@ impl<'a> Xhci<'a> {
         let mmio_base = non_bridge.base_addr(bar::Index::new(0));
 
         info!("Getting HCCapabilityRegisters...");
-        let mut hc_capability_registers = HCCapabilityRegisters::new(mmio_base);
+        let hc_capability_registers = HCCapabilityRegisters::new(mmio_base);
 
         info!("Getting UsbLegacySupportCapability...");
         let usb_legacy_support_capability =
@@ -220,7 +220,7 @@ impl<'a> Xhci<'a> {
 
         info!("Getting HCOperationalRegisters...");
         let hc_operational_registers =
-            HCOperationalRegisters::new(mmio_base, &mut hc_capability_registers.cap_length);
+            HCOperationalRegisters::new(mmio_base, &hc_capability_registers.cap_length);
 
         info!("Getting DCBAA...");
         let dcbaa = DeviceContextBaseAddressArray::new();
