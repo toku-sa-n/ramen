@@ -13,11 +13,11 @@ use {
 pub struct Bar(u32);
 
 impl Bar {
-    pub(super) fn new(bar: u32) -> Self {
+    pub fn new(bar: u32) -> Self {
         Self(bar)
     }
 
-    pub(super) fn base_addr(self, upper: Option<Bar>) -> Option<PhysAddr> {
+    pub fn base_addr(self, upper: Option<Bar>) -> Option<PhysAddr> {
         match upper {
             Some(upper) => match self.ty() {
                 BarType::Bar64Bit => self.base_addr_64(upper),
