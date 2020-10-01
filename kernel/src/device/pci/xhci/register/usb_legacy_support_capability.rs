@@ -18,6 +18,7 @@ impl<'a> UsbLegacySupportCapability<'a> {
         let xecp = hc_capability_registers
             .hc_cp_params_1
             .xhci_extended_capabilities_pointer();
+        info!("xECP: {}", xecp);
         let base = mmio_base + ((xecp as usize) << 2);
         let usb_leg_sup = Accessor::new(base, 0);
 
