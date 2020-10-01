@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {crate::accessor::single_object::Accessor, x86_64::PhysAddr};
+use {crate::accessor::single_object::Accessor, bitfield::bitfield, x86_64::PhysAddr};
 
 pub struct RuntimeBaseRegisters<'a> {
+    pub i_man: Accessor<'a, InterruptManagementRegister>,
     pub erst_sz: Accessor<'a, EventRingSegmentTableSizeRegister>,
     pub erst_ba: Accessor<'a, EventRingSegmentTableBaseAddressRegister>,
     pub erd_p: Accessor<'a, EventRingDequeuePointerRegister>,
@@ -10,11 +11,13 @@ pub struct RuntimeBaseRegisters<'a> {
 impl<'a> RuntimeBaseRegisters<'a> {
     pub fn new(mmio_base: PhysAddr, runtime_register_space_offset: usize) -> Self {
         let runtime_base = mmio_base + runtime_register_space_offset;
+        let i_man = Accessor::new(runtime_base, 0x20);
         let erst_sz = Accessor::new(runtime_base, 0x28);
         let erst_ba = Accessor::new(runtime_base, 0x30);
         let erd_p = Accessor::new(runtime_base, 0x38);
 
         Self {
+            i_man,
             erst_sz,
             erst_ba,
             erd_p,
@@ -47,4 +50,11 @@ impl EventRingDequeuePointerRegister {
         assert_eq!(addr.as_u64() & 0b1111, 0);
         self.0 = addr.as_u64();
     }
+}
+
+bitfield! {
+    #[repr(transparent)]
+    pub struct InterruptManagementRegister(u32);
+
+    pub interrupt_enable, set_interrupt_status: 1;
 }
