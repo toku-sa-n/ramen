@@ -20,7 +20,7 @@ pub struct HCOperationalRegisters<'a> {
 }
 
 impl<'a> HCOperationalRegisters<'a> {
-    pub fn new(mmio_base: PhysAddr, cap_length: &mut CapabilityRegistersLength) -> Self {
+    pub fn new(mmio_base: PhysAddr, cap_length: &CapabilityRegistersLength) -> Self {
         let operational_base = mmio_base + cap_length.get();
 
         let usb_cmd = single_object::Accessor::new(operational_base, 0x00);

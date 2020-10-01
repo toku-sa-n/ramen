@@ -29,7 +29,7 @@ impl<'a> HCCapabilityRegisters<'a> {
 pub struct CapabilityRegistersLength(u8);
 
 impl CapabilityRegistersLength {
-    pub fn get(&mut self) -> usize {
+    pub fn get(&self) -> usize {
         self.0 as _
     }
 }
