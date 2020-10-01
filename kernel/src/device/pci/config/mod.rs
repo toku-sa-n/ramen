@@ -94,7 +94,7 @@ impl Registers {
 
     fn set(&self, index: RegisterIndex, value: u32) {
         let accessor = ConfigAddress::new(self.bus, self.device, Function::zero(), index);
-        unsafe { accessor.write() }
+        unsafe { accessor.write(value) }
     }
 }
 
