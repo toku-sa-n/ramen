@@ -26,8 +26,6 @@ impl<'a> TypeSpec<'a> {
             info!("Bar{}: {:?}", i, self.bar(bar::Index::new(i)));
         }
 
-        info!("Base address: {:?}", self.bar(index).base_addr(upper));
-
         self.bar(index)
             .base_addr(upper)
             .expect("Could not calculate Base Address.")
