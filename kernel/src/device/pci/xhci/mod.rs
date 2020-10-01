@@ -51,6 +51,8 @@ impl<'a> Xhci<'a> {
         self.init_event_ring_segment_table();
         self.enable_interrupt();
         self.run();
+
+        self.check_connection();
     }
 
     fn get_ownership_from_bios(&mut self) {
@@ -162,6 +164,14 @@ impl<'a> Xhci<'a> {
 
     fn enable_interrupt(&mut self) {
         self.runtime_base_registers.i_man.set_interrupt_status(true);
+    }
+
+    fn check_connection(&mut self) {
+        for i in 0..10 {
+            if self.hc_operational_registers.port_sc[i].disconnected() {
+                info!("Port {}: disconnected", i);
+            }
+        }
     }
 
     fn get_bir(&mut self) -> bar::Index {
