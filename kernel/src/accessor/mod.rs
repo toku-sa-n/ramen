@@ -43,7 +43,9 @@ fn map_pages(start: PhysAddr, object_size: Size<Bytes>) -> VirtAddr {
         }
     }
 
-    virt
+    let page_offset = start.as_u64() % Size4KiB::SIZE;
+
+    virt + page_offset
 }
 
 fn unmap_pages(start: VirtAddr, object_size: Size<Bytes>) {
