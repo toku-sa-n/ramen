@@ -20,7 +20,9 @@ impl<'a> UsbLegacySupportCapability<'a> {
             .xhci_extended_capabilities_pointer();
         info!("xECP: {}", xecp);
         let base = mmio_base + ((xecp as usize) << 2);
-        let usb_leg_sup = Accessor::new(base, 0);
+        let usb_leg_sup = Accessor::<'a, UsbLegacySupportCapabilityRegister>::new(base, 0);
+
+        assert_eq!(usb_leg_sup.id(), 1);
 
         Self { usb_leg_sup }
     }
@@ -30,6 +32,7 @@ bitfield! {
     #[repr(transparent)]
     pub struct UsbLegacySupportCapabilityRegister(u32);
 
+    id, _: 7, 0;
     pub bios_owns_hc, _: 16;
     pub os_owns_hc, request_hc_ownership: 24;
 }
