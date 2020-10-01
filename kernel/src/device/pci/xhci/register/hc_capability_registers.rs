@@ -4,6 +4,7 @@ use {crate::accessor::single_object::Accessor, bitfield::bitfield, x86_64::PhysA
 
 pub struct HCCapabilityRegisters<'a> {
     pub cap_length: Accessor<'a, CapabilityRegistersLength>,
+    pub hci_version: Accessor<'a, HCInterfaceVersionNumber>,
     pub hcs_params_1: Accessor<'a, StructuralParameters1>,
     pub hc_cp_params_1: Accessor<'a, HCCapabilityParameters1>,
     pub rts_off: Accessor<'a, RuntimeRegisterSpaceOffset>,
@@ -12,12 +13,16 @@ pub struct HCCapabilityRegisters<'a> {
 impl<'a> HCCapabilityRegisters<'a> {
     pub fn new(mmio_base: PhysAddr) -> Self {
         let cap_length = Accessor::new(mmio_base, 0);
+        let hci_version = Accessor::<'a, HCInterfaceVersionNumber>::new(mmio_base, 0x2);
         let hcs_params_1 = Accessor::new(mmio_base, 0x04);
         let hc_cp_params_1 = Accessor::new(mmio_base, 0x10);
         let rts_off = Accessor::new(mmio_base, 0x18);
 
+        info!("HC version: {:X}", hci_version.get());
+
         Self {
             cap_length,
+            hci_version,
             hcs_params_1,
             hc_cp_params_1,
             rts_off,
@@ -31,6 +36,14 @@ pub struct CapabilityRegistersLength(u8);
 impl CapabilityRegistersLength {
     pub fn get(&self) -> usize {
         self.0 as _
+    }
+}
+
+#[repr(transparent)]
+pub struct HCInterfaceVersionNumber(u16);
+impl HCInterfaceVersionNumber {
+    fn get(&self) -> u16 {
+        self.0
     }
 }
 
