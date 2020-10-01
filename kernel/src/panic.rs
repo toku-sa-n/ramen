@@ -7,12 +7,9 @@ use vek::Vec2;
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
-    Screen::draw_rectangle(
-        RGB8::new(0xff, 0, 0),
-        Vec2::new(0, 0),
-        Vram::resolution() - Vec2::new(1, 1),
-    );
-
+    error!("*************");
+    error!("*   PANIC   *");
+    error!("*************");
     if let Some(location) = info.location() {
         error!(
             "Panic in {} at ({}, {}):{}",
