@@ -38,19 +38,19 @@ impl Bar {
         }
     }
 
-    fn base_addr_32(self) -> Option<PhysAddr> {
-        match self.ty() {
-            BarType::Bar32Bit => Some(PhysAddr::new(u64::from(self.0 & !0xf))),
-            BarType::Bar64Bit => None,
-        }
-    }
-
     fn base_addr_64(self, upper: Bar) -> Option<PhysAddr> {
         match self.ty() {
             BarType::Bar32Bit => None,
             BarType::Bar64Bit => Some(PhysAddr::new(
                 (u64::from(self.0 & !0xf)) | ((u64::from(upper.0)) << 32),
             )),
+        }
+    }
+
+    fn base_addr_32(self) -> Option<PhysAddr> {
+        match self.ty() {
+            BarType::Bar32Bit => Some(PhysAddr::new(u64::from(self.0 & !0xf))),
+            BarType::Bar64Bit => None,
         }
     }
 }
