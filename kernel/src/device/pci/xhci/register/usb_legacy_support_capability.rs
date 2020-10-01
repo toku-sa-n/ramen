@@ -27,6 +27,7 @@ impl<'a> UsbLegacySupportCapability<'a> {
 }
 
 bitfield! {
+    #[repr(transparent)]
     pub struct UsbLegacySupportCapabilityRegister(u32);
 
     pub bios_owns_hc, _: 16;
