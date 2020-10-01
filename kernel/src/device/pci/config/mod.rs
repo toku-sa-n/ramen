@@ -17,7 +17,7 @@ use {
     extended_capability::ExtendedCapability,
     type_spec::TypeSpec,
     x86_64::{
-        instructions::port::{PortReadOnly, PortWriteOnly},
+        instructions::port::{Port, PortWriteOnly},
         PhysAddr,
     },
 };
@@ -91,6 +91,11 @@ impl Registers {
         let accessor = ConfigAddress::new(self.bus, self.device, Function::zero(), index);
         unsafe { accessor.read() }
     }
+
+    fn set(&self, index: RegisterIndex, value: u32) {
+        let accessor = ConfigAddress::new(self.bus, self.device, Function::zero(), index);
+        unsafe { accessor.write() }
+    }
 }
 
 struct ConfigAddress {
@@ -102,7 +107,7 @@ struct ConfigAddress {
 
 impl ConfigAddress {
     const PORT_CONFIG_ADDR: PortWriteOnly<u32> = PortWriteOnly::new(0xcf8);
-    const PORT_CONFIG_DATA: PortReadOnly<u32> = PortReadOnly::new(0xcfc);
+    const PORT_CONFIG_DATA: Port<u32> = Port::new(0xcfc);
 
     #[allow(clippy::too_many_arguments)]
     fn new(bus: Bus, device: Device, function: Function, register: RegisterIndex) -> Self {
@@ -131,6 +136,14 @@ impl ConfigAddress {
 
         let mut data = Self::PORT_CONFIG_DATA;
         data.read()
+    }
+
+    unsafe fn write(&self, value: u32) {
+        let mut addr = Self::PORT_CONFIG_ADDR;
+        addr.write(self.as_u32());
+
+        let mut data = Self::PORT_CONFIG_DATA;
+        data.write(value);
     }
 }
 

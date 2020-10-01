@@ -46,6 +46,7 @@ impl<'a> Xhci<'a> {
         self.set_command_ring_pointer();
         self.init_msi_x_table();
         self.set_event_ring_dequeue_pointer();
+        self.enable_msi_x_interrupt();
         self.init_event_ring_segment_table();
         self.run();
     }
@@ -143,6 +144,12 @@ impl<'a> Xhci<'a> {
         self.runtime_base_registers
             .erd_p
             .set_address(self.event_ring_segment_table.address())
+    }
+
+    fn enable_msi_x_interrupt(&mut self) {
+        self.handle_msi_x(|msi_x| {
+            msi_x.enable_interrupt();
+        })
     }
 
     fn get_bir(&mut self) -> bar::Index {

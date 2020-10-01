@@ -32,6 +32,11 @@ impl<'a> CapabilitySpec<'a> {
         )
     }
 
+    pub fn enable_interrupt(&self) {
+        let val = self.registers.get(self.base) | 0x8000_0000;
+        self.registers.set(self.base, val);
+    }
+
     fn table_offset(&self) -> Size<Bytes> {
         Size::from(TableOffset::new(self.registers, self.base))
     }
