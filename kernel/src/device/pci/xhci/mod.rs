@@ -131,6 +131,7 @@ impl<'a> Xhci<'a> {
     }
 
     fn init_event_ring_segment_table(&mut self) {
+        info!("Initializing event ring segment table...");
         let ring_addr = self.event_ring.addr().as_u64();
         self.event_ring_segment_table.edit(|table| {
             table[0].set_base_address(ring_addr);
