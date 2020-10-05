@@ -114,6 +114,7 @@ impl<'a> Xhci<'a> {
     }
 
     fn init_msi_x_table(&mut self) {
+        info!("Initializing MSI-X table...");
         let bar_index = self.get_bir();
         let base_address = self.config_space.base_address(bar_index);
         self.handle_msi_x(|msi_x| {
