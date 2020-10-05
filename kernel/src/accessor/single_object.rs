@@ -23,7 +23,7 @@ impl<'a, T: 'a> Accessor<'a, T> {
 
         let base = super::map_pages(phys_base, Size::new(size_of::<T>()));
 
-        info!(
+        debug!(
             "{:?} -> {:?}",
             base,
             crate::mem::paging::pml4::PML4.lock().translate_addr(base)
