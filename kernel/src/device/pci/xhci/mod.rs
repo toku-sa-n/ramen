@@ -57,7 +57,7 @@ impl<'a> Xhci<'a> {
 
     fn get_ownership_from_bios(&mut self) {
         match self.usb_legacy_support_capability {
-            None => return,
+            None => {}
             Some(ref mut usb_leg_sup_cap) => {
                 info!("Getting ownership from BIOS...");
 
