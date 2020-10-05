@@ -11,6 +11,7 @@ use {
         type_spec::TypeSpec,
     },
     crate::mem::paging::pml4::PML4,
+    common::constant::LOCAL_APIC_ID_REGISTER_ADDR,
     core::convert::TryFrom,
     register::{
         hc_capability_registers::HCCapabilityRegisters,
@@ -119,7 +120,8 @@ impl<'a> Xhci<'a> {
         let base_address = self.config_space.base_address(bar_index);
         self.handle_msi_x(|msi_x| {
             let mut table = msi_x.table(base_address);
-            let local_apic_id = unsafe { *(0xfee0_0020 as *const u32) >> 24 };
+            let local_apic_id =
+                unsafe { *(LOCAL_APIC_ID_REGISTER_ADDR.as_mut_ptr() as *const u32) >> 24 };
             table[0]
                 .message_address()
                 .set_destination_id(u8::try_from(local_apic_id).unwrap());
