@@ -164,8 +164,9 @@ impl Bus {
 #[derive(Copy, Clone, Debug)]
 pub struct Device(u32);
 impl Device {
+    pub const MAX: u32 = 32;
     pub fn new(device: u32) -> Self {
-        assert!(device < 32);
+        assert!(device < Self::MAX);
         Self(device)
     }
 
