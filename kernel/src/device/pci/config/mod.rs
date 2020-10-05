@@ -150,7 +150,9 @@ impl ConfigAddress {
 #[derive(Copy, Clone, Debug)]
 pub struct Bus(u32);
 impl Bus {
+    pub const MAX: u32 = 256;
     pub fn new(bus: u32) -> Self {
+        assert!(bus < Self::MAX);
         Self(bus)
     }
 

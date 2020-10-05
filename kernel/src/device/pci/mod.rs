@@ -25,7 +25,7 @@ impl Iterator for IterPciDevices {
     type Item = config::Space;
 
     fn next(&mut self) -> Option<Self::Item> {
-        for bus in self.bus..=255 {
+        for bus in self.bus..Bus::MAX {
             for device in self.device..32 {
                 if let Some(space) = config::Space::new(Bus::new(bus), Device::new(device)) {
                     self.bus = bus;
