@@ -190,7 +190,7 @@ pub struct RegisterIndex(usize);
 impl RegisterIndex {
     const MAX: usize = 64;
     pub fn new(offset: usize) -> Self {
-        assert!(offset < Self::MAX);
+        assert!(offset < Self::MAX, "Too large register index: {}", offset);
         Self(offset)
     }
 
