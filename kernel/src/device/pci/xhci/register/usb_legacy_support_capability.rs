@@ -14,7 +14,10 @@ pub struct UsbLegacySupportCapability<'a> {
 }
 
 impl<'a> UsbLegacySupportCapability<'a> {
-    pub fn new(mmio_base: PhysAddr, hc_capability_registers: &HCCapabilityRegisters) -> Self {
+    pub fn new(
+        mmio_base: PhysAddr,
+        hc_capability_registers: &HCCapabilityRegisters,
+    ) -> Option<Self> {
         let xecp = hc_capability_registers
             .hc_cp_params_1
             .xhci_extended_capabilities_pointer();
@@ -22,9 +25,11 @@ impl<'a> UsbLegacySupportCapability<'a> {
         let base = mmio_base + ((xecp as usize) << 2);
         let usb_leg_sup = Accessor::<'a, UsbLegacySupportCapabilityRegister>::new(base, 0);
 
-        assert_eq!(usb_leg_sup.id(), 1);
-
-        Self { usb_leg_sup }
+        if usb_leg_sup.id() == 1 {
+            Some(Self { usb_leg_sup })
+        } else {
+            None
+        }
     }
 }
 

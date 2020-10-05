@@ -26,7 +26,7 @@ use {
 };
 
 pub struct Xhci<'a> {
-    usb_legacy_support_capability: UsbLegacySupportCapability<'a>,
+    usb_legacy_support_capability: Option<UsbLegacySupportCapability<'a>>,
     hc_capability_registers: HCCapabilityRegisters<'a>,
     hc_operational_registers: HCOperationalRegisters<'a>,
     dcbaa: DeviceContextBaseAddressArray,
@@ -56,18 +56,23 @@ impl<'a> Xhci<'a> {
     }
 
     fn get_ownership_from_bios(&mut self) {
-        info!("Getting ownership from BIOS...");
+        match self.usb_legacy_support_capability {
+            None => return,
+            Some(ref mut usb_leg_sup_cap) => {
+                info!("Getting ownership from BIOS...");
 
-        let usb_leg_sup = &mut self.usb_legacy_support_capability.usb_leg_sup;
+                let usb_leg_sup = &mut usb_leg_sup_cap.usb_leg_sup;
 
-        usb_leg_sup.request_hc_ownership(true);
+                usb_leg_sup.request_hc_ownership(true);
 
-        while {
-            let bios_owns = usb_leg_sup.bios_owns_hc();
-            let os_owns = usb_leg_sup.os_owns_hc();
+                while {
+                    let bios_owns = usb_leg_sup.bios_owns_hc();
+                    let os_owns = usb_leg_sup.os_owns_hc();
 
-            !os_owns || bios_owns
-        } {}
+                    !os_owns || bios_owns
+                } {}
+            }
+        }
     }
 
     fn wait_until_controller_is_ready(&self) {
