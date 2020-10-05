@@ -22,8 +22,6 @@ use {
     },
 };
 
-const NUM_REGISTERS: usize = 64;
-
 #[derive(Debug)]
 pub struct Space {
     registers: Registers,
@@ -190,8 +188,9 @@ impl Function {
 #[derive(Debug, Copy, Clone)]
 pub struct RegisterIndex(usize);
 impl RegisterIndex {
+    const MAX: usize = 64;
     pub fn new(offset: usize) -> Self {
-        assert!(offset < NUM_REGISTERS);
+        assert!(offset < Self::MAX);
         Self(offset)
     }
 
