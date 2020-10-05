@@ -106,6 +106,7 @@ impl<'a> Xhci<'a> {
     }
 
     fn set_command_ring_pointer(&mut self) {
+        info!("Setting command ring pointer...");
         let virt_addr = self.command_ring.addr();
         let phys_addr = PML4.lock().translate_addr(virt_addr).unwrap();
 
