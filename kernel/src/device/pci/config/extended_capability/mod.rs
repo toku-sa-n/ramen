@@ -95,11 +95,6 @@ pub trait CapabilitySpec {
     fn init_for_xhci(&self, space_type_spec: &TypeSpec);
 }
 
-fn get_local_apic_id() -> u8 {
-    let accessor = single_object::Accessor::<u32>::new(LOCAL_APIC_ID_REGISTER_ADDR, 0);
-    u8::try_from(*accessor >> 24).unwrap()
-}
-
 #[derive(Debug, Copy, Clone)]
 struct Id(u8);
 impl Id {
@@ -147,8 +142,13 @@ bitfield! {
 
 impl MessageAddress {
     pub fn init_for_xhci(&mut self) {
-        self.set_destination_id(get_local_apic_id());
+        self.set_destination_id(Self::get_local_apic_id());
         self.set_redirection_hint(true);
+    }
+
+    fn get_local_apic_id() -> u8 {
+        let accessor = single_object::Accessor::<u32>::new(LOCAL_APIC_ID_REGISTER_ADDR, 0);
+        u8::try_from(*accessor >> 24).unwrap()
     }
 }
 
