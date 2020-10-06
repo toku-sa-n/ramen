@@ -50,6 +50,15 @@ impl<'a> CapabilitySpec<'a> {
         self.registers.set(self.base + 3, message_data.into())
     }
 
+    fn edit_message_control<T>(&self, f: T)
+    where
+        T: Fn(&mut MessageControl),
+    {
+        let mut message_control = self.get_message_control();
+        f(&mut message_control);
+        self.set_message_control(message_control);
+    }
+
     fn get_message_control(&self) -> MessageControl {
         MessageControl::from((self.registers.get(self.base) >> 16) as u16 & 0xffff)
     }
