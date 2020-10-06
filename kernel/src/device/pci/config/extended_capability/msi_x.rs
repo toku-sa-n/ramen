@@ -23,11 +23,11 @@ impl<'a> MsiX<'a> {
         Self { registers, base }
     }
 
-    pub fn bir(&self) -> bar::Index {
+    fn bir(&self) -> bar::Index {
         bar::Index::from(Bir::new(self.registers, self.base))
     }
 
-    pub fn table(&self, base_address: PhysAddr) -> slice::Accessor<Element> {
+    fn table(&self, base_address: PhysAddr) -> slice::Accessor<Element> {
         slice::Accessor::new(
             base_address,
             self.table_offset(),
@@ -35,7 +35,7 @@ impl<'a> MsiX<'a> {
         )
     }
 
-    pub fn enable_interrupt(&self) {
+    fn enable_interrupt(&self) {
         let val = self.registers.get(self.base) | 0x8000_0000;
         self.registers.set(self.base, val);
     }
@@ -103,7 +103,7 @@ impl From<TableSize> for usize {
 
 bitfield! {
     #[derive(Debug)]
-    pub struct Element(u128);
+    struct Element(u128);
 
     u32, from into MessageAddress, message_address,set_message_address: 31, 0;
     u32, from into MessageData, message_data, set_message_data: 95, 64;
