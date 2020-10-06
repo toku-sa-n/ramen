@@ -5,6 +5,7 @@ pub mod msi_x;
 
 use {
     super::{RegisterIndex, Registers},
+    bitfield::bitfield,
     core::{
         convert::{From, TryFrom},
         iter::Iterator,
@@ -116,5 +117,52 @@ impl NextPointer {
 impl From<NextPointer> for RegisterIndex {
     fn from(next_pointer: NextPointer) -> Self {
         next_pointer.0
+    }
+}
+
+bitfield! {
+    pub struct MessageAddress(u32);
+
+    pub redirection_hint, set_redirection_hint: 3;
+    pub u8, destination_id, set_destination_id: 19, 12;
+}
+
+impl From<MessageAddress> for u32 {
+    fn from(address: MessageAddress) -> Self {
+        address.0
+    }
+}
+
+impl From<u32> for MessageAddress {
+    fn from(val: u32) -> Self {
+        Self(val)
+    }
+}
+
+bitfield! {
+    pub struct MessageData(u32);
+
+    pub vector, set_vector: 7, 0;
+    pub delivery_mode, set_delivery_mode: 10, 8;
+    level, set_level: 14;
+    trigger_mode, set_trigger_mode: 15;
+}
+
+impl MessageData {
+    pub fn set_level_trigger(&mut self) {
+        self.set_trigger_mode(true);
+        self.set_level(true);
+    }
+}
+
+impl From<MessageData> for u32 {
+    fn from(address: MessageData) -> Self {
+        address.0
+    }
+}
+
+impl From<u32> for MessageData {
+    fn from(val: u32) -> Self {
+        Self(val)
     }
 }

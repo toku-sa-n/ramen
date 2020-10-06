@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{RegisterIndex, Registers},
+    super::{MessageAddress, MessageData, RegisterIndex, Registers},
     crate::{
         accessor::slice,
         device::pci::config::{bar, type_spec::TypeSpec},
@@ -116,51 +116,4 @@ bitfield! {
     pub u32, from into MessageAddress, message_address,set_message_address: 31, 0;
     pub u32, from into MessageData, message_data, set_message_data: 95, 64;
     pub masked, set_mask: 96;
-}
-
-bitfield! {
-    pub struct MessageAddress(u32);
-
-    pub redirection_hint, set_redirection_hint: 3;
-    pub u8, destination_id, set_destination_id: 19, 12;
-}
-
-impl From<MessageAddress> for u32 {
-    fn from(address: MessageAddress) -> Self {
-        address.0
-    }
-}
-
-impl From<u32> for MessageAddress {
-    fn from(val: u32) -> Self {
-        Self(val)
-    }
-}
-
-bitfield! {
-    pub struct MessageData(u32);
-
-    pub vector, set_vector: 7, 0;
-    pub delivery_mode, set_delivery_mode: 10, 8;
-    level, set_level: 14;
-    trigger_mode, set_trigger_mode: 15;
-}
-
-impl MessageData {
-    pub fn set_level_trigger(&mut self) {
-        self.set_trigger_mode(true);
-        self.set_level(true);
-    }
-}
-
-impl From<MessageData> for u32 {
-    fn from(address: MessageData) -> Self {
-        address.0
-    }
-}
-
-impl From<u32> for MessageData {
-    fn from(val: u32) -> Self {
-        Self(val)
-    }
 }
