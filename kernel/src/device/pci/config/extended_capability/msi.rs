@@ -29,4 +29,8 @@ impl<'a> CapabilitySpec<'a> {
     fn set_message_address(&self, message_address: MessageAddress) {
         self.registers.set(self.base + 1, message_address.into())
     }
+
+    fn get_message_data(&self) -> MessageData {
+        MessageData::from(self.registers.get(self.base + 3))
+    }
 }
