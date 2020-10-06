@@ -74,17 +74,21 @@ impl<'a> Msi<'a> {
 
 impl<'a> CapabilitySpec for Msi<'a> {
     fn init_for_xhci(&self, _config_spec: &TypeSpec) {
+        info!("Initializing MSI...");
         self.edit_message_address(|message_address| {
             message_address.set_destination_id(super::get_local_apic_id());
             message_address.set_redirection_hint(true);
         });
+        info!("Edited Message Address.");
         self.edit_message_data(|message_data| {
             message_data.set_level_trigger();
             message_data.set_vector(0x40);
         });
+        info!("Edited Message Data.");
         self.edit_message_control(|message_control| {
             message_control.set_interrupt_status(true);
         });
+        info!("Edited Message Control.");
     }
 }
 
