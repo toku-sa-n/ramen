@@ -17,6 +17,20 @@ impl<'a> CapabilitySpec<'a> {
         Self { registers, base }
     }
 
+    fn init_for_xhci(&self) {
+        self.edit_message_address(|message_address| {
+            message_address.set_destination_id(super::get_local_apic_id());
+            message_address.set_redirection_hint(true);
+        });
+        self.edit_message_data(|message_data| {
+            message_data.set_level_trigger();
+            message_data.set_vector(0x40);
+        });
+        self.edit_message_control(|message_control| {
+            message_control.set_interrupt_status(true);
+        });
+    }
+
     fn edit_message_address<T>(&self, f: T)
     where
         T: Fn(&mut MessageAddress),
