@@ -53,16 +53,28 @@ impl<'a> CapabilitySpec<'a> {
     fn get_message_control(&self) -> MessageControl {
         MessageControl::from((self.registers.get(self.base) >> 16) as u16 & 0xffff)
     }
+
+    fn set_message_control(&self, message_control: MessageControl) {
+        let mut register = self.registers.get(self.base);
+        register &= 0xffff;
+        register |= u32::from(u16::from(message_control)) << 16;
+        self.registers.set(self.base, register)
+    }
 }
 
 bitfield! {
     struct MessageControl(u16);
 
-    interrupt_status, set_interrupt_status: 16;
+    interrupt_status, set_interrupt_status: 0;
 }
 
 impl From<u16> for MessageControl {
     fn from(control: u16) -> Self {
         Self(control)
+    }
+}
+impl From<MessageControl> for u16 {
+    fn from(control: MessageControl) -> Self {
+        control.0
     }
 }
