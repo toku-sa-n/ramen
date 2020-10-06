@@ -75,9 +75,9 @@ impl<'a> Msi<'a> {
 impl<'a> CapabilitySpec for Msi<'a> {
     fn init_for_xhci(&self, _config_spec: &TypeSpec) {
         info!("Initializing MSI...");
-        self.edit_message_address(|message_address| message_address.init_for_xhci());
+        self.edit_message_address(MessageAddress::init_for_xhci);
         info!("Edited Message Address.");
-        self.edit_message_data(|message_data| message_data.init_for_xhci());
+        self.edit_message_data(MessageData::init_for_xhci);
         info!("Edited Message Data.");
         self.edit_message_control(|message_control| {
             message_control.set_interrupt_status(true);
