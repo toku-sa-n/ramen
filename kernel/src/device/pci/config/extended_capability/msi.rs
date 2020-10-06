@@ -30,6 +30,15 @@ impl<'a> CapabilitySpec<'a> {
         self.registers.set(self.base + 1, message_address.into())
     }
 
+    fn edit_message_data<T>(&self, f: T)
+    where
+        T: Fn(&mut MessageData),
+    {
+        let mut message_data = self.get_message_data();
+        f(&mut message_data);
+        self.set_message_data(message_data);
+    }
+
     fn get_message_data(&self) -> MessageData {
         MessageData::from(self.registers.get(self.base + 3))
     }
