@@ -42,7 +42,7 @@ impl<'a> CapabilitySpec<'a> {
     }
 
     fn init_for_xhci(&self, config_type_spec: &TypeSpec) {
-        let base_address = config_type_spec.base_address(self.bir().into());
+        let base_address = config_type_spec.base_address(self.bir());
         let mut table = self.table(base_address);
 
         table[0]
