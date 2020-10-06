@@ -55,8 +55,7 @@ impl<'a> CapabilitySpec for MsiX<'a> {
         let mut table = self.table(base_address);
 
         table[0].message_address().init_for_xhci();
-        table[0].message_data().set_level_trigger();
-        table[0].message_data().set_vector(0x40);
+        table[0].message_data().init_for_xhci();
         table[0].set_mask(false);
 
         self.enable_interrupt();

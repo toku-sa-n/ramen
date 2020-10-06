@@ -167,14 +167,19 @@ impl From<u32> for MessageAddress {
 bitfield! {
     pub struct MessageData(u32);
 
-    pub vector, set_vector: 7, 0;
-    pub delivery_mode, set_delivery_mode: 10, 8;
+    vector, set_vector: 7, 0;
+    delivery_mode, set_delivery_mode: 10, 8;
     level, set_level: 14;
     trigger_mode, set_trigger_mode: 15;
 }
 
 impl MessageData {
-    pub fn set_level_trigger(&mut self) {
+    pub fn init_for_xhci(&mut self) {
+        self.set_level_trigger();
+        self.set_vector(0x40);
+    }
+
+    fn set_level_trigger(&mut self) {
         self.set_trigger_mode(true);
         self.set_level(true);
     }
