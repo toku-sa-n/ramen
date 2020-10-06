@@ -52,6 +52,8 @@ impl<'a> CapabilitySpec<'a> {
         table[0].message_data().set_level_trigger();
         table[0].message_data().set_vector(0x40);
         table[0].set_mask(false);
+
+        self.enable_interrupt();
     }
 
     fn get_local_apic_id() -> u8 {
