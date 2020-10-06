@@ -44,13 +44,8 @@ impl Space {
 
     pub fn init_for_xhci(&self) -> Result<(), Error> {
         if self.is_xhci() {
-            for capability in self.iter_capability_registers() {
-                if capability.init_for_xhci(&self.type_spec()).is_ok() {
-                    return Ok(());
-                }
-            }
-
-            unreachable!()
+            self.init_msi_or_msi_x();
+            Ok(())
         } else {
             Err(Error::NotXhciDevice)
         }
@@ -67,6 +62,16 @@ impl Space {
                 RegisterIndex::from(capability_pointer),
             )),
         }
+    }
+
+    fn init_msi_or_msi_x(&self) {
+        for capability in self.iter_capability_registers() {
+            if capability.init_for_xhci(&self.type_spec()).is_ok() {
+                return;
+            }
+        }
+
+        unreachable!()
     }
 
     fn type_spec(&self) -> TypeSpec {
