@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::x86_64::VirtAddr,
     os_units::{Bytes, NumOfPages, Size},
     x86_64::{
         instructions::port::Port,
         structures::paging::{PageSize, Size4KiB},
+        PhysAddr, VirtAddr,
     },
 };
 
-pub const LOCAL_APIC_ID_REGISTER_ADDR: VirtAddr = VirtAddr::new_truncate(0xffe0_0020);
+pub const LOCAL_APIC_ID_REGISTER_ADDR: PhysAddr = PhysAddr::new_truncate(0xffe0_0020);
 
 pub const KERNEL_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_8000_0000);
 pub const KERNEL_HEAP_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_9000_0000);

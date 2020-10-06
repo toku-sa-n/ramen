@@ -5,6 +5,7 @@ pub mod msi_x;
 
 use {
     super::{RegisterIndex, Registers, TypeSpec},
+    crate::accessor::single_object,
     alloc::boxed::Box,
     bitfield::bitfield,
     common::constant::LOCAL_APIC_ID_REGISTER_ADDR,
@@ -52,6 +53,7 @@ impl<'a> ExtendedCapability<'a> {
         match self.capability_spec() {
             None => Err(Error::MsiAndMsiXNotFound),
             Some(spec) => {
+                info!("MSI or MSI-X found.");
                 spec.init_for_xhci(space_type_spec);
                 Ok(())
             }
@@ -94,7 +96,8 @@ pub trait CapabilitySpec {
 }
 
 fn get_local_apic_id() -> u8 {
-    u8::try_from(unsafe { *(LOCAL_APIC_ID_REGISTER_ADDR.as_ptr() as *const u32) } >> 24).unwrap()
+    let accessor = single_object::Accessor::<u32>::new(LOCAL_APIC_ID_REGISTER_ADDR, 0);
+    u8::try_from(*accessor >> 24).unwrap()
 }
 
 #[derive(Debug, Copy, Clone)]
