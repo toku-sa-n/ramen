@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{MessageAddress, MessageData, RegisterIndex, Registers};
+use {
+    super::{MessageAddress, MessageData, RegisterIndex, Registers},
+    bitfield::bitfield,
+};
 
 #[derive(Debug)]
 pub struct CapabilitySpec<'a> {
@@ -46,4 +49,10 @@ impl<'a> CapabilitySpec<'a> {
     fn set_message_data(&self, message_data: MessageData) {
         self.registers.set(self.base + 3, message_data.into())
     }
+}
+
+bitfield! {
+    struct MessageControl(u16);
+
+    interrupt_status, set_interrupt_status: 16;
 }
