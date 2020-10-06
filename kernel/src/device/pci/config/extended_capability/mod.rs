@@ -6,6 +6,7 @@ pub mod msi_x;
 use {
     super::{RegisterIndex, Registers},
     bitfield::bitfield,
+    common::constant::LOCAL_APIC_ID_REGISTER_ADDR,
     core::{
         convert::{From, TryFrom},
         iter::Iterator,
@@ -83,6 +84,10 @@ impl<'a> CapabilitySpec<'a> {
             None
         }
     }
+}
+
+fn get_local_apic_id() -> u8 {
+    u8::try_from(unsafe { *(LOCAL_APIC_ID_REGISTER_ADDR.as_ptr() as *const u32) } >> 24).unwrap()
 }
 
 #[derive(Debug, Copy, Clone)]

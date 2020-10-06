@@ -47,18 +47,13 @@ impl<'a> CapabilitySpec<'a> {
 
         table[0]
             .message_address()
-            .set_destination_id(Self::get_local_apic_id());
+            .set_destination_id(super::get_local_apic_id());
         table[0].message_address().set_redirection_hint(true);
         table[0].message_data().set_level_trigger();
         table[0].message_data().set_vector(0x40);
         table[0].set_mask(false);
 
         self.enable_interrupt();
-    }
-
-    fn get_local_apic_id() -> u8 {
-        u8::try_from(unsafe { *(LOCAL_APIC_ID_REGISTER_ADDR.as_ptr() as *const u32) } >> 24)
-            .unwrap()
     }
 
     fn table_offset(&self) -> Size<Bytes> {
