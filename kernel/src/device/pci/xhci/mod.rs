@@ -5,13 +5,8 @@ mod register;
 mod transfer_ring;
 
 use {
-    super::config::{
-        self, bar,
-        extended_capability::{msi_x, CapabilitySpec},
-    },
+    super::config::{self, bar},
     crate::mem::paging::pml4::PML4,
-    common::constant::LOCAL_APIC_ID_REGISTER_ADDR,
-    core::convert::TryFrom,
     register::{
         hc_capability_registers::HCCapabilityRegisters,
         hc_operational_registers::HCOperationalRegisters,
@@ -44,9 +39,8 @@ impl<'a> Xhci<'a> {
         self.set_num_of_enabled_slots();
         self.set_dcbaap();
         self.set_command_ring_pointer();
-        self.init_msi_x_table();
+        self.init_msi();
         self.set_event_ring_dequeue_pointer();
-        self.enable_msi_x_interrupt();
         self.enable_system_bus_interrupt_generation();
         self.init_event_ring_segment_table();
         self.enable_interrupt();
@@ -113,22 +107,9 @@ impl<'a> Xhci<'a> {
         self.hc_operational_registers.crcr.set_ptr(phys_addr);
     }
 
-    fn init_msi_x_table(&mut self) {
-        info!("Initializing MSI-X table...");
-        let bar_index = self.get_bir();
-        let base_address = self.config_space.base_address(bar_index);
-        self.handle_msi_x(|msi_x| {
-            let mut table = msi_x.table(base_address);
-            let local_apic_id =
-                unsafe { *(LOCAL_APIC_ID_REGISTER_ADDR.as_mut_ptr() as *const u32) >> 24 };
-            table[0]
-                .message_address()
-                .set_destination_id(u8::try_from(local_apic_id).unwrap());
-            table[0].message_address().set_redirection_hint(true);
-            table[0].message_data().set_level_trigger();
-            table[0].message_data().set_vector(0x40);
-            table[0].set_mask(false);
-        })
+    fn init_msi(&mut self) {
+        info!("Initializing MSI...");
+        self.config_space.init_for_xhci().unwrap();
     }
 
     fn init_event_ring_segment_table(&mut self) {
@@ -159,12 +140,6 @@ impl<'a> Xhci<'a> {
             .set_address(self.event_ring_segment_table.address())
     }
 
-    fn enable_msi_x_interrupt(&mut self) {
-        self.handle_msi_x(|msi_x| {
-            msi_x.enable_interrupt();
-        })
-    }
-
     fn enable_system_bus_interrupt_generation(&mut self) {
         self.hc_operational_registers
             .usb_cmd
@@ -181,25 +156,6 @@ impl<'a> Xhci<'a> {
                 info!("Port {}: disconnected", i);
             }
         }
-    }
-
-    fn get_bir(&mut self) -> bar::Index {
-        self.handle_msi_x(|msi_x| msi_x.bir())
-    }
-
-    fn handle_msi_x<T, U>(&mut self, f: T) -> U
-    where
-        T: Fn(msi_x::CapabilitySpec) -> U,
-    {
-        let capability_iter = self.config_space.iter_capability_registers();
-        for capability in capability_iter {
-            let capability_spec = capability.capability_spec();
-            if let Some(CapabilitySpec::MsiX(msi_x)) = capability_spec {
-                return f(msi_x);
-            }
-        }
-
-        unreachable!()
     }
 
     fn run(&mut self) {

@@ -1,34 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{MessageAddress, MessageData, RegisterIndex, Registers},
+    super::{CapabilitySpec, MessageAddress, MessageData, RegisterIndex, Registers, TypeSpec},
     bitfield::bitfield,
     core::convert::TryFrom,
 };
 
 #[derive(Debug)]
-pub struct CapabilitySpec<'a> {
+pub struct Msi<'a> {
     registers: &'a Registers,
     base: RegisterIndex,
 }
 
-impl<'a> CapabilitySpec<'a> {
+impl<'a> Msi<'a> {
     pub fn new(registers: &'a Registers, base: RegisterIndex) -> Self {
         Self { registers, base }
-    }
-
-    fn init_for_xhci(&self) {
-        self.edit_message_address(|message_address| {
-            message_address.set_destination_id(super::get_local_apic_id());
-            message_address.set_redirection_hint(true);
-        });
-        self.edit_message_data(|message_data| {
-            message_data.set_level_trigger();
-            message_data.set_vector(0x40);
-        });
-        self.edit_message_control(|message_control| {
-            message_control.set_interrupt_status(true);
-        });
     }
 
     fn edit_message_address<T>(&self, f: T)
@@ -83,6 +69,22 @@ impl<'a> CapabilitySpec<'a> {
         register &= 0xffff;
         register |= u32::from(u16::from(message_control)) << 16;
         self.registers.set(self.base, register)
+    }
+}
+
+impl<'a> CapabilitySpec for Msi<'a> {
+    fn init_for_xhci(&self, _config_spec: &TypeSpec) {
+        self.edit_message_address(|message_address| {
+            message_address.set_destination_id(super::get_local_apic_id());
+            message_address.set_redirection_hint(true);
+        });
+        self.edit_message_data(|message_data| {
+            message_data.set_level_trigger();
+            message_data.set_vector(0x40);
+        });
+        self.edit_message_control(|message_control| {
+            message_control.set_interrupt_status(true);
+        });
     }
 }
 

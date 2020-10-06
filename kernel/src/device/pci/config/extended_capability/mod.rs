@@ -4,13 +4,16 @@ pub mod msi;
 pub mod msi_x;
 
 use {
-    super::{RegisterIndex, Registers},
+    super::{RegisterIndex, Registers, TypeSpec},
+    alloc::boxed::Box,
     bitfield::bitfield,
     common::constant::LOCAL_APIC_ID_REGISTER_ADDR,
     core::{
         convert::{From, TryFrom},
         iter::Iterator,
     },
+    msi::Msi,
+    msi_x::MsiX,
 };
 
 pub struct Iter<'a> {
@@ -45,8 +48,24 @@ pub struct ExtendedCapability<'a> {
 }
 
 impl<'a> ExtendedCapability<'a> {
-    pub fn capability_spec(&self) -> Option<CapabilitySpec> {
-        CapabilitySpec::new(&self.registers, self.base, &self)
+    pub fn init_for_xhci(&self, space_type_spec: &TypeSpec) -> Result<(), Error> {
+        match self.capability_spec() {
+            None => Err(Error::MsiAndMsiXNotFound),
+            Some(spec) => {
+                spec.init_for_xhci(space_type_spec);
+                Ok(())
+            }
+        }
+    }
+
+    fn capability_spec(&self) -> Option<Box<dyn CapabilitySpec + 'a>> {
+        match self.ty() {
+            Some(ty) => Some(match ty {
+                CapabilityType::Msi => Box::new(Msi::new(self.registers, self.base)),
+                CapabilityType::MsiX => Box::new(MsiX::new(self.registers, self.base)),
+            }),
+            None => None,
+        }
     }
 
     fn new(registers: &'a Registers, base: RegisterIndex) -> Self {
@@ -66,24 +85,12 @@ impl<'a> ExtendedCapability<'a> {
     }
 }
 
-#[derive(Debug)]
-pub enum CapabilitySpec<'a> {
-    MsiX(msi_x::CapabilitySpec<'a>),
-    Msi(msi::CapabilitySpec<'a>),
+pub enum Error {
+    MsiAndMsiXNotFound,
 }
 
-impl<'a> CapabilitySpec<'a> {
-    fn new(
-        registers: &'a Registers,
-        base: RegisterIndex,
-        extended_capability: &ExtendedCapability,
-    ) -> Option<Self> {
-        if extended_capability.ty().is_some() {
-            Some(Self::MsiX(msi_x::CapabilitySpec::new(registers, base)))
-        } else {
-            None
-        }
-    }
+pub trait CapabilitySpec {
+    fn init_for_xhci(&self, space_type_spec: &TypeSpec);
 }
 
 fn get_local_apic_id() -> u8 {
@@ -100,6 +107,8 @@ impl Id {
     fn ty(self) -> Option<CapabilityType> {
         if self.0 == 0x11 {
             Some(CapabilityType::MsiX)
+        } else if self.0 == 0x05 {
+            Some(CapabilityType::Msi)
         } else {
             None
         }
@@ -108,6 +117,7 @@ impl Id {
 
 enum CapabilityType {
     MsiX,
+    Msi,
 }
 
 #[derive(Debug)]

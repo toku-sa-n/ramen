@@ -1,25 +1,24 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{MessageAddress, MessageData, RegisterIndex, Registers},
+    super::{CapabilitySpec, MessageAddress, MessageData, RegisterIndex, Registers},
     crate::{
         accessor::slice,
         device::pci::config::{bar, type_spec::TypeSpec},
     },
     bitfield::bitfield,
-    common::constant::LOCAL_APIC_ID_REGISTER_ADDR,
     core::convert::{From, TryFrom},
     os_units::{Bytes, Size},
     x86_64::PhysAddr,
 };
 
 #[derive(Debug)]
-pub struct CapabilitySpec<'a> {
+pub struct MsiX<'a> {
     registers: &'a Registers,
     base: RegisterIndex,
 }
 
-impl<'a> CapabilitySpec<'a> {
+impl<'a> MsiX<'a> {
     pub fn new(registers: &'a Registers, base: RegisterIndex) -> Self {
         Self { registers, base }
     }
@@ -41,6 +40,16 @@ impl<'a> CapabilitySpec<'a> {
         self.registers.set(self.base, val);
     }
 
+    fn table_offset(&self) -> Size<Bytes> {
+        Size::from(TableOffset::new(self.registers, self.base))
+    }
+
+    fn num_of_table_elements(&self) -> TableSize {
+        TableSize::new(self.registers, self.base)
+    }
+}
+
+impl<'a> CapabilitySpec for MsiX<'a> {
     fn init_for_xhci(&self, config_type_spec: &TypeSpec) {
         let base_address = config_type_spec.base_address(self.bir());
         let mut table = self.table(base_address);
@@ -54,14 +63,6 @@ impl<'a> CapabilitySpec<'a> {
         table[0].set_mask(false);
 
         self.enable_interrupt();
-    }
-
-    fn table_offset(&self) -> Size<Bytes> {
-        Size::from(TableOffset::new(self.registers, self.base))
-    }
-
-    fn num_of_table_elements(&self) -> TableSize {
-        TableSize::new(self.registers, self.base)
     }
 }
 

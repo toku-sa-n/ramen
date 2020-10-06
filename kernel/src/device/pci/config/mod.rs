@@ -42,7 +42,21 @@ impl Space {
         self.type_spec().base_address(index)
     }
 
-    pub fn iter_capability_registers<'a>(
+    pub fn init_for_xhci(&self) -> Result<(), Error> {
+        if self.is_xhci() {
+            for capability in self.iter_capability_registers() {
+                if capability.init_for_xhci(&self.type_spec()).is_ok() {
+                    return Ok(());
+                }
+            }
+
+            unreachable!()
+        } else {
+            Err(Error::NotXhciDevice)
+        }
+    }
+
+    fn iter_capability_registers<'a>(
         &'a self,
     ) -> Box<dyn Iterator<Item = ExtendedCapability> + 'a> {
         let capability_pointer = CapabilityPointer::new(&self.registers, &self.common());
@@ -62,6 +76,11 @@ impl Space {
     fn common(&self) -> Common {
         Common::new(&self.registers)
     }
+}
+
+#[derive(Debug)]
+pub enum Error {
+    NotXhciDevice,
 }
 
 #[derive(Debug)]
