@@ -49,10 +49,20 @@ impl<'a> CapabilitySpec<'a> {
     fn set_message_data(&self, message_data: MessageData) {
         self.registers.set(self.base + 3, message_data.into())
     }
+
+    fn get_message_control(&self) -> MessageControl {
+        MessageControl::from((self.registers.get(self.base) >> 16) as u16 & 0xffff)
+    }
 }
 
 bitfield! {
     struct MessageControl(u16);
 
     interrupt_status, set_interrupt_status: 16;
+}
+
+impl From<u16> for MessageControl {
+    fn from(control: u16) -> Self {
+        Self(control)
+    }
 }
