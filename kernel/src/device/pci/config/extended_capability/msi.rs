@@ -33,4 +33,8 @@ impl<'a> CapabilitySpec<'a> {
     fn get_message_data(&self) -> MessageData {
         MessageData::from(self.registers.get(self.base + 3))
     }
+
+    fn set_message_data(&self, message_data: MessageData) {
+        self.registers.set(self.base + 3, message_data.into())
+    }
 }
