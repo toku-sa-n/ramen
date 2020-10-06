@@ -2,8 +2,12 @@
 
 use {
     super::{RegisterIndex, Registers},
-    crate::{accessor::slice, device::pci::config::bar},
+    crate::{
+        accessor::slice,
+        device::pci::config::{bar, type_spec::TypeSpec},
+    },
     bitfield::bitfield,
+    common::constant::LOCAL_APIC_ID_REGISTER_ADDR,
     core::convert::{From, TryFrom},
     os_units::{Bytes, Size},
     x86_64::PhysAddr,
@@ -35,6 +39,24 @@ impl<'a> CapabilitySpec<'a> {
     pub fn enable_interrupt(&self) {
         let val = self.registers.get(self.base) | 0x8000_0000;
         self.registers.set(self.base, val);
+    }
+
+    fn init_for_xhci(&self, config_type_spec: &TypeSpec) {
+        let base_address = config_type_spec.base_address(self.bir().into());
+        let mut table = self.table(base_address);
+
+        table[0]
+            .message_address()
+            .set_destination_id(Self::get_local_apic_id());
+        table[0].message_address().set_redirection_hint(true);
+        table[0].message_data().set_level_trigger();
+        table[0].message_data().set_vector(0x40);
+        table[0].set_mask(false);
+    }
+
+    fn get_local_apic_id() -> u8 {
+        u8::try_from(unsafe { *(LOCAL_APIC_ID_REGISTER_ADDR.as_ptr() as *const u32) } >> 24)
+            .unwrap()
     }
 
     fn table_offset(&self) -> Size<Bytes> {
