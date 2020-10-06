@@ -54,10 +54,7 @@ impl<'a> CapabilitySpec for MsiX<'a> {
         let base_address = config_type_spec.base_address(self.bir());
         let mut table = self.table(base_address);
 
-        table[0]
-            .message_address()
-            .set_destination_id(super::get_local_apic_id());
-        table[0].message_address().set_redirection_hint(true);
+        table[0].message_address().init_for_xhci();
         table[0].message_data().set_level_trigger();
         table[0].message_data().set_vector(0x40);
         table[0].set_mask(false);

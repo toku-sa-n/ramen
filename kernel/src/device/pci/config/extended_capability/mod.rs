@@ -141,8 +141,15 @@ impl From<NextPointer> for RegisterIndex {
 bitfield! {
     pub struct MessageAddress(u32);
 
-    pub redirection_hint, set_redirection_hint: 3;
-    pub u8, destination_id, set_destination_id: 19, 12;
+    redirection_hint, set_redirection_hint: 3;
+    u8, destination_id, set_destination_id: 19, 12;
+}
+
+impl MessageAddress {
+    pub fn init_for_xhci(&mut self) {
+        self.set_destination_id(get_local_apic_id());
+        self.set_redirection_hint(true);
+    }
 }
 
 impl From<MessageAddress> for u32 {
