@@ -3,6 +3,7 @@
 use {
     super::{MessageAddress, MessageData, RegisterIndex, Registers},
     bitfield::bitfield,
+    core::convert::TryFrom,
 };
 
 #[derive(Debug)]
@@ -60,7 +61,7 @@ impl<'a> CapabilitySpec<'a> {
     }
 
     fn get_message_control(&self) -> MessageControl {
-        MessageControl::from((self.registers.get(self.base) >> 16) as u16 & 0xffff)
+        MessageControl::from(u16::try_from(self.registers.get(self.base) >> 16).unwrap())
     }
 
     fn set_message_control(&self, message_control: MessageControl) {
