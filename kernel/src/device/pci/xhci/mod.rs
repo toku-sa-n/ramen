@@ -8,7 +8,6 @@ use {
     super::config::{
         self, bar,
         extended_capability::{msi_x, CapabilitySpec},
-        type_spec::TypeSpec,
     },
     crate::mem::paging::pml4::PML4,
     common::constant::LOCAL_APIC_ID_REGISTER_ADDR,
@@ -218,8 +217,7 @@ impl<'a> Xhci<'a> {
     fn generate(config_space: config::Space) -> Self {
         info!("xHC found.");
 
-        let TypeSpec::NonBridge(non_bridge) = config_space.type_spec();
-        let mmio_base = non_bridge.base_addr(bar::Index::new(0));
+        let mmio_base = config_space.base_address(bar::Index::new(0));
 
         info!("Getting HCCapabilityRegisters...");
         let hc_capability_registers = HCCapabilityRegisters::new(mmio_base);

@@ -38,10 +38,6 @@ impl Space {
         self.common().is_xhci()
     }
 
-    pub fn type_spec(&self) -> TypeSpec {
-        TypeSpec::new(&self.registers, &self.common())
-    }
-
     pub fn base_address(&self, index: bar::Index) -> PhysAddr {
         self.type_spec().base_address(index)
     }
@@ -57,6 +53,10 @@ impl Space {
                 RegisterIndex::from(capability_pointer),
             )),
         }
+    }
+
+    fn type_spec(&self) -> TypeSpec {
+        TypeSpec::new(&self.registers, &self.common())
     }
 
     fn common(&self) -> Common {
