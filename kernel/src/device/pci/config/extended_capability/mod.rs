@@ -107,7 +107,7 @@ struct NextPointer(RegisterIndex);
 impl NextPointer {
     fn new(registers: &Registers, base: RegisterIndex) -> Self {
         Self(RegisterIndex::new(
-            usize::try_from((registers.get(base) >> 8) & 0xff).unwrap(),
+            usize::try_from(((registers.get(base) >> 8) & 0xff) >> 2).unwrap(),
         ))
     }
 }
