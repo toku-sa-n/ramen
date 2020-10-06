@@ -67,6 +67,7 @@ impl<'a> ExtendedCapability<'a> {
 #[derive(Debug)]
 pub enum CapabilitySpec<'a> {
     MsiX(msi_x::CapabilitySpec<'a>),
+    Msi(msi::CapabilitySpec<'a>),
 }
 
 impl<'a> CapabilitySpec<'a> {
