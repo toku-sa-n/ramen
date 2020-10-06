@@ -6,8 +6,6 @@
 #![deny(clippy::pedantic)]
 #![deny(clippy::all)]
 
-extern crate rlibc;
-
 #[macro_use]
 #[allow(unused_imports)]
 extern crate common;
