@@ -23,6 +23,7 @@ const NUM_OF_TRB_IN_QUEUE: usize = 256;
 pub struct RingQueue<'a, T: TRB> {
     queue: &'a mut [RawTrb<T>],
     dequeue_index: TrbPtr,
+    cycle_bit: CycleBit,
 }
 
 impl<'a, T: TRB> RingQueue<'a, T> {
@@ -49,6 +50,7 @@ impl<'a, T: TRB> RingQueue<'a, T> {
         Self {
             queue: unsafe { slice::from_raw_parts_mut(ptr.cast().as_ptr(), NUM_OF_TRB_IN_QUEUE) },
             dequeue_index: TrbPtr::new(0),
+            cycle_bit: CycleBit::new(1),
         }
     }
 
@@ -56,6 +58,8 @@ impl<'a, T: TRB> RingQueue<'a, T> {
         VirtAddr::new(self.queue.as_ptr() as u64)
     }
 }
+
+impl<'a> RingQueue<'a, Event> {}
 
 pub trait TRB {
     const SIZE: usize = 16;
@@ -78,5 +82,13 @@ impl TrbPtr {
     fn new(index: usize) -> Self {
         assert!(index < NUM_OF_TRB_IN_QUEUE);
         Self(index)
+    }
+}
+
+struct CycleBit(usize);
+impl CycleBit {
+    fn new(bit: usize) -> Self {
+        assert!(bit == 0 || bit == 1);
+        Self(bit)
     }
 }
