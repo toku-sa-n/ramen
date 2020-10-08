@@ -21,7 +21,7 @@ use {
 const NUM_OF_TRB_IN_QUEUE: usize = 256;
 
 pub struct RingQueue<'a, T: TrbType> {
-    queue: &'a mut [RawTrb<T>],
+    queue: &'a mut [Trb<T>],
     dequeue_index: usize,
     cycle_bit: CycleBit,
 }
@@ -60,7 +60,7 @@ impl<'a, T: TrbType> RingQueue<'a, T> {
 }
 
 impl<'a> RingQueue<'a, Event> {
-    fn dequeue(&mut self) -> Option<RawTrb<Event>> {
+    fn dequeue(&mut self) -> Option<Trb<Event>> {
         if self.queue[self.dequeue_index].valid(self.cycle_bit) {
             let element = self.queue[self.dequeue_index];
             self.increment_dequeue_index();
@@ -92,11 +92,11 @@ impl TrbType for Event {}
 
 #[derive(Copy, Clone)]
 #[repr(transparent)]
-struct RawTrb<T: TrbType> {
+struct Trb<T: TrbType> {
     trb: [u32; 4],
     _marker: PhantomData<T>,
 }
-impl<T: TrbType> RawTrb<T> {
+impl<T: TrbType> Trb<T> {
     fn valid(&self, cycle_bit: CycleBit) -> bool {
         self.trb[3] & 1 == cycle_bit.0
     }
