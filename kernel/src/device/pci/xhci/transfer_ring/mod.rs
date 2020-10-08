@@ -25,6 +25,7 @@ const NUM_OF_TRB_IN_QUEUE: usize = 256;
 
 pub struct RingQueue<'a, T: TRB> {
     queue: &'a mut [RawTrb<T>],
+    dequeue_index: TrbPtr,
 }
 
 impl<'a, T: TRB> RingQueue<'a, T> {
@@ -50,6 +51,7 @@ impl<'a, T: TRB> RingQueue<'a, T> {
 
         Self {
             queue: unsafe { slice::from_raw_parts_mut(ptr.cast().as_ptr(), NUM_OF_TRB_IN_QUEUE) },
+            dequeue_index: TrbPtr::new(0),
         }
     }
 
@@ -62,4 +64,12 @@ impl<'a, T: TRB> RingQueue<'a, T> {
 struct RawTrb<T: TRB> {
     trb: [u32; 4],
     _marker: PhantomData<T>,
+}
+
+struct TrbPtr(usize);
+impl TrbPtr {
+    fn new(index: usize) -> Self {
+        assert!(index < NUM_OF_TRB_IN_QUEUE);
+        Self(index)
+    }
 }
