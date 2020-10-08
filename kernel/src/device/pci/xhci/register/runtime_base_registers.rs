@@ -39,6 +39,7 @@ impl EventRingSegmentTableSizeRegister {
 pub struct EventRingSegmentTableBaseAddressRegister(u64);
 impl EventRingSegmentTableBaseAddressRegister {
     pub fn set(&mut self, val: PhysAddr) {
+        assert_eq!(val.as_u64() & 0x3f, 0);
         self.0 = val.as_u64()
     }
 }
