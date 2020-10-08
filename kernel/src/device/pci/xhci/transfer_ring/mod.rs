@@ -83,6 +83,11 @@ impl TrbPtr {
         assert!(index < NUM_OF_TRB_IN_QUEUE);
         Self(index)
     }
+
+    fn increment(&mut self) {
+        self.0 += 1;
+        self.0 %= NUM_OF_TRB_IN_QUEUE;
+    }
 }
 
 struct CycleBit(usize);
