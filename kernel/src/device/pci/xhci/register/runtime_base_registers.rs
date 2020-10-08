@@ -29,8 +29,8 @@ impl<'a> RuntimeBaseRegisters<'a> {
 #[derive(Debug)]
 pub struct EventRingSegmentTableSizeRegister(u32);
 impl EventRingSegmentTableSizeRegister {
-    pub fn set(&mut self, val: u32) {
-        self.0 = val
+    pub fn set(&mut self, val: u16) {
+        self.0 = u32::from(val)
     }
 }
 
