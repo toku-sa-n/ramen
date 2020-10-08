@@ -150,6 +150,8 @@ impl<'a> Xhci<'a> {
                 info!("Port {}: disconnected", i);
             }
         }
+
+        info!("Type: {}", self.event_ring.dequeue().unwrap().ty());
     }
 
     fn run(&mut self) {

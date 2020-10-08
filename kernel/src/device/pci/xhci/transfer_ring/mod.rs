@@ -60,7 +60,7 @@ impl<'a, T: TrbType> RingQueue<'a, T> {
 }
 
 impl<'a> RingQueue<'a, Event> {
-    fn dequeue(&mut self) -> Option<Trb<Event>> {
+    pub fn dequeue(&mut self) -> Option<Trb<Event>> {
         if self.queue[self.dequeue_index].valid(self.cycle_bit) {
             let element = self.queue[self.dequeue_index];
             self.increment_dequeue_index();
@@ -92,11 +92,15 @@ impl TrbType for Event {}
 
 #[derive(Copy, Clone)]
 #[repr(transparent)]
-struct Trb<T: TrbType> {
+pub struct Trb<T: TrbType> {
     trb: [u32; 4],
     _marker: PhantomData<T>,
 }
 impl<T: TrbType> Trb<T> {
+    pub fn ty(&self) -> u32 {
+        (self.trb[3] >> 10) & 0x3f
+    }
+
     fn valid(&self, cycle_bit: CycleBit) -> bool {
         self.trb[3] & 1 == cycle_bit.0
     }
