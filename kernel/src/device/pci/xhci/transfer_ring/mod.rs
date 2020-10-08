@@ -21,13 +21,13 @@ use {
 // 4KB / size_of(TRB) = 256.
 const NUM_OF_TRB_IN_QUEUE: usize = 256;
 
-pub struct RingQueue<'a, T: Trb> {
+pub struct RingQueue<'a, T: TrbType> {
     queue: &'a mut [RawTrb<T>],
     dequeue_index: TrbPtr,
     cycle_bit: CycleBit,
 }
 
-impl<'a, T: Trb> RingQueue<'a, T> {
+impl<'a, T: TrbType> RingQueue<'a, T> {
     pub fn new() -> Self {
         let page = virt::search_first_unused_page().unwrap();
         let frame = FRAME_MANAGER.lock().allocate_frame().unwrap();
@@ -59,14 +59,14 @@ impl<'a, T: Trb> RingQueue<'a, T> {
         VirtAddr::new(self.queue.as_ptr() as u64)
     }
 }
-impl<'a, T: Trb> Index<TrbPtr> for RingQueue<'a, T> {
+impl<'a, T: TrbType> Index<TrbPtr> for RingQueue<'a, T> {
     type Output = RawTrb<T>;
 
     fn index(&self, index: TrbPtr) -> &Self::Output {
         &self.queue[index.0]
     }
 }
-impl<'a, T: Trb> IndexMut<TrbPtr> for RingQueue<'a, T> {
+impl<'a, T: TrbType> IndexMut<TrbPtr> for RingQueue<'a, T> {
     fn index_mut(&mut self, index: TrbPtr) -> &mut Self::Output {
         &mut self.queue[index.0]
     }
@@ -74,22 +74,22 @@ impl<'a, T: Trb> IndexMut<TrbPtr> for RingQueue<'a, T> {
 
 impl<'a> RingQueue<'a, Event> {}
 
-pub trait Trb {
+pub trait TrbType {
     const SIZE: usize = 16;
 }
 
 pub struct Command;
-impl Trb for Command {}
+impl TrbType for Command {}
 
 pub struct Event;
-impl Trb for Event {}
+impl TrbType for Event {}
 
 #[repr(transparent)]
-struct RawTrb<T: Trb> {
+struct RawTrb<T: TrbType> {
     trb: [u32; 4],
     _marker: PhantomData<T>,
 }
-impl<T: Trb> RawTrb<T> {
+impl<T: TrbType> RawTrb<T> {
     fn valid(&self, cycle_bit: CycleBit) -> bool {
         self.trb[3] & 1 == cycle_bit.0
     }
