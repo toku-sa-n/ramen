@@ -111,7 +111,7 @@ impl<'a> Xhci<'a> {
         let ring_addr = self.event_ring.addr().as_u64();
         self.event_ring_segment_table.edit(|table| {
             table[0].set_base_address(ring_addr);
-            table[0].set_segment_size(16);
+            table[0].set_segment_size(256);
         });
 
         self.set_event_ring_segment_table_size();
@@ -145,12 +145,7 @@ impl<'a> Xhci<'a> {
     }
 
     fn check_connection(&mut self) {
-        for i in 0..10 {
-            if self.hc_operational_registers.port_sc[i].disconnected() {
-                info!("Port {}: disconnected", i);
-            }
-        }
-
+        self.event_ring.check();
         info!("Type: {}", self.event_ring.dequeue().unwrap().ty());
     }
 
