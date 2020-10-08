@@ -8,7 +8,6 @@ use {
     core::{
         convert::TryFrom,
         marker::PhantomData,
-        ops::{Index, IndexMut},
         ptr::{self, NonNull},
         slice,
     },
@@ -23,7 +22,7 @@ const NUM_OF_TRB_IN_QUEUE: usize = 256;
 
 pub struct RingQueue<'a, T: TrbType> {
     queue: &'a mut [RawTrb<T>],
-    dequeue_index: TrbPtr,
+    dequeue_index: usize,
     cycle_bit: CycleBit,
 }
 
@@ -50,7 +49,7 @@ impl<'a, T: TrbType> RingQueue<'a, T> {
 
         Self {
             queue: unsafe { slice::from_raw_parts_mut(ptr.cast().as_ptr(), NUM_OF_TRB_IN_QUEUE) },
-            dequeue_index: TrbPtr::new(0),
+            dequeue_index: 0,
             cycle_bit: CycleBit::new(1),
         }
     }
@@ -59,20 +58,26 @@ impl<'a, T: TrbType> RingQueue<'a, T> {
         VirtAddr::new(self.queue.as_ptr() as u64)
     }
 }
-impl<'a, T: TrbType> Index<TrbPtr> for RingQueue<'a, T> {
-    type Output = RawTrb<T>;
 
-    fn index(&self, index: TrbPtr) -> &Self::Output {
-        &self.queue[index.0]
+impl<'a> RingQueue<'a, Event> {
+    fn dequeue(&mut self) -> Option<RawTrb<Event>> {
+        if self.queue[self.dequeue_index].valid(self.cycle_bit) {
+            let element = self.queue[self.dequeue_index];
+            self.increment_dequeue_index();
+            Some(element)
+        } else {
+            None
+        }
+    }
+
+    fn increment_dequeue_index(&mut self) {
+        self.dequeue_index += 1;
+        if self.dequeue_index >= NUM_OF_TRB_IN_QUEUE {
+            self.dequeue_index = 0;
+            self.cycle_bit.toggle();
+        }
     }
 }
-impl<'a, T: TrbType> IndexMut<TrbPtr> for RingQueue<'a, T> {
-    fn index_mut(&mut self, index: TrbPtr) -> &mut Self::Output {
-        &mut self.queue[index.0]
-    }
-}
-
-impl<'a> RingQueue<'a, Event> {}
 
 pub trait TrbType {
     const SIZE: usize = 16;
@@ -81,9 +86,11 @@ pub trait TrbType {
 pub struct Command;
 impl TrbType for Command {}
 
+#[derive(Copy, Clone)]
 pub struct Event;
 impl TrbType for Event {}
 
+#[derive(Copy, Clone)]
 #[repr(transparent)]
 struct RawTrb<T: TrbType> {
     trb: [u32; 4],
@@ -95,19 +102,7 @@ impl<T: TrbType> RawTrb<T> {
     }
 }
 
-struct TrbPtr(usize);
-impl TrbPtr {
-    fn new(index: usize) -> Self {
-        assert!(index < NUM_OF_TRB_IN_QUEUE);
-        Self(index)
-    }
-
-    fn increment(&mut self) {
-        self.0 += 1;
-        self.0 %= NUM_OF_TRB_IN_QUEUE;
-    }
-}
-
+#[derive(Copy, Clone)]
 struct CycleBit(u32);
 impl CycleBit {
     fn new(bit: u32) -> Self {
