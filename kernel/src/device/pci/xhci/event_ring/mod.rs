@@ -37,6 +37,7 @@ impl<'a> SegmentTable<'a> {
     }
 }
 
+#[repr(C)]
 pub struct SegmentTableEntry {
     base_address: u64,
     segment_size: u64,
