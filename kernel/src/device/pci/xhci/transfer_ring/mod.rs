@@ -19,7 +19,7 @@ use {
 const NUM_OF_TRB_IN_QUEUE: usize = 256;
 
 pub struct RingQueue<'a, T: TRB> {
-    queue: &'a mut [T],
+    queue: &'a mut [RawTrb<T>],
 }
 
 impl<'a, T: TRB> RingQueue<'a, T> {
@@ -44,7 +44,7 @@ impl<'a, T: TRB> RingQueue<'a, T> {
         unsafe { ptr::write_bytes(ptr as *mut u8, 0, usize::try_from(Size4KiB::SIZE).unwrap()) }
 
         Self {
-            queue: unsafe { slice::from_raw_parts_mut(ptr, NUM_OF_TRB_IN_QUEUE) },
+            queue: unsafe { slice::from_raw_parts_mut(ptr as *mut RawTrb<T>, NUM_OF_TRB_IN_QUEUE) },
         }
     }
 
