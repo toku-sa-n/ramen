@@ -72,6 +72,7 @@ impl<'a> RingQueue<'a, Event> {
 
     pub fn check(&self) {
         for (i, trb) in self.queue.iter().enumerate() {
+            info!("TRB{}: {:?}", i, trb);
             if trb.valid(self.cycle_bit) {
                 info!("TRB{} is valid.", i);
             }
@@ -96,11 +97,11 @@ pub trait TrbType {
 pub struct Command;
 impl TrbType for Command {}
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Event;
 impl TrbType for Event {}
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 #[repr(transparent)]
 pub struct Trb<T: TrbType> {
     trb: [u32; 4],

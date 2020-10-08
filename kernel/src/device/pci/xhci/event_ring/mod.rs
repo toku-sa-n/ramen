@@ -43,8 +43,8 @@ pub struct SegmentTableEntry {
     segment_size: u64,
 }
 impl SegmentTableEntry {
-    pub fn set_base_address(&mut self, base_address: u64) {
-        self.base_address = base_address
+    pub fn set_base_address(&mut self, base_address: PhysAddr) {
+        self.base_address = base_address.as_u64()
     }
 
     pub fn set_segment_size(&mut self, segment_size: u16) {
