@@ -8,6 +8,7 @@ use {
     core::{
         convert::TryFrom,
         marker::PhantomData,
+        ops::{Index, IndexMut},
         ptr::{self, NonNull},
         slice,
     },
@@ -56,6 +57,18 @@ impl<'a, T: TRB> RingQueue<'a, T> {
 
     pub fn addr(&self) -> VirtAddr {
         VirtAddr::new(self.queue.as_ptr() as u64)
+    }
+}
+impl<'a, T: TRB> Index<TrbPtr> for RingQueue<'a, T> {
+    type Output = RawTrb<T>;
+
+    fn index(&self, index: TrbPtr) -> &Self::Output {
+        &self.queue[index.0]
+    }
+}
+impl<'a, T: TRB> IndexMut<TrbPtr> for RingQueue<'a, T> {
+    fn index_mut(&mut self, index: TrbPtr) -> &mut Self::Output {
+        &mut self.queue[index.0]
     }
 }
 
