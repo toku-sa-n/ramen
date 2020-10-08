@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pub mod transfer_request_block;
-
 use {
     crate::mem::{
         allocator::{phys::FRAME_MANAGER, virt},
@@ -13,7 +11,6 @@ use {
         ptr::{self, NonNull},
         slice,
     },
-    transfer_request_block::TRB,
     x86_64::{
         structures::paging::{FrameAllocator, Mapper, PageSize, PageTableFlags, Size4KiB},
         VirtAddr,
@@ -59,6 +56,16 @@ impl<'a, T: TRB> RingQueue<'a, T> {
         VirtAddr::new(self.queue.as_ptr() as u64)
     }
 }
+
+pub trait TRB {
+    const SIZE: usize = 16;
+}
+
+pub struct Command;
+impl TRB for Command {}
+
+pub struct Event;
+impl TRB for Event {}
 
 #[repr(transparent)]
 struct RawTrb<T: TRB> {

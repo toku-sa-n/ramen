@@ -13,10 +13,7 @@ use {
         runtime_base_registers::RuntimeBaseRegisters,
         usb_legacy_support_capability::UsbLegacySupportCapability,
     },
-    transfer_ring::{
-        transfer_request_block::{Command, Event},
-        RingQueue,
-    },
+    transfer_ring::{Command, Event, RingQueue},
     x86_64::{structures::paging::MapperAllSizes, VirtAddr},
 };
 
