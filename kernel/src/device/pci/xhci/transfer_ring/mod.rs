@@ -96,4 +96,8 @@ impl CycleBit {
         assert!(bit == 0 || bit == 1);
         Self(bit)
     }
+
+    fn toggle(&mut self) {
+        self.0 ^= 1;
+    }
 }
