@@ -89,6 +89,11 @@ struct RawTrb<T: Trb> {
     trb: [u32; 4],
     _marker: PhantomData<T>,
 }
+impl<T: Trb> RawTrb<T> {
+    fn valid(&self, cycle_bit: CycleBit) -> bool {
+        self.trb[3] & 1 == cycle_bit.0
+    }
+}
 
 struct TrbPtr(usize);
 impl TrbPtr {
@@ -103,9 +108,9 @@ impl TrbPtr {
     }
 }
 
-struct CycleBit(usize);
+struct CycleBit(u32);
 impl CycleBit {
-    fn new(bit: usize) -> Self {
+    fn new(bit: u32) -> Self {
         assert!(bit == 0 || bit == 1);
         Self(bit)
     }
