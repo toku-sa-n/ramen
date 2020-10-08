@@ -7,7 +7,7 @@ use {
         allocator::{phys::FRAME_MANAGER, virt},
         paging::pml4::PML4,
     },
-    core::{convert::TryFrom, ptr, slice},
+    core::{convert::TryFrom, marker::PhantomData, ptr, slice},
     transfer_request_block::TRB,
     x86_64::{
         structures::paging::{FrameAllocator, Mapper, PageSize, PageTableFlags, Size4KiB},
@@ -51,4 +51,10 @@ impl<'a, T: TRB> RingQueue<'a, T> {
     pub fn addr(&self) -> VirtAddr {
         VirtAddr::new(self.queue.as_ptr() as u64)
     }
+}
+
+#[repr(transparent)]
+struct RawTrb<T: TRB> {
+    trb: [u32; 4],
+    _marker: PhantomData<T>,
 }
