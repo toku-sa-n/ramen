@@ -7,7 +7,12 @@ use {
         allocator::{phys::FRAME_MANAGER, virt},
         paging::pml4::PML4,
     },
-    core::{convert::TryFrom, marker::PhantomData, ptr, slice},
+    core::{
+        convert::TryFrom,
+        marker::PhantomData,
+        ptr::{self, NonNull},
+        slice,
+    },
     transfer_request_block::TRB,
     x86_64::{
         structures::paging::{FrameAllocator, Mapper, PageSize, PageTableFlags, Size4KiB},
@@ -39,12 +44,12 @@ impl<'a, T: TRB> RingQueue<'a, T> {
                 .flush();
         }
 
-        let ptr = page.start_address().as_mut_ptr();
+        let ptr = NonNull::<u8>::new(page.start_address().as_mut_ptr()).unwrap();
 
-        unsafe { ptr::write_bytes(ptr as *mut u8, 0, usize::try_from(Size4KiB::SIZE).unwrap()) }
+        unsafe { ptr::write_bytes(ptr.as_ptr(), 0, usize::try_from(Size4KiB::SIZE).unwrap()) }
 
         Self {
-            queue: unsafe { slice::from_raw_parts_mut(ptr as *mut RawTrb<T>, NUM_OF_TRB_IN_QUEUE) },
+            queue: unsafe { slice::from_raw_parts_mut(ptr.cast().as_ptr(), NUM_OF_TRB_IN_QUEUE) },
         }
     }
 
