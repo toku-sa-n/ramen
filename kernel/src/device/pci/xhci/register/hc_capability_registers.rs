@@ -17,11 +17,7 @@ impl<'a> HCCapabilityRegisters<'a> {
         let rts_off = Accessor::new(mmio_base, 0x18);
 
         let hci_version = Accessor::<'a, HCInterfaceVersionNumber>::new(mmio_base, 0x2);
-        assert!(
-            hci_version.get() >= 0x0090,
-            "Invalid version: {:X}",
-            hci_version.get()
-        );
+        info!("xHC version: {:X}", hci_version.get());
 
         Self {
             cap_length,
