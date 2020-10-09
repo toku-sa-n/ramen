@@ -86,3 +86,7 @@ pub extern "x86-interrupt" fn handler_2c(_stack_frame: &mut idt::InterruptStackF
     let mut port = PORT_KEY_DATA;
     mouse::enqueue_packet(unsafe { port.read() });
 }
+
+pub extern "x86-interrupt" fn handler_40(_stack_frame: &mut idt::InterruptStackFrame) {
+    panic!("Interrupt from 0x40");
+}
