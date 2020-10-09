@@ -101,6 +101,7 @@ impl From<TableSize> for usize {
 
 bitfield! {
     #[derive(Debug)]
+    #[repr(transparent)]
     struct Element(u128);
 
     u32, from into MessageAddress, message_address,set_message_address: 31, 0;
