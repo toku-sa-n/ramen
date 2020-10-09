@@ -70,17 +70,6 @@ impl<'a> RingQueue<'a, Event> {
         }
     }
 
-    pub fn check(&self) {
-        for (i, trb) in self.queue.iter().enumerate() {
-            info!("TRB{}: {:?}", i, trb);
-            if trb.valid(self.cycle_bit) {
-                info!("TRB{} is valid.", i);
-            }
-        }
-
-        info!("Check finished.");
-    }
-
     fn increment_dequeue_index(&mut self) {
         self.dequeue_index += 1;
         if self.dequeue_index >= NUM_OF_TRB_IN_QUEUE {
