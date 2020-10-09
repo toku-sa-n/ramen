@@ -143,7 +143,7 @@ bitfield! {
 impl MessageAddress {
     pub fn init_for_xhci(&mut self) {
         self.set_destination_id(Self::get_local_apic_id());
-        self.set_redirection_hint(true);
+        self.set_redirection_hint(false);
     }
 
     fn get_local_apic_id() -> u8 {
