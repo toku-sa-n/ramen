@@ -54,9 +54,7 @@ impl<'a> CapabilitySpec for MsiX<'a> {
         let base_address = config_type_spec.base_address(self.bir());
         let mut table = self.table(base_address);
 
-        table[0].message_address().init_for_xhci();
-        table[0].message_data().init_for_xhci();
-        table[0].set_mask(false);
+        table[0].init_for_xhci();
 
         self.enable_interrupt();
     }
@@ -108,4 +106,11 @@ bitfield! {
     u32, from into MessageAddress, message_address,set_message_address: 31, 0;
     u32, from into MessageData, message_data, set_message_data: 95, 64;
     masked, set_mask: 96;
+}
+impl Element {
+    fn init_for_xhci(&mut self) {
+        self.message_address().init_for_xhci();
+        self.message_data().init_for_xhci();
+        self.set_mask(false);
+    }
 }
