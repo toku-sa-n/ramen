@@ -18,6 +18,17 @@ pub struct MsiX<'a> {
     base: RegisterIndex,
 }
 
+impl<'a> CapabilitySpec for MsiX<'a> {
+    fn init_for_xhci(&self, config_type_spec: &TypeSpec) {
+        let base_address = config_type_spec.base_address(self.bir());
+        let mut table = self.table(base_address);
+
+        table[0].init_for_xhci();
+
+        self.enable_interrupt();
+    }
+}
+
 impl<'a> MsiX<'a> {
     pub fn new(registers: &'a Registers, base: RegisterIndex) -> Self {
         Self { registers, base }
@@ -46,17 +57,6 @@ impl<'a> MsiX<'a> {
 
     fn num_of_table_elements(&self) -> TableSize {
         TableSize::new(self.registers, self.base)
-    }
-}
-
-impl<'a> CapabilitySpec for MsiX<'a> {
-    fn init_for_xhci(&self, config_type_spec: &TypeSpec) {
-        let base_address = config_type_spec.base_address(self.bir());
-        let mut table = self.table(base_address);
-
-        table[0].init_for_xhci();
-
-        self.enable_interrupt();
     }
 }
 
