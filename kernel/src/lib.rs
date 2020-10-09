@@ -41,6 +41,7 @@ use {
     },
     mem::allocator::{heap, phys::FrameManager},
     multitask::{executor::Executor, task::Task},
+    x86_64::instructions::interrupts,
 };
 
 #[no_mangle]
@@ -57,6 +58,8 @@ fn initialization(boot_info: &kernelboot::Info) {
     gdt::init();
     idt::init();
     interrupt::init_pic();
+
+    interrupts::enable();
 
     FrameManager::init(boot_info.mem_map());
 

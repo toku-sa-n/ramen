@@ -72,6 +72,12 @@ pub fn set_init_pic_bits() {
     }
 }
 
+pub extern "x86-interrupt" fn handler_20(_stack_frame: &mut idt::InterruptStackFrame) {
+    unsafe {
+        Port::new(PIC0_OCW2).write(0x60 as u8);
+    }
+}
+
 pub extern "x86-interrupt" fn handler_21(_stack_frame: &mut idt::InterruptStackFrame) {
     unsafe { Port::new(PIC0_OCW2).write(0x61 as u8) };
     let mut port = PORT_KEY_DATA;
