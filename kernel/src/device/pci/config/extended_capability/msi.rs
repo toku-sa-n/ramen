@@ -94,6 +94,7 @@ impl<'a> CapabilitySpec for Msi<'a> {
 
         self.edit_message_control(|message_control| {
             message_control.set_interrupt_status(true);
+            message_control.set_num_of_enabled_interrupt_vectors(0);
         });
         info!("Edited Message Control.");
     }
@@ -103,6 +104,7 @@ bitfield! {
     struct MessageControl(u16);
 
     interrupt_status, set_interrupt_status: 0;
+    num_of_enabled_interrupt_vectors, set_num_of_enabled_interrupt_vectors: 6, 4;
 }
 
 impl From<u16> for MessageControl {
