@@ -177,6 +177,7 @@ impl MessageData {
     pub fn init_for_xhci(&mut self) {
         self.set_level_trigger();
         self.set_vector(0x40);
+        self.set_delivery_mode(0);
     }
 
     fn set_level_trigger(&mut self) {
