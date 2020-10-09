@@ -91,7 +91,7 @@ impl<'a> Xhci<'a> {
 
     fn init_msi(&mut self) {
         info!("Initializing MSI...");
-        self.config_space.init_for_xhci().unwrap();
+        self.config_space.init_msi_for_xhci().unwrap();
     }
 
     fn init_event_ring_segment_table(&mut self) {

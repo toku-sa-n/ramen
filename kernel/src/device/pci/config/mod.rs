@@ -42,7 +42,7 @@ impl Space {
         self.type_spec().base_address(index)
     }
 
-    pub fn init_for_xhci(&self) -> Result<(), Error> {
+    pub fn init_msi_for_xhci(&self) -> Result<(), Error> {
         if self.is_xhci() {
             self.init_msi_or_msi_x();
             Ok(())
