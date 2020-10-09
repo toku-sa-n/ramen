@@ -31,6 +31,13 @@ impl<'a> UsbLegacySupportCapability<'a> {
             None
         }
     }
+
+    pub fn give_hc_ownership_to_os(&mut self) {
+        let usb_leg_sup = &mut self.usb_leg_sup;
+        usb_leg_sup.request_hc_ownership();
+
+        while !usb_leg_sup.ownership_passed() {}
+    }
 }
 
 bitfield! {
@@ -39,5 +46,14 @@ bitfield! {
 
     id, _: 7, 0;
     pub bios_owns_hc, _: 16;
-    pub os_owns_hc, request_hc_ownership: 24;
+    pub os_owns_hc, os_request_ownership: 24;
+}
+impl UsbLegacySupportCapabilityRegister {
+    fn request_hc_ownership(&mut self) {
+        self.os_request_ownership(true);
+    }
+
+    fn ownership_passed(&self) -> bool {
+        !self.bios_owns_hc() && self.os_owns_hc()
+    }
 }

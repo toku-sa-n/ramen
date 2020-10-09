@@ -47,17 +47,7 @@ impl<'a> Xhci<'a> {
     fn get_ownership_from_bios(&mut self) {
         if let Some(ref mut usb_leg_sup_cap) = self.usb_legacy_support_capability {
             info!("Getting ownership from BIOS...");
-
-            let usb_leg_sup = &mut usb_leg_sup_cap.usb_leg_sup;
-
-            usb_leg_sup.request_hc_ownership(true);
-
-            while {
-                let bios_owns = usb_leg_sup.bios_owns_hc();
-                let os_owns = usb_leg_sup.os_owns_hc();
-
-                !os_owns || bios_owns
-            } {}
+            usb_leg_sup_cap.give_hc_ownership_to_os();
         }
     }
 
