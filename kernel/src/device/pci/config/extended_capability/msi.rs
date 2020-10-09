@@ -27,11 +27,16 @@ impl<'a> Msi<'a> {
     }
 
     fn get_message_address(&self) -> MessageAddress {
-        MessageAddress::from(self.registers.get(self.base + 1))
+        MessageAddress::from(self.registers.get(self.message_address_index()))
     }
 
     fn set_message_address(&self, message_address: MessageAddress) {
-        self.registers.set(self.base + 1, message_address.into())
+        self.registers
+            .set(self.message_address_index(), message_address.into())
+    }
+
+    fn message_address_index(&self) -> RegisterIndex {
+        self.base + 1
     }
 
     fn edit_message_data<T>(&self, f: T)
@@ -44,11 +49,16 @@ impl<'a> Msi<'a> {
     }
 
     fn get_message_data(&self) -> MessageData {
-        MessageData::from(self.registers.get(self.base + 3))
+        MessageData::from(self.registers.get(self.message_data_index()))
     }
 
     fn set_message_data(&self, message_data: MessageData) {
-        self.registers.set(self.base + 3, message_data.into())
+        self.registers
+            .set(self.message_data_index(), message_data.into())
+    }
+
+    fn message_data_index(&self) -> RegisterIndex {
+        self.base + 3
     }
 
     fn edit_message_control<T>(&self, f: T)
