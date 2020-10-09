@@ -42,6 +42,7 @@ impl<'a> HCOperationalRegisters<'a> {
 }
 
 bitfield! {
+    #[repr(transparent)]
     pub struct UsbCommandRegister(u32);
 
     pub run_stop,set_run_stop: 0;
@@ -49,12 +50,14 @@ bitfield! {
 }
 
 bitfield! {
+    #[repr(transparent)]
     pub struct UsbStatusRegister(u32);
 
     pub controller_not_ready,_:11;
 }
 
 bitfield! {
+    #[repr(transparent)]
     pub struct CommandRingControlRegister(u64);
 
     ptr,set_pointer:63,6;
@@ -69,12 +72,14 @@ impl CommandRingControlRegister {
 }
 
 bitfield! {
+    #[repr(transparent)]
     pub struct ConfigureRegister(u32);
 
     pub max_device_slots_enabled,set_max_device_slots_enabled:7,0;
 }
 
 bitfield! {
+    #[repr(transparent)]
     pub struct DeviceContextBaseAddressArrayPointer(u64);
 
     ptr,set_pointer:63,6;
@@ -89,6 +94,7 @@ impl DeviceContextBaseAddressArrayPointer {
 }
 
 bitfield! {
+    #[repr(transparent)]
     pub struct PortStatusAndControlRegister(u32);
 
     pub current_connect_status, _: 0;
