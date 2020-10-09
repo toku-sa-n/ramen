@@ -92,10 +92,7 @@ impl<'a> CapabilitySpec for Msi<'a> {
         self.edit_message_data(MessageData::init_for_xhci);
         info!("Edited Message Data.");
 
-        self.edit_message_control(|message_control| {
-            message_control.set_interrupt_status(true);
-            message_control.set_num_of_enabled_interrupt_vectors(0);
-        });
+        self.edit_message_control(MessageControl::init_for_xhci);
         info!("Edited Message Control.");
     }
 }
@@ -106,7 +103,12 @@ bitfield! {
     interrupt_status, set_interrupt_status: 0;
     num_of_enabled_interrupt_vectors, set_num_of_enabled_interrupt_vectors: 6, 4;
 }
-
+impl MessageControl {
+    fn init_for_xhci(&mut self) {
+        self.set_interrupt_status(true);
+        self.set_num_of_enabled_interrupt_vectors(0);
+    }
+}
 impl From<u16> for MessageControl {
     fn from(control: u16) -> Self {
         Self(control)
