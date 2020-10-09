@@ -166,8 +166,6 @@ impl<'a> Xhci<'a> {
         let runtime_base_registers =
             RuntimeBaseRegisters::new(mmio_base, hc_capability_registers.rts_off.get() as usize);
 
-        let event_ring_segment_table = event_ring::SegmentTable::new();
-
         Self {
             usb_legacy_support_capability,
             hc_capability_registers,
@@ -177,7 +175,7 @@ impl<'a> Xhci<'a> {
             config_space,
             event_ring: RingQueue::new(),
             runtime_base_registers,
-            event_ring_segment_table,
+            event_ring_segment_table: event_ring::SegmentTable::new(),
         }
     }
 }
