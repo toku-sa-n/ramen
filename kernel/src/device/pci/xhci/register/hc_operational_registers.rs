@@ -41,9 +41,7 @@ impl<'a> HCOperationalRegisters<'a> {
     }
 
     pub fn reset_hc(&mut self) {
-        self.usb_cmd.set_hc_reset(true);
-
-        while self.usb_cmd.hc_reset() {}
+        self.usb_cmd.reset();
     }
 }
 
@@ -55,6 +53,16 @@ bitfield! {
     pub run_stop,set_run_stop: 0;
     hc_reset,set_hc_reset: 1;
     pub interrupt_enable,set_interrupt_enable: 2;
+}
+impl UsbCommandRegister {
+    fn reset(&mut self) {
+        self.set_hc_reset(true);
+        self.wait_until_hc_is_reset();
+    }
+
+    fn wait_until_hc_is_reset(&self) {
+        while self.hc_reset() {}
+    }
 }
 
 bitfield! {
