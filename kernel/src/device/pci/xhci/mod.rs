@@ -108,18 +108,17 @@ impl<'a> Xhci<'a> {
     }
 
     fn set_event_ring_segment_table_size(&mut self) {
-        self.runtime_base_registers.erst_sz.set(1)
+        self.runtime_base_registers.set_event_ring_size(1)
     }
 
     fn set_event_ring_segment_table_address(&mut self) {
         self.runtime_base_registers
-            .erst_ba
-            .set(self.event_ring_segment_table.address())
+            .set_event_ring_addr(self.event_ring_segment_table.address())
     }
 
     fn set_event_ring_dequeue_pointer(&mut self) {
         let phys = PML4.lock().translate_addr(self.event_ring.addr()).unwrap();
-        self.runtime_base_registers.erd_p.set_address(phys)
+        self.runtime_base_registers.set_event_ring_dequeue_ptr(phys)
     }
 
     fn enable_system_bus_interrupt_generation(&mut self) {
@@ -127,7 +126,7 @@ impl<'a> Xhci<'a> {
     }
 
     fn enable_interrupt(&mut self) {
-        self.runtime_base_registers.i_man.set_interrupt_status(true);
+        self.runtime_base_registers.enable_interrupt()
     }
 
     fn run(&mut self) {
