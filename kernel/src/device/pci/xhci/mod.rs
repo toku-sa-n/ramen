@@ -34,7 +34,7 @@ impl<'a> Xhci<'a> {
     pub fn init(&mut self) {
         self.get_ownership_from_bios();
         self.reset_hc();
-        self.wait_until_controller_is_ready();
+        self.wait_until_hc_is_ready();
         self.set_num_of_enabled_slots();
         self.set_dcbaap();
         self.set_command_ring_pointer();
@@ -58,7 +58,7 @@ impl<'a> Xhci<'a> {
         info!("Reset completed.");
     }
 
-    fn wait_until_controller_is_ready(&self) {
+    fn wait_until_hc_is_ready(&self) {
         self.hc_operational_registers.wait_until_hc_is_ready();
     }
 
