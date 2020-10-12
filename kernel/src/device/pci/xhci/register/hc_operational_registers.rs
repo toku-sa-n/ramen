@@ -41,14 +41,9 @@ impl<'a> HCOperationalRegisters<'a> {
     }
 
     pub fn reset_hc(&mut self) {
-        let mut usb_cmd = *self.usb_cmd;
-        usb_cmd.set_hc_reset(true);
-        *self.usb_cmd = usb_cmd;
+        self.usb_cmd.set_hc_reset(true);
 
-        while {
-            let usb_cmd = *self.usb_cmd;
-            usb_cmd.hc_reset()
-        } {}
+        while self.usb_cmd.hc_reset() {}
     }
 }
 
