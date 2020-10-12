@@ -11,7 +11,8 @@ use {
 };
 
 #[allow(clippy::cast_possible_truncation)]
-const NUM_ELEMENTS_SEGMENT_TABLE: usize = Size4KiB::SIZE as usize / size_of::<SegmentTableEntry>();
+pub const NUM_ELEMENTS_SEGMENT_TABLE: usize =
+    Size4KiB::SIZE as usize / size_of::<SegmentTableEntry>();
 
 pub struct SegmentTable<'a> {
     addr: PhysAddr,

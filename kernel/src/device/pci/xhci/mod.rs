@@ -109,7 +109,7 @@ impl<'a> Xhci<'a> {
 
     fn set_event_ring_segment_table_size(&mut self) {
         self.runtime_base_registers
-            .set_event_ring_segment_table_size(1)
+            .set_event_ring_segment_table_size(event_ring::NUM_ELEMENTS_SEGMENT_TABLE as _)
     }
 
     fn set_event_ring_segment_table_address(&mut self) {
