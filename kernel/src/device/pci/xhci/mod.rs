@@ -114,7 +114,7 @@ impl<'a> Xhci<'a> {
 
     fn set_event_ring_segment_table_address(&mut self) {
         self.runtime_base_registers
-            .set_event_ring_segment_table_addr(self.event_ring_segment_table.address())
+            .set_event_ring_segment_table_addr(self.event_ring_segment_table.addr())
     }
 
     fn set_event_ring_dequeue_pointer(&mut self) {

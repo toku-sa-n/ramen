@@ -32,7 +32,7 @@ impl<'a> SegmentTable<'a> {
         f(&mut *self.table)
     }
 
-    pub fn address(&self) -> PhysAddr {
+    pub fn addr(&self) -> PhysAddr {
         self.addr
     }
 }
