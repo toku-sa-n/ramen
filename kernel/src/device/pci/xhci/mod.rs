@@ -54,6 +54,7 @@ impl<'a> Xhci<'a> {
 
     fn reset_hc(&mut self) {
         self.hc_operational_registers.reset_hc();
+        info!("Reset completed.");
     }
 
     fn wait_until_controller_is_ready(&self) {
