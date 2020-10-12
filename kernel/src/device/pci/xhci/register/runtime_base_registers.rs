@@ -28,7 +28,7 @@ impl<'a> RuntimeBaseRegisters<'a> {
         self.erst_sz.set(size)
     }
 
-    pub fn set_event_ring_addr(&mut self, addr: PhysAddr) {
+    pub fn set_event_ring_segment_table_addr(&mut self, addr: PhysAddr) {
         self.erst_ba.set(addr)
     }
 
