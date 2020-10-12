@@ -41,6 +41,9 @@ impl<'a> HCOperationalRegisters<'a> {
     }
 
     pub fn reset_hc(&mut self) {
+        if self.usb_sts.hc_halted() {
+            return;
+        }
         self.usb_cmd.reset();
     }
 }
@@ -69,6 +72,7 @@ bitfield! {
     #[repr(transparent)]
     pub struct UsbStatusRegister(u32);
 
+    hc_halted, _: 0;
     pub controller_not_ready,_:11;
 }
 
