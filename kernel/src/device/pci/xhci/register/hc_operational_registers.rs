@@ -63,7 +63,7 @@ impl UsbCommandRegister {
         self.wait_until_hc_is_reset();
     }
 
-    fn wait_until_hc_is_reset(&self) {
+    fn wait_until_hc_is_reset(self) {
         while self.hc_reset() {}
     }
 }
