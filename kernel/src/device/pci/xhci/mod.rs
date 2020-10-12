@@ -85,7 +85,8 @@ impl<'a> Xhci<'a> {
         let virt_addr = self.command_ring.addr();
         let phys_addr = PML4.lock().translate_addr(virt_addr).unwrap();
 
-        self.hc_operational_registers.crcr.set_ptr(phys_addr);
+        self.hc_operational_registers
+            .set_command_ring_ptr(phys_addr);
     }
 
     fn init_msi(&mut self) {
@@ -122,9 +123,7 @@ impl<'a> Xhci<'a> {
     }
 
     fn enable_system_bus_interrupt_generation(&mut self) {
-        self.hc_operational_registers
-            .usb_cmd
-            .set_interrupt_enable(true)
+        self.hc_operational_registers.enable_interrupt()
     }
 
     fn enable_interrupt(&mut self) {
@@ -132,7 +131,7 @@ impl<'a> Xhci<'a> {
     }
 
     fn run(&mut self) {
-        self.hc_operational_registers.usb_cmd.set_run_stop(true)
+        self.hc_operational_registers.run()
     }
 
     fn new(config_space: config::Space) -> Result<Self, Error> {

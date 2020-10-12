@@ -11,12 +11,12 @@ use {
 };
 
 pub struct HCOperationalRegisters<'a> {
-    pub usb_cmd: single_object::Accessor<'a, UsbCommandRegister>,
-    pub usb_sts: single_object::Accessor<'a, UsbStatusRegister>,
-    pub crcr: single_object::Accessor<'a, CommandRingControlRegister>,
-    pub dcbaap: single_object::Accessor<'a, DeviceContextBaseAddressArrayPointer>,
-    pub config: single_object::Accessor<'a, ConfigureRegister>,
-    pub port_sc: slice::Accessor<'a, PortStatusAndControlRegister>,
+    usb_cmd: single_object::Accessor<'a, UsbCommandRegister>,
+    usb_sts: single_object::Accessor<'a, UsbStatusRegister>,
+    crcr: single_object::Accessor<'a, CommandRingControlRegister>,
+    dcbaap: single_object::Accessor<'a, DeviceContextBaseAddressArrayPointer>,
+    config: single_object::Accessor<'a, ConfigureRegister>,
+    port_sc: slice::Accessor<'a, PortStatusAndControlRegister>,
 }
 
 impl<'a> HCOperationalRegisters<'a> {
@@ -58,16 +58,28 @@ impl<'a> HCOperationalRegisters<'a> {
     pub fn set_dcbaa_ptr(&mut self, addr: PhysAddr) {
         self.dcbaap.set_ptr(addr)
     }
+
+    pub fn set_command_ring_ptr(&mut self, addr: PhysAddr) {
+        self.crcr.set_ptr(addr)
+    }
+
+    pub fn enable_interrupt(&mut self) {
+        self.usb_cmd.set_interrupt_enable(true)
+    }
+
+    pub fn run(&mut self) {
+        self.usb_cmd.set_run_stop(true)
+    }
 }
 
 bitfield! {
     #[repr(transparent)]
     #[derive(Copy,Clone)]
-    pub struct UsbCommandRegister(u32);
+    struct UsbCommandRegister(u32);
 
-    pub run_stop,set_run_stop: 0;
+    run_stop,set_run_stop: 0;
     hc_reset,set_hc_reset: 1;
-    pub interrupt_enable,set_interrupt_enable: 2;
+    interrupt_enable,set_interrupt_enable: 2;
 }
 impl UsbCommandRegister {
     fn reset(&mut self) {
@@ -82,7 +94,7 @@ impl UsbCommandRegister {
 
 bitfield! {
     #[repr(transparent)]
-    pub struct UsbStatusRegister(u32);
+    struct UsbStatusRegister(u32);
 
     hc_halted, _: 0;
     controller_not_ready,_:11;
@@ -95,13 +107,13 @@ impl UsbStatusRegister {
 
 bitfield! {
     #[repr(transparent)]
-    pub struct CommandRingControlRegister(u64);
+    struct CommandRingControlRegister(u64);
 
     ptr,set_pointer:63,6;
 }
 
 impl CommandRingControlRegister {
-    pub fn set_ptr(&mut self, ptr: PhysAddr) {
+    fn set_ptr(&mut self, ptr: PhysAddr) {
         let ptr = ptr.as_u64() >> 6;
 
         self.set_pointer(ptr);
@@ -110,14 +122,14 @@ impl CommandRingControlRegister {
 
 bitfield! {
     #[repr(transparent)]
-    pub struct ConfigureRegister(u32);
+     struct ConfigureRegister(u32);
 
     max_device_slots_enabled,set_max_device_slots_enabled:7,0;
 }
 
 bitfield! {
     #[repr(transparent)]
-    pub struct DeviceContextBaseAddressArrayPointer(u64);
+     struct DeviceContextBaseAddressArrayPointer(u64);
 
     ptr,set_pointer:63,6;
 }
@@ -132,16 +144,16 @@ impl DeviceContextBaseAddressArrayPointer {
 
 bitfield! {
     #[repr(transparent)]
-    pub struct PortStatusAndControlRegister(u32);
+     struct PortStatusAndControlRegister(u32);
 
-    pub current_connect_status, _: 0;
-    pub port_enabled_disabled, _: 1;
-    pub port_reset, _: 4;
-    pub port_power, _: 9;
+     current_connect_status, _: 0;
+     port_enabled_disabled, _: 1;
+     port_reset, _: 4;
+     port_power, _: 9;
 }
 
 impl PortStatusAndControlRegister {
-    pub fn disconnected(&self) -> bool {
+    fn disconnected(&self) -> bool {
         self.port_power()
             && !self.current_connect_status()
             && !self.port_enabled_disabled()
