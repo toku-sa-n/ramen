@@ -180,11 +180,11 @@ impl<'a> Xhci<'a> {
 const MAX_DEVICE_SLOT: usize = 255;
 
 #[repr(transparent)]
-struct DeviceContextBaseAddressArray([usize; MAX_DEVICE_SLOT]);
+struct DeviceContextBaseAddressArray([usize; MAX_DEVICE_SLOT + 1]);
 
 impl DeviceContextBaseAddressArray {
     fn new() -> Self {
-        Self([0; MAX_DEVICE_SLOT])
+        Self([0; MAX_DEVICE_SLOT + 1])
     }
 }
 
