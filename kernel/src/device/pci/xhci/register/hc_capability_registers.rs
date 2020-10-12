@@ -26,6 +26,10 @@ impl<'a> HCCapabilityRegisters<'a> {
             rts_off,
         }
     }
+
+    pub fn number_of_device_slots(&self) -> u32 {
+        self.hcs_params_1.number_of_device_slots()
+    }
 }
 
 #[repr(transparent)]
@@ -47,8 +51,8 @@ impl HCInterfaceVersionNumber {
 
 bitfield! {
     #[repr(transparent)]
-    pub struct StructuralParameters1(u32);
-    pub number_of_device_slots, _: 7, 0;
+    struct StructuralParameters1(u32);
+    number_of_device_slots, _: 7, 0;
 }
 
 bitfield! {

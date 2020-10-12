@@ -63,11 +63,7 @@ impl<'a> Xhci<'a> {
     }
 
     fn set_num_of_enabled_slots(&mut self) {
-        info!("Setting the number of slots...");
-        let num_of_slots = self
-            .hc_capability_registers
-            .hcs_params_1
-            .number_of_device_slots();
+        let num_of_slots = self.hc_capability_registers.number_of_device_slots();
 
         self.hc_operational_registers
             .config
