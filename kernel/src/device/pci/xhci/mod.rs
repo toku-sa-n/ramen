@@ -77,8 +77,7 @@ impl<'a> Xhci<'a> {
             .expect("Failed to fetch the physical address of DCBAA");
 
         self.hc_operational_registers
-            .dcbaap
-            .set_ptr(phys_addr_of_dcbaa);
+            .set_dcbaa_ptr(phys_addr_of_dcbaa);
     }
 
     fn set_command_ring_pointer(&mut self) {

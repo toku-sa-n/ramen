@@ -54,6 +54,10 @@ impl<'a> HCOperationalRegisters<'a> {
     pub fn set_num_of_device_slots(&mut self, num: u32) {
         self.config.set_max_device_slots_enabled(num)
     }
+
+    pub fn set_dcbaa_ptr(&mut self, addr: PhysAddr) {
+        self.dcbaap.set_ptr(addr)
+    }
 }
 
 bitfield! {
@@ -119,7 +123,7 @@ bitfield! {
 }
 
 impl DeviceContextBaseAddressArrayPointer {
-    pub fn set_ptr(&mut self, ptr: PhysAddr) {
+    fn set_ptr(&mut self, ptr: PhysAddr) {
         let ptr = ptr.as_u64() >> 6;
 
         self.set_pointer(ptr);
