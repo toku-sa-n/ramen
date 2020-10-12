@@ -50,6 +50,10 @@ impl<'a> HCOperationalRegisters<'a> {
     pub fn wait_until_hc_is_ready(&self) {
         self.usb_sts.wait_until_hc_is_ready();
     }
+
+    pub fn set_num_of_device_slots(&mut self, num: u32) {
+        self.config.set_max_device_slots_enabled(num)
+    }
 }
 
 bitfield! {
@@ -104,7 +108,7 @@ bitfield! {
     #[repr(transparent)]
     pub struct ConfigureRegister(u32);
 
-    pub max_device_slots_enabled,set_max_device_slots_enabled:7,0;
+    max_device_slots_enabled,set_max_device_slots_enabled:7,0;
 }
 
 bitfield! {
