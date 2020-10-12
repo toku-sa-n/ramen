@@ -10,7 +10,7 @@ use {
 };
 
 pub struct UsbLegacySupportCapability<'a> {
-    pub usb_leg_sup: Accessor<'a, UsbLegacySupportCapabilityRegister>,
+    usb_leg_sup: Accessor<'a, UsbLegacySupportCapabilityRegister>,
 }
 
 impl<'a> UsbLegacySupportCapability<'a> {
