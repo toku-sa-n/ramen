@@ -46,6 +46,10 @@ impl<'a> HCOperationalRegisters<'a> {
         }
         self.usb_cmd.reset();
     }
+
+    pub fn wait_until_hc_is_ready(&self) {
+        self.usb_sts.wait_until_hc_is_ready();
+    }
 }
 
 bitfield! {
@@ -73,7 +77,12 @@ bitfield! {
     pub struct UsbStatusRegister(u32);
 
     hc_halted, _: 0;
-    pub controller_not_ready,_:11;
+    controller_not_ready,_:11;
+}
+impl UsbStatusRegister {
+    fn wait_until_hc_is_ready(&self) {
+        while self.controller_not_ready() {}
+    }
 }
 
 bitfield! {
