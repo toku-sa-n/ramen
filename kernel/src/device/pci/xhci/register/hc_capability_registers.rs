@@ -38,7 +38,7 @@ impl CapabilityRegistersLength {
 }
 
 #[repr(transparent)]
-pub struct HCInterfaceVersionNumber(u16);
+struct HCInterfaceVersionNumber(u16);
 impl HCInterfaceVersionNumber {
     fn get(&self) -> u16 {
         self.0
