@@ -4,7 +4,7 @@ use {crate::accessor::single_object::Accessor, bitfield::bitfield, x86_64::PhysA
 
 pub struct HCCapabilityRegisters<'a> {
     pub cap_length: Accessor<'a, CapabilityRegistersLength>,
-    pub hcs_params_1: Accessor<'a, StructuralParameters1>,
+    hcs_params_1: Accessor<'a, StructuralParameters1>,
     pub hc_cp_params_1: Accessor<'a, HCCapabilityParameters1>,
     pub rts_off: Accessor<'a, RuntimeRegisterSpaceOffset>,
 }
