@@ -32,6 +32,7 @@ pub struct Xhci<'a> {
 impl<'a> Xhci<'a> {
     pub fn init(&mut self) {
         self.get_ownership_from_bios();
+        self.reset_hc();
         self.wait_until_controller_is_ready();
         self.set_num_of_enabled_slots();
         self.set_dcbaap();
@@ -49,6 +50,10 @@ impl<'a> Xhci<'a> {
             info!("Getting ownership from BIOS...");
             usb_leg_sup_cap.give_hc_ownership_to_os();
         }
+    }
+
+    fn reset_hc(&mut self) {
+        self.hc_operational_registers.reset_hc();
     }
 
     fn wait_until_controller_is_ready(&self) {

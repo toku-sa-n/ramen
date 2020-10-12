@@ -39,13 +39,26 @@ impl<'a> HCOperationalRegisters<'a> {
             port_sc,
         }
     }
+
+    pub fn reset_hc(&mut self) {
+        let mut usb_cmd = *self.usb_cmd;
+        usb_cmd.set_hc_reset(true);
+        *self.usb_cmd = usb_cmd;
+
+        while {
+            let usb_cmd = *self.usb_cmd;
+            usb_cmd.hc_reset()
+        } {}
+    }
 }
 
 bitfield! {
     #[repr(transparent)]
+    #[derive(Copy,Clone)]
     pub struct UsbCommandRegister(u32);
 
     pub run_stop,set_run_stop: 0;
+    hc_reset,set_hc_reset: 1;
     pub interrupt_enable,set_interrupt_enable: 2;
 }
 
