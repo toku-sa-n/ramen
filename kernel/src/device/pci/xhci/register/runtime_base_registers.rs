@@ -24,7 +24,7 @@ impl<'a> RuntimeBaseRegisters<'a> {
         }
     }
 
-    pub fn set_event_ring_size(&mut self, size: u16) {
+    pub fn set_event_ring_segment_table_size(&mut self, size: u16) {
         self.erst_sz.set(size)
     }
 
