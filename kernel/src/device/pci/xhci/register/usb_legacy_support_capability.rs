@@ -42,11 +42,11 @@ impl<'a> UsbLegacySupportCapability<'a> {
 
 bitfield! {
     #[repr(transparent)]
-    pub struct UsbLegacySupportCapabilityRegister(u32);
+    struct UsbLegacySupportCapabilityRegister(u32);
 
     id, _: 7, 0;
-    pub bios_owns_hc, _: 16;
-    pub os_owns_hc, os_request_ownership: 24;
+    bios_owns_hc, _: 16;
+    os_owns_hc, os_request_ownership: 24;
 }
 impl UsbLegacySupportCapabilityRegister {
     fn request_hc_ownership(&mut self) {
