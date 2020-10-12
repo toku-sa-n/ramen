@@ -182,6 +182,7 @@ impl<'a> Xhci<'a> {
 
 const MAX_DEVICE_SLOT: usize = 255;
 
+#[repr(transparent)]
 struct DeviceContextBaseAddressArray([usize; MAX_DEVICE_SLOT]);
 
 impl DeviceContextBaseAddressArray {
