@@ -56,11 +56,11 @@ impl Stream for ScancodeStream {
 
         WAKER.register(&cx.waker());
         match queue.pop() {
-            Ok(code) => {
+            Some(code) => {
                 WAKER.take();
                 Poll::Ready(Some(code))
             }
-            Err(_) => Poll::Pending,
+            None => Poll::Pending,
         }
     }
 }

@@ -10,7 +10,7 @@ use {
     },
 };
 
-#[derive(PartialOrd, PartialEq, Ord, Eq, Copy, Clone)]
+#[derive(PartialOrd, PartialEq, Ord, Eq, Copy, Clone, Debug)]
 pub(super) struct Id(u64);
 
 impl Id {
