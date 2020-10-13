@@ -75,7 +75,7 @@ impl From<Bir> for bar::Index {
 struct TableOffset(Size<Bytes>);
 impl TableOffset {
     fn new(raw: &Registers, base: RegisterIndex) -> Self {
-        Self(Size::new((raw.get(base + 4) & !0xf) as usize))
+        Self(Size::new((raw.get(base + 1) & !0x7) as usize))
     }
 }
 impl From<TableOffset> for Size<Bytes> {
