@@ -23,8 +23,16 @@ jobs:
       uses: actions-rs/toolchain@v1.0.6
       with:
         toolchain: nightly
-        components: rust-src
+        components: clippy, rustfmt, rust-src
         override: true
+
+    - name: Runrustfmt with check mode
+      run: |
+        shopt -s globstar
+        rustfmt **/*.rs --check
+
+    - name: Run clippy
+      run: make clippy
 
     - name: Install dependencies
       run: |
