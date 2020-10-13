@@ -3,7 +3,7 @@
 use {
     crate::{
         accessor::{single_object, slice},
-        device::pci::xhci::register::hc_capability_registers::CapabilityRegistersLength,
+        device::pci::xhci::register::hc_capability_registers::HCCapabilityRegisters,
     },
     bitfield::bitfield,
     os_units::Size,
@@ -20,8 +20,8 @@ pub struct HCOperationalRegisters<'a> {
 }
 
 impl<'a> HCOperationalRegisters<'a> {
-    pub fn new(mmio_base: PhysAddr, cap_length: &CapabilityRegistersLength) -> Self {
-        let operational_base = mmio_base + cap_length.get();
+    pub fn new(mmio_base: PhysAddr, capabilities: &HCCapabilityRegisters) -> Self {
+        let operational_base = mmio_base + capabilities.len();
 
         let usb_cmd = single_object::Accessor::new(operational_base, 0x00);
         let usb_sts = single_object::Accessor::new(operational_base, 0x04);
@@ -68,13 +68,13 @@ impl<'a> HCOperationalRegisters<'a> {
     }
 
     pub fn run(&mut self) {
-        self.usb_cmd.set_run_stop(true)
+        self.usb_cmd.set_run_stop(true);
+        while self.usb_sts.hc_halted() {}
     }
 }
 
 bitfield! {
     #[repr(transparent)]
-    #[derive(Copy,Clone)]
     struct UsbCommandRegister(u32);
 
     run_stop,set_run_stop: 0;
@@ -87,7 +87,7 @@ impl UsbCommandRegister {
         self.wait_until_hc_is_reset();
     }
 
-    fn wait_until_hc_is_reset(self) {
+    fn wait_until_hc_is_reset(&self) {
         while self.hc_reset() {}
     }
 }
@@ -119,27 +119,26 @@ impl CommandRingControlRegister {
         self.set_pointer(ptr);
     }
 }
+#[repr(transparent)]
+struct DeviceContextBaseAddressArrayPointer(u64);
+
+impl DeviceContextBaseAddressArrayPointer {
+    fn set_ptr(&mut self, ptr: PhysAddr) {
+        assert!(
+            ptr.as_u64().trailing_zeros() >= 6,
+            "Wrong address: {:?}",
+            ptr
+        );
+
+        self.0 = ptr.as_u64();
+    }
+}
 
 bitfield! {
     #[repr(transparent)]
      struct ConfigureRegister(u32);
 
     max_device_slots_enabled,set_max_device_slots_enabled:7,0;
-}
-
-bitfield! {
-    #[repr(transparent)]
-     struct DeviceContextBaseAddressArrayPointer(u64);
-
-    ptr,set_pointer:63,6;
-}
-
-impl DeviceContextBaseAddressArrayPointer {
-    fn set_ptr(&mut self, ptr: PhysAddr) {
-        let ptr = ptr.as_u64() >> 6;
-
-        self.set_pointer(ptr);
-    }
 }
 
 bitfield! {

@@ -3,10 +3,10 @@
 use {crate::accessor::single_object::Accessor, bitfield::bitfield, x86_64::PhysAddr};
 
 pub struct HCCapabilityRegisters<'a> {
-    pub cap_length: Accessor<'a, CapabilityRegistersLength>,
+    cap_length: Accessor<'a, CapabilityRegistersLength>,
     hcs_params_1: Accessor<'a, StructuralParameters1>,
-    pub hc_cp_params_1: Accessor<'a, HCCapabilityParameters1>,
-    pub rts_off: Accessor<'a, RuntimeRegisterSpaceOffset>,
+    hc_cp_params_1: Accessor<'a, HCCapabilityParameters1>,
+    rts_off: Accessor<'a, RuntimeRegisterSpaceOffset>,
 }
 
 impl<'a> HCCapabilityRegisters<'a> {
@@ -30,13 +30,25 @@ impl<'a> HCCapabilityRegisters<'a> {
     pub fn number_of_device_slots(&self) -> u32 {
         self.hcs_params_1.number_of_device_slots()
     }
+
+    pub fn xhci_capability_ptr(&self) -> u32 {
+        self.hc_cp_params_1.xhci_extended_capabilities_pointer()
+    }
+
+    pub fn len(&self) -> usize {
+        self.cap_length.get()
+    }
+
+    pub fn offset_to_runtime_registers(&self) -> u32 {
+        self.rts_off.get()
+    }
 }
 
 #[repr(transparent)]
-pub struct CapabilityRegistersLength(u8);
+struct CapabilityRegistersLength(u8);
 
 impl CapabilityRegistersLength {
-    pub fn get(&self) -> usize {
+    fn get(&self) -> usize {
         self.0 as _
     }
 }
@@ -57,14 +69,14 @@ bitfield! {
 
 bitfield! {
     #[repr(transparent)]
-    pub struct HCCapabilityParameters1(u32);
-    pub xhci_extended_capabilities_pointer,_: 31,16;
+    struct HCCapabilityParameters1(u32);
+    xhci_extended_capabilities_pointer,_: 31,16;
 }
 
 #[repr(transparent)]
-pub struct RuntimeRegisterSpaceOffset(u32);
+struct RuntimeRegisterSpaceOffset(u32);
 impl RuntimeRegisterSpaceOffset {
-    pub fn get(&self) -> u32 {
+    fn get(&self) -> u32 {
         self.0 & !0xf
     }
 }

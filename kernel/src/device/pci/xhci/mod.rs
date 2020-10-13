@@ -7,8 +7,12 @@ mod transfer_ring;
 
 use {
     super::config::{self, bar},
-    crate::mem::paging::pml4::PML4,
+    crate::{
+        accessor::slice,
+        mem::{allocator::phys::FRAME_MANAGER, paging::pml4::PML4},
+    },
     core::convert::TryFrom,
+    os_units::Size,
     register::{
         hc_capability_registers::HCCapabilityRegisters,
         hc_operational_registers::HCOperationalRegisters,
@@ -16,14 +20,17 @@ use {
         usb_legacy_support_capability::UsbLegacySupportCapability,
     },
     transfer_ring::{Command, Event, RingQueue},
-    x86_64::{structures::paging::MapperAllSizes, VirtAddr},
+    x86_64::{
+        structures::paging::{FrameAllocator, MapperAllSizes},
+        PhysAddr,
+    },
 };
 
 pub struct Xhci<'a> {
     usb_legacy_support_capability: Option<UsbLegacySupportCapability<'a>>,
     hc_capability_registers: HCCapabilityRegisters<'a>,
     hc_operational_registers: HCOperationalRegisters<'a>,
-    dcbaa: DeviceContextBaseAddressArray,
+    dcbaa: DeviceContextBaseAddressArray<'a>,
     command_ring: RingQueue<'a, Command>,
     event_ring: RingQueue<'a, Event>,
     runtime_base_registers: RuntimeBaseRegisters<'a>,
@@ -72,13 +79,7 @@ impl<'a> Xhci<'a> {
 
     fn set_dcbaap(&mut self) {
         info!("Set DCBAAP...");
-        let phys_addr_of_dcbaa = PML4
-            .lock()
-            .translate_addr(VirtAddr::new(&self.dcbaa as *const _ as u64))
-            .expect("Failed to fetch the physical address of DCBAA");
-
-        self.hc_operational_registers
-            .set_dcbaa_ptr(phys_addr_of_dcbaa);
+        self.hc_operational_registers.set_dcbaa_ptr(self.dcbaa.phys);
     }
 
     fn set_command_ring_pointer(&mut self) {
@@ -134,7 +135,9 @@ impl<'a> Xhci<'a> {
     }
 
     fn run(&mut self) {
-        self.hc_operational_registers.run()
+        self.hc_operational_registers.run();
+
+        self.event_ring.dequeue().unwrap();
     }
 
     fn new(config_space: config::Space) -> Result<Self, Error> {
@@ -159,13 +162,15 @@ impl<'a> Xhci<'a> {
 
         info!("Getting HCOperationalRegisters...");
         let hc_operational_registers =
-            HCOperationalRegisters::new(mmio_base, &hc_capability_registers.cap_length);
+            HCOperationalRegisters::new(mmio_base, &hc_capability_registers);
 
         info!("Getting DCBAA...");
         let dcbaa = DeviceContextBaseAddressArray::new();
 
-        let runtime_base_registers =
-            RuntimeBaseRegisters::new(mmio_base, hc_capability_registers.rts_off.get() as usize);
+        let runtime_base_registers = RuntimeBaseRegisters::new(
+            mmio_base,
+            hc_capability_registers.offset_to_runtime_registers() as usize,
+        );
 
         Self {
             usb_legacy_support_capability,
@@ -183,12 +188,17 @@ impl<'a> Xhci<'a> {
 
 const MAX_DEVICE_SLOT: usize = 255;
 
-#[repr(transparent)]
-struct DeviceContextBaseAddressArray([usize; MAX_DEVICE_SLOT + 1]);
+struct DeviceContextBaseAddressArray<'a> {
+    arr: slice::Accessor<'a, usize>,
+    phys: PhysAddr,
+}
 
-impl DeviceContextBaseAddressArray {
+impl<'a> DeviceContextBaseAddressArray<'a> {
     fn new() -> Self {
-        Self([0; MAX_DEVICE_SLOT + 1])
+        let phys_frame = FRAME_MANAGER.lock().allocate_frame().unwrap();
+        let phys = phys_frame.start_address();
+        let arr = slice::Accessor::new(phys, Size::new(0), MAX_DEVICE_SLOT + 1);
+        Self { arr, phys }
     }
 }
 
