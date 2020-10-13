@@ -8,6 +8,7 @@ mod transfer_ring;
 use {
     super::config::{self, bar},
     crate::mem::paging::pml4::PML4,
+    core::convert::TryFrom,
     register::{
         hc_capability_registers::HCCapabilityRegisters,
         hc_operational_registers::HCOperationalRegisters,
@@ -109,7 +110,9 @@ impl<'a> Xhci<'a> {
 
     fn set_event_ring_segment_table_size(&mut self) {
         self.runtime_base_registers
-            .set_event_ring_segment_table_size(event_ring::NUM_ELEMENTS_SEGMENT_TABLE as _)
+            .set_event_ring_segment_table_size(
+                u16::try_from(event_ring::NUM_ELEMENTS_SEGMENT_TABLE).unwrap(),
+            )
     }
 
     fn set_event_ring_segment_table_address(&mut self) {
