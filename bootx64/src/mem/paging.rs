@@ -45,7 +45,7 @@ pub fn init(boot_info: &mut kernelboot::Info) {
 
     enable_recursive_mapping();
 
-    let reserved = boot_info.reserved().clone();
+    let reserved = *boot_info.reserved();
 
     let mut allocator = AllocatorWithEfiMemoryMap::new(boot_info.mem_map());
 
