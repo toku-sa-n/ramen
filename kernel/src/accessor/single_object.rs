@@ -19,7 +19,7 @@ impl<'a, T: 'a> Accessor<'a, T> {
     pub fn new(phys_base: PhysAddr, offset: usize) -> Self {
         use x86_64::structures::paging::MapperAllSizes;
         let phys_base = phys_base + offset;
-        info!("phys_base: {:?}", phys_base);
+        debug!("phys_base: {:?}", phys_base);
 
         let base = super::map_pages(phys_base, Size::new(size_of::<T>()));
 
