@@ -6,8 +6,6 @@
 #![deny(clippy::pedantic)]
 #![deny(clippy::all)]
 
-extern crate rlibc;
-
 #[macro_use]
 #[allow(unused_imports)]
 extern crate common;
@@ -25,7 +23,7 @@ mod mem;
 use common::{kernelboot, mem::reserved};
 use core::{convert::TryFrom, ptr, ptr::NonNull, slice};
 use fs::kernel;
-use mem::{free_page, heap, paging, stack};
+use mem::{free_page, paging, stack};
 use uefi::{
     prelude::{Boot, Handle, SystemTable},
     table::{boot, boot::MemoryType},

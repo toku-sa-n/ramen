@@ -4,7 +4,6 @@ RUST_SRC_DIR	:= src
 BUILD_DIR		:= build
 EFI_DIR			:= bootx64
 EFI_SRC_DIR		:= $(EFI_DIR)/$(RUST_SRC_DIR)
-MEMLIB_DIR		:= memlib
 COMMON_SRC_DIR	:= common
 KERNEL_DIR		:= kernel
 KERNEL_SRC_DIR	:= $(KERNEL_DIR)/$(RUST_SRC_DIR)
@@ -18,14 +17,12 @@ CONFIG_TOML		:= $(KERNEL_DIR)/.cargo/config.toml
 COMMON_SRC		:= $(addprefix $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)/, $(shell ls $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)))
 
 LD_SRC			:= $(KERNEL_DIR)/os.ld
-MEMLIB_SRC		:= $(KERNEL_DIR)/$(MEMLIB_DIR)/lib.c
 
 EFI_FILE		:= $(BUILD_DIR)/bootx64.efi
 
 KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
 LIB_FILE		:= $(BUILD_DIR)/libramen_os.a
 IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
-MEMLIB_FILE		:= $(BUILD_DIR)/memlib.o
 
 LD				:= ld
 CC				:= gcc
@@ -37,6 +34,9 @@ OVMF_CODE		:= OVMF_CODE.fd
 OVMF_VARS		:= OVMF_VARS.fd
 
 CFLAGS			:= -O3 -pipe -nostdlib -c -ffreestanding
+
+# Workaround for `compiler_builtins` crate.
+RELEASE_FLAGS	:= --release
 
 # If you change values of `iobase` and `iosize`, don't forget to change the corresponding values in `kernel/src/lib.rs`!
 VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -no-reboot -m 4G -d int -device isa-debug-exit,iobase=0xf4,iosize=0x04
@@ -92,17 +92,14 @@ release:
 release_run:
 	make release && make run
 
-$(KERNEL_FILE):$(LIB_FILE) $(MEMLIB_FILE) $(LD_SRC)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE) $(MEMLIB_FILE)
+$(KERNEL_FILE):$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
+	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE)
 
 $(LIB_FILE): $(RUST_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(KERNEL_DIR)/$(CARGO_TOML) $(KERNEL_DIR)/$(CARGO_JSON) $(CONFIG_TOML)|$(BUILD_DIR)
 	# FIXME: Currently `cargo` tries to read `$(pwd)/.cargo/config.toml`, not
 	# `$(dirname argument_of_--manifest-path)/.cargo/config.toml`.
 	# See: https://github.com/rust-lang/cargo/issues/2930
 	cd $(KERNEL_DIR) && $(RUSTCC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS) $(TEST_FLAG)
-
-$(MEMLIB_FILE):$(MEMLIB_SRC)|$(BUILD_DIR)
-	$(CC) $(CFLAGS) -o $@ $<
 
 %.fd:
 	@echo "$@ not found"
