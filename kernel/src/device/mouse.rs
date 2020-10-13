@@ -180,11 +180,11 @@ impl Stream for PacketStream {
             .expect("MOUSE_PACKET_QUEUE is not initialized");
         WAKER.register(&cx.waker());
         match queue.pop() {
-            Ok(packet) => {
+            Some(packet) => {
                 WAKER.take();
                 Poll::Ready(Some(packet))
             }
-            Err(_) => Poll::Pending,
+            None => Poll::Pending,
         }
     }
 }
