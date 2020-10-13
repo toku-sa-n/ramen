@@ -40,6 +40,7 @@ impl<'a> HCCapabilityRegisters<'a> {
     }
 
     pub fn offset_to_runtime_registers(&self) -> u32 {
+        info!("RTSOFF: {}", self.rts_off.get());
         self.rts_off.get()
     }
 }
@@ -77,6 +78,6 @@ bitfield! {
 struct RuntimeRegisterSpaceOffset(u32);
 impl RuntimeRegisterSpaceOffset {
     fn get(&self) -> u32 {
-        self.0 & !0xf
+        self.0 & !0x1f
     }
 }
