@@ -49,7 +49,6 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
         &vram_info,
         free_page,
     );
-    paging::init(system_table.boot_services(), &reserved_regions);
     let mem_map = terminate_boot_services(image, system_table);
 
     exit::bootx64(kernelboot::Info::new(
