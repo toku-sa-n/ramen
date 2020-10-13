@@ -46,13 +46,13 @@ use {
 
 #[no_mangle]
 #[start]
-pub extern "win64" fn os_main(boot_info: kernelboot::Info) -> ! {
-    initialization(&boot_info);
+pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
+    initialization(&mut boot_info);
 
     run_tasks();
 }
 
-fn initialization(boot_info: &kernelboot::Info) {
+fn initialization(boot_info: &mut kernelboot::Info) {
     Vram::init(&boot_info);
 
     gdt::init();

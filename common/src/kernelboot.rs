@@ -52,7 +52,12 @@ impl Info {
     }
 
     #[must_use]
-    pub fn mem_map(&self) -> &[boot::MemoryDescriptor] {
+    pub fn mem_map(&mut self) -> &mut [boot::MemoryDescriptor] {
         self.mem_map.as_slice()
+    }
+
+    #[must_use]
+    pub fn reserved(&self) -> &reserved::Map {
+        &self.reserved
     }
 }

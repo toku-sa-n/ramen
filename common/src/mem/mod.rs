@@ -21,7 +21,7 @@ impl Map {
     }
 
     #[must_use]
-    pub fn as_slice(&self) -> &[boot::MemoryDescriptor] {
+    pub fn as_slice(&mut self) -> &mut [boot::MemoryDescriptor] {
         unsafe { slice::from_raw_parts_mut(self.ptr.as_ptr(), self.num_descriptors) }
     }
 }

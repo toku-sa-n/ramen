@@ -57,7 +57,7 @@ impl Executor {
             waker_cache,
         } = self;
 
-        while let Ok(id) = woken_id_queue.pop() {
+        while let Some(id) = woken_id_queue.pop() {
             let task = match tasks.get_mut(&id) {
                 Some(task) => task,
                 None => continue,
