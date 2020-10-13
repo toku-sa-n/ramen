@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use common::constant::INIT_RSP;
-use common::kernelboot;
+use {
+    crate::mem::paging,
+    common::{constant::INIT_RSP, kernelboot},
+};
 
 macro_rules! change_rsp{
     ($val:expr)=>{
@@ -11,8 +13,10 @@ macro_rules! change_rsp{
     }
 }
 
-pub fn bootx64(boot_info: kernelboot::Info) -> ! {
+pub fn bootx64(mut boot_info: kernelboot::Info) -> ! {
     disable_interruption();
+
+    paging::init(&mut boot_info);
 
     jump_to_kernel(boot_info);
 }

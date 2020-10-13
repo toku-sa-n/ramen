@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use common::constant::RECUR_PML4_ADDR;
+use common::kernelboot;
 use common::mem::reserved;
 use core::convert::TryFrom;
 use uefi::table::boot;
@@ -14,34 +15,41 @@ use x86_64::structures::paging::{
 };
 
 struct AllocatorWithEfiMemoryMap<'a> {
-    boot_services: &'a boot::BootServices,
+    mem_map: &'a mut [boot::MemoryDescriptor],
 }
 
 impl<'a> AllocatorWithEfiMemoryMap<'a> {
-    fn new(boot_services: &'a boot::BootServices) -> Self {
-        Self { boot_services }
+    fn new(mem_map: &'a mut [boot::MemoryDescriptor]) -> Self {
+        Self { mem_map }
     }
 }
 
 unsafe impl<'a> FrameAllocator<Size4KiB> for AllocatorWithEfiMemoryMap<'a> {
     fn allocate_frame(&mut self) -> Option<PhysFrame> {
-        Some(PhysFrame::containing_address(PhysAddr::new(
-            self.boot_services
-                .allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, 1)
-                .ok()?
-                .unwrap(),
-        )))
+        for descriptor in self.mem_map.iter_mut() {
+            if descriptor.ty == MemoryType::CONVENTIONAL && descriptor.page_count > 0 {
+                let addr = PhysAddr::new(descriptor.phys_start);
+                descriptor.phys_start += Size4KiB::SIZE as u64;
+                descriptor.page_count -= 1;
+
+                return Some(PhysFrame::containing_address(addr));
+            }
+        }
+
+        None
     }
 }
 
-pub fn init(boot_services: &boot::BootServices, reserved_regions: &reserved::Map) {
+pub fn init(boot_info: &mut kernelboot::Info) {
     remove_table_protection();
 
     enable_recursive_mapping();
 
-    let mut allocator = AllocatorWithEfiMemoryMap::new(boot_services);
+    let reserved = *boot_info.reserved();
 
-    for region in reserved_regions.iter() {
+    let mut allocator = AllocatorWithEfiMemoryMap::new(boot_info.mem_map());
+
+    for region in reserved.iter() {
         map_virt_to_phys(region, &mut allocator);
     }
 }
