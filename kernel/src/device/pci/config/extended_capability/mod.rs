@@ -138,12 +138,15 @@ bitfield! {
 
     redirection_hint, set_redirection_hint: 3;
     u8, destination_id, set_destination_id: 19, 12;
+    fixed_value, set_fixed_value: 31, 20;
 }
 
 impl MessageAddress {
     pub fn init_for_xhci(&mut self) {
+        info!("LOCAL APIC ID: {}", Self::get_local_apic_id());
         self.set_destination_id(Self::get_local_apic_id());
         self.set_redirection_hint(false);
+        self.set_fixed_value(0xfee);
     }
 
     fn get_local_apic_id() -> u8 {
