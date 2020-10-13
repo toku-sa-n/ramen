@@ -136,8 +136,6 @@ impl<'a> Xhci<'a> {
 
     fn run(&mut self) {
         self.hc_operational_registers.run();
-
-        self.event_ring.dequeue().unwrap();
     }
 
     fn new(config_space: config::Space) -> Result<Self, Error> {
