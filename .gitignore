@@ -3,6 +3,7 @@ bootx64/target
 kernel/target
 debug/target
 common/target
+proc_macros/target
 **/*.rs.bk
 **/Cargo.lock
 tags
@@ -11,3 +12,5 @@ build
 **/*.efi
 *.fd
 *.img
+*.temp
+*.lock

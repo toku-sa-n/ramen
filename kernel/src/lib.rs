@@ -21,6 +21,9 @@ extern crate alloc;
 extern crate log;
 extern crate x86_64;
 
+#[macro_use]
+mod graphics;
+mod accessor;
 mod device;
 mod gdt;
 mod idt;
@@ -29,9 +32,6 @@ mod mem;
 mod multitask;
 mod panic;
 
-#[macro_use]
-mod graphics;
-
 use {
     common::kernelboot,
     device::{keyboard, mouse},
@@ -39,11 +39,9 @@ use {
         screen::{self, desktop::Desktop, layer},
         Vram,
     },
-    mem::{
-        allocator::{heap, phys::FrameManager},
-        paging,
-    },
+    mem::allocator::{heap, phys::FrameManager},
     multitask::{executor::Executor, task::Task},
+    x86_64::instructions::interrupts,
 };
 
 #[no_mangle]
@@ -61,6 +59,8 @@ fn initialization(boot_info: &mut kernelboot::Info) {
     idt::init();
     interrupt::init_pic();
 
+    interrupts::enable();
+
     FrameManager::init(boot_info.mem_map());
 
     heap::init();
@@ -69,13 +69,20 @@ fn initialization(boot_info: &mut kernelboot::Info) {
 
     screen::log::init().unwrap();
 
-    paging::mark_pages_as_unused();
-
     let desktop = Desktop::new();
     desktop.draw();
 
     info!("Hello Ramen OS!");
     info!("Vram information: {}", Vram::display());
+
+    info!(
+        "The number of PCI devices: {}",
+        device::pci::iter_devices().count()
+    );
+
+    for mut xhci in device::pci::xhci::iter_devices() {
+        xhci.init();
+    }
 
     interrupt::set_init_pic_bits();
 }
@@ -90,11 +97,11 @@ fn run_tasks() -> ! {
 
 #[cfg(feature = "qemu_test")]
 fn run_tasks() -> ! {
+    use qemu_exit::QEMUExit;
     // Currently there is no way to test multitasking. If this OS suppports timer, the situation
     // may change.
     //
     // If you change the value `0xf4` and `33`, don't forget to change the correspond values in
     // `Makefile`!
-    use qemu_exit::QEMUExit;
     qemu_exit::X86::new(0xf4, 33).exit_success();
 }

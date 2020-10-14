@@ -72,6 +72,12 @@ pub fn set_init_pic_bits() {
     }
 }
 
+pub extern "x86-interrupt" fn handler_20(_stack_frame: &mut idt::InterruptStackFrame) {
+    unsafe {
+        Port::new(PIC0_OCW2).write(0x60 as u8);
+    }
+}
+
 pub extern "x86-interrupt" fn handler_21(_stack_frame: &mut idt::InterruptStackFrame) {
     unsafe { Port::new(PIC0_OCW2).write(0x61 as u8) };
     let mut port = PORT_KEY_DATA;
@@ -85,4 +91,8 @@ pub extern "x86-interrupt" fn handler_2c(_stack_frame: &mut idt::InterruptStackF
     }
     let mut port = PORT_KEY_DATA;
     mouse::enqueue_packet(unsafe { port.read() });
+}
+
+pub extern "x86-interrupt" fn handler_40(_stack_frame: &mut idt::InterruptStackFrame) {
+    panic!("Interrupt from 0x40");
 }

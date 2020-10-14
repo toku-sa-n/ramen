@@ -41,3 +41,5 @@ uefi = "0.6.0"
 crossbeam-queue = { version = "0.3.0", default-features = false, features = ["alloc"] }
 futures-util = { version = "0.3.4", default-features = false, features = ["alloc"] }
 screen_layer = "0.1.0"
+os_units = "0.1.1"
+bitfield = "0.13.2"
