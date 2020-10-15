@@ -12,6 +12,7 @@ use {
         mem::{allocator::phys::FRAME_MANAGER, paging::pml4::PML4},
     },
     core::convert::TryFrom,
+    futures_util::{task::AtomicWaker, StreamExt},
     os_units::Size,
     register::{
         hc_capability_registers::HCCapabilityRegisters,
@@ -25,6 +26,17 @@ use {
         PhysAddr,
     },
 };
+
+static WAKER: AtomicWaker = AtomicWaker::new();
+
+pub async fn task() {
+    let mut xhci = iter_devices().next().unwrap();
+    xhci.init();
+
+    while let Some(trb) = xhci.event_ring.next().await {
+        info!("TRB: {:?}", trb);
+    }
+}
 
 pub struct Xhci<'a> {
     usb_legacy_support_capability: Option<UsbLegacySupportCapability<'a>>,

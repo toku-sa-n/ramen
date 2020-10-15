@@ -34,7 +34,7 @@ mod panic;
 
 use {
     common::kernelboot,
-    device::{keyboard, mouse},
+    device::{keyboard, mouse, pci::xhci},
     graphics::{
         screen::{self, desktop::Desktop, layer},
         Vram,
@@ -80,10 +80,6 @@ fn initialization(boot_info: &mut kernelboot::Info) {
         device::pci::iter_devices().count()
     );
 
-    for mut xhci in device::pci::xhci::iter_devices() {
-        xhci.init();
-    }
-
     interrupt::set_init_pic_bits();
 }
 
@@ -92,6 +88,7 @@ fn run_tasks() -> ! {
     let mut executor = Executor::new();
     executor.spawn(Task::new(keyboard::task()));
     executor.spawn(Task::new(mouse::task()));
+    executor.spawn(Task::new(xhci::task()));
     executor.run();
 }
 
