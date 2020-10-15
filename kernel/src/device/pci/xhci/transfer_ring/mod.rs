@@ -1,65 +1,61 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::mem::{
-        allocator::{phys::FRAME_MANAGER, virt},
-        paging::pml4::PML4,
-    },
     core::{
-        convert::TryFrom,
         marker::PhantomData,
-        ptr::{self, NonNull},
-        slice,
+        ops::{Index, IndexMut},
     },
-    x86_64::{
-        structures::paging::{FrameAllocator, Mapper, PageSize, PageTableFlags, Size4KiB},
-        VirtAddr,
-    },
+    x86_64::VirtAddr,
 };
 
 // 4KB / size_of(TRB) = 256.
 const NUM_OF_TRB_IN_QUEUE: usize = 256;
 
-pub struct RingQueue<'a, T: TrbType> {
-    queue: &'a mut [Trb<T>],
+static EVENT_RING: Ring<Event> = Ring::<Event>::new();
+static COMMAND_RING: Ring<Command> = Ring::<Command>::new();
+
+#[repr(align(32))]
+struct Ring<T: TrbType>([Trb<T>; NUM_OF_TRB_IN_QUEUE]);
+impl Ring<Event> {
+    const fn new() -> Self {
+        const TRB: Trb<Event> = Trb::new();
+        Self([TRB; NUM_OF_TRB_IN_QUEUE])
+    }
+}
+impl Ring<Command> {
+    const fn new() -> Self {
+        const TRB: Trb<Command> = Trb::new();
+        Self([TRB; NUM_OF_TRB_IN_QUEUE])
+    }
+}
+impl<T: TrbType> Index<usize> for Ring<T> {
+    type Output = Trb<T>;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
+    }
+}
+
+pub struct RingQueue<T: TrbType + 'static> {
+    queue: &'static Ring<T>,
     dequeue_index: usize,
     cycle_bit: CycleBit,
 }
 
-impl<'a, T: TrbType> RingQueue<'a, T> {
+impl<T: TrbType + 'static> RingQueue<T> {
+    pub fn addr(&self) -> VirtAddr {
+        VirtAddr::new(self.queue as *const _ as _)
+    }
+}
+
+impl RingQueue<Event> {
     pub fn new() -> Self {
-        let page = virt::search_first_unused_page().unwrap();
-        let frame = FRAME_MANAGER.lock().allocate_frame().unwrap();
-
-        unsafe {
-            PML4.lock()
-                .map_to(
-                    page,
-                    frame,
-                    PageTableFlags::PRESENT,
-                    &mut *FRAME_MANAGER.lock(),
-                )
-                .unwrap()
-                .flush();
-        }
-
-        let ptr = NonNull::<u8>::new(page.start_address().as_mut_ptr()).unwrap();
-
-        unsafe { ptr::write_bytes(ptr.as_ptr(), 0, usize::try_from(Size4KiB::SIZE).unwrap()) }
-
         Self {
-            queue: unsafe { slice::from_raw_parts_mut(ptr.cast().as_ptr(), NUM_OF_TRB_IN_QUEUE) },
+            queue: &EVENT_RING,
             dequeue_index: 0,
             cycle_bit: CycleBit::new(1),
         }
     }
-
-    pub fn addr(&self) -> VirtAddr {
-        VirtAddr::new(self.queue.as_ptr() as u64)
-    }
-}
-
-impl<'a> RingQueue<'a, Event> {
     pub fn dequeue(&mut self) -> Option<Trb<Event>> {
         if self.queue[self.dequeue_index].valid(self.cycle_bit) {
             let element = self.queue[self.dequeue_index];
@@ -79,10 +75,21 @@ impl<'a> RingQueue<'a, Event> {
     }
 }
 
+impl RingQueue<Command> {
+    pub fn new() -> Self {
+        Self {
+            queue: &COMMAND_RING,
+            dequeue_index: 0,
+            cycle_bit: CycleBit::new(1),
+        }
+    }
+}
+
 pub trait TrbType {
     const SIZE: usize = 16;
 }
 
+#[derive(Copy, Clone, Debug)]
 pub struct Command;
 impl TrbType for Command {}
 
@@ -97,6 +104,13 @@ pub struct Trb<T: TrbType> {
     _marker: PhantomData<T>,
 }
 impl<T: TrbType> Trb<T> {
+    const fn new() -> Self {
+        Self {
+            trb: [0; 4],
+            _marker: PhantomData,
+        }
+    }
+
     pub fn ty(&self) -> u32 {
         (self.trb[3] >> 10) & 0x3f
     }
