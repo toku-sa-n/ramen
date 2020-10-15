@@ -94,5 +94,5 @@ pub extern "x86-interrupt" fn handler_2c(_stack_frame: &mut idt::InterruptStackF
 }
 
 pub extern "x86-interrupt" fn handler_40(_stack_frame: &mut idt::InterruptStackFrame) {
-    panic!("Interrupt from 0x40");
+    info!("Interrupt from 0x40");
 }

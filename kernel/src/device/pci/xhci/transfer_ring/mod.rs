@@ -3,8 +3,11 @@
 use {
     core::{
         marker::PhantomData,
-        ops::{Index, IndexMut},
+        ops::Index,
+        pin::Pin,
+        task::{Context, Poll},
     },
+    futures_util::{stream::Stream, task::AtomicWaker},
     x86_64::VirtAddr,
 };
 
@@ -41,13 +44,11 @@ pub struct RingQueue<T: TrbType + 'static> {
     dequeue_index: usize,
     cycle_bit: CycleBit,
 }
-
 impl<T: TrbType + 'static> RingQueue<T> {
     pub fn addr(&self) -> VirtAddr {
         VirtAddr::new(self.queue as *const _ as _)
     }
 }
-
 impl RingQueue<Event> {
     pub fn new() -> Self {
         Self {
@@ -74,13 +75,26 @@ impl RingQueue<Event> {
         }
     }
 }
-
 impl RingQueue<Command> {
     pub fn new() -> Self {
         Self {
             queue: &COMMAND_RING,
             dequeue_index: 0,
             cycle_bit: CycleBit::new(1),
+        }
+    }
+}
+impl Stream for RingQueue<Event> {
+    type Item = Trb<Event>;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        super::WAKER.register(&cx.waker());
+        match Pin::into_inner(self).dequeue() {
+            Some(trb) => {
+                super::WAKER.take();
+                Poll::Ready(Some(trb))
+            }
+            None => Poll::Pending,
         }
     }
 }
