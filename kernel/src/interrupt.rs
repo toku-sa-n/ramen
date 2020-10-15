@@ -72,6 +72,54 @@ pub fn set_init_pic_bits() {
     }
 }
 
+pub extern "x86-interrupt" fn handler_00(_stack_frame: &mut idt::InterruptStackFrame) {
+    panic!("Divide-by-zero Error!");
+}
+
+pub extern "x86-interrupt" fn handler_01(_stack_frame: &mut idt::InterruptStackFrame) {
+    panic!("Debug exception!");
+}
+
+pub extern "x86-interrupt" fn handler_02(_stack_frame: &mut idt::InterruptStackFrame) {
+    panic!("Non-maskable Interrupt!");
+}
+
+pub extern "x86-interrupt" fn handler_03(_stack_frame: &mut idt::InterruptStackFrame) {
+    panic!("Breakpoint!");
+}
+
+pub extern "x86-interrupt" fn handler_04(_stack_frame: &mut idt::InterruptStackFrame) {
+    panic!("Overflow!");
+}
+
+pub extern "x86-interrupt" fn handler_05(_stack_frame: &mut idt::InterruptStackFrame) {
+    panic!("Bound Range Exceeded!");
+}
+
+pub extern "x86-interrupt" fn handler_06(_stack_frame: &mut idt::InterruptStackFrame) {
+    panic!("Invalid Opcode!");
+}
+
+pub extern "x86-interrupt" fn handler_07(_stack_frame: &mut idt::InterruptStackFrame) {
+    panic!("Device Not Available!");
+}
+
+pub extern "x86-interrupt" fn handler_09(_stack_frame: &mut idt::InterruptStackFrame) {
+    panic!("Coprocessor Segment Overrun!");
+}
+
+pub extern "x86-interrupt" fn handler_10(_stack_frame: &mut idt::InterruptStackFrame) {
+    panic!("x87 Floating-Point Exception");
+}
+
+pub extern "x86-interrupt" fn handler_13(_stack_frame: &mut idt::InterruptStackFrame) {
+    panic!("SIMD Floating-Point Exception");
+}
+
+pub extern "x86-interrupt" fn handler_14(_stack_frame: &mut idt::InterruptStackFrame) {
+    panic!("Virtualization Exception!");
+}
+
 pub extern "x86-interrupt" fn handler_20(_stack_frame: &mut idt::InterruptStackFrame) {
     unsafe {
         Port::new(PIC0_OCW2).write(0x60 as u8);
