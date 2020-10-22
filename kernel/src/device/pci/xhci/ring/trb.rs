@@ -2,6 +2,10 @@
 
 use bitfield::bitfield;
 
+enum Ty {
+    Noop = 8,
+}
+
 bitfield! {
     #[repr(transparent)]
     pub struct Noop(u128);
@@ -13,7 +17,7 @@ impl Noop {
     fn new(cycle_bit: CycleBit) -> Self {
         let mut noop = Noop(0);
         noop.set_cycle_bit(cycle_bit.into());
-        noop.set_trb_type(8);
+        noop.set_trb_type(Ty::Noop as _);
 
         noop
     }
