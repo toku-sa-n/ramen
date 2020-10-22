@@ -3,6 +3,7 @@
 mod event_ring;
 mod extended_capability;
 mod register;
+mod ring;
 mod transfer_ring;
 
 use {
