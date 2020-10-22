@@ -38,13 +38,6 @@ impl<'a> RuntimeBaseRegisters<'a> {
     pub fn set_event_ring_dequeue_ptr(&mut self, ptr: PhysAddr) {
         self.erd_p.set_address(ptr)
     }
-
-    pub fn enable_interrupt(&mut self) {
-        self.i_man.set_interrupt_pending(true);
-        self.i_man.set_interrupt_status(true);
-
-        self.i_mod.set_interrupt_interval(4000);
-    }
 }
 
 bitfield! {
