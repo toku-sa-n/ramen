@@ -102,10 +102,9 @@ impl<'a> Xhci<'a> {
 
     fn init_event_ring_segment_table(&mut self) {
         info!("Initializing event ring segment table...");
-        let ring_addr = self.event_ring.addr();
-        let phys = PML4.lock().translate_addr(ring_addr).unwrap();
+        let phys_addr_of_event_ring = self.phys_addr_of_event_ring();
         self.event_ring_segment_table.edit(|table| {
-            table[0].set_base_address(phys);
+            table[0].set_base_address(phys_addr_of_event_ring);
             table[0].set_segment_size(256);
         });
 
@@ -124,12 +123,16 @@ impl<'a> Xhci<'a> {
     }
 
     fn set_event_ring_dequeue_pointer(&mut self) {
-        let phys = PML4.lock().translate_addr(self.event_ring.addr()).unwrap();
-        self.runtime_base_registers.set_event_ring_dequeue_ptr(phys)
+        self.runtime_base_registers
+            .set_event_ring_dequeue_ptr(self.phys_addr_of_event_ring())
     }
 
     fn run(&mut self) {
         self.hc_operational_registers.run();
+    }
+
+    fn phys_addr_of_event_ring(&self) -> PhysAddr {
+        PML4.lock().translate_addr(self.event_ring.addr()).unwrap()
     }
 
     fn new(config_space: config::Space) -> Result<Self, Error> {
