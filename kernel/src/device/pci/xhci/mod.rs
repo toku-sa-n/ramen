@@ -109,7 +109,11 @@ impl<'a> Xhci<'a> {
         });
 
         self.set_event_ring_segment_table_size();
-        self.set_event_ring_segment_table_address();
+        self.enable_event_ring()
+    }
+
+    fn enable_event_ring(&mut self) {
+        self.set_event_ring_segment_table_address()
     }
 
     fn set_event_ring_segment_table_size(&mut self) {
