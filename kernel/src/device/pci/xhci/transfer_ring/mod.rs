@@ -21,13 +21,13 @@ static COMMAND_RING: Ring<Command> = Ring::<Command>::new();
 struct Ring<T: TrbType>([Trb<T>; NUM_OF_TRB_IN_QUEUE]);
 impl Ring<Event> {
     const fn new() -> Self {
-        const TRB: Trb<Event> = Trb::new();
+        const TRB: Trb<Event> = Trb::null();
         Self([TRB; NUM_OF_TRB_IN_QUEUE])
     }
 }
 impl Ring<Command> {
     const fn new() -> Self {
-        const TRB: Trb<Command> = Trb::new();
+        const TRB: Trb<Command> = Trb::null();
         Self([TRB; NUM_OF_TRB_IN_QUEUE])
     }
 }
@@ -122,7 +122,7 @@ pub struct Trb<T: TrbType> {
     _marker: PhantomData<T>,
 }
 impl<T: TrbType> Trb<T> {
-    const fn new() -> Self {
+    const fn null() -> Self {
         Self {
             trb: [0; 4],
             _marker: PhantomData,
