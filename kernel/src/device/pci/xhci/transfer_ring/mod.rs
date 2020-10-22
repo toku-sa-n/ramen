@@ -129,10 +129,6 @@ impl<T: TrbType> Trb<T> {
         }
     }
 
-    pub fn ty(&self) -> u32 {
-        (self.trb[3] >> 10) & 0x3f
-    }
-
     fn valid(&self, cycle_bit: CycleBit) -> bool {
         self.trb[3] & 1 == cycle_bit.0
     }
