@@ -140,13 +140,13 @@ impl<'a> Xhci<'a> {
 
     fn new(config_space: config::Space) -> Result<Self, Error> {
         if config_space.is_xhci() {
-            Ok(Self::generate(config_space))
+            Ok(Self::generate(&config_space))
         } else {
             Err(Error::NotXhciDevice)
         }
     }
 
-    fn generate(config_space: config::Space) -> Self {
+    fn generate(config_space: &config::Space) -> Self {
         info!("xHC found.");
 
         let mmio_base = config_space.base_address(bar::Index::new(0));
