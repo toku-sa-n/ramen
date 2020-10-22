@@ -47,7 +47,6 @@ pub struct Xhci<'a> {
     event_ring: RingQueue<Event>,
     runtime_base_registers: RuntimeBaseRegisters<'a>,
     event_ring_segment_table: event_ring::SegmentTable<'a>,
-    config_space: config::Space,
 }
 
 impl<'a> Xhci<'a> {
@@ -177,7 +176,6 @@ impl<'a> Xhci<'a> {
             hc_operational_registers,
             dcbaa,
             command_ring: RingQueue::<Command>::new(),
-            config_space,
             event_ring: RingQueue::<Event>::new(),
             runtime_base_registers,
             event_ring_segment_table: event_ring::SegmentTable::new(),
