@@ -148,3 +148,8 @@ impl CycleBit {
         self.0 ^= 1;
     }
 }
+impl From<CycleBit> for bool {
+    fn from(cycle_bit: CycleBit) -> Self {
+        cycle_bit.0 != 0
+    }
+}
