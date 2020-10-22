@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use x86_64::PhysAddr;
+use {crate::accessor::slice, x86_64::PhysAddr};
+
+struct SegmentTable<'a> {
+    addr: PhysAddr,
+    table: slice::Accessor<'a, Entry>,
+}
 
 #[repr(C, packed)]
 struct Entry {
