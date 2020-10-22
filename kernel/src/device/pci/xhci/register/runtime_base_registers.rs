@@ -68,9 +68,10 @@ impl EventRingSegmentTableSizeRegister {
 #[derive(Debug)]
 struct EventRingSegmentTableBaseAddressRegister(u64);
 impl EventRingSegmentTableBaseAddressRegister {
-    fn set(&mut self, val: PhysAddr) {
-        assert!(val.as_u64().trailing_zeros() >= 6);
-        self.0 = val.as_u64()
+    fn set(&mut self, addr: PhysAddr) {
+        let addr = addr.as_u64();
+        assert!(addr.trailing_zeros() >= 6);
+        self.0 = addr
     }
 }
 
