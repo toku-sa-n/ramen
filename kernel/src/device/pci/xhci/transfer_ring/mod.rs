@@ -11,6 +11,8 @@ use {
     x86_64::VirtAddr,
 };
 
+mod block;
+
 // 4KB / size_of(TRB) = 256.
 const NUM_OF_TRB_IN_QUEUE: usize = 256;
 
