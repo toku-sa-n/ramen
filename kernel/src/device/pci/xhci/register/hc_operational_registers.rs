@@ -42,7 +42,7 @@ impl<'a> HCOperationalRegisters<'a> {
 
     pub fn reset_hc(&mut self) {
         if self.usb_sts.hc_halted() {
-            return;
+            panic!("xHC is not halted!");
         }
         self.usb_cmd.reset();
     }
