@@ -63,10 +63,6 @@ impl<'a> HCOperationalRegisters<'a> {
         self.crcr.set_ptr(addr)
     }
 
-    pub fn enable_interrupt(&mut self) {
-        self.usb_cmd.set_interrupt_enable(true)
-    }
-
     pub fn run(&mut self) {
         self.usb_cmd.set_run_stop(true);
         while self.usb_sts.hc_halted() {}
