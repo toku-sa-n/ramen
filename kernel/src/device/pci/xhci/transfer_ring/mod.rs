@@ -112,6 +112,10 @@ pub struct Event;
 impl TrbType for Event {}
 
 #[derive(Copy, Clone, Debug)]
+struct Noop;
+impl TrbType for Noop {}
+
+#[derive(Copy, Clone, Debug)]
 #[repr(transparent)]
 pub struct Trb<T: TrbType> {
     trb: [u32; 4],
