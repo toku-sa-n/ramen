@@ -138,7 +138,7 @@ impl<'a> Xhci<'a> {
         PML4.lock().translate_addr(self.event_ring.addr()).unwrap()
     }
 
-    fn new(config_space: config::Space) -> Result<Self, Error> {
+    fn new(config_space: &config::Space) -> Result<Self, Error> {
         if config_space.is_xhci() {
             Ok(Self::generate(&config_space))
         } else {
@@ -207,7 +207,7 @@ enum Error {
 pub fn iter_devices<'a>() -> impl Iterator<Item = Xhci<'a>> {
     super::iter_devices().filter_map(|device| {
         if device.is_xhci() {
-            Xhci::new(device).ok()
+            Xhci::new(&device).ok()
         } else {
             None
         }
