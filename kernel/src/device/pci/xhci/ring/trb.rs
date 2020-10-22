@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use bitfield::bitfield;
+use {super::CycleBit, bitfield::bitfield};
 
 enum Ty {
     Noop = 8,
@@ -25,10 +25,3 @@ impl Noop {
     }
 }
 impl Trb for Noop {}
-
-struct CycleBit(bool);
-impl From<CycleBit> for bool {
-    fn from(cycle_bit: CycleBit) -> Self {
-        cycle_bit.0
-    }
-}

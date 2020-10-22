@@ -30,3 +30,15 @@ impl<'a> IndexMut<usize> for Raw<'a> {
         &mut self.0[index]
     }
 }
+
+struct CycleBit(bool);
+impl CycleBit {
+    fn new(val: bool) -> Self {
+        Self(val)
+    }
+}
+impl From<CycleBit> for bool {
+    fn from(cycle_bit: CycleBit) -> Self {
+        cycle_bit.0
+    }
+}
