@@ -58,11 +58,8 @@ impl<'a> Xhci<'a> {
         self.set_num_of_enabled_slots();
         self.set_dcbaap();
         self.set_command_ring_pointer();
-        self.init_msi();
         self.set_event_ring_dequeue_pointer();
-        self.enable_system_bus_interrupt_generation();
         self.init_event_ring_segment_table();
-        self.enable_interrupt();
         self.run();
     }
 
@@ -103,11 +100,6 @@ impl<'a> Xhci<'a> {
             .set_command_ring_ptr(phys_addr);
     }
 
-    fn init_msi(&mut self) {
-        info!("Initializing MSI...");
-        self.config_space.init_msi_for_xhci().unwrap();
-    }
-
     fn init_event_ring_segment_table(&mut self) {
         info!("Initializing event ring segment table...");
         let ring_addr = self.event_ring.addr();
@@ -136,14 +128,6 @@ impl<'a> Xhci<'a> {
     fn set_event_ring_dequeue_pointer(&mut self) {
         let phys = PML4.lock().translate_addr(self.event_ring.addr()).unwrap();
         self.runtime_base_registers.set_event_ring_dequeue_ptr(phys)
-    }
-
-    fn enable_system_bus_interrupt_generation(&mut self) {
-        self.hc_operational_registers.enable_interrupt()
-    }
-
-    fn enable_interrupt(&mut self) {
-        self.runtime_base_registers.enable_interrupt()
     }
 
     fn run(&mut self) {
