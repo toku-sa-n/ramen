@@ -58,3 +58,6 @@ impl From<u128> for Noop {
         Self(value)
     }
 }
+
+#[repr(transparent)]
+pub struct RawTrb(u128);

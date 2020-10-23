@@ -4,6 +4,7 @@ use {
     crate::mem::{accessor::slice, allocator::phys::FRAME_MANAGER},
     core::ops::{Index, IndexMut},
     os_units::Size,
+    trb::RawTrb,
     x86_64::structures::paging::{FrameAllocator, PageSize, Size4KiB},
 };
 
@@ -35,9 +36,6 @@ impl<'a> IndexMut<usize> for Raw<'a> {
         &mut self.0[index]
     }
 }
-
-#[repr(transparent)]
-struct RawTrb(u128);
 
 struct CycleBit(bool);
 impl CycleBit {
