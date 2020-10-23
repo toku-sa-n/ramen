@@ -11,7 +11,7 @@ mod command;
 mod event;
 mod trb;
 
-struct Raw<'a>(slice::Accessor<'a, u128>);
+struct Raw<'a>(slice::Accessor<'a, RawTrb>);
 impl<'a> Raw<'a> {
     fn new(num_trb: usize) -> Self {
         assert!(num_trb as u64 <= Size4KiB::SIZE / 16);
@@ -25,7 +25,7 @@ impl<'a> Raw<'a> {
     }
 }
 impl<'a> Index<usize> for Raw<'a> {
-    type Output = u128;
+    type Output = RawTrb;
     fn index(&self, index: usize) -> &Self::Output {
         &self.0[index]
     }
@@ -35,6 +35,9 @@ impl<'a> IndexMut<usize> for Raw<'a> {
         &mut self.0[index]
     }
 }
+
+#[repr(transparent)]
+struct RawTrb(u128);
 
 struct CycleBit(bool);
 impl CycleBit {
