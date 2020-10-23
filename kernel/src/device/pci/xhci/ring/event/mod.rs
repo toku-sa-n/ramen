@@ -2,7 +2,13 @@
 
 use {
     super::{trb::Trb, CycleBit, Raw},
-    core::convert::TryFrom,
+    crate::device::pci::xhci,
+    core::{
+        convert::TryFrom,
+        pin::Pin,
+        task::{Context, Poll},
+    },
+    futures_util::stream::Stream,
 };
 
 mod segment_table;
@@ -51,5 +57,19 @@ impl<'a> EventRing<'a> {
 
     fn len(&self) -> usize {
         self.raw.len()
+    }
+}
+impl<'a> Stream for EventRing<'a> {
+    type Item = Trb;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        xhci::WAKER.register(&cx.waker());
+        match Pin::into_inner(self).dequeue() {
+            Some(trb) => {
+                xhci::WAKER.take();
+                Poll::Ready(Some(trb))
+            }
+            None => Poll::Pending,
+        }
     }
 }
