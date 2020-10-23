@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{trb::Trb, CycleBit, Raw};
+use {
+    super::{trb::Trb, CycleBit, Raw},
+    core::convert::TryFrom,
+};
 
 mod segment_table;
 
@@ -15,6 +18,15 @@ impl<'a> EventRing<'a> {
             raw: Raw::new(len),
             current_cycle_bit: CycleBit::new(true),
             dequeue_ptr: 0,
+        }
+    }
+
+    fn empty(&self) -> bool {
+        let raw_trb = self.raw[self.dequeue_ptr];
+        if Trb::try_from(raw_trb).is_ok() {
+            CycleBit::from(raw_trb) != self.current_cycle_bit
+        } else {
+            true
         }
     }
 
