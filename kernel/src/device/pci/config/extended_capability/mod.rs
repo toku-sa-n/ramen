@@ -5,7 +5,7 @@ pub mod msi_x;
 
 use {
     super::{RegisterIndex, Registers, TypeSpec},
-    crate::accessor::single_object,
+    crate::mem::accessor::single_object,
     alloc::boxed::Box,
     bitfield::bitfield,
     common::constant::LOCAL_APIC_ID_REGISTER_ADDR,

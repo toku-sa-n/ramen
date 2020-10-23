@@ -3,8 +3,8 @@
 use {
     super::{CapabilitySpec, MessageAddress, MessageData, RegisterIndex, Registers},
     crate::{
-        accessor::slice,
         device::pci::config::{bar, type_spec::TypeSpec},
+        mem::accessor::slice,
     },
     bitfield::bitfield,
     core::convert::{From, TryFrom},

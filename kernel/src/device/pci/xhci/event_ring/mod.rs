@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::{accessor::slice, mem::allocator::phys::FRAME_MANAGER},
+    crate::mem::{accessor::slice, allocator::phys::FRAME_MANAGER},
     core::mem::size_of,
     os_units::Size,
     x86_64::{

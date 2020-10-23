@@ -7,10 +7,7 @@ mod transfer_ring;
 
 use {
     super::config::{self, bar},
-    crate::{
-        accessor::slice,
-        mem::{allocator::phys::FRAME_MANAGER, paging::pml4::PML4},
-    },
+    crate::mem::{accessor::slice, allocator::phys::FRAME_MANAGER, paging::pml4::PML4},
     core::convert::TryFrom,
     futures_util::{task::AtomicWaker, StreamExt},
     os_units::Size,
