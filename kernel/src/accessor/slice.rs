@@ -31,6 +31,10 @@ impl<'a, T: 'a> Accessor<'a, T> {
         }
     }
 
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
     fn object_size(num_elements: usize) -> usize {
         size_of::<T>() * num_elements
     }
