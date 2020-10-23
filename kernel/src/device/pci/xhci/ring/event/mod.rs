@@ -21,6 +21,17 @@ impl<'a> EventRing<'a> {
         }
     }
 
+    fn dequeue(&mut self) -> Option<Trb> {
+        if self.empty() {
+            None
+        } else {
+            let raw = self.raw[self.dequeue_ptr];
+            self.increment();
+
+            Some(Trb::try_from(raw).unwrap())
+        }
+    }
+
     fn empty(&self) -> bool {
         let raw_trb = self.raw[self.dequeue_ptr];
         if Trb::try_from(raw_trb).is_ok() {

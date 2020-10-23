@@ -33,6 +33,7 @@ impl TryFrom<Raw> for Trb {
     }
 }
 
+#[derive(Debug)]
 pub enum Error {
     InvalidId,
 }
