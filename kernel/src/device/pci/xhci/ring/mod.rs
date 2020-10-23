@@ -7,6 +7,7 @@ use {
     x86_64::structures::paging::{FrameAllocator, PageSize, Size4KiB},
 };
 
+mod command;
 mod event;
 mod trb;
 
