@@ -5,10 +5,10 @@ use {super::CycleBit, bitfield::bitfield, core::convert::TryFrom};
 enum Ty {
     Noop = 8,
 }
-impl TryFrom<RawTrb> for Ty {
+impl TryFrom<Raw> for Ty {
     type Error = Error;
 
-    fn try_from(raw: RawTrb) -> Result<Self, Self::Error> {
+    fn try_from(raw: Raw) -> Result<Self, Self::Error> {
         let error_num = (raw.0 >> 106) & 0x3f;
 
         match error_num {
@@ -20,10 +20,10 @@ impl TryFrom<RawTrb> for Ty {
 pub enum Trb {
     Noop(Noop),
 }
-impl TryFrom<RawTrb> for Trb {
+impl TryFrom<Raw> for Trb {
     type Error = Error;
 
-    fn try_from(raw: RawTrb) -> Result<Self, Self::Error> {
+    fn try_from(raw: Raw) -> Result<Self, Self::Error> {
         match Ty::try_from(raw) {
             Ok(ty) => match ty {
                 Ty::Noop => Ok(Self::Noop(Noop::from(raw))),
@@ -53,12 +53,12 @@ impl Noop {
         noop
     }
 }
-impl From<RawTrb> for Noop {
-    fn from(raw: RawTrb) -> Self {
+impl From<Raw> for Noop {
+    fn from(raw: Raw) -> Self {
         Self(raw.0)
     }
 }
 
 #[repr(transparent)]
 #[derive(Copy, Clone)]
-pub struct RawTrb(u128);
+pub struct Raw(u128);

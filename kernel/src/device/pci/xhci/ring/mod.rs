@@ -4,7 +4,6 @@ use {
     crate::mem::{accessor::slice, allocator::phys::FRAME_MANAGER},
     core::ops::{Index, IndexMut},
     os_units::Size,
-    trb::RawTrb,
     x86_64::structures::paging::{FrameAllocator, PageSize, Size4KiB},
 };
 
@@ -12,7 +11,7 @@ mod command;
 mod event;
 mod trb;
 
-struct Raw<'a>(slice::Accessor<'a, RawTrb>);
+struct Raw<'a>(slice::Accessor<'a, trb::Raw>);
 impl<'a> Raw<'a> {
     fn new(num_trb: usize) -> Self {
         assert!(num_trb as u64 <= Size4KiB::SIZE / 16);
@@ -26,7 +25,7 @@ impl<'a> Raw<'a> {
     }
 }
 impl<'a> Index<usize> for Raw<'a> {
-    type Output = RawTrb;
+    type Output = trb::Raw;
     fn index(&self, index: usize) -> &Self::Output {
         &self.0[index]
     }
