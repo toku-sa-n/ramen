@@ -17,4 +17,8 @@ impl<'a> EventRing<'a> {
             dequeue_ptr: 0,
         }
     }
+
+    fn len(&self) -> usize {
+        self.raw.len()
+    }
 }
