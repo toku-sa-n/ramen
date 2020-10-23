@@ -17,7 +17,7 @@ impl TryFrom<u128> for Ty {
         }
     }
 }
-enum Trb {
+pub enum Trb {
     Noop(Noop),
 }
 impl TryFrom<u128> for Trb {
@@ -33,7 +33,7 @@ impl TryFrom<u128> for Trb {
     }
 }
 
-enum Error {
+pub enum Error {
     InvalidId,
 }
 
