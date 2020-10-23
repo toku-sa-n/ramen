@@ -14,7 +14,7 @@ use {
 #[derive(Debug)]
 pub struct Accessor<'a, T: 'a> {
     base: VirtAddr,
-    num_elements: usize,
+    len: usize,
     _marker: PhantomData<&'a T>,
 }
 
@@ -26,7 +26,7 @@ impl<'a, T: 'a> Accessor<'a, T> {
 
         Self {
             base,
-            num_elements,
+            len: num_elements,
             _marker: PhantomData,
         }
     }
@@ -40,18 +40,18 @@ impl<'a, T: 'a> Deref for Accessor<'a, T> {
     type Target = [T];
 
     fn deref(&self) -> &Self::Target {
-        unsafe { slice::from_raw_parts(self.base.as_ptr(), self.num_elements) }
+        unsafe { slice::from_raw_parts(self.base.as_ptr(), self.len) }
     }
 }
 
 impl<'a, T: 'a> DerefMut for Accessor<'a, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { slice::from_raw_parts_mut(self.base.as_mut_ptr(), self.num_elements) }
+        unsafe { slice::from_raw_parts_mut(self.base.as_mut_ptr(), self.len) }
     }
 }
 
 impl<'a, T: 'a> Drop for Accessor<'a, T> {
     fn drop(&mut self) {
-        super::unmap_pages(self.base, Size::new(Self::object_size(self.num_elements)))
+        super::unmap_pages(self.base, Size::new(Self::object_size(self.len)))
     }
 }
