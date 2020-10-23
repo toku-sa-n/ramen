@@ -17,6 +17,8 @@ impl TryFrom<Raw> for Ty {
         }
     }
 }
+
+#[derive(Debug)]
 pub enum Trb {
     Noop(Noop),
 }
@@ -40,6 +42,7 @@ pub enum Error {
 
 bitfield! {
     #[repr(transparent)]
+    #[derive(Debug)]
     pub struct Noop(u128);
 
     _, set_cycle_bit: 96;
