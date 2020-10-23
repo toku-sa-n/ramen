@@ -6,8 +6,6 @@ enum Ty {
     Noop = 8,
 }
 
-pub trait Trb {}
-
 bitfield! {
     #[repr(transparent)]
     pub struct Noop(u128);
@@ -24,4 +22,3 @@ impl Noop {
         noop
     }
 }
-impl Trb for Noop {}
