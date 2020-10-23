@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
+    crate::mem::paging::pml4::PML4,
     core::{
         marker::PhantomData,
         mem::size_of,
@@ -8,7 +9,7 @@ use {
         slice,
     },
     os_units::{Bytes, Size},
-    x86_64::{PhysAddr, VirtAddr},
+    x86_64::{structures::paging::MapperAllSizes, PhysAddr, VirtAddr},
 };
 
 #[derive(Debug)]
@@ -29,6 +30,10 @@ impl<'a, T: 'a> Accessor<'a, T> {
             len: num_elements,
             _marker: PhantomData,
         }
+    }
+
+    pub fn phys_base(&self) -> PhysAddr {
+        PML4.lock().translate_addr(self.base).unwrap()
     }
 
     pub fn len(&self) -> usize {
