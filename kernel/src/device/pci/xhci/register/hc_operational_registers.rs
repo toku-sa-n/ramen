@@ -2,8 +2,8 @@
 
 use {
     crate::{
-        accessor::{single_object, slice},
         device::pci::xhci::register::hc_capability_registers::HCCapabilityRegisters,
+        mem::accessor::{single_object, slice},
     },
     bitfield::bitfield,
     os_units::Size,
