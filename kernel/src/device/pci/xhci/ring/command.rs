@@ -5,4 +5,5 @@ use super::Raw;
 struct CommandRing<'a> {
     raw: Raw<'a>,
     enqueue_ptr: usize,
+    len: usize,
 }
