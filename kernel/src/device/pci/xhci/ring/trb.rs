@@ -6,6 +6,10 @@ enum Ty {
     Noop = 8,
 }
 
+enum Trb {
+    Noop(Noop),
+}
+
 bitfield! {
     #[repr(transparent)]
     pub struct Noop(u128);
