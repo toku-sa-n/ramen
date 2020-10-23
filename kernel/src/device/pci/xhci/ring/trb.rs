@@ -5,11 +5,11 @@ use {super::CycleBit, bitfield::bitfield, core::convert::TryFrom};
 enum Ty {
     Noop = 8,
 }
-impl TryFrom<u128> for Ty {
+impl TryFrom<RawTrb> for Ty {
     type Error = Error;
 
-    fn try_from(value: u128) -> Result<Self, Self::Error> {
-        let error_num = (value >> 106) & 0x3f;
+    fn try_from(raw: RawTrb) -> Result<Self, Self::Error> {
+        let error_num = (raw.0 >> 106) & 0x3f;
 
         match error_num {
             x if x == Self::Noop as _ => Ok(Self::Noop),
@@ -20,13 +20,13 @@ impl TryFrom<u128> for Ty {
 pub enum Trb {
     Noop(Noop),
 }
-impl TryFrom<u128> for Trb {
+impl TryFrom<RawTrb> for Trb {
     type Error = Error;
 
-    fn try_from(value: u128) -> Result<Self, Self::Error> {
-        match Ty::try_from(value) {
+    fn try_from(raw: RawTrb) -> Result<Self, Self::Error> {
+        match Ty::try_from(raw) {
             Ok(ty) => match ty {
-                Ty::Noop => Ok(Self::Noop(Noop::from(value))),
+                Ty::Noop => Ok(Self::Noop(Noop::from(raw))),
             },
             Err(_) => Err(Error::InvalidId),
         }
@@ -53,11 +53,12 @@ impl Noop {
         noop
     }
 }
-impl From<u128> for Noop {
-    fn from(value: u128) -> Self {
-        Self(value)
+impl From<RawTrb> for Noop {
+    fn from(raw: RawTrb) -> Self {
+        Self(raw.0)
     }
 }
 
 #[repr(transparent)]
+#[derive(Copy, Clone)]
 pub struct RawTrb(u128);
