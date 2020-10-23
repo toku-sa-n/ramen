@@ -2,7 +2,7 @@
 
 use {crate::mem::accessor::slice, x86_64::PhysAddr};
 
-struct SegmentTable<'a> {
+pub struct SegmentTable<'a> {
     addr: PhysAddr,
     table: slice::Accessor<'a, Entry>,
 }
