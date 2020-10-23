@@ -19,6 +19,10 @@ impl<'a> Raw<'a> {
         let addr = phys_frame.start_address();
         Self(slice::Accessor::new(addr, Size::new(0), num_trb))
     }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
 }
 impl<'a> Index<usize> for Raw<'a> {
     type Output = u128;
