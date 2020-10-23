@@ -2,8 +2,8 @@
 
 use {
     crate::{
-        accessor::single_object::Accessor,
         device::pci::xhci::register::hc_capability_registers::HCCapabilityRegisters,
+        mem::accessor::single_object::Accessor,
     },
     bitfield::bitfield,
     x86_64::PhysAddr,

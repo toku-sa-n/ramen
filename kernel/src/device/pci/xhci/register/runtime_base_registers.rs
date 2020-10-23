@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {crate::accessor::single_object::Accessor, bitfield::bitfield, x86_64::PhysAddr};
+use {crate::mem::accessor::single_object::Accessor, bitfield::bitfield, x86_64::PhysAddr};
 
 pub struct RuntimeBaseRegisters<'a> {
     i_man: Accessor<'a, InterruptManagementRegister>,
