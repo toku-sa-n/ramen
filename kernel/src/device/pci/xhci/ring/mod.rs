@@ -41,6 +41,10 @@ impl CycleBit {
     fn new(val: bool) -> Self {
         Self(val)
     }
+
+    fn toggle(&mut self) {
+        self.0 = !self.0;
+    }
 }
 impl From<CycleBit> for bool {
     fn from(cycle_bit: CycleBit) -> Self {
