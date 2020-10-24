@@ -47,7 +47,7 @@ pub fn init(boot_info: &mut kernelboot::Info) {
 
     let reserved = *boot_info.reserved();
 
-    let mut allocator = AllocatorWithEfiMemoryMap::new(boot_info.mem_map());
+    let mut allocator = AllocatorWithEfiMemoryMap::new(boot_info.mem_map_mut());
 
     for region in reserved.iter() {
         map_virt_to_phys(region, &mut allocator);
