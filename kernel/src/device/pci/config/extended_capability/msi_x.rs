@@ -8,7 +8,7 @@ use {
     },
     bitfield::bitfield,
     core::convert::{From, TryFrom},
-    os_units::{Bytes, Size},
+    os_units::Bytes,
     x86_64::PhysAddr,
 };
 
@@ -51,8 +51,8 @@ impl<'a> MsiX<'a> {
         self.registers.set(self.base, val);
     }
 
-    fn table_offset(&self) -> Size<Bytes> {
-        Size::from(TableOffset::new(self.registers, self.base))
+    fn table_offset(&self) -> Bytes {
+        Bytes::from(TableOffset::new(self.registers, self.base))
     }
 
     fn num_of_table_elements(&self) -> TableSize {
@@ -72,13 +72,13 @@ impl From<Bir> for bar::Index {
     }
 }
 
-struct TableOffset(Size<Bytes>);
+struct TableOffset(Bytes);
 impl TableOffset {
     fn new(registers: &Registers, base: RegisterIndex) -> Self {
-        Self(Size::new((registers.get(base + 1) & !0x7) as usize))
+        Self(Bytes::new((registers.get(base + 1) & !0x7) as usize))
     }
 }
-impl From<TableOffset> for Size<Bytes> {
+impl From<TableOffset> for Bytes {
     fn from(offset: TableOffset) -> Self {
         offset.0
     }

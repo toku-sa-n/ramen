@@ -6,7 +6,7 @@ use core::cmp;
 use core::convert::TryFrom;
 use core::slice;
 use elf_rs::Elf;
-use os_units::{Bytes, Size};
+use os_units::Bytes;
 use uefi::proto::media::file;
 use uefi::proto::media::file::File;
 use uefi::proto::media::file::FileAttribute;
@@ -19,16 +19,13 @@ use x86_64::{PhysAddr, VirtAddr};
 
 mod size;
 
-pub fn deploy(boot_services: &boot::BootServices) -> (PhysAddr, Size<Bytes>) {
+pub fn deploy(boot_services: &boot::BootServices) -> (PhysAddr, Bytes) {
     let mut root_dir = root_dir::open(boot_services);
 
     locate(boot_services, &mut root_dir)
 }
 
-fn locate(
-    boot_services: &boot::BootServices,
-    root_dir: &mut file::Directory,
-) -> (PhysAddr, Size<Bytes>) {
+fn locate(boot_services: &boot::BootServices, root_dir: &mut file::Directory) -> (PhysAddr, Bytes) {
     let kernel_bytes = size::get(root_dir);
     let mut kernel_handler = get_handler(root_dir);
 
@@ -38,10 +35,7 @@ fn locate(
     (addr, kernel_bytes)
 }
 
-pub fn fetch_entry_address_and_memory_size(
-    addr: PhysAddr,
-    bytes: Size<Bytes>,
-) -> (VirtAddr, Size<Bytes>) {
+pub fn fetch_entry_address_and_memory_size(addr: PhysAddr, bytes: Bytes) -> (VirtAddr, Bytes) {
     let elf =
         Elf::from_bytes(unsafe { slice::from_raw_parts(addr.as_u64() as _, bytes.as_usize()) });
 
@@ -54,15 +48,12 @@ pub fn fetch_entry_address_and_memory_size(
         Elf::Elf32(_) => panic!("32-bit kernel is not supported"),
         Elf::Elf64(elf) => {
             let entry_addr = VirtAddr::new(elf.header().entry_point());
-            let mem_size = elf
-                .program_header_iter()
-                .fold(Size::<Bytes>::new(0), |acc, x| {
-                    cmp::max(
-                        acc,
-                        Size::new(usize::try_from(x.ph.vaddr() + x.ph.memsz()).unwrap()),
-                    )
-                })
-                - Size::<Bytes>::new(usize::try_from(KERNEL_ADDR.as_u64()).unwrap());
+            let mem_size = elf.program_header_iter().fold(Bytes::new(0), |acc, x| {
+                cmp::max(
+                    acc,
+                    Bytes::new(usize::try_from(x.ph.vaddr() + x.ph.memsz()).unwrap()),
+                )
+            }) - Bytes::new(usize::try_from(KERNEL_ADDR.as_u64()).unwrap());
 
             info!("Entry point: {:?}", entry_addr);
             info!("Memory size: {:X?}", mem_size.as_usize());
@@ -80,7 +71,7 @@ fn get_handler(root_dir: &mut file::Directory) -> file::RegularFile {
     unsafe { file::RegularFile::new(handler) }
 }
 
-fn allocate(boot_services: &boot::BootServices, kernel_bytes: Size<Bytes>) -> PhysAddr {
+fn allocate(boot_services: &boot::BootServices, kernel_bytes: Bytes) -> PhysAddr {
     PhysAddr::new(
         boot_services
             .allocate_pages(
@@ -92,11 +83,7 @@ fn allocate(boot_services: &boot::BootServices, kernel_bytes: Size<Bytes>) -> Ph
     )
 }
 
-fn put_on_memory(
-    handler: &mut file::RegularFile,
-    kernel_addr: PhysAddr,
-    kernel_bytes: Size<Bytes>,
-) {
+fn put_on_memory(handler: &mut file::RegularFile, kernel_addr: PhysAddr, kernel_bytes: Bytes) {
     // Reading should use while statement with the number of bytes which were actually read.
     // However, without while statement previous uefi implementation worked so this uefi
     // implementation also never use it.

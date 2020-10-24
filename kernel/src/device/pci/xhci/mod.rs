@@ -10,7 +10,7 @@ use {
     crate::mem::{accessor::slice, allocator::phys::FRAME_MANAGER, paging::pml4::PML4},
     core::convert::TryFrom,
     futures_util::{task::AtomicWaker, StreamExt},
-    os_units::Size,
+    os_units::Bytes,
     register::{
         hc_capability_registers::HCCapabilityRegisters,
         hc_operational_registers::HCOperationalRegisters,
@@ -204,7 +204,7 @@ impl<'a> DeviceContextBaseAddressArray<'a> {
     fn new() -> Self {
         let phys_frame = FRAME_MANAGER.lock().allocate_frame().unwrap();
         let phys = phys_frame.start_address();
-        let arr = slice::Accessor::new(phys, Size::new(0), MAX_DEVICE_SLOT + 1);
+        let arr = slice::Accessor::new(phys, Bytes::new(0), MAX_DEVICE_SLOT + 1);
         Self { arr, phys }
     }
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    os_units::{Bytes, NumOfPages, Size},
+    os_units::{Bytes, NumOfPages},
     x86_64::{
         instructions::port::Port,
         structures::paging::{PageSize, Size4KiB},
@@ -28,9 +28,9 @@ pub const STACK_LOWER: VirtAddr =
 pub const INIT_RSP: VirtAddr = VirtAddr::new_truncate(STACK_BASE.as_u64() - Size4KiB::SIZE);
 pub const RECUR_PML4_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_ffff_f000);
 
-pub const NUM_OF_PAGES_STACK: Size<NumOfPages<Size4KiB>> = Size::new(16);
-pub const BYTES_KERNEL_HEAP: Size<Bytes> = Size::new(0x1000_0000);
-pub const BYTES_AVAILABLE_RAM: Size<Bytes> = Size::new(0x1_0000_0000_0000);
+pub const NUM_OF_PAGES_STACK: NumOfPages<Size4KiB> = NumOfPages::new(16);
+pub const BYTES_KERNEL_HEAP: Bytes = Bytes::new(0x1000_0000);
+pub const BYTES_AVAILABLE_RAM: Bytes = Bytes::new(0x1_0000_0000_0000);
 
 pub const PORT_KEY_STATUS: Port<u8> = Port::new(0x0064);
 pub const PORT_KEY_CMD: Port<u8> = Port::new(0x0064);

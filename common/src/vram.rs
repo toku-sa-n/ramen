@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    core::convert::TryFrom,
-    os_units::{Bytes, Size},
-    uefi::proto::console::gop,
-    x86_64::PhysAddr,
-};
+use {core::convert::TryFrom, os_units::Bytes, uefi::proto::console::gop, x86_64::PhysAddr};
 
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -46,8 +41,8 @@ impl Info {
     }
 
     #[must_use]
-    pub fn bytes(&self) -> Size<Bytes> {
-        Size::new(
+    pub fn bytes(&self) -> Bytes {
+        Bytes::new(
             usize::try_from(self.screen_x * self.screen_y * self.bpp / 8)
                 .expect("The bytes of VRAM must not be negative"),
         )
