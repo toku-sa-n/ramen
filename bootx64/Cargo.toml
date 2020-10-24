@@ -14,4 +14,4 @@ uefi-services = "0.3.0"
 common = { path = "../common/" }
 x86_64 = "0.12.0"
 elf_rs = "0.1.3"
-os_units = "0.1.0"
+os_units = "0.2.0"

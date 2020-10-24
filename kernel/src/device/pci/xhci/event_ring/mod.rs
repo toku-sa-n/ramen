@@ -3,7 +3,7 @@
 use {
     crate::mem::{accessor::slice, allocator::phys::FRAME_MANAGER},
     core::mem::size_of,
-    os_units::Size,
+    os_units::Bytes,
     x86_64::{
         structures::paging::{FrameAllocator, PageSize, Size4KiB},
         PhysAddr,
@@ -22,7 +22,7 @@ impl<'a> SegmentTable<'a> {
     pub fn new() -> Self {
         let phys_frame = FRAME_MANAGER.lock().allocate_frame().unwrap();
         let addr = phys_frame.start_address();
-        let table = slice::Accessor::new(addr, Size::new(0), NUM_ELEMENTS_SEGMENT_TABLE);
+        let table = slice::Accessor::new(addr, Bytes::new(0), NUM_ELEMENTS_SEGMENT_TABLE);
         Self { addr, table }
     }
 

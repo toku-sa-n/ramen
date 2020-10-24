@@ -4,7 +4,7 @@ use {
     crate::mem::paging::pml4::PML4,
     common::constant::BYTES_AVAILABLE_RAM,
     core::convert::TryFrom,
-    os_units::{NumOfPages, Size},
+    os_units::NumOfPages,
     x86_64::{
         structures::paging::{MapperAllSizes, Page, PageSize, Size4KiB},
         VirtAddr,
@@ -25,7 +25,7 @@ pub fn search_first_unused_page() -> Option<Page> {
     None
 }
 
-pub fn search_free_addr(num_pages: Size<NumOfPages<Size4KiB>>) -> Option<VirtAddr> {
+pub fn search_free_addr(num_pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
     let mut cnt = 0;
     let mut start = None;
     for addr in
