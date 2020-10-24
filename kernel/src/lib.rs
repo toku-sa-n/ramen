@@ -60,9 +60,9 @@ fn initialization(boot_info: &mut kernelboot::Info) {
 
     interrupts::enable();
 
-    FrameManager::init(boot_info.mem_map_mut());
+    heap::init(boot_info.mem_map_mut());
 
-    heap::init();
+    FrameManager::init(boot_info.mem_map_mut());
 
     layer::init();
 
