@@ -17,7 +17,7 @@ use {
         usb_legacy_support_capability::UsbLegacySupportCapability,
     },
     ring::command,
-    transfer_ring::{Command, Event, RingQueue},
+    transfer_ring::{Event, RingQueue},
     x86_64::{structures::paging::MapperAllSizes, PhysAddr},
 };
 
