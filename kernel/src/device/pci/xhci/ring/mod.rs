@@ -3,6 +3,7 @@
 use {
     crate::mem::{accessor::slice, allocator::phys::FRAME_MANAGER},
     core::ops::{Index, IndexMut},
+    os_units::Bytes,
     x86_64::structures::paging::{FrameAllocator, PageSize, Size4KiB},
 };
 
@@ -16,7 +17,7 @@ impl<'a> Raw<'a> {
         assert!(num_trb as u64 <= Size4KiB::SIZE / 16);
         let phys_frame = FRAME_MANAGER.lock().allocate_frame().unwrap();
         let addr = phys_frame.start_address();
-        Self(slice::Accessor::new(addr, Size::new(0), num_trb))
+        Self(slice::Accessor::new(addr, Bytes::new(0), num_trb))
     }
 
     fn len(&self) -> usize {
