@@ -7,7 +7,7 @@ use {
 };
 
 pub mod command;
-mod event;
+pub mod event;
 mod trb;
 
 struct Raw(PageBox<[trb::Raw]>);
