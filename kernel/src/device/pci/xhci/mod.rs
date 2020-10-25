@@ -8,9 +8,8 @@ mod transfer_ring;
 
 use {
     super::config::{self, bar},
-    crate::mem::{accessor::slice, allocator::phys::FRAME_MANAGER, paging::pml4::PML4},
+    crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4},
     futures_util::{task::AtomicWaker, StreamExt},
-    os_units::Size,
     register::{
         hc_capability_registers::HCCapabilityRegisters,
         hc_operational_registers::HCOperationalRegisters,
@@ -18,10 +17,7 @@ use {
         usb_legacy_support_capability::UsbLegacySupportCapability,
     },
     transfer_ring::{Command, Event, RingQueue},
-    x86_64::{
-        structures::paging::{FrameAllocator, MapperAllSizes},
-        PhysAddr,
-    },
+    x86_64::{structures::paging::MapperAllSizes, PhysAddr},
 };
 
 static WAKER: AtomicWaker = AtomicWaker::new();
@@ -39,7 +35,7 @@ pub struct Xhci<'a> {
     usb_legacy_support_capability: Option<UsbLegacySupportCapability<'a>>,
     hc_capability_registers: HCCapabilityRegisters<'a>,
     hc_operational_registers: HCOperationalRegisters<'a>,
-    dcbaa: DeviceContextBaseAddressArray<'a>,
+    dcbaa: DeviceContextBaseAddressArray,
     command_ring: RingQueue<Command>,
     event_ring: RingQueue<Event>,
     runtime_base_registers: RuntimeBaseRegisters<'a>,
@@ -84,7 +80,8 @@ impl<'a> Xhci<'a> {
 
     fn set_dcbaap(&mut self) {
         info!("Set DCBAAP...");
-        self.hc_operational_registers.set_dcbaa_ptr(self.dcbaa.phys);
+        self.hc_operational_registers
+            .set_dcbaa_ptr(self.dcbaa.phys_addr());
     }
 
     fn set_command_ring_pointer(&mut self) {
@@ -182,17 +179,18 @@ impl<'a> Xhci<'a> {
 
 const MAX_DEVICE_SLOT: usize = 255;
 
-struct DeviceContextBaseAddressArray<'a> {
-    arr: slice::Accessor<'a, usize>,
-    phys: PhysAddr,
+struct DeviceContextBaseAddressArray {
+    arr: PageBox<[usize]>,
 }
 
-impl<'a> DeviceContextBaseAddressArray<'a> {
+impl DeviceContextBaseAddressArray {
     fn new() -> Self {
-        let phys_frame = FRAME_MANAGER.lock().allocate_frame().unwrap();
-        let phys = phys_frame.start_address();
-        let arr = slice::Accessor::new(phys, Size::new(0), MAX_DEVICE_SLOT + 1);
-        Self { arr, phys }
+        let arr = PageBox::new_slice(MAX_DEVICE_SLOT + 1);
+        Self { arr }
+    }
+
+    fn phys_addr(&self) -> PhysAddr {
+        self.arr.phys_addr()
     }
 }
 

@@ -6,7 +6,7 @@ use {
         mem::accessor::{single_object, slice},
     },
     bitfield::bitfield,
-    os_units::Size,
+    os_units::Bytes,
     x86_64::PhysAddr,
 };
 
@@ -28,7 +28,7 @@ impl<'a> HCOperationalRegisters<'a> {
         let crcr = single_object::Accessor::new(operational_base, 0x18);
         let dcbaap = single_object::Accessor::new(operational_base, 0x30);
         let config = single_object::Accessor::new(operational_base, 0x38);
-        let port_sc = slice::Accessor::new(operational_base, Size::new(0x400), 10);
+        let port_sc = slice::Accessor::new(operational_base, Bytes::new(0x400), 10);
 
         Self {
             usb_cmd,

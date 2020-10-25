@@ -3,7 +3,6 @@
 use {
     crate::mem::{accessor::slice, allocator::phys::FRAME_MANAGER},
     core::ops::{Index, IndexMut},
-    os_units::Size,
     x86_64::structures::paging::{FrameAllocator, PageSize, Size4KiB},
 };
 

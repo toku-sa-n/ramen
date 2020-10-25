@@ -6,7 +6,7 @@ use {
         mem::size_of,
         ops::{Deref, DerefMut},
     },
-    os_units::Size,
+    os_units::Bytes,
     x86_64::{PhysAddr, VirtAddr},
 };
 
@@ -21,7 +21,7 @@ impl<'a, T: 'a> Accessor<'a, T> {
         let phys_base = phys_base + offset;
         debug!("phys_base: {:?}", phys_base);
 
-        let base = super::map_pages(phys_base, Size::new(size_of::<T>()));
+        let base = super::map_pages(phys_base, Bytes::new(size_of::<T>()));
 
         debug!(
             "{:?} -> {:?}",
@@ -52,6 +52,6 @@ impl<'a, T: 'a> DerefMut for Accessor<'a, T> {
 
 impl<'a, T: 'a> Drop for Accessor<'a, T> {
     fn drop(&mut self) {
-        super::unmap_pages(self.base, Size::new(size_of::<T>()))
+        super::unmap_pages(self.base, Bytes::new(size_of::<T>()))
     }
 }

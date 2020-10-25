@@ -52,8 +52,8 @@ impl Info {
     }
 
     #[must_use]
-    pub fn mem_map(&mut self) -> &mut [boot::MemoryDescriptor] {
-        self.mem_map.as_slice()
+    pub fn mem_map_mut(&mut self) -> &mut [boot::MemoryDescriptor] {
+        self.mem_map.as_mut_slice()
     }
 
     #[must_use]

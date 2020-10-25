@@ -5,18 +5,18 @@ use {
         constant::{FREE_PAGE_ADDR, KERNEL_ADDR, NUM_OF_PAGES_STACK, STACK_LOWER, VRAM_ADDR},
         vram,
     },
-    os_units::{Bytes, Size},
+    os_units::Bytes,
     x86_64::{PhysAddr, VirtAddr},
 };
 
 pub struct KernelPhysRange {
     start: PhysAddr,
-    bytes: Size<Bytes>,
+    bytes: Bytes,
 }
 
 impl KernelPhysRange {
     #[must_use]
-    pub fn new(start: PhysAddr, bytes: Size<Bytes>) -> Self {
+    pub fn new(start: PhysAddr, bytes: Bytes) -> Self {
         Self { start, bytes }
     }
 }
@@ -54,7 +54,7 @@ impl Map {
 pub struct Range {
     virt: VirtAddr,
     phys: PhysAddr,
-    bytes: Size<Bytes>,
+    bytes: Bytes,
 }
 
 impl Range {
@@ -90,7 +90,7 @@ impl Range {
         Self {
             virt: FREE_PAGE_ADDR,
             phys,
-            bytes: Size::new(0x1000),
+            bytes: Bytes::new(0x1000),
         }
     }
 
@@ -105,7 +105,7 @@ impl Range {
     }
 
     #[must_use]
-    pub fn bytes(&self) -> Size<Bytes> {
+    pub fn bytes(&self) -> Bytes {
         self.bytes
     }
 }
