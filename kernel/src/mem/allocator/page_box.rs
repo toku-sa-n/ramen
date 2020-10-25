@@ -12,9 +12,10 @@ use {
     os_units::{Bytes, NumOfPages},
     x86_64::{
         structures::paging::{
-            FrameDeallocator, Mapper, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB,
+            FrameDeallocator, Mapper, MapperAllSizes, Page, PageSize, PageTableFlags, PhysFrame,
+            Size4KiB,
         },
-        VirtAddr,
+        PhysAddr, VirtAddr,
     },
 };
 
@@ -33,6 +34,10 @@ impl<T> PageBox<[T]> {
             bytes,
             _marker: PhantomData::<[T]>,
         }
+    }
+
+    pub fn phys_addr(&self) -> PhysAddr {
+        PML4.lock().translate_addr(self.virt).unwrap()
     }
 
     fn num_of_elements(&self) -> usize {
