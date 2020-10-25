@@ -2,12 +2,12 @@
 
 use {super::Raw, x86_64::PhysAddr};
 
-pub struct CommandRing {
+pub struct Ring {
     raw: Raw,
     enqueue_ptr: usize,
     len: usize,
 }
-impl CommandRing {
+impl Ring {
     pub fn new(len: usize) -> Self {
         Self {
             raw: Raw::new(len),
