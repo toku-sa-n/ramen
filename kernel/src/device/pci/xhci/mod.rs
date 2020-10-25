@@ -7,14 +7,9 @@ mod transfer_ring;
 
 use {
     super::config::{self, bar},
-    crate::mem::{
-        accessor::slice,
-        allocator::{page_box::PageBox, phys::FRAME_MANAGER},
-        paging::pml4::PML4,
-    },
+    crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4},
     core::convert::TryFrom,
     futures_util::{task::AtomicWaker, StreamExt},
-    os_units::Bytes,
     register::{
         hc_capability_registers::HCCapabilityRegisters,
         hc_operational_registers::HCOperationalRegisters,
@@ -22,10 +17,7 @@ use {
         usb_legacy_support_capability::UsbLegacySupportCapability,
     },
     transfer_ring::{Command, Event, RingQueue},
-    x86_64::{
-        structures::paging::{FrameAllocator, MapperAllSizes},
-        PhysAddr,
-    },
+    x86_64::{structures::paging::MapperAllSizes, PhysAddr},
 };
 
 static WAKER: AtomicWaker = AtomicWaker::new();
