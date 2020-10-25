@@ -24,7 +24,7 @@ pub struct PageBox<T: ?Sized> {
     _marker: PhantomData<T>,
 }
 impl<T> PageBox<[T]> {
-    fn new_slice(num_of_elements: usize) -> Self {
+    pub fn new_slice(num_of_elements: usize) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>() * num_of_elements);
         let virt = Self::allocate_pages(bytes.as_num_of_pages());
 
