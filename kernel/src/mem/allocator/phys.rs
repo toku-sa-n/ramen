@@ -43,7 +43,7 @@ impl FrameManager {
 
     pub fn free(&mut self, addr: PhysAddr) {
         for i in 0..self.0.len() {
-            if self.0[i].start == addr && self.0[i].available == false {
+            if self.0[i].start == addr && !self.0[i].available {
                 self.0[i].available = true;
                 return self.merge_all_nodes();
             }
