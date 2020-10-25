@@ -1,25 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::mem::accessor::slice,
+    crate::mem::allocator::page_box::PageBox,
     core::ops::{Index, IndexMut},
     x86_64::PhysAddr,
 };
 
-pub struct SegmentTable<'a>(slice::Accessor<'a, Entry>);
-impl<'a> SegmentTable<'a> {
+pub struct SegmentTable(PageBox<[Entry]>);
+impl SegmentTable {
     fn phys_addr(&self) -> PhysAddr {
-        self.0.phys_base()
+        self.0.phys_addr()
     }
 }
-impl<'a> Index<usize> for SegmentTable<'a> {
+impl Index<usize> for SegmentTable {
     type Output = Entry;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.0[index]
     }
 }
-impl<'a> IndexMut<usize> for SegmentTable<'a> {
+impl IndexMut<usize> for SegmentTable {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.0[index]
     }
