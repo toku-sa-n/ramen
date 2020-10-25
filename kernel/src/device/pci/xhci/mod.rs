@@ -16,7 +16,7 @@ use {
         runtime_base_registers::RuntimeBaseRegisters,
         usb_legacy_support_capability::UsbLegacySupportCapability,
     },
-    ring::command,
+    ring::{command, event::EventRing},
     transfer_ring::{Event, RingQueue},
     x86_64::{structures::paging::MapperAllSizes, PhysAddr},
 };
@@ -38,7 +38,7 @@ pub struct Xhci<'a> {
     hc_operational_registers: HCOperationalRegisters<'a>,
     dcbaa: DeviceContextBaseAddressArray,
     command_ring: command::Ring,
-    event_ring: RingQueue<Event>,
+    event_ring: EventRing,
     runtime_base_registers: RuntimeBaseRegisters<'a>,
     event_ring_segment_table: event_ring::SegmentTable,
 }
@@ -93,7 +93,7 @@ impl<'a> Xhci<'a> {
 
     fn init_event_ring_segment_table(&mut self) {
         info!("Initializing event ring segment table...");
-        let phys_addr_of_event_ring = self.phys_addr_of_event_ring();
+        let phys_addr_of_event_ring = self.event_ring.phys_addr();
         self.event_ring_segment_table.edit(|table| {
             table[0].set_base_address(phys_addr_of_event_ring);
             table[0].set_segment_size(256);
@@ -119,15 +119,11 @@ impl<'a> Xhci<'a> {
 
     fn set_event_ring_dequeue_pointer(&mut self) {
         self.runtime_base_registers
-            .set_event_ring_dequeue_ptr(self.phys_addr_of_event_ring())
+            .set_event_ring_dequeue_ptr(self.event_ring.phys_addr())
     }
 
     fn run(&mut self) {
         self.hc_operational_registers.run();
-    }
-
-    fn phys_addr_of_event_ring(&self) -> PhysAddr {
-        PML4.lock().translate_addr(self.event_ring.addr()).unwrap()
     }
 
     fn new(config_space: &config::Space) -> Result<Self, Error> {
@@ -168,7 +164,7 @@ impl<'a> Xhci<'a> {
             hc_operational_registers,
             dcbaa,
             command_ring: command::Ring::new(256),
-            event_ring: RingQueue::<Event>::new(),
+            event_ring: EventRing::new(256),
             runtime_base_registers,
             event_ring_segment_table: event_ring::SegmentTable::new(),
         }

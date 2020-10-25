@@ -9,6 +9,7 @@ use {
         task::{Context, Poll},
     },
     futures_util::stream::Stream,
+    x86_64::PhysAddr,
 };
 
 mod segment_table;
@@ -25,6 +26,10 @@ impl<'a> EventRing {
             current_cycle_bit: CycleBit::new(true),
             dequeue_ptr: 0,
         }
+    }
+
+    pub fn phys_addr(&self) -> PhysAddr {
+        self.raw.phys_addr()
     }
 
     fn dequeue(&mut self) -> Option<Trb> {
