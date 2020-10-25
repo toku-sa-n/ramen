@@ -5,7 +5,7 @@ use {
     core::ops::{Index, IndexMut},
 };
 
-mod command;
+pub mod command;
 mod event;
 mod trb;
 
