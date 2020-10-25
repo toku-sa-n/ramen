@@ -26,7 +26,7 @@ impl IndexMut<usize> for SegmentTable {
 }
 
 #[repr(C, packed)]
-struct Entry {
+pub struct Entry {
     base_address: u64,
     segment_size: u64,
 }
