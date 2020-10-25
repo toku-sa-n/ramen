@@ -13,13 +13,13 @@ use {
 
 mod segment_table;
 
-struct EventRing {
+pub struct EventRing {
     raw: Raw,
     current_cycle_bit: CycleBit,
     dequeue_ptr: usize,
 }
 impl<'a> EventRing {
-    fn new(len: usize) -> Self {
+    pub fn new(len: usize) -> Self {
         Self {
             raw: Raw::new(len),
             current_cycle_bit: CycleBit::new(true),
