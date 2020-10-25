@@ -1,36 +1,31 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::mem::{accessor::slice, allocator::phys::FRAME_MANAGER},
+    crate::mem::allocator::page_box::PageBox,
     core::ops::{Index, IndexMut},
-    os_units::Bytes,
-    x86_64::structures::paging::{FrameAllocator, PageSize, Size4KiB},
 };
 
 mod command;
 mod event;
 mod trb;
 
-struct Raw<'a>(slice::Accessor<'a, trb::Raw>);
-impl<'a> Raw<'a> {
+struct Raw(PageBox<[trb::Raw]>);
+impl Raw {
     fn new(num_trb: usize) -> Self {
-        assert!(num_trb as u64 <= Size4KiB::SIZE / 16);
-        let phys_frame = FRAME_MANAGER.lock().allocate_frame().unwrap();
-        let addr = phys_frame.start_address();
-        Self(slice::Accessor::new(addr, Bytes::new(0), num_trb))
+        Self(PageBox::new_slice(num_trb))
     }
 
     fn len(&self) -> usize {
         self.0.len()
     }
 }
-impl<'a> Index<usize> for Raw<'a> {
+impl Index<usize> for Raw {
     type Output = trb::Raw;
     fn index(&self, index: usize) -> &Self::Output {
         &self.0[index]
     }
 }
-impl<'a> IndexMut<usize> for Raw<'a> {
+impl IndexMut<usize> for Raw {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.0[index]
     }

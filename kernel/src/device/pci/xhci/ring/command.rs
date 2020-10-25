@@ -2,12 +2,12 @@
 
 use super::Raw;
 
-struct CommandRing<'a> {
-    raw: Raw<'a>,
+struct CommandRing {
+    raw: Raw,
     enqueue_ptr: usize,
     len: usize,
 }
-impl<'a> CommandRing<'a> {
+impl CommandRing {
     fn new(len: usize) -> Self {
         Self {
             raw: Raw::new(len),

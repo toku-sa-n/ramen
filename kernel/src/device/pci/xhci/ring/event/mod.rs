@@ -13,12 +13,12 @@ use {
 
 mod segment_table;
 
-struct EventRing<'a> {
-    raw: Raw<'a>,
+struct EventRing {
+    raw: Raw,
     current_cycle_bit: CycleBit,
     dequeue_ptr: usize,
 }
-impl<'a> EventRing<'a> {
+impl<'a> EventRing {
     fn new(len: usize) -> Self {
         Self {
             raw: Raw::new(len),
@@ -59,7 +59,7 @@ impl<'a> EventRing<'a> {
         self.raw.len()
     }
 }
-impl<'a> Stream for EventRing<'a> {
+impl<'a> Stream for EventRing {
     type Item = Trb;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
