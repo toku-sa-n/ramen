@@ -3,6 +3,7 @@
 use {
     crate::mem::allocator::page_box::PageBox,
     core::ops::{Index, IndexMut},
+    x86_64::PhysAddr,
 };
 
 pub mod command;
@@ -17,6 +18,10 @@ impl Raw {
 
     fn len(&self) -> usize {
         self.0.len()
+    }
+
+    fn phys_addr(&self) -> PhysAddr {
+        self.0.phys_addr()
     }
 }
 impl Index<usize> for Raw {

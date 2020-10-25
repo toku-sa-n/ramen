@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::Raw;
+use {super::Raw, x86_64::PhysAddr};
 
 pub struct CommandRing {
     raw: Raw,
@@ -14,5 +14,9 @@ impl CommandRing {
             enqueue_ptr: 0,
             len,
         }
+    }
+
+    pub fn phys_addr(&self) -> PhysAddr {
+        self.raw.phys_addr()
     }
 }

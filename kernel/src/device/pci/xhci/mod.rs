@@ -16,6 +16,7 @@ use {
         runtime_base_registers::RuntimeBaseRegisters,
         usb_legacy_support_capability::UsbLegacySupportCapability,
     },
+    ring::command::CommandRing,
     transfer_ring::{Command, Event, RingQueue},
     x86_64::{structures::paging::MapperAllSizes, PhysAddr},
 };
@@ -36,7 +37,7 @@ pub struct Xhci<'a> {
     hc_capability_registers: HCCapabilityRegisters<'a>,
     hc_operational_registers: HCOperationalRegisters<'a>,
     dcbaa: DeviceContextBaseAddressArray,
-    command_ring: RingQueue<Command>,
+    command_ring: CommandRing,
     event_ring: RingQueue<Event>,
     runtime_base_registers: RuntimeBaseRegisters<'a>,
     event_ring_segment_table: event_ring::SegmentTable,
@@ -86,11 +87,8 @@ impl<'a> Xhci<'a> {
 
     fn set_command_ring_pointer(&mut self) {
         info!("Setting command ring pointer...");
-        let virt_addr = self.command_ring.addr();
-        let phys_addr = PML4.lock().translate_addr(virt_addr).unwrap();
-
         self.hc_operational_registers
-            .set_command_ring_ptr(phys_addr);
+            .set_command_ring_ptr(self.command_ring.phys_addr());
     }
 
     fn init_event_ring_segment_table(&mut self) {
@@ -169,7 +167,7 @@ impl<'a> Xhci<'a> {
             hc_capability_registers,
             hc_operational_registers,
             dcbaa,
-            command_ring: RingQueue::<Command>::new(),
+            command_ring: CommandRing::new(256),
             event_ring: RingQueue::<Event>::new(),
             runtime_base_registers,
             event_ring_segment_table: event_ring::SegmentTable::new(),
