@@ -39,7 +39,7 @@ pub struct Xhci<'a> {
     command_ring: RingQueue<Command>,
     event_ring: RingQueue<Event>,
     runtime_base_registers: RuntimeBaseRegisters<'a>,
-    event_ring_segment_table: event_ring::SegmentTable<'a>,
+    event_ring_segment_table: event_ring::SegmentTable,
 }
 
 impl<'a> Xhci<'a> {

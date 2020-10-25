@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::mem::{accessor::slice, allocator::phys::FRAME_MANAGER},
+    crate::mem::allocator::page_box::PageBox,
     core::mem::size_of,
-    os_units::Bytes,
     x86_64::{
-        structures::paging::{FrameAllocator, PageSize, Size4KiB},
+        structures::paging::{PageSize, Size4KiB},
         PhysAddr,
     },
 };
@@ -14,16 +13,13 @@ use {
 pub const NUM_ELEMENTS_SEGMENT_TABLE: usize =
     Size4KiB::SIZE as usize / size_of::<SegmentTableEntry>();
 
-pub struct SegmentTable<'a> {
-    addr: PhysAddr,
-    table: slice::Accessor<'a, SegmentTableEntry>,
+pub struct SegmentTable {
+    table: PageBox<[SegmentTableEntry]>,
 }
-impl<'a> SegmentTable<'a> {
+impl SegmentTable {
     pub fn new() -> Self {
-        let phys_frame = FRAME_MANAGER.lock().allocate_frame().unwrap();
-        let addr = phys_frame.start_address();
-        let table = slice::Accessor::new(addr, Bytes::new(0), NUM_ELEMENTS_SEGMENT_TABLE);
-        Self { addr, table }
+        let table = PageBox::new_slice(NUM_ELEMENTS_SEGMENT_TABLE);
+        Self { table }
     }
 
     pub fn edit<T, U>(&mut self, f: T) -> U
@@ -34,7 +30,7 @@ impl<'a> SegmentTable<'a> {
     }
 
     pub fn addr(&self) -> PhysAddr {
-        self.addr
+        self.table.phys_addr()
     }
 }
 
