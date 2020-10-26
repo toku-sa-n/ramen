@@ -40,7 +40,6 @@ pub struct Xhci {
     event_ring: EventRing,
     runtime_base_registers: RuntimeBaseRegisters,
     event_ring_segment_table: event_ring::SegmentTable,
-    config_space: config::Space,
 }
 
 impl<'a> Xhci {
@@ -167,7 +166,6 @@ impl<'a> Xhci {
             event_ring: EventRing::new(256),
             runtime_base_registers,
             event_ring_segment_table: event_ring::SegmentTable::new(),
-            config_space,
         }
     }
 }
