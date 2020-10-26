@@ -25,18 +25,12 @@ LIB_FILE		:= $(BUILD_DIR)/libramen_os.a
 IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
 
 LD				:= ld
-CC				:= gcc
 RUSTCC			:= cargo
 RM				:= rm -rf
 VIEWER			:= qemu-system-x86_64
 
 OVMF_CODE		:= OVMF_CODE.fd
 OVMF_VARS		:= OVMF_VARS.fd
-
-CFLAGS			:= -O3 -pipe -nostdlib -c -ffreestanding
-
-# Workaround for `compiler_builtins` crate.
-RELEASE_FLAGS	:= --release
 
 # If you change values of `iobase` and `iosize`, don't forget to change the corresponding values in `kernel/src/lib.rs`!
 VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -no-reboot -m 4G -d int -device isa-debug-exit,iobase=0xf4,iosize=0x04 -device qemu-xhci,id=xhci -device usb-tablet,bus=xhci.0
