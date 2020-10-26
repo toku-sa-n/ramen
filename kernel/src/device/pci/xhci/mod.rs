@@ -39,7 +39,7 @@ pub struct Xhci {
     command_ring: command::Ring,
     event_ring: event::Ring,
     runtime_base_registers: RuntimeBaseRegisters,
-    event_ring_segment_table: event_ring::SegmentTable,
+    event_ring_segment_table: event::SegmentTable,
 }
 
 impl<'a> Xhci {
@@ -93,10 +93,7 @@ impl<'a> Xhci {
     fn init_event_ring_segment_table(&mut self) {
         info!("Initializing event ring segment table...");
         let phys_addr_of_event_ring = self.event_ring.phys_addr();
-        self.event_ring_segment_table.edit(|table| {
-            table[0].set_base_address(phys_addr_of_event_ring);
-            table[0].set_segment_size(256);
-        });
+        self.event_ring_segment_table[0].set(phys_addr_of_event_ring, 256);
 
         self.set_event_ring_segment_table_size();
         self.enable_event_ring()
@@ -113,7 +110,7 @@ impl<'a> Xhci {
 
     fn set_event_ring_segment_table_address(&mut self) {
         self.runtime_base_registers
-            .set_event_ring_segment_table_addr(self.event_ring_segment_table.addr())
+            .set_event_ring_segment_table_addr(self.event_ring_segment_table.phys_addr())
     }
 
     fn set_event_ring_dequeue_pointer(&mut self) {
@@ -165,7 +162,7 @@ impl<'a> Xhci {
             command_ring: command::Ring::new(256),
             event_ring: event::Ring::new(256),
             runtime_base_registers,
-            event_ring_segment_table: event_ring::SegmentTable::new(),
+            event_ring_segment_table: event::SegmentTable::new(1),
         }
     }
 }

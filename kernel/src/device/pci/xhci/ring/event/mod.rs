@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+pub use segment_table::SegmentTable;
 use {
     super::{trb::Trb, CycleBit, Raw},
     crate::device::pci::xhci,
