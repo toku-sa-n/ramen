@@ -7,7 +7,7 @@ pub mod screen;
 
 use common::{constant::VRAM_ADDR, kernelboot};
 use conquer_once::spin::{Lazy, OnceCell};
-use core::{fmt, ptr};
+use core::{convert::TryFrom, fmt, ptr};
 use rgb::RGB8;
 use vek::Vec2;
 use x86_64::VirtAddr;
@@ -48,13 +48,9 @@ impl Vram {
 
         let offset_from_base = (coord.y * Vram::resolution().x + coord.x) * vram.bits_per_pixel / 8;
 
-        let ptr = vram.ptr.as_mut_ptr::<u8>().offset(offset_from_base as _);
+        let ptr = vram.ptr.as_u64() + u64::try_from(offset_from_base).unwrap();
 
-        // The order of `RGB` is right.
-        // See: https://wiki.osdev.org/Drawing_In_Protected_Mode
-        ptr::write(ptr.offset(0), rgb.b);
-        ptr::write(ptr.offset(1), rgb.g);
-        ptr::write(ptr.offset(2), rgb.r);
+        ptr::write(ptr as *mut _, Bgr::new(rgb.b, rgb.g, rgb.r));
     }
     fn new_from_boot_info(boot_info: &kernelboot::Info) -> Self {
         let vram = boot_info.vram();
@@ -77,7 +73,6 @@ impl Vram {
         VRAM.try_get().expect("VRAM not initialized")
     }
 }
-
 impl fmt::Display for Vram {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -85,5 +80,17 @@ impl fmt::Display for Vram {
             "{}bpp Resolution: {}x{}",
             self.bits_per_pixel, self.resolution.x, self.resolution.y
         )
+    }
+}
+
+#[repr(C, packed)]
+struct Bgr {
+    b: u8,
+    g: u8,
+    r: u8,
+}
+impl Bgr {
+    fn new(b: u8, g: u8, r: u8) -> Self {
+        Self { b, g, r }
     }
 }
