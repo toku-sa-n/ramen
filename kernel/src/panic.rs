@@ -2,6 +2,7 @@
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
+    x86_64::instructions::interrupts::disable();
     error!("*************");
     error!("*   PANIC   *");
     error!("*************");
