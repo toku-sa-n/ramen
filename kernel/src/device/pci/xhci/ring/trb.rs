@@ -71,3 +71,8 @@ impl From<Raw> for CycleBit {
         Self((raw.0 >> 96) & 1 != 0)
     }
 }
+impl From<u128> for Raw {
+    fn from(raw: u128) -> Self {
+        Self(raw)
+    }
+}
