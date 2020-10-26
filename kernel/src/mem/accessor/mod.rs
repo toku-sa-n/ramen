@@ -5,7 +5,12 @@ use {
         allocator::{phys::FRAME_MANAGER, virt},
         paging::pml4::PML4,
     },
-    core::convert::TryFrom,
+    core::{
+        convert::TryFrom,
+        marker::PhantomData,
+        mem,
+        ops::{Deref, DerefMut},
+    },
     os_units::Bytes,
     x86_64::{
         structures::paging::{Mapper, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
@@ -15,6 +20,71 @@ use {
 
 pub mod single_object;
 pub mod slice;
+
+struct Accessor<T: ?Sized> {
+    virt: VirtAddr,
+    bytes: Bytes, // The size of `T` is not always computable. Thus save the bytes of objects.
+    _marker: PhantomData<T>,
+}
+impl<T> Accessor<T> {
+    fn new(phys_base: PhysAddr, offset: Bytes) -> Self {
+        let phys_base = phys_base + offset.as_usize();
+        let virt = map_pages(phys_base, Bytes::new(mem::size_of::<T>()));
+
+        Self {
+            virt,
+            bytes: Bytes::new(mem::size_of::<T>()),
+            _marker: PhantomData,
+        }
+    }
+}
+impl<T> Deref for Accessor<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe { &*self.virt.as_ptr() }
+    }
+}
+impl<T> DerefMut for Accessor<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { &mut *self.virt.as_mut_ptr() }
+    }
+}
+
+impl<T> Accessor<[T]> {
+    fn new(phys_base: PhysAddr, offset: Bytes, len: usize) -> Self {
+        let phys_base = phys_base + offset.as_usize();
+        let virt = map_pages(phys_base, Bytes::new(mem::size_of::<T>() * len));
+
+        Self {
+            virt,
+            bytes: Bytes::new(mem::size_of::<T>() * len),
+            _marker: PhantomData,
+        }
+    }
+
+    fn len(&self) -> usize {
+        self.bytes.as_usize() / mem::size_of::<T>()
+    }
+}
+impl<T> Deref for Accessor<[T]> {
+    type Target = [T];
+
+    fn deref(&self) -> &Self::Target {
+        unsafe { core::slice::from_raw_parts(self.virt.as_ptr(), self.len()) }
+    }
+}
+impl<T> DerefMut for Accessor<[T]> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { core::slice::from_raw_parts_mut(self.virt.as_mut_ptr(), self.len()) }
+    }
+}
+
+impl<T: ?Sized> Drop for Accessor<T> {
+    fn drop(&mut self) {
+        unmap_pages(self.virt, self.bytes)
+    }
+}
 
 fn map_pages(start: PhysAddr, object_size: Bytes) -> VirtAddr {
     let start_frame_addr = start.align_down(Size4KiB::SIZE);
