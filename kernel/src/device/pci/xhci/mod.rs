@@ -16,7 +16,7 @@ use {
         runtime_base_registers::RuntimeBaseRegisters,
         usb_legacy_support_capability::UsbLegacySupportCapability,
     },
-    ring::{command, event::EventRing},
+    ring::{command, event},
     x86_64::PhysAddr,
 };
 
@@ -37,7 +37,7 @@ pub struct Xhci {
     hc_operational_registers: HCOperationalRegisters,
     dcbaa: DeviceContextBaseAddressArray,
     command_ring: command::Ring,
-    event_ring: EventRing,
+    event_ring: event::Ring,
     runtime_base_registers: RuntimeBaseRegisters,
     event_ring_segment_table: event_ring::SegmentTable,
 }
@@ -163,7 +163,7 @@ impl<'a> Xhci {
             hc_operational_registers,
             dcbaa,
             command_ring: command::Ring::new(256),
-            event_ring: EventRing::new(256),
+            event_ring: event::Ring::new(256),
             runtime_base_registers,
             event_ring_segment_table: event_ring::SegmentTable::new(),
         }
