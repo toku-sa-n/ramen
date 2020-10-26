@@ -209,7 +209,7 @@ enum Error {
     NotXhciDevice,
 }
 
-pub fn iter_devices<'a>() -> impl Iterator<Item = Xhci> {
+pub fn iter_devices() -> impl Iterator<Item = Xhci> {
     super::iter_devices().filter_map(|device| {
         if device.is_xhci() {
             Xhci::new(device).ok()
