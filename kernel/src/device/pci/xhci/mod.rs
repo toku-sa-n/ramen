@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod event_ring;
 mod extended_capability;
 mod register;
 mod ring;
-mod transfer_ring;
 
 use {
     super::config::{self, bar},
