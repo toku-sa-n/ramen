@@ -42,7 +42,7 @@ impl HCOperationalRegisters {
 
     pub fn reset_hc(&mut self) {
         if self.usb_sts.hc_halted() {
-            return;
+            panic!("xHC is not halted!");
         }
         self.usb_cmd.reset();
     }
@@ -61,10 +61,6 @@ impl HCOperationalRegisters {
 
     pub fn set_command_ring_ptr(&mut self, addr: PhysAddr) {
         self.crcr.set_ptr(addr)
-    }
-
-    pub fn enable_interrupt(&mut self) {
-        self.usb_cmd.set_interrupt_enable(true)
     }
 
     pub fn run(&mut self) {

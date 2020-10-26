@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod event_ring;
 mod extended_capability;
 mod register;
-mod transfer_ring;
+mod ring;
 
 use {
     super::config::{self, bar},
-    crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4},
+    crate::mem::allocator::page_box::PageBox,
     futures_util::{task::AtomicWaker, StreamExt},
     register::{
         hc_capability_registers::HCCapabilityRegisters,
@@ -15,8 +14,8 @@ use {
         runtime_base_registers::RuntimeBaseRegisters,
         usb_legacy_support_capability::UsbLegacySupportCapability,
     },
-    transfer_ring::{Command, Event, RingQueue},
-    x86_64::{structures::paging::MapperAllSizes, PhysAddr},
+    ring::{command, event},
+    x86_64::PhysAddr,
 };
 
 static WAKER: AtomicWaker = AtomicWaker::new();
@@ -35,11 +34,10 @@ pub struct Xhci {
     hc_capability_registers: HCCapabilityRegisters,
     hc_operational_registers: HCOperationalRegisters,
     dcbaa: DeviceContextBaseAddressArray,
-    command_ring: RingQueue<Command>,
-    event_ring: RingQueue<Event>,
+    command_ring: command::Ring,
+    event_ring: event::Ring,
     runtime_base_registers: RuntimeBaseRegisters,
-    event_ring_segment_table: event_ring::SegmentTable,
-    config_space: config::Space,
+    event_ring_segment_table: event::SegmentTable,
 }
 
 impl<'a> Xhci {
@@ -50,11 +48,8 @@ impl<'a> Xhci {
         self.set_num_of_enabled_slots();
         self.set_dcbaap();
         self.set_command_ring_pointer();
-        self.init_msi();
         self.set_event_ring_dequeue_pointer();
-        self.enable_system_bus_interrupt_generation();
         self.init_event_ring_segment_table();
-        self.enable_interrupt();
         self.run();
     }
 
@@ -89,29 +84,21 @@ impl<'a> Xhci {
 
     fn set_command_ring_pointer(&mut self) {
         info!("Setting command ring pointer...");
-        let virt_addr = self.command_ring.addr();
-        let phys_addr = PML4.lock().translate_addr(virt_addr).unwrap();
-
         self.hc_operational_registers
-            .set_command_ring_ptr(phys_addr);
-    }
-
-    fn init_msi(&mut self) {
-        info!("Initializing MSI...");
-        self.config_space.init_msi_for_xhci().unwrap();
+            .set_command_ring_ptr(self.command_ring.phys_addr());
     }
 
     fn init_event_ring_segment_table(&mut self) {
         info!("Initializing event ring segment table...");
-        let ring_addr = self.event_ring.addr();
-        let phys = PML4.lock().translate_addr(ring_addr).unwrap();
-        self.event_ring_segment_table.edit(|table| {
-            table[0].set_base_address(phys);
-            table[0].set_segment_size(256);
-        });
+        let phys_addr_of_event_ring = self.event_ring.phys_addr();
+        self.event_ring_segment_table[0].set(phys_addr_of_event_ring, 256);
 
         self.set_event_ring_segment_table_size();
-        self.set_event_ring_segment_table_address();
+        self.enable_event_ring()
+    }
+
+    fn enable_event_ring(&mut self) {
+        self.set_event_ring_segment_table_address()
     }
 
     fn set_event_ring_segment_table_size(&mut self) {
@@ -121,35 +108,27 @@ impl<'a> Xhci {
 
     fn set_event_ring_segment_table_address(&mut self) {
         self.runtime_base_registers
-            .set_event_ring_segment_table_addr(self.event_ring_segment_table.addr())
+            .set_event_ring_segment_table_addr(self.event_ring_segment_table.phys_addr())
     }
 
     fn set_event_ring_dequeue_pointer(&mut self) {
-        let phys = PML4.lock().translate_addr(self.event_ring.addr()).unwrap();
-        self.runtime_base_registers.set_event_ring_dequeue_ptr(phys)
-    }
-
-    fn enable_system_bus_interrupt_generation(&mut self) {
-        self.hc_operational_registers.enable_interrupt()
-    }
-
-    fn enable_interrupt(&mut self) {
-        self.runtime_base_registers.enable_interrupt()
+        self.runtime_base_registers
+            .set_event_ring_dequeue_ptr(self.event_ring.phys_addr())
     }
 
     fn run(&mut self) {
         self.hc_operational_registers.run();
     }
 
-    fn new(config_space: config::Space) -> Result<Self, Error> {
+    fn new(config_space: &config::Space) -> Result<Self, Error> {
         if config_space.is_xhci() {
-            Ok(Self::generate(config_space))
+            Ok(Self::generate(&config_space))
         } else {
             Err(Error::NotXhciDevice)
         }
     }
 
-    fn generate(config_space: config::Space) -> Self {
+    fn generate(config_space: &config::Space) -> Self {
         info!("xHC found.");
 
         let mmio_base = config_space.base_address(bar::Index::new(0));
@@ -178,11 +157,10 @@ impl<'a> Xhci {
             hc_capability_registers,
             hc_operational_registers,
             dcbaa,
-            command_ring: RingQueue::<Command>::new(),
-            config_space,
-            event_ring: RingQueue::<Event>::new(),
+            command_ring: command::Ring::new(256),
+            event_ring: event::Ring::new(256),
             runtime_base_registers,
-            event_ring_segment_table: event_ring::SegmentTable::new(),
+            event_ring_segment_table: event::SegmentTable::new(1),
         }
     }
 }
@@ -212,7 +190,7 @@ enum Error {
 pub fn iter_devices() -> impl Iterator<Item = Xhci> {
     super::iter_devices().filter_map(|device| {
         if device.is_xhci() {
-            Xhci::new(device).ok()
+            Xhci::new(&device).ok()
         } else {
             None
         }

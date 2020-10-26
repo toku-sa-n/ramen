@@ -38,13 +38,6 @@ impl<'a> RuntimeBaseRegisters {
     pub fn set_event_ring_dequeue_ptr(&mut self, ptr: PhysAddr) {
         self.erd_p.set_address(ptr)
     }
-
-    pub fn enable_interrupt(&mut self) {
-        self.i_man.set_interrupt_pending(true);
-        self.i_man.set_interrupt_status(true);
-
-        self.i_mod.set_interrupt_interval(4000);
-    }
 }
 
 bitfield! {
@@ -75,9 +68,10 @@ impl EventRingSegmentTableSizeRegister {
 #[derive(Debug)]
 struct EventRingSegmentTableBaseAddressRegister(u64);
 impl EventRingSegmentTableBaseAddressRegister {
-    fn set(&mut self, val: PhysAddr) {
-        assert!(val.as_u64().trailing_zeros() >= 6);
-        self.0 = val.as_u64()
+    fn set(&mut self, addr: PhysAddr) {
+        let addr = addr.as_u64();
+        assert!(addr.trailing_zeros() >= 6);
+        self.0 = addr
     }
 }
 
