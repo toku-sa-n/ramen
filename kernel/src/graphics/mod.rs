@@ -86,3 +86,15 @@ impl fmt::Display for Vram {
         )
     }
 }
+
+#[repr(C, packed)]
+struct Bgr {
+    b: u8,
+    g: u8,
+    r: u8,
+}
+impl Bgr {
+    fn new(b: u8, g: u8, r: u8) -> Self {
+        Self { b, g, r }
+    }
+}
