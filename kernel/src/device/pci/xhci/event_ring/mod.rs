@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::mem::{accessor::slice, allocator::phys::FRAME_MANAGER},
+    crate::mem::{accessor::Accessor, allocator::phys::FRAME_MANAGER},
     core::mem::size_of,
     os_units::Bytes,
     x86_64::{
@@ -14,15 +14,15 @@ use {
 pub const NUM_ELEMENTS_SEGMENT_TABLE: usize =
     Size4KiB::SIZE as usize / size_of::<SegmentTableEntry>();
 
-pub struct SegmentTable<'a> {
+pub struct SegmentTable {
     addr: PhysAddr,
-    table: slice::Accessor<'a, SegmentTableEntry>,
+    table: Accessor<[SegmentTableEntry]>,
 }
-impl<'a> SegmentTable<'a> {
+impl SegmentTable {
     pub fn new() -> Self {
         let phys_frame = FRAME_MANAGER.lock().allocate_frame().unwrap();
         let addr = phys_frame.start_address();
-        let table = slice::Accessor::new(addr, Bytes::new(0), NUM_ELEMENTS_SEGMENT_TABLE);
+        let table = Accessor::new_slice(addr, Bytes::new(0), NUM_ELEMENTS_SEGMENT_TABLE);
         Self { addr, table }
     }
 

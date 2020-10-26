@@ -3,32 +3,32 @@
 use {
     crate::{
         device::pci::xhci::register::hc_capability_registers::HCCapabilityRegisters,
-        mem::accessor::{single_object, slice},
+        mem::accessor::Accessor,
     },
     bitfield::bitfield,
     os_units::Bytes,
     x86_64::PhysAddr,
 };
 
-pub struct HCOperationalRegisters<'a> {
-    usb_cmd: single_object::Accessor<'a, UsbCommandRegister>,
-    usb_sts: single_object::Accessor<'a, UsbStatusRegister>,
-    crcr: single_object::Accessor<'a, CommandRingControlRegister>,
-    dcbaap: single_object::Accessor<'a, DeviceContextBaseAddressArrayPointer>,
-    config: single_object::Accessor<'a, ConfigureRegister>,
-    port_sc: slice::Accessor<'a, PortStatusAndControlRegister>,
+pub struct HCOperationalRegisters {
+    usb_cmd: Accessor<UsbCommandRegister>,
+    usb_sts: Accessor<UsbStatusRegister>,
+    crcr: Accessor<CommandRingControlRegister>,
+    dcbaap: Accessor<DeviceContextBaseAddressArrayPointer>,
+    config: Accessor<ConfigureRegister>,
+    port_sc: Accessor<[PortStatusAndControlRegister]>,
 }
 
-impl<'a> HCOperationalRegisters<'a> {
+impl HCOperationalRegisters {
     pub fn new(mmio_base: PhysAddr, capabilities: &HCCapabilityRegisters) -> Self {
         let operational_base = mmio_base + capabilities.len();
 
-        let usb_cmd = single_object::Accessor::new(operational_base, 0x00);
-        let usb_sts = single_object::Accessor::new(operational_base, 0x04);
-        let crcr = single_object::Accessor::new(operational_base, 0x18);
-        let dcbaap = single_object::Accessor::new(operational_base, 0x30);
-        let config = single_object::Accessor::new(operational_base, 0x38);
-        let port_sc = slice::Accessor::new(operational_base, Bytes::new(0x400), 10);
+        let usb_cmd = Accessor::new(operational_base, Bytes::new(0x00));
+        let usb_sts = Accessor::new(operational_base, Bytes::new(0x04));
+        let crcr = Accessor::new(operational_base, Bytes::new(0x18));
+        let dcbaap = Accessor::new(operational_base, Bytes::new(0x30));
+        let config = Accessor::new(operational_base, Bytes::new(0x38));
+        let port_sc = Accessor::new_slice(operational_base, Bytes::new(0x400), 10);
 
         Self {
             usb_cmd,
