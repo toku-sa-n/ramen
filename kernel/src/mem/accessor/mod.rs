@@ -18,16 +18,13 @@ use {
     },
 };
 
-pub mod single_object;
-pub mod slice;
-
-struct Accessor<T: ?Sized> {
+pub struct Accessor<T: ?Sized> {
     virt: VirtAddr,
     bytes: Bytes, // The size of `T` is not always computable. Thus save the bytes of objects.
     _marker: PhantomData<T>,
 }
 impl<T> Accessor<T> {
-    fn new(phys_base: PhysAddr, offset: Bytes) -> Self {
+    pub fn new(phys_base: PhysAddr, offset: Bytes) -> Self {
         let phys_base = phys_base + offset.as_usize();
         let virt = map_pages(phys_base, Bytes::new(mem::size_of::<T>()));
 
@@ -52,7 +49,7 @@ impl<T> DerefMut for Accessor<T> {
 }
 
 impl<T> Accessor<[T]> {
-    fn new(phys_base: PhysAddr, offset: Bytes, len: usize) -> Self {
+    pub fn new_slice(phys_base: PhysAddr, offset: Bytes, len: usize) -> Self {
         let phys_base = phys_base + offset.as_usize();
         let virt = map_pages(phys_base, Bytes::new(mem::size_of::<T>() * len));
 

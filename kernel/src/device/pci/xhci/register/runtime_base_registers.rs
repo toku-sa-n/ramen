@@ -1,22 +1,22 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {crate::mem::accessor::single_object::Accessor, bitfield::bitfield, x86_64::PhysAddr};
+use {crate::mem::accessor::Accessor, bitfield::bitfield, os_units::Bytes, x86_64::PhysAddr};
 
-pub struct RuntimeBaseRegisters<'a> {
-    i_man: Accessor<'a, InterruptManagementRegister>,
-    i_mod: Accessor<'a, InterruptModerationRegister>,
-    erst_sz: Accessor<'a, EventRingSegmentTableSizeRegister>,
-    erst_ba: Accessor<'a, EventRingSegmentTableBaseAddressRegister>,
-    erd_p: Accessor<'a, EventRingDequeuePointerRegister>,
+pub struct RuntimeBaseRegisters {
+    i_man: Accessor<InterruptManagementRegister>,
+    i_mod: Accessor<InterruptModerationRegister>,
+    erst_sz: Accessor<EventRingSegmentTableSizeRegister>,
+    erst_ba: Accessor<EventRingSegmentTableBaseAddressRegister>,
+    erd_p: Accessor<EventRingDequeuePointerRegister>,
 }
-impl<'a> RuntimeBaseRegisters<'a> {
+impl<'a> RuntimeBaseRegisters {
     pub fn new(mmio_base: PhysAddr, runtime_register_space_offset: usize) -> Self {
         let runtime_base = mmio_base + runtime_register_space_offset;
-        let i_man = Accessor::new(runtime_base, 0x20);
-        let i_mod = Accessor::new(runtime_base, 0x24);
-        let erst_sz = Accessor::new(runtime_base, 0x28);
-        let erst_ba = Accessor::new(runtime_base, 0x30);
-        let erd_p = Accessor::new(runtime_base, 0x38);
+        let i_man = Accessor::new(runtime_base, Bytes::new(0x20));
+        let i_mod = Accessor::new(runtime_base, Bytes::new(0x24));
+        let erst_sz = Accessor::new(runtime_base, Bytes::new(0x28));
+        let erst_ba = Accessor::new(runtime_base, Bytes::new(0x30));
+        let erd_p = Accessor::new(runtime_base, Bytes::new(0x38));
 
         Self {
             i_man,

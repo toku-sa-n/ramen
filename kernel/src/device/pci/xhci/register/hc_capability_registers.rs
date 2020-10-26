@@ -1,22 +1,22 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {crate::mem::accessor::single_object::Accessor, bitfield::bitfield, x86_64::PhysAddr};
+use {crate::mem::accessor::Accessor, bitfield::bitfield, os_units::Bytes, x86_64::PhysAddr};
 
-pub struct HCCapabilityRegisters<'a> {
-    cap_length: Accessor<'a, CapabilityRegistersLength>,
-    hcs_params_1: Accessor<'a, StructuralParameters1>,
-    hc_cp_params_1: Accessor<'a, HCCapabilityParameters1>,
-    rts_off: Accessor<'a, RuntimeRegisterSpaceOffset>,
+pub struct HCCapabilityRegisters {
+    cap_length: Accessor<CapabilityRegistersLength>,
+    hcs_params_1: Accessor<StructuralParameters1>,
+    hc_cp_params_1: Accessor<HCCapabilityParameters1>,
+    rts_off: Accessor<RuntimeRegisterSpaceOffset>,
 }
 
-impl<'a> HCCapabilityRegisters<'a> {
+impl HCCapabilityRegisters {
     pub fn new(mmio_base: PhysAddr) -> Self {
-        let cap_length = Accessor::new(mmio_base, 0);
-        let hcs_params_1 = Accessor::new(mmio_base, 0x04);
-        let hc_cp_params_1 = Accessor::new(mmio_base, 0x10);
-        let rts_off = Accessor::new(mmio_base, 0x18);
+        let cap_length = Accessor::new(mmio_base, Bytes::new(0));
+        let hcs_params_1 = Accessor::new(mmio_base, Bytes::new(0x04));
+        let hc_cp_params_1 = Accessor::new(mmio_base, Bytes::new(0x10));
+        let rts_off = Accessor::new(mmio_base, Bytes::new(0x18));
 
-        let hci_version = Accessor::<'a, HCInterfaceVersionNumber>::new(mmio_base, 0x2);
+        let hci_version = Accessor::<HCInterfaceVersionNumber>::new(mmio_base, Bytes::new(0x2));
         info!("xHC version: {:X}", hci_version.get());
 
         Self {

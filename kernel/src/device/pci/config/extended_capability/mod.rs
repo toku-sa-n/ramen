@@ -5,7 +5,7 @@ pub mod msi_x;
 
 use {
     super::{RegisterIndex, Registers, TypeSpec},
-    crate::mem::accessor::single_object,
+    crate::mem::accessor::Accessor,
     alloc::boxed::Box,
     bitfield::bitfield,
     common::constant::LOCAL_APIC_ID_REGISTER_ADDR,
@@ -15,6 +15,7 @@ use {
     },
     msi::Msi,
     msi_x::MsiX,
+    os_units::Bytes,
 };
 
 pub struct Iter<'a> {
@@ -150,7 +151,7 @@ impl MessageAddress {
     }
 
     fn get_local_apic_id() -> u8 {
-        let accessor = single_object::Accessor::<u32>::new(LOCAL_APIC_ID_REGISTER_ADDR, 0);
+        let accessor = Accessor::<u32>::new(LOCAL_APIC_ID_REGISTER_ADDR, Bytes::new(0));
         u8::try_from(*accessor >> 24).unwrap()
     }
 }

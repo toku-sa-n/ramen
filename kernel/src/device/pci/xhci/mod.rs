@@ -8,7 +8,6 @@ mod transfer_ring;
 use {
     super::config::{self, bar},
     crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4},
-    core::convert::TryFrom,
     futures_util::{task::AtomicWaker, StreamExt},
     register::{
         hc_capability_registers::HCCapabilityRegisters,
@@ -31,19 +30,19 @@ pub async fn task() {
     }
 }
 
-pub struct Xhci<'a> {
-    usb_legacy_support_capability: Option<UsbLegacySupportCapability<'a>>,
-    hc_capability_registers: HCCapabilityRegisters<'a>,
-    hc_operational_registers: HCOperationalRegisters<'a>,
+pub struct Xhci {
+    usb_legacy_support_capability: Option<UsbLegacySupportCapability>,
+    hc_capability_registers: HCCapabilityRegisters,
+    hc_operational_registers: HCOperationalRegisters,
     dcbaa: DeviceContextBaseAddressArray,
     command_ring: RingQueue<Command>,
     event_ring: RingQueue<Event>,
-    runtime_base_registers: RuntimeBaseRegisters<'a>,
-    event_ring_segment_table: event_ring::SegmentTable<'a>,
+    runtime_base_registers: RuntimeBaseRegisters,
+    event_ring_segment_table: event_ring::SegmentTable,
     config_space: config::Space,
 }
 
-impl<'a> Xhci<'a> {
+impl<'a> Xhci {
     pub fn init(&mut self) {
         self.get_ownership_from_bios();
         self.reset_hc();
@@ -210,7 +209,7 @@ enum Error {
     NotXhciDevice,
 }
 
-pub fn iter_devices<'a>() -> impl Iterator<Item = Xhci<'a>> {
+pub fn iter_devices<'a>() -> impl Iterator<Item = Xhci> {
     super::iter_devices().filter_map(|device| {
         if device.is_xhci() {
             Xhci::new(device).ok()

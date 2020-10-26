@@ -4,7 +4,7 @@ use {
     super::{CapabilitySpec, MessageAddress, MessageData, RegisterIndex, Registers},
     crate::{
         device::pci::config::{bar, type_spec::TypeSpec},
-        mem::accessor::slice,
+        mem::accessor::Accessor,
     },
     bitfield::bitfield,
     core::convert::{From, TryFrom},
@@ -38,8 +38,8 @@ impl<'a> MsiX<'a> {
         bar::Index::from(Bir::new(self.registers, self.base))
     }
 
-    fn table(&self, base_address: PhysAddr) -> slice::Accessor<Element> {
-        slice::Accessor::new(
+    fn table(&self, base_address: PhysAddr) -> Accessor<[Element]> {
+        Accessor::new_slice(
             base_address,
             self.table_offset(),
             usize::from(self.num_of_table_elements()),
