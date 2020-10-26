@@ -9,7 +9,7 @@ use {
 pub struct SegmentTable(PageBox<[Entry]>);
 impl SegmentTable {
     pub fn new(len: usize) -> Self {
-        Self(PageBox::new_slice(1))
+        Self(PageBox::new_slice(len))
     }
     pub fn phys_addr(&self) -> PhysAddr {
         self.0.phys_addr()
