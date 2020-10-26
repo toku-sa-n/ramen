@@ -8,7 +8,7 @@ mod transfer_ring;
 
 use {
     super::config::{self, bar},
-    crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4},
+    crate::mem::allocator::page_box::PageBox,
     futures_util::{task::AtomicWaker, StreamExt},
     register::{
         hc_capability_registers::HCCapabilityRegisters,
@@ -17,8 +17,7 @@ use {
         usb_legacy_support_capability::UsbLegacySupportCapability,
     },
     ring::{command, event::EventRing},
-    transfer_ring::{Event, RingQueue},
-    x86_64::{structures::paging::MapperAllSizes, PhysAddr},
+    x86_64::PhysAddr,
 };
 
 static WAKER: AtomicWaker = AtomicWaker::new();
@@ -32,18 +31,19 @@ pub async fn task() {
     }
 }
 
-pub struct Xhci<'a> {
-    usb_legacy_support_capability: Option<UsbLegacySupportCapability<'a>>,
-    hc_capability_registers: HCCapabilityRegisters<'a>,
-    hc_operational_registers: HCOperationalRegisters<'a>,
+pub struct Xhci {
+    usb_legacy_support_capability: Option<UsbLegacySupportCapability>,
+    hc_capability_registers: HCCapabilityRegisters,
+    hc_operational_registers: HCOperationalRegisters,
     dcbaa: DeviceContextBaseAddressArray,
     command_ring: command::Ring,
     event_ring: EventRing,
-    runtime_base_registers: RuntimeBaseRegisters<'a>,
+    runtime_base_registers: RuntimeBaseRegisters,
     event_ring_segment_table: event_ring::SegmentTable,
+    config_space: config::Space,
 }
 
-impl<'a> Xhci<'a> {
+impl<'a> Xhci {
     pub fn init(&mut self) {
         self.get_ownership_from_bios();
         self.reset_hc();
@@ -126,15 +126,15 @@ impl<'a> Xhci<'a> {
         self.hc_operational_registers.run();
     }
 
-    fn new(config_space: &config::Space) -> Result<Self, Error> {
+    fn new(config_space: config::Space) -> Result<Self, Error> {
         if config_space.is_xhci() {
-            Ok(Self::generate(&config_space))
+            Ok(Self::generate(config_space))
         } else {
             Err(Error::NotXhciDevice)
         }
     }
 
-    fn generate(config_space: &config::Space) -> Self {
+    fn generate(config_space: config::Space) -> Self {
         info!("xHC found.");
 
         let mmio_base = config_space.base_address(bar::Index::new(0));
@@ -167,6 +167,7 @@ impl<'a> Xhci<'a> {
             event_ring: EventRing::new(256),
             runtime_base_registers,
             event_ring_segment_table: event_ring::SegmentTable::new(),
+            config_space,
         }
     }
 }
@@ -193,10 +194,10 @@ enum Error {
     NotXhciDevice,
 }
 
-pub fn iter_devices<'a>() -> impl Iterator<Item = Xhci<'a>> {
+pub fn iter_devices() -> impl Iterator<Item = Xhci> {
     super::iter_devices().filter_map(|device| {
         if device.is_xhci() {
-            Xhci::new(&device).ok()
+            Xhci::new(device).ok()
         } else {
             None
         }

@@ -7,7 +7,7 @@ use {
         pin::Pin,
         task::{Context, Poll},
     },
-    futures_util::{stream::Stream, task::AtomicWaker},
+    futures_util::stream::Stream,
     x86_64::VirtAddr,
 };
 

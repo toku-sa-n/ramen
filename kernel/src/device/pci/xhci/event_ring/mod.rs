@@ -21,7 +21,6 @@ impl SegmentTable {
         let table = PageBox::new_slice(NUM_ELEMENTS_SEGMENT_TABLE);
         Self { table }
     }
-
     pub fn edit<T, U>(&mut self, f: T) -> U
     where
         T: Fn(&mut [SegmentTableEntry]) -> U,

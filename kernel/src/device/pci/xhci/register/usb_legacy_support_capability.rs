@@ -3,17 +3,18 @@
 use {
     crate::{
         device::pci::xhci::register::hc_capability_registers::HCCapabilityRegisters,
-        mem::accessor::single_object::Accessor,
+        mem::accessor::Accessor,
     },
     bitfield::bitfield,
+    os_units::Bytes,
     x86_64::PhysAddr,
 };
 
-pub struct UsbLegacySupportCapability<'a> {
-    usb_leg_sup: Accessor<'a, UsbLegacySupportCapabilityRegister>,
+pub struct UsbLegacySupportCapability {
+    usb_leg_sup: Accessor<UsbLegacySupportCapabilityRegister>,
 }
 
-impl<'a> UsbLegacySupportCapability<'a> {
+impl UsbLegacySupportCapability {
     pub fn new(
         mmio_base: PhysAddr,
         hc_capability_registers: &HCCapabilityRegisters,
@@ -21,7 +22,7 @@ impl<'a> UsbLegacySupportCapability<'a> {
         let xecp = hc_capability_registers.xhci_capability_ptr();
         info!("xECP: {}", xecp);
         let base = mmio_base + ((xecp as usize) << 2);
-        let usb_leg_sup = Accessor::<'a, UsbLegacySupportCapabilityRegister>::new(base, 0);
+        let usb_leg_sup = Accessor::<UsbLegacySupportCapabilityRegister>::new(base, Bytes::new(0));
 
         if usb_leg_sup.id() == 1 {
             Some(Self { usb_leg_sup })
