@@ -1,14 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {super::CycleBit, bitfield::bitfield, core::convert::TryFrom};
+use {
+    super::{raw, CycleBit},
+    bitfield::bitfield,
+    core::convert::TryFrom,
+};
 
 enum Ty {
     Noop = 8,
 }
-impl TryFrom<Raw> for Ty {
+impl TryFrom<raw::Trb> for Ty {
     type Error = Error;
 
-    fn try_from(raw: Raw) -> Result<Self, Self::Error> {
+    fn try_from(raw: raw::Trb) -> Result<Self, Self::Error> {
         let error_num = (raw.0 >> 106) & 0x3f;
 
         match error_num {
@@ -27,10 +31,10 @@ impl Trb {
         Self::Noop(Noop::new(cycle_bit))
     }
 }
-impl TryFrom<Raw> for Trb {
+impl TryFrom<raw::Trb> for Trb {
     type Error = Error;
 
-    fn try_from(raw: Raw) -> Result<Self, Self::Error> {
+    fn try_from(raw: raw::Trb) -> Result<Self, Self::Error> {
         match Ty::try_from(raw) {
             Ok(ty) => match ty {
                 Ty::Noop => Ok(Self::Noop(Noop::from(raw))),
@@ -62,29 +66,8 @@ impl Noop {
         noop
     }
 }
-impl From<Raw> for Noop {
-    fn from(raw: Raw) -> Self {
+impl From<raw::Trb> for Noop {
+    fn from(raw: raw::Trb) -> Self {
         Self(raw.0)
-    }
-}
-
-#[repr(transparent)]
-#[derive(Copy, Clone)]
-pub struct Raw(u128);
-impl From<Raw> for CycleBit {
-    fn from(raw: Raw) -> Self {
-        Self((raw.0 >> 96) & 1 != 0)
-    }
-}
-impl Raw {
-    pub fn cycle_bit(self) -> CycleBit {
-        self.into()
-    }
-}
-impl From<Trb> for Raw {
-    fn from(trb: Trb) -> Self {
-        match trb {
-            Trb::Noop(noop) => Self(noop.0),
-        }
     }
 }
