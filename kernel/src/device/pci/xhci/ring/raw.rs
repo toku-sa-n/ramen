@@ -45,6 +45,7 @@ impl From<trb::Trb> for Trb {
     fn from(trb: trb::Trb) -> Self {
         match trb {
             trb::Trb::Noop(noop) => Self(noop.0),
+            trb::Trb::CommandComplete(command_complete) => Self(command_complete.0),
         }
     }
 }
