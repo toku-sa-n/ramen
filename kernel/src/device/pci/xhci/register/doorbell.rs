@@ -16,6 +16,10 @@ impl Array {
             NUM_OF_REGISTERS,
         ))
     }
+
+    fn notify_to_hc(&mut self) {
+        self.0[0].write_for_hc();
+    }
 }
 
 #[repr(transparent)]
