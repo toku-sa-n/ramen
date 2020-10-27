@@ -2,7 +2,6 @@
 
 pub mod bar;
 mod common;
-pub mod extended_capability;
 pub mod type_spec;
 
 use {
