@@ -24,8 +24,28 @@ impl Ring {
         self.raw.phys_addr()
     }
 
+    fn enqueue(&mut self, trb: Trb) {
+        if !self.enqueueable() {
+            return;
+        }
+
+        self.raw[self.enqueue_ptr] = trb.into();
+
+        self.enqueue_ptr += 1;
+        if self.enqueue_ptr < self.len() {
+            return;
+        }
+
+        self.enqueue_ptr %= self.len();
+        self.cycle_bit.toggle();
+    }
+
     fn enqueueable(&self) -> bool {
         let raw = self.raw[self.enqueue_ptr];
         raw.cycle_bit() != self.cycle_bit
+    }
+
+    fn len(&self) -> usize {
+        self.raw.len()
     }
 }
