@@ -7,9 +7,9 @@ use {
 
 const NUM_OF_REGISTERS: usize = 256;
 
-struct Array(Accessor<[Register]>);
+pub struct Array(Accessor<[Register]>);
 impl Array {
-    fn new(mmio_base: PhysAddr, db_off: DoorbellOffset) -> Self {
+    pub fn new(mmio_base: PhysAddr, db_off: &DoorbellOffset) -> Self {
         Self(Accessor::new_slice(
             mmio_base,
             Bytes::new(db_off.get().try_into().unwrap()),

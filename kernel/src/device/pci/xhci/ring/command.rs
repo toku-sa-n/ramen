@@ -24,6 +24,11 @@ impl Ring {
         self.raw.phys_addr()
     }
 
+    pub fn send_noop(&mut self) {
+        let noop = Trb::new_noop(self.cycle_bit);
+        self.enqueue(noop);
+    }
+
     fn enqueue(&mut self, trb: Trb) {
         if !self.enqueueable() {
             return;

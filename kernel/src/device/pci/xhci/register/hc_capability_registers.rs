@@ -46,6 +46,10 @@ impl HCCapabilityRegisters {
         info!("RTSOFF: {}", self.rts_off.get());
         self.rts_off.get()
     }
+
+    pub fn db_off(&self) -> &DoorbellOffset {
+        &*self.db_off
+    }
 }
 
 #[repr(transparent)]
@@ -78,9 +82,9 @@ bitfield! {
 }
 
 #[repr(transparent)]
-struct DoorbellOffset(u32);
+pub struct DoorbellOffset(u32);
 impl DoorbellOffset {
-    fn get(&self) -> u32 {
+    pub fn get(&self) -> u32 {
         self.0
     }
 }
