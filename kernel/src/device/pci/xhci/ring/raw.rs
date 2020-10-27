@@ -3,7 +3,10 @@
 use {
     super::{trb, CycleBit},
     crate::mem::allocator::page_box::PageBox,
-    core::ops::{Index, IndexMut},
+    core::{
+        convert::TryInto,
+        ops::{Index, IndexMut},
+    },
     x86_64::PhysAddr,
 };
 
@@ -39,6 +42,10 @@ pub struct Trb(pub u128);
 impl Trb {
     pub fn cycle_bit(self) -> CycleBit {
         self.into()
+    }
+
+    pub fn ty(self) -> u8 {
+        ((self.0 >> 106) & 0x3f).try_into().unwrap()
     }
 }
 impl From<trb::Trb> for Trb {
