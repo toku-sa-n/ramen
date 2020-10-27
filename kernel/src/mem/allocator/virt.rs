@@ -6,24 +6,10 @@ use {
     core::convert::TryFrom,
     os_units::NumOfPages,
     x86_64::{
-        structures::paging::{MapperAllSizes, Page, PageSize, Size4KiB},
+        structures::paging::{MapperAllSizes, PageSize, Size4KiB},
         VirtAddr,
     },
 };
-
-pub fn search_first_unused_page() -> Option<Page> {
-    debug!("Searching free virtual address...");
-    for addr in
-        (0..BYTES_AVAILABLE_RAM.as_usize()).step_by(usize::try_from(Size4KiB::SIZE).unwrap())
-    {
-        let virt_addr = VirtAddr::new(addr as _);
-        if available(virt_addr) {
-            debug!("Found: {:?}", virt_addr);
-            return Some(Page::containing_address(virt_addr));
-        }
-    }
-    None
-}
 
 pub fn search_free_addr(num_pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
     let mut cnt = 0;
