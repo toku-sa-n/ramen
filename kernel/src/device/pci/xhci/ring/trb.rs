@@ -6,24 +6,6 @@ use {
     core::convert::TryFrom,
 };
 
-enum Ty {
-    Noop = 8,
-    CommandComplete = 33,
-}
-impl TryFrom<raw::Trb> for Ty {
-    type Error = Error;
-
-    fn try_from(raw: raw::Trb) -> Result<Self, Self::Error> {
-        let error_num = (raw.0 >> 106) & 0x3f;
-
-        match error_num {
-            x if x == Self::Noop as _ => Ok(Self::Noop),
-            x if x == Self::CommandComplete as _ => Ok(Self::CommandComplete),
-            _ => Err(Error::InvalidId),
-        }
-    }
-}
-
 #[derive(Debug)]
 pub enum Trb {
     Noop(Noop),
@@ -38,12 +20,13 @@ impl TryFrom<raw::Trb> for Trb {
     type Error = Error;
 
     fn try_from(raw: raw::Trb) -> Result<Self, Self::Error> {
-        match Ty::try_from(raw) {
-            Ok(ty) => match ty {
-                Ty::Noop => Ok(Self::Noop(Noop::from(raw))),
-                Ty::CommandComplete => Ok(Self::CommandComplete(CommandComplete::from(raw))),
-            },
-            Err(_) => Err(Error::InvalidId),
+        match raw.ty() {
+            x if x == Noop::ID => Ok(Self::Noop(Noop::from(raw))),
+            x if x == CommandComplete::ID => Ok(Self::CommandComplete(CommandComplete::from(raw))),
+            x => {
+                warn!("Unrecognized TRB ID: {}", x);
+                Err(Error::InvalidId)
+            }
         }
     }
 }
@@ -58,13 +41,14 @@ bitfield! {
     pub struct Noop(u128);
     impl Debug;
     _, set_cycle_bit: 96;
-    trb_type, set_trb_type: 96+15, 96+10;
+    u8, trb_type, set_trb_type: 96+15, 96+10;
 }
 impl Noop {
+    const ID: u8 = 23;
     fn new(cycle_bit: CycleBit) -> Self {
         let mut noop = Noop(0);
         noop.set_cycle_bit(cycle_bit.into());
-        noop.set_trb_type(Ty::Noop as _);
+        noop.set_trb_type(Self::ID);
 
         noop
     }
@@ -80,6 +64,9 @@ bitfield! {
     pub struct CommandComplete(u128);
     impl Debug;
     completion_code, _: 64+31,64+24;
+}
+impl CommandComplete {
+    const ID: u8 = 33;
 }
 impl From<raw::Trb> for CommandComplete {
     fn from(raw: raw::Trb) -> Self {
