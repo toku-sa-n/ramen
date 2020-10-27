@@ -75,6 +75,14 @@ bitfield! {
 }
 
 #[repr(transparent)]
+struct DoorbellOffset(u32);
+impl DoorbellOffset {
+    fn get(&self) -> u32 {
+        self.0
+    }
+}
+
+#[repr(transparent)]
 struct RuntimeRegisterSpaceOffset(u32);
 impl RuntimeRegisterSpaceOffset {
     fn get(&self) -> u32 {
