@@ -2,7 +2,7 @@
 
 pub use segment_table::SegmentTable;
 use {
-    super::{trb::Trb, CycleBit, Raw},
+    super::{raw, trb::Trb, CycleBit},
     crate::device::pci::xhci,
     core::{
         convert::TryFrom,
@@ -16,14 +16,14 @@ use {
 mod segment_table;
 
 pub struct Ring {
-    raw: Raw,
+    raw: raw::Ring,
     current_cycle_bit: CycleBit,
     dequeue_ptr: usize,
 }
 impl<'a> Ring {
     pub fn new(len: usize) -> Self {
         Self {
-            raw: Raw::new(len),
+            raw: raw::Ring::new(len),
             current_cycle_bit: CycleBit::new(true),
             dequeue_ptr: 0,
         }

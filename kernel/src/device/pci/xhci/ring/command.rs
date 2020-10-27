@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::Raw,
+    super::raw,
     super::{trb::Trb, CycleBit},
     x86_64::PhysAddr,
 };
 
 pub struct Ring {
-    raw: Raw,
+    raw: raw::Ring,
     enqueue_ptr: usize,
     cycle_bit: CycleBit,
 }
 impl Ring {
     pub fn new(len: usize) -> Self {
         Self {
-            raw: Raw::new(len),
+            raw: raw::Ring::new(len),
             enqueue_ptr: 0,
             cycle_bit: CycleBit::new(true),
         }

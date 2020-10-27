@@ -11,32 +11,6 @@ pub mod event;
 mod raw;
 mod trb;
 
-struct Raw(PageBox<[trb::Raw]>);
-impl Raw {
-    fn new(num_trb: usize) -> Self {
-        Self(PageBox::new_slice(num_trb))
-    }
-
-    fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    fn phys_addr(&self) -> PhysAddr {
-        self.0.phys_addr()
-    }
-}
-impl Index<usize> for Raw {
-    type Output = trb::Raw;
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.0[index]
-    }
-}
-impl IndexMut<usize> for Raw {
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.0[index]
-    }
-}
-
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq)]
 pub struct CycleBit(bool);
 impl CycleBit {
