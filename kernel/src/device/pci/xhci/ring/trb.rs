@@ -76,6 +76,13 @@ impl Raw {
         self.into()
     }
 }
+impl From<Trb> for Raw {
+    fn from(trb: Trb) -> Self {
+        match trb {
+            Trb::Noop(noop) => Self(noop.0),
+        }
+    }
+}
 impl From<u128> for Raw {
     fn from(raw: u128) -> Self {
         Self(raw)
