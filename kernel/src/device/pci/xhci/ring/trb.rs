@@ -55,7 +55,7 @@ bitfield! {
     pub struct Noop(u128);
 
     _, set_cycle_bit: 96;
-    trb_type, set_trb_type: (96+15), (96+10);
+    trb_type, set_trb_type: 96+15, 96+10;
 }
 impl Noop {
     fn new(cycle_bit: CycleBit) -> Self {
