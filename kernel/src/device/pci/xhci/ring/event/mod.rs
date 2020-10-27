@@ -46,11 +46,7 @@ impl<'a> Ring {
 
     fn empty(&self) -> bool {
         let raw_trb = self.raw[self.dequeue_ptr];
-        if Trb::try_from(raw_trb).is_ok() {
-            CycleBit::from(raw_trb) != self.current_cycle_bit
-        } else {
-            true
-        }
+        CycleBit::from(raw_trb) != self.current_cycle_bit
     }
 
     fn increment(&mut self) {

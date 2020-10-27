@@ -22,6 +22,11 @@ impl TryFrom<Raw> for Ty {
 pub enum Trb {
     Noop(Noop),
 }
+impl Trb {
+    pub fn new_noop(cycle_bit: CycleBit) -> Self {
+        Self::Noop(Noop::new(cycle_bit))
+    }
+}
 impl TryFrom<Raw> for Trb {
     type Error = Error;
 
@@ -46,7 +51,7 @@ bitfield! {
     pub struct Noop(u128);
 
     _, set_cycle_bit: 96;
-    _, set_trb_type: 96+15, 96+10;
+    trb_type, set_trb_type: (96+15), (96+10);
 }
 impl Noop {
     fn new(cycle_bit: CycleBit) -> Self {
@@ -81,10 +86,5 @@ impl From<Trb> for Raw {
         match trb {
             Trb::Noop(noop) => Self(noop.0),
         }
-    }
-}
-impl From<u128> for Raw {
-    fn from(raw: u128) -> Self {
-        Self(raw)
     }
 }

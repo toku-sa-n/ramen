@@ -36,7 +36,7 @@ impl IndexMut<usize> for Raw {
     }
 }
 
-#[derive(PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq)]
 pub struct CycleBit(bool);
 impl CycleBit {
     fn new(val: bool) -> Self {

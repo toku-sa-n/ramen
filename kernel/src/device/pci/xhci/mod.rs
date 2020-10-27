@@ -9,7 +9,7 @@ use {
     crate::mem::allocator::page_box::PageBox,
     futures_util::{task::AtomicWaker, StreamExt},
     register::{
-        hc_capability_registers::HCCapabilityRegisters,
+        doorbell, hc_capability_registers::HCCapabilityRegisters,
         hc_operational_registers::HCOperationalRegisters,
         runtime_base_registers::RuntimeBaseRegisters,
         usb_legacy_support_capability::UsbLegacySupportCapability,
@@ -38,10 +38,11 @@ pub struct Xhci {
     event_ring: event::Ring,
     runtime_base_registers: RuntimeBaseRegisters,
     event_ring_segment_table: event::SegmentTable,
+    doorbell_array: doorbell::Array,
 }
 
 impl<'a> Xhci {
-    pub fn init(&mut self) {
+    fn init(&mut self) {
         self.get_ownership_from_bios();
         self.reset_hc();
         self.wait_until_hc_is_ready();
@@ -51,6 +52,8 @@ impl<'a> Xhci {
         self.set_event_ring_dequeue_pointer();
         self.init_event_ring_segment_table();
         self.run();
+
+        self.issue_noop();
     }
 
     fn get_ownership_from_bios(&mut self) {
@@ -120,6 +123,11 @@ impl<'a> Xhci {
         self.hc_operational_registers.run();
     }
 
+    fn issue_noop(&mut self) {
+        self.command_ring.send_noop();
+        self.doorbell_array.notify_to_hc();
+    }
+
     fn new(config_space: &config::Space) -> Result<Self, Error> {
         if config_space.is_xhci() {
             Ok(Self::generate(&config_space))
@@ -152,6 +160,8 @@ impl<'a> Xhci {
             hc_capability_registers.offset_to_runtime_registers() as usize,
         );
 
+        let doorbell_array = doorbell::Array::new(mmio_base, hc_capability_registers.db_off());
+
         Self {
             usb_legacy_support_capability,
             hc_capability_registers,
@@ -161,6 +171,7 @@ impl<'a> Xhci {
             event_ring: event::Ring::new(256),
             runtime_base_registers,
             event_ring_segment_table: event::SegmentTable::new(1),
+            doorbell_array,
         }
     }
 }
@@ -170,7 +181,6 @@ const MAX_DEVICE_SLOT: usize = 255;
 struct DeviceContextBaseAddressArray {
     arr: PageBox<[usize]>,
 }
-
 impl DeviceContextBaseAddressArray {
     fn new() -> Self {
         let arr = PageBox::new_slice(MAX_DEVICE_SLOT + 1);
