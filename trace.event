@@ -1,0 +1,2 @@
+usb_xhci_reset
+usb_xhci_queue_event
