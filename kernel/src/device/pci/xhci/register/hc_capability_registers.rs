@@ -6,6 +6,7 @@ pub struct HCCapabilityRegisters {
     cap_length: Accessor<CapabilityRegistersLength>,
     hcs_params_1: Accessor<StructuralParameters1>,
     hc_cp_params_1: Accessor<HCCapabilityParameters1>,
+    db_off: Accessor<DoorbellOffset>,
     rts_off: Accessor<RuntimeRegisterSpaceOffset>,
 }
 
@@ -14,6 +15,7 @@ impl HCCapabilityRegisters {
         let cap_length = Accessor::new(mmio_base, Bytes::new(0));
         let hcs_params_1 = Accessor::new(mmio_base, Bytes::new(0x04));
         let hc_cp_params_1 = Accessor::new(mmio_base, Bytes::new(0x10));
+        let db_off = Accessor::new(mmio_base, Bytes::new(0x14));
         let rts_off = Accessor::new(mmio_base, Bytes::new(0x18));
 
         let hci_version = Accessor::<HCInterfaceVersionNumber>::new(mmio_base, Bytes::new(0x2));
@@ -23,6 +25,7 @@ impl HCCapabilityRegisters {
             cap_length,
             hcs_params_1,
             hc_cp_params_1,
+            db_off,
             rts_off,
         }
     }
