@@ -7,14 +7,8 @@ pub mod type_spec;
 
 use {
     self::common::Common,
-    alloc::boxed::Box,
     bar::Bar,
-    core::{
-        convert::{From, TryFrom},
-        iter,
-        ops::Add,
-    },
-    extended_capability::ExtendedCapability,
+    core::{convert::TryFrom, ops::Add},
     type_spec::TypeSpec,
     x86_64::{
         instructions::port::{Port, PortWriteOnly},
@@ -42,38 +36,6 @@ impl Space {
         self.type_spec().base_address(index)
     }
 
-    pub fn init_msi_for_xhci(&self) -> Result<(), Error> {
-        if self.is_xhci() {
-            self.init_msi_or_msi_x();
-            Ok(())
-        } else {
-            Err(Error::NotXhciDevice)
-        }
-    }
-
-    fn iter_capability_registers<'a>(
-        &'a self,
-    ) -> Box<dyn Iterator<Item = ExtendedCapability> + 'a> {
-        let capability_pointer = CapabilityPointer::new(&self.registers, &self.common());
-        match capability_pointer {
-            None => Box::new(iter::empty()),
-            Some(capability_pointer) => Box::new(extended_capability::Iter::new(
-                &self.registers,
-                RegisterIndex::from(capability_pointer),
-            )),
-        }
-    }
-
-    fn init_msi_or_msi_x(&self) {
-        for capability in self.iter_capability_registers() {
-            if capability.init_for_xhci(&self.type_spec()).is_ok() {
-                return;
-            }
-        }
-
-        unreachable!()
-    }
-
     fn type_spec(&self) -> TypeSpec {
         TypeSpec::new(&self.registers, &self.common())
     }
@@ -81,11 +43,6 @@ impl Space {
     fn common(&self) -> Common {
         Common::new(&self.registers)
     }
-}
-
-#[derive(Debug)]
-pub enum Error {
-    NotXhciDevice,
 }
 
 #[derive(Debug)]
@@ -112,11 +69,6 @@ impl Registers {
     fn get(&self, index: RegisterIndex) -> u32 {
         let accessor = ConfigAddress::new(self.bus, self.device, Function::zero(), index);
         unsafe { accessor.read() }
-    }
-
-    fn set(&self, index: RegisterIndex, value: u32) {
-        let accessor = ConfigAddress::new(self.bus, self.device, Function::zero(), index);
-        unsafe { accessor.write(value) }
     }
 }
 
@@ -158,14 +110,6 @@ impl ConfigAddress {
 
         let mut data = Self::PORT_CONFIG_DATA;
         data.read()
-    }
-
-    unsafe fn write(&self, value: u32) {
-        let mut addr = Self::PORT_CONFIG_ADDR;
-        addr.write(self.as_u32());
-
-        let mut data = Self::PORT_CONFIG_DATA;
-        data.write(value);
     }
 }
 
@@ -225,10 +169,6 @@ impl RegisterIndex {
     fn as_usize(self) -> usize {
         self.0
     }
-
-    fn is_null(self) -> bool {
-        self.0 == 0
-    }
 }
 
 impl Add<usize> for RegisterIndex {
@@ -236,27 +176,5 @@ impl Add<usize> for RegisterIndex {
 
     fn add(self, rhs: usize) -> Self::Output {
         Self(self.0 + rhs)
-    }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct CapabilityPointer<'a> {
-    registers: &'a Registers,
-}
-impl<'a> CapabilityPointer<'a> {
-    pub fn new(registers: &'a Registers, common: &Common) -> Option<Self> {
-        if common.has_capability_ptr() {
-            Some(Self { registers })
-        } else {
-            None
-        }
-    }
-}
-impl<'a> From<CapabilityPointer<'a>> for RegisterIndex {
-    fn from(capability_pointer: CapabilityPointer) -> Self {
-        let pointer =
-            usize::try_from(capability_pointer.registers.get(RegisterIndex::new(0x0d)) & 0xff)
-                .unwrap();
-        RegisterIndex::new(pointer >> 2)
     }
 }

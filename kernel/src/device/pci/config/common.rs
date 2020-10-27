@@ -19,20 +19,12 @@ impl<'a> Common<'a> {
         self.class().is_xhci()
     }
 
-    pub fn has_capability_ptr(&self) -> bool {
-        self.status().capability_pointer_exists()
-    }
-
     pub fn bridge_type(&self) -> BridgeType {
         self.header_type().bridge_type()
     }
 
     fn class(&self) -> Class {
         Class::new(self.registers)
-    }
-
-    fn status(&self) -> Status {
-        Status::parse_raw(self.registers)
     }
 
     fn header_type(&self) -> HeaderType {
@@ -64,20 +56,6 @@ pub enum BridgeType {
     NonBridge,
     PciToPci,
     PciToCardbus,
-}
-
-#[derive(Debug, Copy, Clone)]
-struct Status(u16);
-impl Status {
-    fn parse_raw(raw: &Registers) -> Self {
-        let status = u16::try_from((raw.get(RegisterIndex::new(1)) >> 16) & 0xffff).unwrap();
-
-        Self(status)
-    }
-
-    fn capability_pointer_exists(self) -> bool {
-        self.0 & 0b10000 != 0
-    }
 }
 
 #[derive(Debug)]

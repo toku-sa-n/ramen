@@ -3,8 +3,6 @@
 use {crate::mem::accessor::Accessor, bitfield::bitfield, os_units::Bytes, x86_64::PhysAddr};
 
 pub struct RuntimeBaseRegisters {
-    i_man: Accessor<InterruptManagementRegister>,
-    i_mod: Accessor<InterruptModerationRegister>,
     erst_sz: Accessor<EventRingSegmentTableSizeRegister>,
     erst_ba: Accessor<EventRingSegmentTableBaseAddressRegister>,
     erd_p: Accessor<EventRingDequeuePointerRegister>,
@@ -12,15 +10,11 @@ pub struct RuntimeBaseRegisters {
 impl<'a> RuntimeBaseRegisters {
     pub fn new(mmio_base: PhysAddr, runtime_register_space_offset: usize) -> Self {
         let runtime_base = mmio_base + runtime_register_space_offset;
-        let i_man = Accessor::new(runtime_base, Bytes::new(0x20));
-        let i_mod = Accessor::new(runtime_base, Bytes::new(0x24));
         let erst_sz = Accessor::new(runtime_base, Bytes::new(0x28));
         let erst_ba = Accessor::new(runtime_base, Bytes::new(0x30));
         let erd_p = Accessor::new(runtime_base, Bytes::new(0x38));
 
         Self {
-            i_man,
-            i_mod,
             erst_sz,
             erst_ba,
             erd_p,

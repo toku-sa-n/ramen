@@ -16,7 +16,6 @@ pub struct HCOperationalRegisters {
     crcr: Accessor<CommandRingControlRegister>,
     dcbaap: Accessor<DeviceContextBaseAddressArrayPointer>,
     config: Accessor<ConfigureRegister>,
-    port_sc: Accessor<[PortStatusAndControlRegister]>,
 }
 
 impl HCOperationalRegisters {
@@ -28,7 +27,6 @@ impl HCOperationalRegisters {
         let crcr = Accessor::new(operational_base, Bytes::new(0x18));
         let dcbaap = Accessor::new(operational_base, Bytes::new(0x30));
         let config = Accessor::new(operational_base, Bytes::new(0x38));
-        let port_sc = Accessor::new_slice(operational_base, Bytes::new(0x400), 10);
 
         Self {
             usb_cmd,
@@ -36,7 +34,6 @@ impl HCOperationalRegisters {
             crcr,
             dcbaap,
             config,
-            port_sc,
         }
     }
 
@@ -147,11 +144,4 @@ bitfield! {
      port_power, _: 9;
 }
 
-impl PortStatusAndControlRegister {
-    fn disconnected(&self) -> bool {
-        self.port_power()
-            && !self.current_connect_status()
-            && !self.port_enabled_disabled()
-            && !self.port_reset()
-    }
-}
+impl PortStatusAndControlRegister {}
