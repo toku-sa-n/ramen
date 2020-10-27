@@ -17,7 +17,7 @@ impl Array {
         ))
     }
 
-    fn notify_to_hc(&mut self) {
+    pub fn notify_to_hc(&mut self) {
         self.0[0].write_for_hc();
     }
 }

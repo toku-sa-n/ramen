@@ -52,6 +52,8 @@ impl<'a> Xhci {
         self.set_event_ring_dequeue_pointer();
         self.init_event_ring_segment_table();
         self.run();
+
+        self.issue_noop();
     }
 
     fn get_ownership_from_bios(&mut self) {
@@ -119,6 +121,11 @@ impl<'a> Xhci {
 
     fn run(&mut self) {
         self.hc_operational_registers.run();
+    }
+
+    fn issue_noop(&mut self) {
+        self.command_ring.send_noop();
+        self.doorbell_array.notify_to_hc();
     }
 
     fn new(config_space: &config::Space) -> Result<Self, Error> {
