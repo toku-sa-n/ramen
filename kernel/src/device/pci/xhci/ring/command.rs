@@ -1,22 +1,51 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {super::Raw, x86_64::PhysAddr};
+use {
+    super::Raw,
+    super::{trb::Trb, CycleBit},
+    x86_64::PhysAddr,
+};
 
 pub struct Ring {
     raw: Raw,
     enqueue_ptr: usize,
-    len: usize,
+    cycle_bit: CycleBit,
 }
 impl Ring {
     pub fn new(len: usize) -> Self {
         Self {
             raw: Raw::new(len),
             enqueue_ptr: 0,
-            len,
+            cycle_bit: CycleBit::new(true),
         }
     }
 
     pub fn phys_addr(&self) -> PhysAddr {
         self.raw.phys_addr()
+    }
+
+    fn enqueue(&mut self, trb: Trb) {
+        if !self.enqueueable() {
+            return;
+        }
+
+        self.raw[self.enqueue_ptr] = trb.into();
+
+        self.enqueue_ptr += 1;
+        if self.enqueue_ptr < self.len() {
+            return;
+        }
+
+        self.enqueue_ptr %= self.len();
+        self.cycle_bit.toggle();
+    }
+
+    fn enqueueable(&self) -> bool {
+        let raw = self.raw[self.enqueue_ptr];
+        raw.cycle_bit() != self.cycle_bit
+    }
+
+    fn len(&self) -> usize {
+        self.raw.len()
     }
 }

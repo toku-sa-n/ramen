@@ -71,3 +71,20 @@ impl From<Raw> for CycleBit {
         Self((raw.0 >> 96) & 1 != 0)
     }
 }
+impl Raw {
+    pub fn cycle_bit(self) -> CycleBit {
+        self.into()
+    }
+}
+impl From<Trb> for Raw {
+    fn from(trb: Trb) -> Self {
+        match trb {
+            Trb::Noop(noop) => Self(noop.0),
+        }
+    }
+}
+impl From<u128> for Raw {
+    fn from(raw: u128) -> Self {
+        Self(raw)
+    }
+}
