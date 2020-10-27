@@ -41,7 +41,7 @@ pub struct Xhci {
 }
 
 impl<'a> Xhci {
-    pub fn init(&mut self) {
+    fn init(&mut self) {
         self.get_ownership_from_bios();
         self.reset_hc();
         self.wait_until_hc_is_ready();
