@@ -23,7 +23,7 @@ pub enum Trb {
     Noop(Noop),
 }
 impl Trb {
-    fn new_noop(cycle_bit: CycleBit) -> Self {
+    pub fn new_noop(cycle_bit: CycleBit) -> Self {
         Self::Noop(Noop::new(cycle_bit))
     }
 }
