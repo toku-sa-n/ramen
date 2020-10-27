@@ -22,6 +22,11 @@ impl TryFrom<Raw> for Ty {
 pub enum Trb {
     Noop(Noop),
 }
+impl Trb {
+    fn new_noop(cycle_bit: CycleBit) -> Self {
+        Self::Noop(Noop::new(cycle_bit))
+    }
+}
 impl TryFrom<Raw> for Trb {
     type Error = Error;
 
