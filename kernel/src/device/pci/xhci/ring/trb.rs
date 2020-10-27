@@ -83,8 +83,3 @@ impl From<Trb> for Raw {
         }
     }
 }
-impl From<u128> for Raw {
-    fn from(raw: u128) -> Self {
-        Self(raw)
-    }
-}
