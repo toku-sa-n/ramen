@@ -55,7 +55,7 @@ impl HCCapabilityRegisters {
     }
 
     pub fn max_num_of_erst(&self) -> MaxNumOfErst {
-        MaxNumOfErst::new(2u16.pow(self.hcs_params_2.erst_max()))
+        MaxNumOfErst::new(2_u16.pow(self.hcs_params_2.erst_max()))
     }
 }
 
