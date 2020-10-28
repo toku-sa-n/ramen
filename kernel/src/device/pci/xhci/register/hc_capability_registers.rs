@@ -84,6 +84,18 @@ bitfield! {
     u8, erst_max, _: 7, 4;
 }
 
+pub struct ErstMax(u8);
+impl ErstMax {
+    fn new(erst_max: u8) -> Self {
+        Self(erst_max)
+    }
+}
+impl From<ErstMax> for u8 {
+    fn from(erst_max: ErstMax) -> Self {
+        erst_max.0
+    }
+}
+
 bitfield! {
     #[repr(transparent)]
     struct HCCapabilityParameters1(u32);
