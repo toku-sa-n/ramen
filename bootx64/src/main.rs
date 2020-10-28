@@ -23,7 +23,7 @@ mod mem;
 use common::{kernelboot, mem::reserved};
 use core::{convert::TryFrom, ptr, ptr::NonNull, slice};
 use fs::kernel;
-use mem::{free_page, paging, stack};
+use mem::{paging, stack};
 use uefi::{
     prelude::{Boot, Handle, SystemTable},
     table::{boot, boot::MemoryType},
@@ -42,12 +42,10 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
         kernel::fetch_entry_address_and_memory_size(phys_kernel_addr, bytes_kernel);
 
     let stack_addr = stack::allocate(system_table.boot_services());
-    let free_page = free_page::allocate(system_table.boot_services());
     let reserved_regions = reserved::Map::new(
         &reserved::KernelPhysRange::new(phys_kernel_addr, actual_mem_size),
         stack_addr,
         &vram_info,
-        free_page,
     );
     let mem_map = terminate_boot_services(image, system_table);
 

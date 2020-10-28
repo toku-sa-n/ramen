@@ -2,7 +2,7 @@
 
 use {
     crate::{
-        constant::{FREE_PAGE_ADDR, KERNEL_ADDR, NUM_OF_PAGES_STACK, STACK_LOWER, VRAM_ADDR},
+        constant::{KERNEL_ADDR, NUM_OF_PAGES_STACK, STACK_LOWER, VRAM_ADDR},
         vram,
     },
     os_units::Bytes,
@@ -23,22 +23,16 @@ impl KernelPhysRange {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub struct Map([Range; 4]);
+pub struct Map([Range; 3]);
 impl Map {
     #[must_use]
     #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        kernel: &KernelPhysRange,
-        phys_addr_stack: PhysAddr,
-        vram: &vram::Info,
-        free_page: PhysAddr,
-    ) -> Self {
+    pub fn new(kernel: &KernelPhysRange, phys_addr_stack: PhysAddr, vram: &vram::Info) -> Self {
         Self {
             0: [
                 Range::kernel(&kernel),
                 Range::stack(phys_addr_stack),
                 Range::vram(vram),
-                Range::free_page(free_page),
             ],
         }
     }
@@ -82,15 +76,6 @@ impl Range {
             virt: STACK_LOWER,
             phys,
             bytes: NUM_OF_PAGES_STACK.as_bytes(),
-        }
-    }
-
-    #[must_use]
-    fn free_page(phys: PhysAddr) -> Self {
-        Self {
-            virt: FREE_PAGE_ADDR,
-            phys,
-            bytes: Bytes::new(0x1000),
         }
     }
 
