@@ -55,10 +55,7 @@ impl Vram {
     fn new_from_boot_info(boot_info: &kernelboot::Info) -> Self {
         let vram = boot_info.vram();
 
-        let (x_len, y_len) = vram.resolution();
-        let resolution = Vec2::new(x_len, y_len);
-
-        Self::new(vram.bpp(), resolution, VRAM_ADDR)
+        Self::new(vram.bpp(), vram.resolution(), VRAM_ADDR)
     }
 
     fn new(bits_per_pixel: i32, resolution: Vec2<i32>, ptr: VirtAddr) -> Self {
