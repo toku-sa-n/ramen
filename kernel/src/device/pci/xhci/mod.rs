@@ -8,7 +8,8 @@ use {
     crate::mem::allocator::page_box::PageBox,
     futures_util::{task::AtomicWaker, StreamExt},
     register::{
-        doorbell, hc_capability_registers::HCCapabilityRegisters,
+        doorbell,
+        hc_capability_registers::{HCCapabilityRegisters, NumberOfDeviceSlots},
         hc_operational_registers::HCOperationalRegisters,
         runtime_base_registers::RuntimeBaseRegisters,
         usb_legacy_support_capability::UsbLegacySupportCapability,
@@ -148,7 +149,8 @@ impl<'a> Xhci {
             HCOperationalRegisters::new(mmio_base, &hc_capability_registers);
 
         info!("Getting DCBAA...");
-        let dcbaa = DeviceContextBaseAddressArray::new();
+        let dcbaa =
+            DeviceContextBaseAddressArray::new(hc_capability_registers.number_of_device_slots());
 
         let runtime_base_registers = RuntimeBaseRegisters::new(
             mmio_base,
@@ -171,14 +173,14 @@ impl<'a> Xhci {
     }
 }
 
-const MAX_DEVICE_SLOT: usize = 255;
-
 struct DeviceContextBaseAddressArray {
     arr: PageBox<[usize]>,
 }
 impl DeviceContextBaseAddressArray {
-    fn new() -> Self {
-        let arr = PageBox::new_slice(MAX_DEVICE_SLOT + 1);
+    fn new(number_of_slots: NumberOfDeviceSlots) -> Self {
+        let number_of_slots: u8 = number_of_slots.into();
+        let number_of_slots: usize = number_of_slots.into();
+        let arr = PageBox::new_slice(number_of_slots + 1);
         Self { arr }
     }
 
