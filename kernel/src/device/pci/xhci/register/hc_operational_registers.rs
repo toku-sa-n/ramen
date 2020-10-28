@@ -129,11 +129,11 @@ bitfield! {
     #[repr(transparent)]
      struct ConfigureRegister(u32);
 
-     _ ,set_max_device_slots_enabled:7,0;
+     u8, _ ,set_max_device_slots_enabled:7,0;
 }
 impl ConfigureRegister {
     fn set_num_of_slots(&mut self, num: NumberOfDeviceSlots) {
-        self.set_num_of_slots(num.into())
+        self.set_max_device_slots_enabled(num.into())
     }
 }
 
