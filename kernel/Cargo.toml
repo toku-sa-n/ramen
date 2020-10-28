@@ -12,7 +12,7 @@ qemu_test = []
 [profile.dev]
 opt-level = 0
 
-# I don't know why lto = false causes some problems like not print the correct words on the screen.
+# I don't know why lto = false causes some problems like not printing correct words on the screen.
 lto = true
 
 [profile.release]
