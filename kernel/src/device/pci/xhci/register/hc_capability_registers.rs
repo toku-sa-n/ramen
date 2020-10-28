@@ -33,7 +33,7 @@ impl HCCapabilityRegisters {
         }
     }
 
-    pub fn number_of_device_slots(&self) -> u32 {
+    pub fn number_of_device_slots(&self) -> NumberOfDeviceSlots {
         self.hcs_params_1.number_of_device_slots()
     }
 
@@ -79,7 +79,24 @@ impl HCInterfaceVersionNumber {
 bitfield! {
     #[repr(transparent)]
     struct StructuralParameters1(u32);
-    number_of_device_slots, _: 7, 0;
+    u8, max_slots, _: 7, 0;
+}
+impl StructuralParameters1 {
+    fn number_of_device_slots(&self) -> NumberOfDeviceSlots {
+        NumberOfDeviceSlots::new(self.max_slots())
+    }
+}
+
+pub struct NumberOfDeviceSlots(u8);
+impl NumberOfDeviceSlots {
+    fn new(num: u8) -> Self {
+        Self(num)
+    }
+}
+impl From<NumberOfDeviceSlots> for u8 {
+    fn from(num: NumberOfDeviceSlots) -> Self {
+        num.0
+    }
 }
 
 bitfield! {

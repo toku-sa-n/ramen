@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::{
-        device::pci::xhci::register::hc_capability_registers::HCCapabilityRegisters,
-        mem::accessor::Accessor,
-    },
+    super::hc_capability_registers::{HCCapabilityRegisters, NumberOfDeviceSlots},
+    crate::mem::accessor::Accessor,
     bitfield::bitfield,
     os_units::Bytes,
     x86_64::PhysAddr,
@@ -48,8 +46,8 @@ impl HCOperationalRegisters {
         self.usb_sts.wait_until_hc_is_ready();
     }
 
-    pub fn set_num_of_device_slots(&mut self, num: u32) {
-        self.config.set_max_device_slots_enabled(num)
+    pub fn set_num_of_device_slots(&mut self, num: NumberOfDeviceSlots) {
+        self.config.set_num_of_slots(num)
     }
 
     pub fn set_dcbaa_ptr(&mut self, addr: PhysAddr) {
@@ -131,7 +129,12 @@ bitfield! {
     #[repr(transparent)]
      struct ConfigureRegister(u32);
 
-    max_device_slots_enabled,set_max_device_slots_enabled:7,0;
+     _ ,set_max_device_slots_enabled:7,0;
+}
+impl ConfigureRegister {
+    fn set_num_of_slots(&mut self, num: NumberOfDeviceSlots) {
+        self.set_num_of_slots(num.into())
+    }
 }
 
 bitfield! {
