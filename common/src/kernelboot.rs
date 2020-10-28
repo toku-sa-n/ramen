@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{constant::INIT_RSP, mem, mem::reserved, vram};
+use crate::{constant::INIT_RSP, mem, vram};
 use core::ptr;
 use uefi::table::boot;
 use x86_64::VirtAddr;
@@ -10,23 +10,16 @@ pub struct Info {
     entry_addr: VirtAddr,
     vram_info: vram::Info,
     mem_map: mem::Map,
-    reserved: reserved::Map,
 }
 
 impl Info {
     #[allow(clippy::too_many_arguments)]
     #[must_use]
-    pub fn new(
-        entry_addr: VirtAddr,
-        vram_info: vram::Info,
-        mem_map: mem::Map,
-        reserved: reserved::Map,
-    ) -> Self {
+    pub fn new(entry_addr: VirtAddr, vram_info: vram::Info, mem_map: mem::Map) -> Self {
         Self {
             entry_addr,
             vram_info,
             mem_map,
-            reserved,
         }
     }
 
@@ -54,10 +47,5 @@ impl Info {
     #[must_use]
     pub fn mem_map_mut(&mut self) -> &mut [boot::MemoryDescriptor] {
         self.mem_map.as_mut_slice()
-    }
-
-    #[must_use]
-    pub fn reserved(&self) -> &reserved::Map {
-        &self.reserved
     }
 }

@@ -5,7 +5,7 @@ use common::kernelboot;
 use common::mem::reserved;
 use core::convert::TryFrom;
 use uefi::table::boot;
-use uefi::table::boot::{AllocateType, MemoryType};
+use uefi::table::boot::MemoryType;
 use x86_64::addr::PhysAddr;
 use x86_64::registers::control::Cr3;
 use x86_64::registers::control::{Cr0, Cr0Flags};
@@ -40,12 +40,10 @@ unsafe impl<'a> FrameAllocator<Size4KiB> for AllocatorWithEfiMemoryMap<'a> {
     }
 }
 
-pub fn init(boot_info: &mut kernelboot::Info) {
+pub fn init(boot_info: &mut kernelboot::Info, reserved: &reserved::Map) {
     remove_table_protection();
 
     enable_recursive_mapping();
-
-    let reserved = *boot_info.reserved();
 
     let mut allocator = AllocatorWithEfiMemoryMap::new(boot_info.mem_map_mut());
 
