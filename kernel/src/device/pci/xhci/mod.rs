@@ -75,7 +75,7 @@ impl<'a> Xhci {
         let num_of_slots = self.hc_capability_registers.number_of_device_slots();
 
         self.hc_operational_registers
-            .set_num_of_device_slots(num_of_slots.into());
+            .set_num_of_device_slots(num_of_slots);
     }
 
     fn set_dcbaap(&mut self) {
