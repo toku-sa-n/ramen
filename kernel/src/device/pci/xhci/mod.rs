@@ -105,8 +105,9 @@ impl<'a> Xhci {
     }
 
     fn set_event_ring_segment_table_size(&mut self) {
+        let max_num_of_erst = self.hc_capability_registers.max_num_of_erst();
         self.runtime_base_registers
-            .set_event_ring_segment_table_size(1)
+            .set_event_ring_segment_table_size(max_num_of_erst.into());
     }
 
     fn set_event_ring_segment_table_address(&mut self) {
