@@ -11,8 +11,13 @@ impl SegmentTable {
     pub fn new(len: usize) -> Self {
         Self(PageBox::new_slice(len))
     }
+
     pub fn phys_addr(&self) -> PhysAddr {
         self.0.phys_addr()
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
     }
 }
 impl Index<usize> for SegmentTable {

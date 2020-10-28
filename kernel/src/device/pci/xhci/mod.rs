@@ -36,7 +36,6 @@ pub struct Xhci {
     command_ring: command::Ring,
     event_ring: event::Ring,
     runtime_base_registers: RuntimeBaseRegisters,
-    event_ring_segment_table: event::SegmentTable,
     doorbell_array: doorbell::Array,
 }
 
@@ -91,10 +90,6 @@ impl<'a> Xhci {
     }
 
     fn init_event_ring_segment_table(&mut self) {
-        info!("Initializing event ring segment table...");
-        let phys_addr_of_event_ring = self.event_ring.phys_addr();
-        self.event_ring_segment_table[0].set(phys_addr_of_event_ring, 256);
-
         self.set_event_ring_segment_table_size();
         self.enable_event_ring()
     }
@@ -104,18 +99,19 @@ impl<'a> Xhci {
     }
 
     fn set_event_ring_segment_table_size(&mut self) {
+        let max_num_of_erst = self.hc_capability_registers.max_num_of_erst();
         self.runtime_base_registers
-            .set_event_ring_segment_table_size(1)
+            .set_event_ring_segment_table_size(max_num_of_erst.into());
     }
 
     fn set_event_ring_segment_table_address(&mut self) {
         self.runtime_base_registers
-            .set_event_ring_segment_table_addr(self.event_ring_segment_table.phys_addr())
+            .set_event_ring_segment_table_addr(self.event_ring.phys_addr_to_segment_table())
     }
 
     fn set_event_ring_dequeue_pointer(&mut self) {
         self.runtime_base_registers
-            .set_event_ring_dequeue_ptr(self.event_ring.phys_addr())
+            .set_event_ring_dequeue_ptr(self.event_ring.phys_addr_to_array_beginning())
     }
 
     fn run(&mut self) {
@@ -160,6 +156,7 @@ impl<'a> Xhci {
         );
 
         let doorbell_array = doorbell::Array::new(mmio_base, hc_capability_registers.db_off());
+        let max_num_of_erst = hc_capability_registers.max_num_of_erst();
 
         Self {
             usb_legacy_support_capability,
@@ -167,9 +164,8 @@ impl<'a> Xhci {
             hc_operational_registers,
             dcbaa,
             command_ring: command::Ring::new(256),
-            event_ring: event::Ring::new(256),
+            event_ring: event::Ring::new(max_num_of_erst),
             runtime_base_registers,
-            event_ring_segment_table: event::SegmentTable::new(1),
             doorbell_array,
         }
     }

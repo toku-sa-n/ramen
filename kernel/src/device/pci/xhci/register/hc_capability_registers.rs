@@ -5,6 +5,7 @@ use {crate::mem::accessor::Accessor, bitfield::bitfield, os_units::Bytes, x86_64
 pub struct HCCapabilityRegisters {
     cap_length: Accessor<CapabilityRegistersLength>,
     hcs_params_1: Accessor<StructuralParameters1>,
+    hcs_params_2: Accessor<StructuralParameters2>,
     hc_cp_params_1: Accessor<HCCapabilityParameters1>,
     db_off: Accessor<DoorbellOffset>,
     rts_off: Accessor<RuntimeRegisterSpaceOffset>,
@@ -14,6 +15,7 @@ impl HCCapabilityRegisters {
     pub fn new(mmio_base: PhysAddr) -> Self {
         let cap_length = Accessor::new(mmio_base, Bytes::new(0));
         let hcs_params_1 = Accessor::new(mmio_base, Bytes::new(0x04));
+        let hcs_params_2 = Accessor::new(mmio_base, Bytes::new(0x08));
         let hc_cp_params_1 = Accessor::new(mmio_base, Bytes::new(0x10));
         let db_off = Accessor::new(mmio_base, Bytes::new(0x14));
         let rts_off = Accessor::new(mmio_base, Bytes::new(0x18));
@@ -24,6 +26,7 @@ impl HCCapabilityRegisters {
         Self {
             cap_length,
             hcs_params_1,
+            hcs_params_2,
             hc_cp_params_1,
             db_off,
             rts_off,
@@ -50,6 +53,10 @@ impl HCCapabilityRegisters {
     pub fn db_off(&self) -> &DoorbellOffset {
         &*self.db_off
     }
+
+    pub fn max_num_of_erst(&self) -> MaxNumOfErst {
+        MaxNumOfErst::new(2_u16.pow(self.hcs_params_2.erst_max()))
+    }
 }
 
 #[repr(transparent)]
@@ -73,6 +80,25 @@ bitfield! {
     #[repr(transparent)]
     struct StructuralParameters1(u32);
     number_of_device_slots, _: 7, 0;
+}
+
+bitfield! {
+    #[repr(transparent)]
+    struct StructuralParameters2(u32);
+    erst_max, _: 7, 4;
+}
+
+#[derive(Copy, Clone)]
+pub struct MaxNumOfErst(u16);
+impl MaxNumOfErst {
+    fn new(num: u16) -> Self {
+        Self(num)
+    }
+}
+impl From<MaxNumOfErst> for u16 {
+    fn from(erst_max: MaxNumOfErst) -> Self {
+        erst_max.0
+    }
 }
 
 bitfield! {
