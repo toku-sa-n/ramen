@@ -88,6 +88,7 @@ bitfield! {
     erst_max, _: 7, 4;
 }
 
+#[derive(Copy, Clone)]
 pub struct MaxNumOfErst(u16);
 impl MaxNumOfErst {
     fn new(num: u16) -> Self {
