@@ -9,12 +9,10 @@ license = "GPL-3.0-or-later"
 default = []
 qemu_test = []
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [profile.dev]
 opt-level = 0
 
-# I don't know why lto = false causes some problems like not print the correct words on the screen.
+# I don't know why lto = false causes some problems like not printing correct words on the screen.
 lto = true
 
 [profile.release]
