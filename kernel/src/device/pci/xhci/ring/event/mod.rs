@@ -24,7 +24,7 @@ pub struct Ring {
     dequeue_ptr_segment: usize,
 }
 impl<'a> Ring {
-    const MAX_NUM_OF_TRB_IN_QUEUE: u16 = 16;
+    const MAX_NUM_OF_TRB_IN_QUEUE: u16 = 4096;
 
     pub fn new(max_num_of_erst: MaxNumOfErst) -> Self {
         let mut ring = Self {
