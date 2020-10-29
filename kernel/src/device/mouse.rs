@@ -33,9 +33,9 @@ pub async fn task() {
     while let Some(packet) = packet_stream.next().await {
         device.put_data(packet);
         if device.data_available() {
-            device.purse_data();
+            device.parse_data();
             device.print_click_info();
-            cursor.move_offset(device.get_speed());
+            cursor.move_offset(device.speed());
         }
     }
 }
@@ -54,19 +54,15 @@ pub fn enqueue_packet(packet: u8) {
 }
 
 struct Device {
-    data_from_device: [u8; 3],
-    phase: DevicePhase,
-
+    buf: Buf,
     speed: Vec2<i32>,
-
     buttons: MouseButtons,
 }
 
 impl Device {
     const fn new() -> Self {
         Self {
-            data_from_device: [0; 3],
-            phase: DevicePhase::Init,
+            buf: Buf::new(),
             speed: Vec2::new(0, 0),
             buttons: MouseButtons::new(),
         }
@@ -85,61 +81,25 @@ impl Device {
     }
 
     fn data_available(&self) -> bool {
-        self.phase == DevicePhase::ThreeData
+        self.buf.data_available()
     }
 
-    fn put_data(&mut self, data: u8) {
-        match self.phase {
-            DevicePhase::Init => {
-                let is_correct_startup = data == 0xfa;
-                if is_correct_startup {
-                    self.phase = DevicePhase::NoData
-                }
-            }
-
-            DevicePhase::NoData => {
-                if Self::is_correct_first_byte_from_device(data) {
-                    self.data_from_device[0] = data;
-                    self.phase = DevicePhase::OneData;
-                }
-            }
-            DevicePhase::OneData => {
-                self.data_from_device[1] = data;
-                self.phase = DevicePhase::TwoData;
-            }
-            DevicePhase::TwoData => {
-                self.data_from_device[2] = data;
-                self.phase = DevicePhase::ThreeData;
-            }
-            DevicePhase::ThreeData => {}
-        }
+    fn put_data(&mut self, packet: u8) {
+        self.buf.put(packet)
     }
 
-    // To sync phase, and data sent from mouse device
-    fn is_correct_first_byte_from_device(data: u8) -> bool {
-        data & 0xC8 == 0x08
+    fn speed(&self) -> Vec2<i32> {
+        self.speed
+    }
+
+    fn parse_data(&mut self) {
+        self.buttons = self.buf.buttons_info();
+        self.speed = self.buf.speed();
+        self.clear_stack();
     }
 
     fn clear_stack(&mut self) {
-        self.phase = DevicePhase::NoData;
-    }
-
-    fn purse_data(&mut self) {
-        self.buttons = MouseButtons::purse_data(self.data_from_device[0]);
-        self.speed.x = i32::from(self.data_from_device[1]);
-        self.speed.y = i32::from(self.data_from_device[2]);
-
-        if self.data_from_device[0] & 0x10 != 0 {
-            self.speed.x -= 256;
-        }
-
-        if self.data_from_device[0] & 0x20 != 0 {
-            self.speed.y -= 256;
-        }
-
-        self.speed.y = -self.speed.y;
-
-        self.clear_stack();
+        self.buf.clear()
     }
 
     fn print_click_info(&self) {
@@ -155,9 +115,82 @@ impl Device {
             info!("Right button pressed");
         }
     }
+}
 
-    fn get_speed(&self) -> Vec2<i32> {
-        Vec2::new(self.speed.x, self.speed.y)
+struct Buf {
+    packets: [u8; 3],
+    phase: DevicePhase,
+}
+impl Buf {
+    const fn new() -> Self {
+        Self {
+            packets: [0u8; 3],
+            phase: DevicePhase::Init,
+        }
+    }
+
+    fn data_available(&self) -> bool {
+        self.phase == DevicePhase::ThreeData
+    }
+
+    fn put(&mut self, packet: u8) {
+        match self.phase {
+            DevicePhase::Init => {
+                let is_correct_startup = packet == 0xfa;
+                if is_correct_startup {
+                    self.phase = DevicePhase::NoData
+                }
+            }
+
+            DevicePhase::NoData => {
+                if Self::is_correct_first_byte_from_device(packet) {
+                    self.packets[0] = packet;
+                    self.phase = DevicePhase::OneData;
+                }
+            }
+            DevicePhase::OneData => {
+                self.packets[1] = packet;
+                self.phase = DevicePhase::TwoData;
+            }
+            DevicePhase::TwoData => {
+                self.packets[2] = packet;
+                self.phase = DevicePhase::ThreeData;
+            }
+            DevicePhase::ThreeData => {}
+        }
+    }
+
+    // To sync phase, and data sent from mouse device
+    fn is_correct_first_byte_from_device(data: u8) -> bool {
+        data & 0xC8 == 0x08
+    }
+
+    fn clear(&mut self) {
+        self.phase = DevicePhase::NoData
+    }
+
+    fn speed(&self) -> Vec2<i32> {
+        Vec2::new(self.speed_x(), self.speed_y())
+    }
+
+    fn speed_x(&self) -> i32 {
+        let mut speed = self.packets[1].into();
+        if self.packets[0] & 0x10 != 0 {
+            speed -= 256;
+        }
+        speed
+    }
+
+    fn speed_y(&self) -> i32 {
+        let mut speed: i32 = self.packets[2].into();
+        if self.packets[0] & 0x20 != 0 {
+            speed -= 256;
+        }
+        -speed
+    }
+
+    fn buttons_info(&self) -> MouseButtons {
+        MouseButtons::purse_data(self.packets[0])
     }
 }
 
