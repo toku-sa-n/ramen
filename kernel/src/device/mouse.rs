@@ -124,7 +124,7 @@ struct Buf {
 impl Buf {
     const fn new() -> Self {
         Self {
-            packets: [0u8; 3],
+            packets: [0; 3],
             phase: DevicePhase::Init,
         }
     }
