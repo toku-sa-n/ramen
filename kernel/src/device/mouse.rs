@@ -175,18 +175,26 @@ impl Buf {
 
     fn speed_x(&self) -> i32 {
         let mut speed = self.packets[1].into();
-        if self.packets[0] & 0x10 != 0 {
+        if self.speed_x_is_negative() {
             speed -= 256;
         }
         speed
     }
 
+    fn speed_x_is_negative(&self) -> bool {
+        self.packets[0] & 0x10 != 0
+    }
+
     fn speed_y(&self) -> i32 {
         let mut speed: i32 = self.packets[2].into();
-        if self.packets[0] & 0x20 != 0 {
+        if self.speed_y_is_negative() {
             speed -= 256;
         }
         -speed
+    }
+
+    fn speed_y_is_negative(&self) -> bool {
+        self.packets[0] & 0x20 != 0
     }
 
     fn buttons_info(&self) -> MouseButtons {
