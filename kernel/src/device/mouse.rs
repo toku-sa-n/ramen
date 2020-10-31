@@ -31,13 +31,21 @@ pub async fn task() {
     let mut cursor = Cursor::new();
 
     while let Some(packet) = packet_stream.next().await {
-        device.put_data(packet);
-        if device.data_available() {
-            device.parse_data();
-            device.print_click_info();
-            cursor.move_offset(device.speed());
-        }
+        handle_packet(&mut device, &mut cursor, packet);
     }
+}
+
+fn handle_packet(device: &mut Device, cursor: &mut Cursor, packet: u8) {
+    device.put_data(packet);
+    if device.three_packets_available() {
+        parse_packets(device, cursor);
+    }
+}
+
+fn parse_packets(device: &mut Device, cursor: &mut Cursor) {
+    device.parse_packets();
+    device.print_click_info();
+    cursor.move_offset(device.speed());
 }
 
 pub fn enqueue_packet(packet: u8) {
@@ -80,8 +88,8 @@ impl Device {
         unsafe { port_key_data.write(MOUSE_CMD_ENABLE) };
     }
 
-    fn data_available(&self) -> bool {
-        self.buf.data_available()
+    fn three_packets_available(&self) -> bool {
+        self.buf.full()
     }
 
     fn put_data(&mut self, packet: u8) {
@@ -92,7 +100,7 @@ impl Device {
         self.speed
     }
 
-    fn parse_data(&mut self) {
+    fn parse_packets(&mut self) {
         self.buttons = self.buf.buttons_info();
         self.speed = self.buf.speed();
         self.clear_stack();
@@ -129,7 +137,7 @@ impl Buf {
         }
     }
 
-    fn data_available(&self) -> bool {
+    fn full(&self) -> bool {
         self.phase == DevicePhase::ThreeData
     }
 
