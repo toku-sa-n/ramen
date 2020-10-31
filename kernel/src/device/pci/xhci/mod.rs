@@ -159,7 +159,7 @@ impl<'a> Xhci {
             hc_capability_registers,
             hc_operational_registers,
             dcbaa,
-            command_ring: command::Ring::new(256),
+            command_ring: command::Ring::new(),
             event_ring: event::Ring::new(max_num_of_erst),
             runtime_base_registers,
             doorbell_array,
