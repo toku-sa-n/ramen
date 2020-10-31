@@ -37,7 +37,7 @@ pub async fn task() {
 
 fn handle_packet(device: &mut Device, cursor: &mut Cursor, packet: u8) {
     device.put_data(packet);
-    if device.data_available() {
+    if device.three_packets_available() {
         device.parse_data();
         device.print_click_info();
         cursor.move_offset(device.speed());
@@ -84,8 +84,8 @@ impl Device {
         unsafe { port_key_data.write(MOUSE_CMD_ENABLE) };
     }
 
-    fn data_available(&self) -> bool {
-        self.buf.data_available()
+    fn three_packets_available(&self) -> bool {
+        self.buf.full()
     }
 
     fn put_data(&mut self, packet: u8) {
@@ -133,7 +133,7 @@ impl Buf {
         }
     }
 
-    fn data_available(&self) -> bool {
+    fn full(&self) -> bool {
         self.phase == DevicePhase::ThreeData
     }
 
