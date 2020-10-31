@@ -51,30 +51,34 @@ impl Executor {
     }
 
     fn run_woken_tasks(&mut self) {
+        while let Some(id) = self.woken_id_queue.pop() {
+            self.run_task(id);
+        }
+    }
+
+    fn run_task(&mut self, id: task::Id) {
         let Self {
             tasks,
             woken_id_queue,
             waker_cache,
         } = self;
 
-        while let Some(id) = woken_id_queue.pop() {
-            let task = match tasks.get_mut(&id) {
-                Some(task) => task,
-                None => continue,
-            };
+        let task = match tasks.get_mut(&id) {
+            Some(task) => task,
+            None => return,
+        };
 
-            let waker = waker_cache
-                .entry(id)
-                .or_insert_with(|| TaskWaker::create_waker(id, woken_id_queue.clone()));
+        let waker = waker_cache
+            .entry(id)
+            .or_insert_with(|| TaskWaker::create_waker(id, woken_id_queue.clone()));
 
-            let mut context = Context::from_waker(waker);
-            match task.poll(&mut context) {
-                Poll::Ready(_) => {
-                    tasks.remove(&id);
-                    waker_cache.remove(&id);
-                }
-                Poll::Pending => {}
+        let mut context = Context::from_waker(waker);
+        match task.poll(&mut context) {
+            Poll::Ready(_) => {
+                tasks.remove(&id);
+                waker_cache.remove(&id);
             }
+            Poll::Pending => {}
         }
     }
 }
