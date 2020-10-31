@@ -6,15 +6,18 @@ use {
     x86_64::PhysAddr,
 };
 
+// 4KB / 16 = 256
+const SIZE_OF_RING: usize = 256;
+
 pub struct Ring {
     raw: raw::Ring,
     enqueue_ptr: usize,
     cycle_bit: CycleBit,
 }
 impl Ring {
-    pub fn new(len: usize) -> Self {
+    pub fn new() -> Self {
         Self {
-            raw: raw::Ring::new(len),
+            raw: raw::Ring::new(SIZE_OF_RING),
             enqueue_ptr: 0,
             cycle_bit: CycleBit::new(true),
         }
