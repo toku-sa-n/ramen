@@ -142,22 +142,16 @@ impl Buf {
     }
 
     fn put(&mut self, packet: u8) {
-        match self.phase {
-            DevicePhase::Init => self.check_ack_packet(packet),
-            DevicePhase::NoData => {
-                self.packets[0] = packet;
-                self.phase = DevicePhase::OneData;
-            }
-            DevicePhase::OneData => {
-                self.packets[1] = packet;
-                self.phase = DevicePhase::TwoData;
-            }
-            DevicePhase::TwoData => {
-                self.packets[2] = packet;
-                self.phase = DevicePhase::ThreeData;
-            }
-            DevicePhase::ThreeData => {}
+        if self.phase == DevicePhase::Init {
+            self.check_ack_packet(packet)
+        } else if self.phase != DevicePhase::ThreeData {
+            self.push_packet(packet)
         }
+    }
+
+    fn push_packet(&mut self, packet: u8) {
+        self.packets[self.phase as usize - 1] = packet;
+        self.phase = self.phase.next().unwrap();
     }
 
     fn check_ack_packet(&mut self, packet: u8) {
@@ -235,7 +229,7 @@ impl Stream for PacketStream {
     }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Copy, Clone)]
 enum DevicePhase {
     Init,
     NoData,
