@@ -49,16 +49,17 @@ fn parse_packets(device: &mut Device, cursor: &mut Cursor) {
 }
 
 pub fn enqueue_packet(packet: u8) {
-    match MOUSE_PACKET_QUEUE.try_get() {
-        Ok(queue) => {
-            if queue.push(packet).is_ok() {
-                WAKER.wake();
-            } else {
-                warn!("MOUSE_PACKET_QUEUE is full.")
-            }
-        }
-        Err(_) => panic!("MOUSE_PACKET_QUEUE is not initialized."),
+    if queue().push(packet).is_ok() {
+        WAKER.wake();
+    } else {
+        warn!("MOUSE_PACKET_QUEUE is full.")
     }
+}
+
+fn queue() -> &'static ArrayQueue<u8> {
+    MOUSE_PACKET_QUEUE
+        .try_get()
+        .expect("MOUSE_PACKET_QUEUE is not initialized.")
 }
 
 struct Device {
@@ -221,11 +222,8 @@ impl Stream for PacketStream {
     type Item = u8;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        let queue = MOUSE_PACKET_QUEUE
-            .try_get()
-            .expect("MOUSE_PACKET_QUEUE is not initialized");
         WAKER.register(&cx.waker());
-        match queue.pop() {
+        match queue().pop() {
             Some(packet) => {
                 WAKER.take();
                 Poll::Ready(Some(packet))
