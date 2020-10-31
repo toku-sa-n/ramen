@@ -243,6 +243,17 @@ enum DevicePhase {
     TwoData,
     ThreeData,
 }
+impl DevicePhase {
+    fn next(self) -> Option<Self> {
+        match self {
+            Self::Init => Some(Self::NoData),
+            Self::NoData => Some(Self::OneData),
+            Self::OneData => Some(Self::TwoData),
+            Self::TwoData => Some(Self::ThreeData),
+            Self::ThreeData => None,
+        }
+    }
+}
 
 struct MouseButtons {
     left: bool,
