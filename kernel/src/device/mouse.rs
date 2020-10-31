@@ -31,12 +31,16 @@ pub async fn task() {
     let mut cursor = Cursor::new();
 
     while let Some(packet) = packet_stream.next().await {
-        device.put_data(packet);
-        if device.data_available() {
-            device.parse_data();
-            device.print_click_info();
-            cursor.move_offset(device.speed());
-        }
+        handle_packet(&mut device, &mut cursor, packet);
+    }
+}
+
+fn handle_packet(device: &mut Device, cursor: &mut Cursor, packet: u8) {
+    device.put_data(packet);
+    if device.data_available() {
+        device.parse_data();
+        device.print_click_info();
+        cursor.move_offset(device.speed());
     }
 }
 
