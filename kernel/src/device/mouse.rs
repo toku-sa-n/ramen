@@ -38,10 +38,14 @@ pub async fn task() {
 fn handle_packet(device: &mut Device, cursor: &mut Cursor, packet: u8) {
     device.put_data(packet);
     if device.three_packets_available() {
-        device.parse_data();
-        device.print_click_info();
-        cursor.move_offset(device.speed());
+        parse_packets(device, cursor);
     }
+}
+
+fn parse_packets(device: &mut Device, cursor: &mut Cursor) {
+    device.parse_data();
+    device.print_click_info();
+    cursor.move_offset(device.speed());
 }
 
 pub fn enqueue_packet(packet: u8) {
