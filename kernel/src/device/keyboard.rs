@@ -20,48 +20,6 @@ use {
 static SCANCODE_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
 static WAKER: AtomicWaker = AtomicWaker::new();
 
-pub fn enqueue_scancode(code: u8) {
-    match SCANCODE_QUEUE.try_get() {
-        Ok(queue) => {
-            if queue.push(code).is_ok() {
-                WAKER.wake();
-            } else {
-                warn!("SCANCODE_QUEUE is full.");
-            }
-        }
-        Err(_) => panic!("SCANCODE_QUEUE is not initialized."),
-    }
-}
-
-struct ScancodeStream;
-
-impl ScancodeStream {
-    fn init_queue() {
-        SCANCODE_QUEUE
-            .try_init_once(|| ArrayQueue::new(100))
-            .expect("SCANCODE_QUEUE is already initialized.")
-    }
-}
-
-impl Stream for ScancodeStream {
-    type Item = u8;
-
-    fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
-        let queue = SCANCODE_QUEUE
-            .try_get()
-            .expect("SCANCODE_QUEUE is not initialized");
-
-        WAKER.register(&cx.waker());
-        match queue.pop() {
-            Some(code) => {
-                WAKER.take();
-                Poll::Ready(Some(code))
-            }
-            None => Poll::Pending,
-        }
-    }
-}
-
 pub async fn task() {
     ScancodeStream::init_queue();
 
@@ -71,6 +29,43 @@ pub async fn task() {
 
     while let Some(code) = scancode_stream.next().await {
         info!("{:} pressed.", code as char);
+    }
+}
+
+pub fn enqueue_scancode(code: u8) {
+    if queue().push(code).is_ok() {
+        WAKER.wake();
+    } else {
+        warn!("SCANCODE_QUEUE is full.");
+    }
+}
+
+fn queue() -> &'static ArrayQueue<u8> {
+    SCANCODE_QUEUE
+        .try_get()
+        .expect("SCANCODE_QUEUE is not initialized.")
+}
+
+struct ScancodeStream;
+impl ScancodeStream {
+    fn init_queue() {
+        SCANCODE_QUEUE
+            .try_init_once(|| ArrayQueue::new(100))
+            .expect("SCANCODE_QUEUE is already initialized.")
+    }
+}
+impl Stream for ScancodeStream {
+    type Item = u8;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
+        WAKER.register(&cx.waker());
+        match queue().pop() {
+            Some(code) => {
+                WAKER.take();
+                Poll::Ready(Some(code))
+            }
+            None => Poll::Pending,
+        }
     }
 }
 
