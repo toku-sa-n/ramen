@@ -143,13 +143,7 @@ impl Buf {
 
     fn put(&mut self, packet: u8) {
         match self.phase {
-            DevicePhase::Init => {
-                let is_correct_startup = packet == 0xfa;
-                if is_correct_startup {
-                    self.phase = DevicePhase::NoData
-                }
-            }
-
+            DevicePhase::Init => self.check_ack_packet(packet),
             DevicePhase::NoData => {
                 self.packets[0] = packet;
                 self.phase = DevicePhase::OneData;
@@ -164,6 +158,16 @@ impl Buf {
             }
             DevicePhase::ThreeData => {}
         }
+    }
+
+    fn check_ack_packet(&mut self, packet: u8) {
+        if Self::is_ack_packet(packet) {
+            self.phase = DevicePhase::NoData
+        }
+    }
+
+    fn is_ack_packet(packet: u8) -> bool {
+        packet == 0xfa
     }
 
     fn clear(&mut self) {
