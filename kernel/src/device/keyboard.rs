@@ -17,6 +17,8 @@ use {
     },
 };
 
+const SIZE_OF_SCANCODE_QUEUE: usize = 100;
+
 static SCANCODE_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
 static WAKER: AtomicWaker = AtomicWaker::new();
 
@@ -50,7 +52,7 @@ struct ScancodeStream;
 impl ScancodeStream {
     fn init_queue() {
         SCANCODE_QUEUE
-            .try_init_once(|| ArrayQueue::new(100))
+            .try_init_once(|| ArrayQueue::new(SIZE_OF_SCANCODE_QUEUE))
             .expect("SCANCODE_QUEUE is already initialized.")
     }
 }
