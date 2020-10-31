@@ -21,16 +21,17 @@ static SCANCODE_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
 static WAKER: AtomicWaker = AtomicWaker::new();
 
 pub fn enqueue_scancode(code: u8) {
-    match SCANCODE_QUEUE.try_get() {
-        Ok(queue) => {
-            if queue.push(code).is_ok() {
-                WAKER.wake();
-            } else {
-                warn!("SCANCODE_QUEUE is full.");
-            }
-        }
-        Err(_) => panic!("SCANCODE_QUEUE is not initialized."),
+    if queue().push(code).is_ok() {
+        WAKER.wake();
+    } else {
+        warn!("SCANCODE_QUEUE is full.");
     }
+}
+
+fn queue() -> &'static ArrayQueue<u8> {
+    SCANCODE_QUEUE
+        .try_get()
+        .expect("SCANCODE_QUEUE is not initialized.")
 }
 
 struct ScancodeStream;
@@ -45,12 +46,8 @@ impl Stream for ScancodeStream {
     type Item = u8;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
-        let queue = SCANCODE_QUEUE
-            .try_get()
-            .expect("SCANCODE_QUEUE is not initialized");
-
         WAKER.register(&cx.waker());
-        match queue.pop() {
+        match queue().pop() {
             Some(code) => {
                 WAKER.take();
                 Poll::Ready(Some(code))
