@@ -6,11 +6,7 @@ pub mod layer;
 pub mod log;
 pub mod writer;
 
-use {
-    super::{font, Vram},
-    rgb::RGB8,
-    vek::Vec2,
-};
+use super::{font, Vram};
 
 pub const MOUSE_CURSOR_WIDTH: usize = 16;
 pub const MOUSE_CURSOR_HEIGHT: usize = 16;
@@ -65,18 +61,3 @@ const MOUSE_GRAPHIC: [[char; MOUSE_CURSOR_WIDTH]; MOUSE_CURSOR_HEIGHT] = [
         '.', '.', '.', '.', '.', '.', '*', '.', '.', '.', '.', '.', '.', '.', '.', '.',
     ],
 ];
-
-pub struct Screen;
-
-impl Screen {
-    // TODO: Specify top left coordinate and length, rather than two coordinates.
-    pub fn draw_rectangle(color: RGB8, top_left: Vec2<i32>, bottom_right: Vec2<i32>) {
-        for y in top_left.y..=bottom_right.y {
-            for x in top_left.x..=bottom_right.x {
-                unsafe {
-                    Vram::set_color(Vec2::new(x, y), color);
-                }
-            }
-        }
-    }
-}
