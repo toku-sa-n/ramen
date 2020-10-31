@@ -133,22 +133,16 @@ impl<'a> Xhci {
     }
 
     fn generate(config_space: &config::Space) -> Self {
-        info!("xHC found.");
-
         let mmio_base = config_space.base_address(bar::Index::new(0));
 
-        info!("Getting HCCapabilityRegisters...");
         let hc_capability_registers = HCCapabilityRegisters::new(mmio_base);
 
-        info!("Getting UsbLegacySupportCapability...");
         let usb_legacy_support_capability =
             UsbLegacySupportCapability::new(mmio_base, &hc_capability_registers);
 
-        info!("Getting HCOperationalRegisters...");
         let hc_operational_registers =
             HCOperationalRegisters::new(mmio_base, &hc_capability_registers);
 
-        info!("Getting DCBAA...");
         let dcbaa =
             DeviceContextBaseAddressArray::new(hc_capability_registers.number_of_device_slots());
 
