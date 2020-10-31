@@ -34,7 +34,6 @@ pub fn enqueue_scancode(code: u8) {
 }
 
 struct ScancodeStream;
-
 impl ScancodeStream {
     fn init_queue() {
         SCANCODE_QUEUE
@@ -42,7 +41,6 @@ impl ScancodeStream {
             .expect("SCANCODE_QUEUE is already initialized.")
     }
 }
-
 impl Stream for ScancodeStream {
     type Item = u8;
 
