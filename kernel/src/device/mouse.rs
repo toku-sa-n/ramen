@@ -43,7 +43,7 @@ fn handle_packet(device: &mut Device, cursor: &mut Cursor, packet: u8) {
 }
 
 fn parse_packets(device: &mut Device, cursor: &mut Cursor) {
-    device.parse_data();
+    device.parse_packets();
     device.print_click_info();
     cursor.move_offset(device.speed());
 }
@@ -100,7 +100,7 @@ impl Device {
         self.speed
     }
 
-    fn parse_data(&mut self) {
+    fn parse_packets(&mut self) {
         self.buttons = self.buf.buttons_info();
         self.speed = self.buf.speed();
         self.clear_stack();
