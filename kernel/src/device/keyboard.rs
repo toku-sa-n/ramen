@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::graphics::screen::Screen,
     common::constant::{
         KEY_CMD_MODE, KEY_CMD_WRITE_MODE, KEY_STATUS_SEND_NOT_READY, PORT_KEY_CMD, PORT_KEY_DATA,
         PORT_KEY_STATUS,
@@ -16,8 +15,6 @@ use {
         stream::{Stream, StreamExt},
         task::AtomicWaker,
     },
-    rgb::RGB8,
-    vek::Vec2,
 };
 
 static SCANCODE_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
