@@ -143,10 +143,8 @@ impl Buf {
             }
 
             DevicePhase::NoData => {
-                if Self::is_correct_first_byte_from_device(packet) {
-                    self.packets[0] = packet;
-                    self.phase = DevicePhase::OneData;
-                }
+                self.packets[0] = packet;
+                self.phase = DevicePhase::OneData;
             }
             DevicePhase::OneData => {
                 self.packets[1] = packet;
@@ -158,11 +156,6 @@ impl Buf {
             }
             DevicePhase::ThreeData => {}
         }
-    }
-
-    // To sync phase, and data sent from mouse device
-    fn is_correct_first_byte_from_device(data: u8) -> bool {
-        data & 0xC8 == 0x08
     }
 
     fn clear(&mut self) {
