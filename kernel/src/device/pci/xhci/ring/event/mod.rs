@@ -48,11 +48,11 @@ impl<'a> Ring<'a> {
         ring
     }
 
-    pub fn phys_addr_to_array_beginning(&self) -> PhysAddr {
+    fn phys_addr_to_array_beginning(&self) -> PhysAddr {
         self.arrays[0].phys_addr()
     }
 
-    pub fn phys_addr_to_segment_table(&self) -> PhysAddr {
+    fn phys_addr_to_segment_table(&self) -> PhysAddr {
         self.segment_table.phys_addr()
     }
 
