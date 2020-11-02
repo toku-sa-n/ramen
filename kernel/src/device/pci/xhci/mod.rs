@@ -9,17 +9,19 @@ use {
     futures_util::{task::AtomicWaker, StreamExt},
     register::{hc_capability_registers::NumberOfDeviceSlots, Registers},
     ring::{command, event},
+    spinning_top::Spinlock,
     x86_64::PhysAddr,
 };
 
 static WAKER: AtomicWaker = AtomicWaker::new();
 
 pub async fn task() {
-    let mut registers = iter_devices().next().unwrap();
-    let mut xhci = Xhci::new(&mut registers);
-    xhci.init();
+    let registers = Spinlock::new(iter_devices().next().unwrap());
+    let mut xhci = Xhci::new(&registers);
+    let mut event_ring = event::Ring::new(&registers);
+    xhci.init(&event_ring);
 
-    while let Some(trb) = xhci.event_ring.next().await {
+    while let Some(trb) = event_ring.next().await {
         info!("TRB: {:?}", trb);
     }
 }
@@ -27,94 +29,94 @@ pub async fn task() {
 pub struct Xhci<'a> {
     dcbaa: DeviceContextBaseAddressArray,
     command_ring: command::Ring,
-    event_ring: event::Ring,
-    registers: &'a mut Registers,
+    registers: &'a Spinlock<Registers>,
 }
 
 impl<'a> Xhci<'a> {
-    fn init(&mut self) {
+    fn init(&mut self, event_ring: &event::Ring) {
         self.get_ownership_from_bios();
         self.reset();
         self.wait_until_ready();
         self.set_num_of_enabled_slots();
         self.set_dcbaap();
         self.set_command_ring_pointer();
-        self.set_event_ring_dequeue_pointer();
-        self.init_event_ring_segment_table();
+        self.set_event_ring_dequeue_pointer(event_ring);
+        self.init_event_ring_segment_table(event_ring);
         self.run();
 
         self.issue_noop();
     }
 
     fn get_ownership_from_bios(&mut self) {
-        self.registers.transfer_hc_ownership_to_os();
+        self.registers.lock().transfer_hc_ownership_to_os();
     }
 
     fn reset(&mut self) {
-        self.registers.reset_hc()
+        self.registers.lock().reset_hc()
     }
 
     fn wait_until_ready(&self) {
-        self.registers.wait_until_hc_is_ready();
+        self.registers.lock().wait_until_hc_is_ready();
     }
 
     fn set_num_of_enabled_slots(&mut self) {
-        self.registers.init_num_of_slots()
+        self.registers.lock().init_num_of_slots()
     }
 
     fn set_dcbaap(&mut self) {
-        self.registers.set_dcbaap(self.dcbaa.phys_addr())
+        self.registers.lock().set_dcbaap(self.dcbaa.phys_addr())
     }
 
     fn set_command_ring_pointer(&mut self) {
         self.registers
+            .lock()
             .set_command_ring_pointer(self.command_ring.phys_addr())
     }
 
-    fn init_event_ring_segment_table(&mut self) {
+    fn init_event_ring_segment_table(&mut self, event_ring: &event::Ring) {
         self.set_event_ring_segment_table_size();
-        self.enable_event_ring()
+        self.enable_event_ring(event_ring)
     }
 
-    fn enable_event_ring(&mut self) {
-        self.set_event_ring_segment_table_address()
+    fn enable_event_ring(&mut self, event_ring: &event::Ring) {
+        self.set_event_ring_segment_table_address(event_ring)
     }
 
     fn set_event_ring_segment_table_size(&mut self) {
-        self.registers.set_event_ring_segment_table_size();
+        self.registers.lock().set_event_ring_segment_table_size();
     }
 
-    fn set_event_ring_segment_table_address(&mut self) {
+    fn set_event_ring_segment_table_address(&mut self, event_ring: &event::Ring) {
         self.registers
-            .set_event_ring_segment_table_addr(self.event_ring.phys_addr_to_segment_table())
+            .lock()
+            .set_event_ring_segment_table_addr(event_ring.phys_addr_to_segment_table())
     }
 
-    fn set_event_ring_dequeue_pointer(&mut self) {
+    fn set_event_ring_dequeue_pointer(&mut self, event_ring: &event::Ring) {
         self.registers
-            .set_event_ring_dequeue_pointer(self.event_ring.phys_addr_to_array_beginning())
+            .lock()
+            .set_event_ring_dequeue_pointer(event_ring.phys_addr_to_array_beginning())
     }
 
     fn run(&mut self) {
-        self.registers.run_hc()
+        self.registers.lock().run_hc()
     }
 
     fn issue_noop(&mut self) {
         self.command_ring.send_noop();
-        self.registers.notify_to_hc();
+        self.registers.lock().notify_to_hc();
     }
 
-    fn new(registers: &'a mut Registers) -> Self {
+    fn new(registers: &'a Spinlock<Registers>) -> Self {
         Self::generate(registers)
     }
 
-    fn generate(registers: &'a mut Registers) -> Self {
-        let dcbaa = DeviceContextBaseAddressArray::new(registers.num_of_device_slots());
-        let max_num_of_erst = registers.max_num_of_erst();
+    fn generate(registers: &'a Spinlock<Registers>) -> Self {
+        let dcbaa = DeviceContextBaseAddressArray::new(registers.lock().num_of_device_slots());
         Self {
             registers,
             dcbaa,
             command_ring: command::Ring::new(),
-            event_ring: event::Ring::new(max_num_of_erst),
         }
     }
 }

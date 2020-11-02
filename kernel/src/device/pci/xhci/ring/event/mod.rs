@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{super::register::hc_capability_registers::MaxNumOfErst, raw, trb::Trb, CycleBit},
+    super::{
+        super::register::{hc_capability_registers::MaxNumOfErst, Registers},
+        raw,
+        trb::Trb,
+        CycleBit,
+    },
     crate::device::pci::xhci,
     alloc::vec::Vec,
     core::{
@@ -11,28 +16,32 @@ use {
     },
     futures_util::stream::Stream,
     segment_table::SegmentTable,
+    spinning_top::Spinlock,
     x86_64::PhysAddr,
 };
 
 mod segment_table;
 
-pub struct Ring {
+pub struct Ring<'a> {
     arrays: Vec<raw::Ring>,
     segment_table: SegmentTable,
     current_cycle_bit: CycleBit,
     dequeue_ptr_trb: usize,
     dequeue_ptr_segment: usize,
+    registers: &'a Spinlock<Registers>,
 }
-impl<'a> Ring {
+impl<'a> Ring<'a> {
     const MAX_NUM_OF_TRB_IN_QUEUE: u16 = 4096;
 
-    pub fn new(max_num_of_erst: MaxNumOfErst) -> Self {
+    pub fn new(registers: &'a Spinlock<Registers>) -> Self {
+        let max_num_of_erst = registers.lock().max_num_of_erst();
         let mut ring = Self {
             arrays: Self::new_arrays(max_num_of_erst),
             segment_table: SegmentTable::new(u16::from(max_num_of_erst).into()),
             current_cycle_bit: CycleBit::new(true),
             dequeue_ptr_trb: 0,
             dequeue_ptr_segment: 0,
+            registers,
         };
         ring.init_segment_table();
         ring
@@ -94,7 +103,7 @@ impl<'a> Ring {
         self.arrays.len()
     }
 }
-impl<'a> Stream for Ring {
+impl<'a> Stream for Ring<'a> {
     type Item = Trb;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
