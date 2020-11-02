@@ -105,6 +105,15 @@ impl<'a> Ring<'a> {
                 self.current_cycle_bit.toggle();
             }
         }
+
+        self.registers
+            .lock()
+            .set_event_ring_dequeue_pointer(self.phys_addr_to_next_trb())
+    }
+
+    fn phys_addr_to_next_trb(&self) -> PhysAddr {
+        self.arrays[self.dequeue_ptr_segment].phys_addr()
+            + Trb::SIZE.as_usize() * self.dequeue_ptr_trb
     }
 
     fn num_of_segment_table(&self) -> usize {

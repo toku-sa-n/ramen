@@ -4,6 +4,7 @@ use {
     super::{raw, CycleBit},
     bitfield::bitfield,
     core::convert::TryFrom,
+    os_units::Bytes,
 };
 
 #[derive(Debug)]
@@ -12,6 +13,7 @@ pub enum Trb {
     CommandComplete(CommandComplete),
 }
 impl Trb {
+    pub const SIZE: Bytes = Bytes::new(16);
     pub fn new_noop(cycle_bit: CycleBit) -> Self {
         Self::Noop(Noop::new(cycle_bit))
     }
