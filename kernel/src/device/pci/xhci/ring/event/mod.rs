@@ -37,7 +37,7 @@ impl<'a> Ring<'a> {
         let max_num_of_erst = registers.lock().max_num_of_erst();
         let mut ring = Self {
             arrays: Self::new_arrays(max_num_of_erst),
-            segment_table: SegmentTable::new(u16::from(max_num_of_erst).into()),
+            segment_table: SegmentTable::new(max_num_of_erst.into()),
             current_cycle_bit: CycleBit::new(true),
             dequeue_ptr_trb: 0,
             dequeue_ptr_segment: 0,
@@ -71,7 +71,7 @@ impl<'a> Ring<'a> {
 
     fn new_arrays(max_num_of_erst: MaxNumOfErst) -> Vec<raw::Ring> {
         let mut arrays = Vec::new();
-        for _ in 0..max_num_of_erst.into() {
+        for _ in 0u16..max_num_of_erst.into() {
             arrays.push(raw::Ring::new(Self::MAX_NUM_OF_TRB_IN_QUEUE.into()));
         }
 

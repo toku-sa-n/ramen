@@ -117,6 +117,11 @@ impl From<MaxNumOfErst> for u16 {
         erst_max.0
     }
 }
+impl From<MaxNumOfErst> for usize {
+    fn from(erst_max: MaxNumOfErst) -> Self {
+        usize::from(erst_max.0)
+    }
+}
 
 bitfield! {
     #[repr(transparent)]
