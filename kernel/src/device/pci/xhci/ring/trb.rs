@@ -5,17 +5,23 @@ use {
     bitfield::bitfield,
     core::convert::TryFrom,
     os_units::Bytes,
+    x86_64::PhysAddr,
 };
 
 #[derive(Debug)]
 pub enum Trb {
     Noop(Noop),
     CommandComplete(CommandComplete),
+    Link(Link),
 }
 impl Trb {
     pub const SIZE: Bytes = Bytes::new(16);
     pub fn new_noop(cycle_bit: CycleBit) -> Self {
         Self::Noop(Noop::new(cycle_bit))
+    }
+
+    pub fn new_link(addr_to_ring: PhysAddr, cycle_bit: CycleBit) -> Self {
+        Self::Link(Link::new(addr_to_ring, cycle_bit))
     }
 }
 impl TryFrom<raw::Trb> for Trb {
@@ -25,6 +31,7 @@ impl TryFrom<raw::Trb> for Trb {
         match raw.ty() {
             x if x == Noop::ID => Ok(Self::Noop(Noop::from(raw))),
             x if x == CommandComplete::ID => Ok(Self::CommandComplete(CommandComplete::from(raw))),
+            x if x == Link::ID => Ok(Self::Link(Link::from(raw))),
             x => {
                 warn!("Unrecognized TRB ID: {}", x);
                 Err(Error::InvalidId)
@@ -71,6 +78,31 @@ impl CommandComplete {
     const ID: u8 = 33;
 }
 impl From<raw::Trb> for CommandComplete {
+    fn from(raw: raw::Trb) -> Self {
+        Self(raw.0)
+    }
+}
+
+bitfield! {
+    #[repr(transparent)]
+    pub struct Link(u128);
+    impl Debug;
+    _, set_addr: 63, 0;
+    _, set_cycle_bit: 96;
+    u8, _, set_trb_type: 96+15,96+10;
+}
+impl Link {
+    const ID: u8 = 6;
+    fn new(addr_to_ring: PhysAddr, cycle_bit: CycleBit) -> Self {
+        assert!(addr_to_ring.is_aligned(u64::try_from(Trb::SIZE.as_usize()).unwrap()));
+        let mut trb = Link(0);
+        trb.set_cycle_bit(cycle_bit.into());
+        trb.set_trb_type(Self::ID);
+        trb.set_addr(addr_to_ring.as_u64().into());
+        trb
+    }
+}
+impl From<raw::Trb> for Link {
     fn from(raw: raw::Trb) -> Self {
         Self(raw.0)
     }
