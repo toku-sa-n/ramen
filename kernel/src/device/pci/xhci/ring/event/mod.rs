@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{super::register::hc_capability_registers::MaxNumOfErst, raw, trb::Trb, CycleBit},
+    super::{
+        super::register::{hc_capability_registers::MaxNumOfErst, Registers},
+        raw,
+        trb::Trb,
+        CycleBit,
+    },
     crate::device::pci::xhci,
     alloc::vec::Vec,
     core::{
@@ -11,38 +16,50 @@ use {
     },
     futures_util::stream::Stream,
     segment_table::SegmentTable,
+    spinning_top::Spinlock,
     x86_64::PhysAddr,
 };
 
 mod segment_table;
 
-pub struct Ring {
+pub struct Ring<'a> {
     arrays: Vec<raw::Ring>,
     segment_table: SegmentTable,
     current_cycle_bit: CycleBit,
     dequeue_ptr_trb: usize,
     dequeue_ptr_segment: usize,
+    registers: &'a Spinlock<Registers>,
 }
-impl<'a> Ring {
+impl<'a> Ring<'a> {
     const MAX_NUM_OF_TRB_IN_QUEUE: u16 = 4096;
 
-    pub fn new(max_num_of_erst: MaxNumOfErst) -> Self {
+    pub fn new(registers: &'a Spinlock<Registers>) -> Self {
+        let max_num_of_erst = registers.lock().max_num_of_erst();
         let mut ring = Self {
             arrays: Self::new_arrays(max_num_of_erst),
-            segment_table: SegmentTable::new(u16::from(max_num_of_erst).into()),
+            segment_table: SegmentTable::new(max_num_of_erst.into()),
             current_cycle_bit: CycleBit::new(true),
             dequeue_ptr_trb: 0,
             dequeue_ptr_segment: 0,
+            registers,
         };
         ring.init_segment_table();
+        ring.init_registers();
         ring
     }
 
-    pub fn phys_addr_to_array_beginning(&self) -> PhysAddr {
+    fn init_registers(&mut self) {
+        let mut registers = self.registers.lock();
+        registers.set_event_ring_dequeue_pointer(self.phys_addr_to_array_beginning());
+        registers.set_event_ring_segment_table_size();
+        registers.set_event_ring_segment_table_addr(self.phys_addr_to_segment_table());
+    }
+
+    fn phys_addr_to_array_beginning(&self) -> PhysAddr {
         self.arrays[0].phys_addr()
     }
 
-    pub fn phys_addr_to_segment_table(&self) -> PhysAddr {
+    fn phys_addr_to_segment_table(&self) -> PhysAddr {
         self.segment_table.phys_addr()
     }
 
@@ -54,7 +71,7 @@ impl<'a> Ring {
 
     fn new_arrays(max_num_of_erst: MaxNumOfErst) -> Vec<raw::Ring> {
         let mut arrays = Vec::new();
-        for _ in 0..max_num_of_erst.into() {
+        for _ in 0_u16..max_num_of_erst.into() {
             arrays.push(raw::Ring::new(Self::MAX_NUM_OF_TRB_IN_QUEUE.into()));
         }
 
@@ -94,7 +111,7 @@ impl<'a> Ring {
         self.arrays.len()
     }
 }
-impl<'a> Stream for Ring {
+impl<'a> Stream for Ring<'a> {
     type Item = Trb;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
