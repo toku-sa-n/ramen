@@ -34,17 +34,19 @@ impl Ring {
 
     fn enqueue(&mut self, trb: Trb) {
         if !self.enqueueable() {
+            info!("Failed to enqueue.");
             return;
         }
 
         self.raw[self.enqueue_ptr] = trb.into();
 
         self.enqueue_ptr += 1;
-        if self.enqueue_ptr < self.len() {
+        if self.enqueue_ptr < self.len() - 1 {
             return;
         }
 
-        self.enqueue_ptr %= self.len();
+        self.raw[self.enqueue_ptr] = Trb::new_link(self.phys_addr(), self.cycle_bit).into();
+        self.enqueue_ptr = 0;
         self.cycle_bit.toggle();
     }
 

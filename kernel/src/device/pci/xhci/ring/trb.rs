@@ -19,6 +19,10 @@ impl Trb {
     pub fn new_noop(cycle_bit: CycleBit) -> Self {
         Self::Noop(Noop::new(cycle_bit))
     }
+
+    pub fn new_link(addr_to_ring: PhysAddr, cycle_bit: CycleBit) -> Self {
+        Self::Link(Link::new(addr_to_ring, cycle_bit))
+    }
 }
 impl TryFrom<raw::Trb> for Trb {
     type Error = Error;
