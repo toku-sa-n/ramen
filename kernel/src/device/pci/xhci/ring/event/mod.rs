@@ -71,7 +71,7 @@ impl<'a> Ring<'a> {
 
     fn new_arrays(max_num_of_erst: MaxNumOfErst) -> Vec<raw::Ring> {
         let mut arrays = Vec::new();
-        for _ in 0u16..max_num_of_erst.into() {
+        for _ in 0_u16..max_num_of_erst.into() {
             arrays.push(raw::Ring::new(Self::MAX_NUM_OF_TRB_IN_QUEUE.into()));
         }
 
