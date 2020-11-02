@@ -107,6 +107,11 @@ impl<'a> Ring<'a> {
         }
     }
 
+    fn phys_addr_to_next_trb(&self) -> PhysAddr {
+        self.arrays[self.dequeue_ptr_segment].phys_addr()
+            + Trb::SIZE.as_usize() * self.dequeue_ptr_trb
+    }
+
     fn num_of_segment_table(&self) -> usize {
         self.arrays.len()
     }
