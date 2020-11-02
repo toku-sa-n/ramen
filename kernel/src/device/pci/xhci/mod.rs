@@ -4,7 +4,7 @@ mod register;
 mod ring;
 
 use {
-    super::config::{self, bar},
+    super::config::bar,
     crate::mem::allocator::page_box::PageBox,
     futures_util::{task::AtomicWaker, StreamExt},
     register::{hc_capability_registers::NumberOfDeviceSlots, Registers},
@@ -15,7 +15,8 @@ use {
 static WAKER: AtomicWaker = AtomicWaker::new();
 
 pub async fn task() {
-    let mut xhci = iter_devices().next().unwrap();
+    let mut registers = iter_devices().next().unwrap();
+    let mut xhci = Xhci::new(&mut registers);
     xhci.init();
 
     while let Some(trb) = xhci.event_ring.next().await {
@@ -23,14 +24,14 @@ pub async fn task() {
     }
 }
 
-pub struct Xhci {
+pub struct Xhci<'a> {
     dcbaa: DeviceContextBaseAddressArray,
     command_ring: command::Ring,
     event_ring: event::Ring,
-    registers: Registers,
+    registers: &'a mut Registers,
 }
 
-impl<'a> Xhci {
+impl<'a> Xhci<'a> {
     fn init(&mut self) {
         self.get_ownership_from_bios();
         self.reset();
@@ -102,17 +103,11 @@ impl<'a> Xhci {
         self.registers.notify_to_hc();
     }
 
-    fn new(config_space: &config::Space) -> Result<Self, Error> {
-        if config_space.is_xhci() {
-            Ok(Self::generate(&config_space))
-        } else {
-            Err(Error::NotXhciDevice)
-        }
+    fn new(registers: &'a mut Registers) -> Self {
+        Self::generate(registers)
     }
 
-    fn generate(config_space: &config::Space) -> Self {
-        let mmio_base = config_space.base_address(bar::Index::new(0));
-        let registers = Registers::new(mmio_base);
+    fn generate(registers: &'a mut Registers) -> Self {
         let dcbaa = DeviceContextBaseAddressArray::new(registers.num_of_device_slots());
         let max_num_of_erst = registers.max_num_of_erst();
         Self {
@@ -140,15 +135,10 @@ impl DeviceContextBaseAddressArray {
     }
 }
 
-#[derive(Debug)]
-enum Error {
-    NotXhciDevice,
-}
-
-pub fn iter_devices() -> impl Iterator<Item = Xhci> {
+pub fn iter_devices() -> impl Iterator<Item = Registers> {
     super::iter_devices().filter_map(|device| {
         if device.is_xhci() {
-            Xhci::new(&device).ok()
+            Some(Registers::new(device.base_address(bar::Index::new(0))))
         } else {
             None
         }
