@@ -9,8 +9,8 @@ use {
 };
 
 pub struct HCOperationalRegisters {
-    usb_cmd: Accessor<UsbCommandRegister>,
-    usb_sts: Accessor<UsbStatusRegister>,
+    pub usb_cmd: Accessor<UsbCommandRegister>,
+    pub usb_sts: Accessor<UsbStatusRegister>,
     crcr: Accessor<CommandRingControlRegister>,
     dcbaap: Accessor<DeviceContextBaseAddressArrayPointer>,
     config: Accessor<ConfigureRegister>,
@@ -57,18 +57,13 @@ impl HCOperationalRegisters {
     pub fn set_command_ring_ptr(&mut self, addr: PhysAddr) {
         self.crcr.set_ptr(addr)
     }
-
-    pub fn run(&mut self) {
-        self.usb_cmd.set_run_stop(true);
-        while self.usb_sts.hc_halted() {}
-    }
 }
 
 bitfield! {
     #[repr(transparent)]
-    struct UsbCommandRegister(u32);
+    pub struct UsbCommandRegister(u32);
 
-    run_stop,set_run_stop: 0;
+    pub _ ,set_run_stop: 0;
     hc_reset,set_hc_reset: 1;
     interrupt_enable,set_interrupt_enable: 2;
 }
@@ -85,9 +80,9 @@ impl UsbCommandRegister {
 
 bitfield! {
     #[repr(transparent)]
-    struct UsbStatusRegister(u32);
+    pub struct UsbStatusRegister(u32);
 
-    hc_halted, _: 0;
+    pub hc_halted, _: 0;
     controller_not_ready,_:11;
 }
 impl UsbStatusRegister {

@@ -94,7 +94,11 @@ impl<'a> Xhci {
     }
 
     fn run(&mut self) {
-        self.registers.run_hc()
+        self.registers
+            .hc_operational_registers
+            .usb_cmd
+            .set_run_stop(true);
+        while self.registers.hc_operational_registers.usb_sts.hc_halted() {}
     }
 
     fn issue_noop(&mut self) {

@@ -17,7 +17,7 @@ use {
 pub struct Registers {
     usb_legacy_support_capability: Option<UsbLegacySupportCapability>,
     hc_capability_registers: HCCapabilityRegisters,
-    hc_operational_registers: HCOperationalRegisters,
+    pub hc_operational_registers: HCOperationalRegisters,
     runtime_base_registers: RuntimeBaseRegisters,
     doorbell_array: doorbell::Array,
 }
@@ -93,10 +93,6 @@ impl Registers {
 
     pub fn set_event_ring_dequeue_pointer(&mut self, addr: PhysAddr) {
         self.runtime_base_registers.set_event_ring_dequeue_ptr(addr)
-    }
-
-    pub fn run_hc(&mut self) {
-        self.hc_operational_registers.run()
     }
 
     pub fn notify_to_hc(&mut self) {
