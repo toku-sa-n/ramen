@@ -105,6 +105,10 @@ impl<'a> Ring<'a> {
                 self.current_cycle_bit.toggle();
             }
         }
+
+        self.registers
+            .lock()
+            .set_event_ring_dequeue_pointer(self.phys_addr_to_next_trb())
     }
 
     fn phys_addr_to_next_trb(&self) -> PhysAddr {
