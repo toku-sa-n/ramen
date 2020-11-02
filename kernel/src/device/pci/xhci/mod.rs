@@ -19,7 +19,7 @@ pub async fn task() {
     let registers = Spinlock::new(iter_devices().next().unwrap());
     let mut xhci = Xhci::new(&registers);
     let mut event_ring = event::Ring::new(&registers);
-    xhci.init(&event_ring);
+    xhci.init();
 
     while let Some(trb) = event_ring.next().await {
         info!("TRB: {:?}", trb);
@@ -33,15 +33,13 @@ pub struct Xhci<'a> {
 }
 
 impl<'a> Xhci<'a> {
-    fn init(&mut self, event_ring: &event::Ring) {
+    fn init(&mut self) {
         self.get_ownership_from_bios();
         self.reset();
         self.wait_until_ready();
         self.set_num_of_enabled_slots();
         self.set_dcbaap();
         self.set_command_ring_pointer();
-        self.set_event_ring_dequeue_pointer(event_ring);
-        self.init_event_ring_segment_table(event_ring);
         self.run();
 
         self.issue_noop();
@@ -71,31 +69,6 @@ impl<'a> Xhci<'a> {
         self.registers
             .lock()
             .set_command_ring_pointer(self.command_ring.phys_addr())
-    }
-
-    fn init_event_ring_segment_table(&mut self, event_ring: &event::Ring) {
-        self.set_event_ring_segment_table_size();
-        self.enable_event_ring(event_ring)
-    }
-
-    fn enable_event_ring(&mut self, event_ring: &event::Ring) {
-        self.set_event_ring_segment_table_address(event_ring)
-    }
-
-    fn set_event_ring_segment_table_size(&mut self) {
-        self.registers.lock().set_event_ring_segment_table_size();
-    }
-
-    fn set_event_ring_segment_table_address(&mut self, event_ring: &event::Ring) {
-        self.registers
-            .lock()
-            .set_event_ring_segment_table_addr(event_ring.phys_addr_to_segment_table())
-    }
-
-    fn set_event_ring_dequeue_pointer(&mut self, event_ring: &event::Ring) {
-        self.registers
-            .lock()
-            .set_event_ring_dequeue_pointer(event_ring.phys_addr_to_array_beginning())
     }
 
     fn run(&mut self) {
