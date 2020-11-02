@@ -11,6 +11,7 @@ use {
 pub enum Trb {
     Noop(Noop),
     CommandComplete(CommandComplete),
+    Link(Link),
 }
 impl Trb {
     pub const SIZE: Bytes = Bytes::new(16);
@@ -25,6 +26,7 @@ impl TryFrom<raw::Trb> for Trb {
         match raw.ty() {
             x if x == Noop::ID => Ok(Self::Noop(Noop::from(raw))),
             x if x == CommandComplete::ID => Ok(Self::CommandComplete(CommandComplete::from(raw))),
+            x if x == Link::ID => Ok(Self::Link(Link::from(raw))),
             x => {
                 warn!("Unrecognized TRB ID: {}", x);
                 Err(Error::InvalidId)
@@ -71,6 +73,22 @@ impl CommandComplete {
     const ID: u8 = 33;
 }
 impl From<raw::Trb> for CommandComplete {
+    fn from(raw: raw::Trb) -> Self {
+        Self(raw.0)
+    }
+}
+
+bitfield! {
+    #[repr(transparent)]
+    pub struct Link(u128);
+    impl Debug;
+    _, set_cycle_bit: 96;
+    u8, _, set_trb_type: 96+15,96+10;
+}
+impl Link {
+    const ID: u8 = 6;
+}
+impl From<raw::Trb> for Link {
     fn from(raw: raw::Trb) -> Self {
         Self(raw.0)
     }
