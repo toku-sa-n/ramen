@@ -91,7 +91,7 @@ impl<'a> Ring<'a> {
 
     fn empty(&self) -> bool {
         let raw_trb = self.arrays[self.dequeue_ptr_segment][self.dequeue_ptr_trb];
-        CycleBit::from(raw_trb) != self.current_cycle_bit
+        raw_trb.cycle_bit() != self.current_cycle_bit
     }
 
     fn increment(&mut self) {
