@@ -48,6 +48,13 @@ impl<'a> Ring<'a> {
         ring
     }
 
+    fn init_registers(&mut self) {
+        let mut registers = self.registers.lock();
+        registers.set_event_ring_dequeue_pointer(self.phys_addr_to_array_beginning());
+        registers.set_event_ring_segment_table_size();
+        registers.set_event_ring_segment_table_addr(self.phys_addr_to_segment_table());
+    }
+
     fn phys_addr_to_array_beginning(&self) -> PhysAddr {
         self.arrays[0].phys_addr()
     }
@@ -60,13 +67,6 @@ impl<'a> Ring<'a> {
         for i in 0..self.segment_table.len() {
             self.segment_table[i].set(self.arrays[0].phys_addr(), Self::MAX_NUM_OF_TRB_IN_QUEUE);
         }
-    }
-
-    fn init_registers(&mut self) {
-        let mut registers = self.registers.lock();
-        registers.set_event_ring_dequeue_pointer(self.phys_addr_to_array_beginning());
-        registers.set_event_ring_segment_table_size();
-        registers.set_event_ring_segment_table_addr(self.phys_addr_to_segment_table());
     }
 
     fn new_arrays(max_num_of_erst: MaxNumOfErst) -> Vec<raw::Ring> {
