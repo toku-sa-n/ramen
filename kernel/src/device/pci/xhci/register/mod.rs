@@ -15,7 +15,7 @@ use {
 };
 
 pub struct Registers {
-    usb_legacy_support_capability: Option<UsbLegacySupportCapability>,
+    pub usb_legacy_support_capability: Option<UsbLegacySupportCapability>,
     hc_capability_registers: HCCapabilityRegisters,
     pub hc_operational: HCOperational,
     runtime_base_registers: RuntimeBaseRegisters,
@@ -48,12 +48,6 @@ impl Registers {
 
     pub fn num_of_device_slots(&self) -> NumberOfDeviceSlots {
         self.hc_capability_registers.number_of_device_slots()
-    }
-
-    pub fn transfer_hc_ownership_to_os(&mut self) {
-        if let Some(ref mut usb_leg_sup_cap) = self.usb_legacy_support_capability {
-            usb_leg_sup_cap.give_hc_ownership_to_os();
-        }
     }
 
     pub fn reset_hc(&mut self) {

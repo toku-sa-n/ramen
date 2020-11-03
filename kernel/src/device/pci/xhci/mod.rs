@@ -44,7 +44,12 @@ impl<'a> Xhci<'a> {
     }
 
     fn get_ownership_from_bios(&mut self) {
-        self.registers.lock().transfer_hc_ownership_to_os();
+        if let Some(ref mut usb_leg_sup_cap) = self.registers.lock().usb_legacy_support_capability {
+            let usb_leg_sup = &mut usb_leg_sup_cap.usb_leg_sup;
+            usb_leg_sup.os_request_ownership(true);
+
+            while usb_leg_sup.bios_owns_hc() || !usb_leg_sup.os_owns_hc() {}
+        }
     }
 
     fn reset(&mut self) {
