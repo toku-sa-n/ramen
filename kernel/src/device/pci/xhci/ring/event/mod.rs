@@ -68,12 +68,13 @@ impl<'a> Ring<'a> {
     }
 
     fn register_segment_table_to_xhci_registers(&mut self) {
-        let mut registers = self.registers.lock();
-        registers
-            .runtime_base_registers
+        let runtime_registers = &mut self.registers.lock().runtime_base_registers;
+        runtime_registers
             .erst_sz
             .set(self.segment_table.len().try_into().unwrap());
-        registers.set_event_ring_segment_table_addr(self.phys_addr_to_segment_table());
+        runtime_registers
+            .erst_ba
+            .set(self.phys_addr_to_segment_table());
     }
 
     fn new_arrays(max_num_of_erst: u16) -> Vec<raw::Ring> {

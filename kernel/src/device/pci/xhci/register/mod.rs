@@ -47,9 +47,4 @@ impl Registers {
     pub fn set_command_ring_pointer(&mut self, addr: PhysAddr) {
         self.hc_operational.set_command_ring_ptr(addr)
     }
-
-    pub fn set_event_ring_segment_table_addr(&mut self, addr: PhysAddr) {
-        self.runtime_base_registers
-            .set_event_ring_segment_table_addr(addr)
-    }
 }
