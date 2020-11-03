@@ -8,7 +8,7 @@ use {
     x86_64::PhysAddr,
 };
 
-pub struct HCOperationalRegisters {
+pub struct HCOperational {
     pub usb_cmd: Accessor<UsbCommandRegister>,
     pub usb_sts: Accessor<UsbStatusRegister>,
     crcr: Accessor<CommandRingControlRegister>,
@@ -16,7 +16,7 @@ pub struct HCOperationalRegisters {
     config: Accessor<ConfigureRegister>,
 }
 
-impl HCOperationalRegisters {
+impl HCOperational {
     pub fn new(mmio_base: PhysAddr, capabilities: &HCCapabilityRegisters) -> Self {
         let operational_base = mmio_base + capabilities.len();
 
