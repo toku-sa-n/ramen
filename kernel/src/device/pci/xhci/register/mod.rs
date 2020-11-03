@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 pub mod doorbell;
-pub mod hc_capability_registers;
+pub mod hc_capability;
 pub mod hc_operational;
 pub mod runtime_base_registers;
 pub mod usb_legacy_support_capability;
 
 use {
-    hc_capability_registers::{HCCapabilityRegisters, MaxNumOfErst, NumberOfDeviceSlots},
+    hc_capability::{HCCapabilityRegisters, MaxNumOfErst, NumberOfDeviceSlots},
     hc_operational::HCOperational,
     runtime_base_registers::RuntimeBaseRegisters,
     usb_legacy_support_capability::UsbLegacySupportCapability,
@@ -16,7 +16,7 @@ use {
 
 pub struct Registers {
     pub usb_legacy_support_capability: Option<UsbLegacySupportCapability>,
-    pub hc_capability_registers: HCCapabilityRegisters,
+    pub hc_capability: HCCapabilityRegisters,
     pub hc_operational: HCOperational,
     runtime_base_registers: RuntimeBaseRegisters,
     doorbell_array: doorbell::Array,
@@ -35,7 +35,7 @@ impl Registers {
 
         Self {
             usb_legacy_support_capability,
-            hc_capability_registers,
+            hc_capability: hc_capability_registers,
             hc_operational,
             runtime_base_registers,
             doorbell_array,
@@ -43,11 +43,11 @@ impl Registers {
     }
 
     pub fn max_num_of_erst(&self) -> MaxNumOfErst {
-        self.hc_capability_registers.max_num_of_erst()
+        self.hc_capability.max_num_of_erst()
     }
 
     pub fn num_of_device_slots(&self) -> NumberOfDeviceSlots {
-        self.hc_capability_registers.number_of_device_slots()
+        self.hc_capability.number_of_device_slots()
     }
 
     pub fn set_dcbaap(&mut self, addr: PhysAddr) {
@@ -59,7 +59,7 @@ impl Registers {
     }
 
     pub fn set_event_ring_segment_table_size(&mut self) {
-        let max_num_of_erst = self.hc_capability_registers.max_num_of_erst();
+        let max_num_of_erst = self.hc_capability.max_num_of_erst();
         self.runtime_base_registers
             .set_event_ring_segment_table_size(max_num_of_erst.into());
     }

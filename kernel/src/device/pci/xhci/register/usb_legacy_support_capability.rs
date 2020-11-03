@@ -2,8 +2,7 @@
 
 use {
     crate::{
-        device::pci::xhci::register::hc_capability_registers::HCCapabilityRegisters,
-        mem::accessor::Accessor,
+        device::pci::xhci::register::hc_capability::HCCapabilityRegisters, mem::accessor::Accessor,
     },
     bitfield::bitfield,
     os_units::Bytes,

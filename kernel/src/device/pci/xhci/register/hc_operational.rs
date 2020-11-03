@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::hc_capability_registers::{HCCapabilityRegisters, NumberOfDeviceSlots},
+    super::hc_capability::{HCCapabilityRegisters, NumberOfDeviceSlots},
     crate::mem::accessor::Accessor,
     bitfield::bitfield,
     os_units::Bytes,

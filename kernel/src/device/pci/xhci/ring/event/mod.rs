@@ -2,7 +2,7 @@
 
 use {
     super::{
-        super::register::{hc_capability_registers::MaxNumOfErst, Registers},
+        super::register::{hc_capability::MaxNumOfErst, Registers},
         raw,
         trb::Trb,
         CycleBit,
