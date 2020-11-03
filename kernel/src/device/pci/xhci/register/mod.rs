@@ -50,10 +50,6 @@ impl Registers {
         self.hc_capability_registers.number_of_device_slots()
     }
 
-    pub fn reset_hc(&mut self) {
-        self.hc_operational.reset_hc();
-    }
-
     pub fn wait_until_hc_is_ready(&self) {
         self.hc_operational.wait_until_hc_is_ready();
     }

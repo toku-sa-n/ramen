@@ -35,13 +35,6 @@ impl HCOperational {
         }
     }
 
-    pub fn reset_hc(&mut self) {
-        if !self.usb_sts.hc_halted() {
-            return;
-        }
-        self.usb_cmd.reset();
-    }
-
     pub fn wait_until_hc_is_ready(&self) {
         self.usb_sts.wait_until_hc_is_ready();
     }
@@ -64,18 +57,8 @@ bitfield! {
     pub struct UsbCommandRegister(u32);
 
     pub _ ,set_run_stop: 0;
-    hc_reset,set_hc_reset: 1;
+    pub hc_reset,set_hc_reset: 1;
     interrupt_enable,set_interrupt_enable: 2;
-}
-impl UsbCommandRegister {
-    fn reset(&mut self) {
-        self.set_hc_reset(true);
-        self.wait_until_hc_is_reset();
-    }
-
-    fn wait_until_hc_is_reset(&self) {
-        while self.hc_reset() {}
-    }
 }
 
 bitfield! {

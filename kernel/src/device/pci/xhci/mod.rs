@@ -37,7 +37,7 @@ pub struct Xhci<'a> {
 impl<'a> Xhci<'a> {
     fn init(&mut self) {
         self.get_ownership_from_bios();
-        self.reset();
+        self.reset_if_halted();
         self.wait_until_ready();
         self.set_num_of_enabled_slots();
         self.run();
@@ -52,8 +52,32 @@ impl<'a> Xhci<'a> {
         }
     }
 
+    fn reset_if_halted(&mut self) {
+        if self.halted() {
+            self.reset();
+        }
+    }
+
+    fn halted(&self) -> bool {
+        self.registers.lock().hc_operational.usb_sts.hc_halted()
+    }
+
     fn reset(&mut self) {
-        self.registers.lock().reset_hc()
+        self.start_reset();
+        self.wait_until_reset_completed()
+    }
+
+    fn start_reset(&mut self) {
+        self.registers
+            .lock()
+            .hc_operational
+            .usb_cmd
+            .set_hc_reset(true);
+    }
+
+    fn wait_until_reset_completed(&self) {
+        let usb_cmd = &self.registers.lock().hc_operational.usb_cmd;
+        while usb_cmd.hc_reset() {}
     }
 
     fn wait_until_ready(&self) {
