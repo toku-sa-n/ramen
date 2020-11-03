@@ -19,7 +19,10 @@ pub async fn task() {
     let registers = Spinlock::new(iter_devices().next().unwrap());
     let mut xhci = Xhci::new(&registers);
     let mut event_ring = event::Ring::new(&registers);
+    let mut command_ring = command::Ring::new(&registers);
     xhci.init();
+
+    command_ring.send_noop();
 
     while let Some(trb) = event_ring.next().await {
         info!("TRB: {:?}", trb);
@@ -28,7 +31,6 @@ pub async fn task() {
 
 pub struct Xhci<'a> {
     dcbaa: DeviceContextBaseAddressArray,
-    command_ring: command::Ring,
     registers: &'a Spinlock<Registers>,
 }
 
@@ -39,10 +41,7 @@ impl<'a> Xhci<'a> {
         self.wait_until_ready();
         self.set_num_of_enabled_slots();
         self.set_dcbaap();
-        self.set_command_ring_pointer();
         self.run();
-
-        self.issue_noop();
     }
 
     fn get_ownership_from_bios(&mut self) {
@@ -65,28 +64,13 @@ impl<'a> Xhci<'a> {
         self.registers.lock().set_dcbaap(self.dcbaa.phys_addr())
     }
 
-    fn set_command_ring_pointer(&mut self) {
-        self.registers
-            .lock()
-            .set_command_ring_pointer(self.command_ring.phys_addr())
-    }
-
     fn run(&mut self) {
         self.registers.lock().run_hc()
     }
 
-    fn issue_noop(&mut self) {
-        self.command_ring.send_noop();
-        self.registers.lock().notify_to_hc();
-    }
-
     fn new(registers: &'a Spinlock<Registers>) -> Self {
         let dcbaa = DeviceContextBaseAddressArray::new(registers.lock().num_of_device_slots());
-        Self {
-            registers,
-            dcbaa,
-            command_ring: command::Ring::new(),
-        }
+        Self { registers, dcbaa }
     }
 }
 

@@ -2,25 +2,30 @@
 
 use {
     super::raw,
-    super::{trb::Trb, CycleBit},
+    super::{super::Registers, trb::Trb, CycleBit},
+    spinning_top::Spinlock,
     x86_64::PhysAddr,
 };
 
 // 4KB / 16 = 256
 const SIZE_OF_RING: usize = 256;
 
-pub struct Ring {
+pub struct Ring<'a> {
     raw: raw::Ring,
     enqueue_ptr: usize,
     cycle_bit: CycleBit,
+    registers: &'a Spinlock<Registers>,
 }
-impl Ring {
-    pub fn new() -> Self {
-        Self {
+impl<'a> Ring<'a> {
+    pub fn new(registers: &'a Spinlock<Registers>) -> Self {
+        let command_ring = Self {
             raw: raw::Ring::new(SIZE_OF_RING),
             enqueue_ptr: 0,
             cycle_bit: CycleBit::new(true),
-        }
+            registers,
+        };
+        command_ring.init();
+        command_ring
     }
 
     pub fn phys_addr(&self) -> PhysAddr {
@@ -30,6 +35,13 @@ impl Ring {
     pub fn send_noop(&mut self) {
         let noop = Trb::new_noop(self.cycle_bit);
         self.enqueue(noop);
+        self.registers.lock().notify_to_hc();
+    }
+
+    fn init(&self) {
+        self.registers
+            .lock()
+            .set_command_ring_pointer(self.phys_addr());
     }
 
     fn enqueue(&mut self, trb: Trb) {
