@@ -8,7 +8,7 @@ use {
     super::config::bar,
     dcbaa::DeviceContextBaseAddressArray,
     futures_util::{task::AtomicWaker, StreamExt},
-    register::Registers,
+    register::{hc_capability_registers::NumberOfDeviceSlots, Registers},
     ring::{command, event},
     spinning_top::Spinlock,
 };
@@ -91,7 +91,18 @@ impl<'a> Xhci<'a> {
     }
 
     fn set_num_of_enabled_slots(&mut self) {
-        self.registers.lock().init_num_of_slots()
+        let num_of_device_slots = self.num_of_device_slots();
+        self.registers
+            .lock()
+            .hc_operational
+            .set_num_of_device_slots(num_of_device_slots)
+    }
+
+    fn num_of_device_slots(&self) -> NumberOfDeviceSlots {
+        self.registers
+            .lock()
+            .hc_capability_registers
+            .number_of_device_slots()
     }
 
     fn run(&mut self) {

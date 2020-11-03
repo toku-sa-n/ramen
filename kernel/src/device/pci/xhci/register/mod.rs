@@ -16,7 +16,7 @@ use {
 
 pub struct Registers {
     pub usb_legacy_support_capability: Option<UsbLegacySupportCapability>,
-    hc_capability_registers: HCCapabilityRegisters,
+    pub hc_capability_registers: HCCapabilityRegisters,
     pub hc_operational: HCOperational,
     runtime_base_registers: RuntimeBaseRegisters,
     doorbell_array: doorbell::Array,
@@ -48,12 +48,6 @@ impl Registers {
 
     pub fn num_of_device_slots(&self) -> NumberOfDeviceSlots {
         self.hc_capability_registers.number_of_device_slots()
-    }
-
-    pub fn init_num_of_slots(&mut self) {
-        let num_of_slots = self.hc_capability_registers.number_of_device_slots();
-
-        self.hc_operational.set_num_of_device_slots(num_of_slots);
     }
 
     pub fn set_dcbaap(&mut self, addr: PhysAddr) {
