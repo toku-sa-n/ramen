@@ -17,11 +17,11 @@ static WAKER: AtomicWaker = AtomicWaker::new();
 
 pub async fn task() {
     let registers = Spinlock::new(iter_devices().next().unwrap());
-    let mut xhci = Xhci::new(&registers);
+    let mut xhc = Xhc::new(&registers);
     let mut event_ring = event::Ring::new(&registers);
     let mut command_ring = command::Ring::new(&registers);
     let _dcbaa = DeviceContextBaseAddressArray::new(&registers);
-    xhci.init();
+    xhc.init();
 
     command_ring.send_noop();
 
@@ -30,11 +30,11 @@ pub async fn task() {
     }
 }
 
-pub struct Xhci<'a> {
+pub struct Xhc<'a> {
     registers: &'a Spinlock<Registers>,
 }
 
-impl<'a> Xhci<'a> {
+impl<'a> Xhc<'a> {
     fn init(&mut self) {
         self.get_ownership_from_bios();
         self.reset_if_halted();
