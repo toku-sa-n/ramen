@@ -81,10 +81,6 @@ impl<'a> Xhci<'a> {
     }
 
     fn new(registers: &'a Spinlock<Registers>) -> Self {
-        Self::generate(registers)
-    }
-
-    fn generate(registers: &'a Spinlock<Registers>) -> Self {
         let dcbaa = DeviceContextBaseAddressArray::new(registers.lock().num_of_device_slots());
         Self {
             registers,
