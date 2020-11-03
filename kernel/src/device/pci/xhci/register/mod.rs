@@ -43,8 +43,4 @@ impl Registers {
     pub fn set_dcbaap(&mut self, addr: PhysAddr) {
         self.hc_operational.set_dcbaa_ptr(addr);
     }
-
-    pub fn set_command_ring_pointer(&mut self, addr: PhysAddr) {
-        self.hc_operational.set_command_ring_ptr(addr)
-    }
 }

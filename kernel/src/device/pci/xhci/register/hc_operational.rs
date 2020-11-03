@@ -11,7 +11,7 @@ use {
 pub struct HCOperational {
     pub usb_cmd: Accessor<UsbCommandRegister>,
     pub usb_sts: Accessor<UsbStatusRegister>,
-    crcr: Accessor<CommandRingControlRegister>,
+    pub crcr: Accessor<CommandRingControlRegister>,
     dcbaap: Accessor<DeviceContextBaseAddressArrayPointer>,
     config: Accessor<ConfigureRegister>,
 }
@@ -42,10 +42,6 @@ impl HCOperational {
     pub fn set_dcbaa_ptr(&mut self, addr: PhysAddr) {
         self.dcbaap.set_ptr(addr)
     }
-
-    pub fn set_command_ring_ptr(&mut self, addr: PhysAddr) {
-        self.crcr.set_ptr(addr)
-    }
 }
 
 bitfield! {
@@ -67,21 +63,20 @@ bitfield! {
 
 bitfield! {
     #[repr(transparent)]
-    struct CommandRingControlRegister(u64);
+    pub struct CommandRingControlRegister(u64);
 
     ptr,set_pointer:63,6;
 }
-
 impl CommandRingControlRegister {
-    fn set_ptr(&mut self, ptr: PhysAddr) {
+    pub fn set_ptr(&mut self, ptr: PhysAddr) {
         let ptr = ptr.as_u64() >> 6;
 
         self.set_pointer(ptr);
     }
 }
+
 #[repr(transparent)]
 struct DeviceContextBaseAddressArrayPointer(u64);
-
 impl DeviceContextBaseAddressArrayPointer {
     fn set_ptr(&mut self, ptr: PhysAddr) {
         assert!(
