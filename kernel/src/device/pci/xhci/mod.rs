@@ -28,7 +28,7 @@ pub async fn task() {
 
 pub struct Xhci<'a> {
     dcbaa: DeviceContextBaseAddressArray,
-    command_ring: command::Ring,
+    command_ring: command::Ring<'a>,
     registers: &'a Spinlock<Registers>,
 }
 
@@ -89,7 +89,7 @@ impl<'a> Xhci<'a> {
         Self {
             registers,
             dcbaa,
-            command_ring: command::Ring::new(),
+            command_ring: command::Ring::new(registers),
         }
     }
 }

@@ -2,24 +2,27 @@
 
 use {
     super::raw,
-    super::{trb::Trb, CycleBit},
+    super::{super::Registers, trb::Trb, CycleBit},
+    spinning_top::Spinlock,
     x86_64::PhysAddr,
 };
 
 // 4KB / 16 = 256
 const SIZE_OF_RING: usize = 256;
 
-pub struct Ring {
+pub struct Ring<'a> {
     raw: raw::Ring,
     enqueue_ptr: usize,
     cycle_bit: CycleBit,
+    registers: &'a Spinlock<Registers>,
 }
-impl Ring {
-    pub fn new() -> Self {
+impl<'a> Ring<'a> {
+    pub fn new(registers: &'a Spinlock<Registers>) -> Self {
         Self {
             raw: raw::Ring::new(SIZE_OF_RING),
             enqueue_ptr: 0,
             cycle_bit: CycleBit::new(true),
+            registers,
         }
     }
 
