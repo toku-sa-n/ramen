@@ -1,16 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{
-        super::register::{hc_capability::MaxNumOfErst, Registers},
-        raw,
-        trb::Trb,
-        CycleBit,
-    },
+    super::{super::register::Registers, raw, trb::Trb, CycleBit},
     crate::device::pci::xhci,
     alloc::vec::Vec,
     core::{
-        convert::TryFrom,
+        convert::{TryFrom, TryInto},
         pin::Pin,
         task::{Context, Poll},
     },
@@ -34,7 +29,12 @@ impl<'a> Ring<'a> {
     const MAX_NUM_OF_TRB_IN_QUEUE: u16 = 4096;
 
     pub fn new(registers: &'a Spinlock<Registers>) -> Self {
-        let max_num_of_erst = registers.lock().max_num_of_erst();
+        let max_num_of_erst = registers
+            .lock()
+            .hc_capability
+            .hcs_params_2
+            .powered_erst_max();
+
         let mut ring = Self {
             arrays: Self::new_arrays(max_num_of_erst),
             segment_table: SegmentTable::new(max_num_of_erst.into()),
@@ -51,7 +51,10 @@ impl<'a> Ring<'a> {
     fn init_registers(&mut self) {
         let mut registers = self.registers.lock();
         registers.set_event_ring_dequeue_pointer(self.phys_addr_to_array_beginning());
-        registers.set_event_ring_segment_table_size();
+        registers
+            .runtime_base_registers
+            .erst_sz
+            .set(self.segment_table.len().try_into().unwrap());
         registers.set_event_ring_segment_table_addr(self.phys_addr_to_segment_table());
     }
 
@@ -69,9 +72,9 @@ impl<'a> Ring<'a> {
         }
     }
 
-    fn new_arrays(max_num_of_erst: MaxNumOfErst) -> Vec<raw::Ring> {
+    fn new_arrays(max_num_of_erst: u16) -> Vec<raw::Ring> {
         let mut arrays = Vec::new();
-        for _ in 0_u16..max_num_of_erst.into() {
+        for _ in 0_u16..max_num_of_erst {
             arrays.push(raw::Ring::new(Self::MAX_NUM_OF_TRB_IN_QUEUE.into()));
         }
 

@@ -7,7 +7,7 @@ pub mod runtime_base_registers;
 pub mod usb_legacy_support_capability;
 
 use {
-    hc_capability::{HCCapabilityRegisters, MaxNumOfErst, NumberOfDeviceSlots},
+    hc_capability::{HCCapabilityRegisters, NumberOfDeviceSlots},
     hc_operational::HCOperational,
     runtime_base_registers::RuntimeBaseRegisters,
     usb_legacy_support_capability::UsbLegacySupportCapability,
@@ -18,7 +18,7 @@ pub struct Registers {
     pub usb_legacy_support_capability: Option<UsbLegacySupportCapability>,
     pub hc_capability: HCCapabilityRegisters,
     pub hc_operational: HCOperational,
-    runtime_base_registers: RuntimeBaseRegisters,
+    pub runtime_base_registers: RuntimeBaseRegisters,
     doorbell_array: doorbell::Array,
 }
 impl Registers {
@@ -42,10 +42,6 @@ impl Registers {
         }
     }
 
-    pub fn max_num_of_erst(&self) -> MaxNumOfErst {
-        self.hc_capability.max_num_of_erst()
-    }
-
     pub fn num_of_device_slots(&self) -> NumberOfDeviceSlots {
         self.hc_capability.number_of_device_slots()
     }
@@ -56,12 +52,6 @@ impl Registers {
 
     pub fn set_command_ring_pointer(&mut self, addr: PhysAddr) {
         self.hc_operational.set_command_ring_ptr(addr)
-    }
-
-    pub fn set_event_ring_segment_table_size(&mut self) {
-        let max_num_of_erst = self.hc_capability.max_num_of_erst();
-        self.runtime_base_registers
-            .set_event_ring_segment_table_size(max_num_of_erst.into());
     }
 
     pub fn set_event_ring_segment_table_addr(&mut self, addr: PhysAddr) {

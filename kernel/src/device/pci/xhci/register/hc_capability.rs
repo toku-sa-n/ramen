@@ -5,7 +5,7 @@ use {crate::mem::accessor::Accessor, bitfield::bitfield, os_units::Bytes, x86_64
 pub struct HCCapabilityRegisters {
     cap_length: Accessor<CapabilityRegistersLength>,
     hcs_params_1: Accessor<StructuralParameters1>,
-    hcs_params_2: Accessor<StructuralParameters2>,
+    pub hcs_params_2: Accessor<StructuralParameters2>,
     hc_cp_params_1: Accessor<HCCapabilityParameters1>,
     db_off: Accessor<DoorbellOffset>,
     rts_off: Accessor<RuntimeRegisterSpaceOffset>,
@@ -52,10 +52,6 @@ impl HCCapabilityRegisters {
 
     pub fn db_off(&self) -> &DoorbellOffset {
         &*self.db_off
-    }
-
-    pub fn max_num_of_erst(&self) -> MaxNumOfErst {
-        MaxNumOfErst::new(2_u16.pow(self.hcs_params_2.erst_max()))
     }
 
     pub fn max_num_of_ports(&self) -> MaxNumOfPorts {
@@ -127,25 +123,12 @@ impl From<MaxNumOfPorts> for u8 {
 
 bitfield! {
     #[repr(transparent)]
-    struct StructuralParameters2(u32);
+    pub struct StructuralParameters2(u32);
     erst_max, _: 7, 4;
 }
-
-#[derive(Copy, Clone)]
-pub struct MaxNumOfErst(u16);
-impl MaxNumOfErst {
-    fn new(num: u16) -> Self {
-        Self(num)
-    }
-}
-impl From<MaxNumOfErst> for u16 {
-    fn from(erst_max: MaxNumOfErst) -> Self {
-        erst_max.0
-    }
-}
-impl From<MaxNumOfErst> for usize {
-    fn from(erst_max: MaxNumOfErst) -> Self {
-        usize::from(erst_max.0)
+impl StructuralParameters2 {
+    pub fn powered_erst_max(&self) -> u16 {
+        2_u16.pow(self.erst_max())
     }
 }
 
