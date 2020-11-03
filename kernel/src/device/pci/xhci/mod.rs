@@ -10,7 +10,7 @@ use {
     futures_util::{task::AtomicWaker, StreamExt},
     register::Registers,
     ring::{command, event},
-    spinning_top::Spinlock,
+    spinning_top::{Spinlock, SpinlockGuard},
 };
 
 static WAKER: AtomicWaker = AtomicWaker::new();
@@ -60,18 +60,12 @@ impl<'a> Xhci<'a> {
     }
 
     fn run(&mut self) {
-        self.registers
-            .lock()
+        let mut registers = self.registers.lock();
+        registers
             .hc_operational_registers
             .usb_cmd
             .set_run_stop(true);
-        while self
-            .registers
-            .lock()
-            .hc_operational_registers
-            .usb_sts
-            .hc_halted()
-        {}
+        while registers.hc_operational_registers.usb_sts.hc_halted() {}
     }
 
     fn new(registers: &'a Spinlock<Registers>) -> Self {
