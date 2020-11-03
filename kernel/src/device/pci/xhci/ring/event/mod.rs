@@ -49,20 +49,13 @@ impl<'a> Ring<'a> {
     }
 
     fn init_registers(&mut self) {
+        self.set_dequeue_ptr(self.phys_addr_to_next_trb());
         let mut registers = self.registers.lock();
-        registers
-            .runtime_base_registers
-            .erd_p
-            .set(self.phys_addr_to_array_beginning());
         registers
             .runtime_base_registers
             .erst_sz
             .set(self.segment_table.len().try_into().unwrap());
         registers.set_event_ring_segment_table_addr(self.phys_addr_to_segment_table());
-    }
-
-    fn phys_addr_to_array_beginning(&self) -> PhysAddr {
-        self.arrays[0].phys_addr()
     }
 
     fn phys_addr_to_segment_table(&self) -> PhysAddr {
@@ -112,11 +105,11 @@ impl<'a> Ring<'a> {
             }
         }
 
-        self.registers
-            .lock()
-            .runtime_base_registers
-            .erd_p
-            .set(self.phys_addr_to_next_trb())
+        self.set_dequeue_ptr(self.phys_addr_to_next_trb())
+    }
+
+    fn set_dequeue_ptr(&mut self, addr: PhysAddr) {
+        self.registers.lock().runtime_base_registers.erd_p.set(addr)
     }
 
     fn phys_addr_to_next_trb(&self) -> PhysAddr {
