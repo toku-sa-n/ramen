@@ -50,7 +50,10 @@ impl<'a> Ring<'a> {
 
     fn init_registers(&mut self) {
         let mut registers = self.registers.lock();
-        registers.set_event_ring_dequeue_pointer(self.phys_addr_to_array_beginning());
+        registers
+            .runtime_base_registers
+            .erd_p
+            .set(self.phys_addr_to_array_beginning());
         registers
             .runtime_base_registers
             .erst_sz
@@ -111,7 +114,9 @@ impl<'a> Ring<'a> {
 
         self.registers
             .lock()
-            .set_event_ring_dequeue_pointer(self.phys_addr_to_next_trb())
+            .runtime_base_registers
+            .erd_p
+            .set(self.phys_addr_to_next_trb())
     }
 
     fn phys_addr_to_next_trb(&self) -> PhysAddr {

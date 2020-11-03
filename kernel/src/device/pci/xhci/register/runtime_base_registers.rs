@@ -5,7 +5,7 @@ use {crate::mem::accessor::Accessor, bitfield::bitfield, os_units::Bytes, x86_64
 pub struct RuntimeBaseRegisters {
     pub erst_sz: Accessor<EventRingSegmentTableSizeRegister>,
     erst_ba: Accessor<EventRingSegmentTableBaseAddressRegister>,
-    erd_p: Accessor<EventRingDequeuePointerRegister>,
+    pub erd_p: Accessor<EventRingDequeuePointerRegister>,
 }
 impl<'a> RuntimeBaseRegisters {
     pub fn new(mmio_base: PhysAddr, runtime_register_space_offset: usize) -> Self {
@@ -23,10 +23,6 @@ impl<'a> RuntimeBaseRegisters {
 
     pub fn set_event_ring_segment_table_addr(&mut self, addr: PhysAddr) {
         self.erst_ba.set(addr)
-    }
-
-    pub fn set_event_ring_dequeue_ptr(&mut self, ptr: PhysAddr) {
-        self.erd_p.set_address(ptr)
     }
 }
 
@@ -66,9 +62,9 @@ impl EventRingSegmentTableBaseAddressRegister {
 }
 
 #[repr(transparent)]
-struct EventRingDequeuePointerRegister(u64);
+pub struct EventRingDequeuePointerRegister(u64);
 impl EventRingDequeuePointerRegister {
-    fn set_address(&mut self, addr: PhysAddr) {
+    pub fn set(&mut self, addr: PhysAddr) {
         assert!(addr.as_u64().trailing_zeros() >= 4);
         self.0 = addr.as_u64();
     }

@@ -52,8 +52,4 @@ impl Registers {
         self.runtime_base_registers
             .set_event_ring_segment_table_addr(addr)
     }
-
-    pub fn set_event_ring_dequeue_pointer(&mut self, addr: PhysAddr) {
-        self.runtime_base_registers.set_event_ring_dequeue_ptr(addr)
-    }
 }
