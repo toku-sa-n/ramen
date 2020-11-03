@@ -81,7 +81,13 @@ impl<'a> Xhci<'a> {
     }
 
     fn wait_until_ready(&self) {
-        self.registers.lock().wait_until_hc_is_ready();
+        while self
+            .registers
+            .lock()
+            .hc_operational
+            .usb_sts
+            .controller_not_ready()
+        {}
     }
 
     fn set_num_of_enabled_slots(&mut self) {

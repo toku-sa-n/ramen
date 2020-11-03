@@ -50,10 +50,6 @@ impl Registers {
         self.hc_capability_registers.number_of_device_slots()
     }
 
-    pub fn wait_until_hc_is_ready(&self) {
-        self.hc_operational.wait_until_hc_is_ready();
-    }
-
     pub fn init_num_of_slots(&mut self) {
         let num_of_slots = self.hc_capability_registers.number_of_device_slots();
 

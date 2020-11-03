@@ -35,10 +35,6 @@ impl HCOperational {
         }
     }
 
-    pub fn wait_until_hc_is_ready(&self) {
-        self.usb_sts.wait_until_hc_is_ready();
-    }
-
     pub fn set_num_of_device_slots(&mut self, num: NumberOfDeviceSlots) {
         self.config.set_num_of_slots(num)
     }
@@ -66,12 +62,7 @@ bitfield! {
     pub struct UsbStatusRegister(u32);
 
     pub hc_halted, _: 0;
-    controller_not_ready,_:11;
-}
-impl UsbStatusRegister {
-    fn wait_until_hc_is_ready(&self) {
-        while self.controller_not_ready() {}
-    }
+    pub controller_not_ready,_:11;
 }
 
 bitfield! {
