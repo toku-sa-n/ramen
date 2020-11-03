@@ -43,19 +43,13 @@ impl<'a> Ring<'a> {
             dequeue_ptr_segment: 0,
             registers,
         };
+        ring.init_dequeue_ptr();
         ring.init_segment_table();
-        ring.init_registers();
         ring
     }
 
-    fn init_registers(&mut self) {
-        self.set_dequeue_ptr(self.phys_addr_to_next_trb());
-        let mut registers = self.registers.lock();
-        registers
-            .runtime_base_registers
-            .erst_sz
-            .set(self.segment_table.len().try_into().unwrap());
-        registers.set_event_ring_segment_table_addr(self.phys_addr_to_segment_table());
+    fn init_dequeue_ptr(&mut self) {
+        self.set_dequeue_ptr(self.phys_addr_to_next_trb())
     }
 
     fn phys_addr_to_segment_table(&self) -> PhysAddr {
@@ -63,9 +57,23 @@ impl<'a> Ring<'a> {
     }
 
     fn init_segment_table(&mut self) {
+        self.register_addresses_of_arrays_to_segment_table();
+        self.register_segment_table_to_xhci_registers();
+    }
+
+    fn register_addresses_of_arrays_to_segment_table(&mut self) {
         for i in 0..self.segment_table.len() {
             self.segment_table[i].set(self.arrays[0].phys_addr(), Self::MAX_NUM_OF_TRB_IN_QUEUE);
         }
+    }
+
+    fn register_segment_table_to_xhci_registers(&mut self) {
+        let mut registers = self.registers.lock();
+        registers
+            .runtime_base_registers
+            .erst_sz
+            .set(self.segment_table.len().try_into().unwrap());
+        registers.set_event_ring_segment_table_addr(self.phys_addr_to_segment_table());
     }
 
     fn new_arrays(max_num_of_erst: u16) -> Vec<raw::Ring> {
