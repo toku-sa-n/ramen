@@ -12,7 +12,7 @@ pub struct HCOperational {
     pub usb_cmd: Accessor<UsbCommandRegister>,
     pub usb_sts: Accessor<UsbStatusRegister>,
     pub crcr: Accessor<CommandRingControlRegister>,
-    dcbaap: Accessor<DeviceContextBaseAddressArrayPointer>,
+    pub dcbaap: Accessor<DeviceContextBaseAddressArrayPointer>,
     config: Accessor<ConfigureRegister>,
 }
 
@@ -37,10 +37,6 @@ impl HCOperational {
 
     pub fn set_num_of_device_slots(&mut self, num: NumberOfDeviceSlots) {
         self.config.set_num_of_slots(num)
-    }
-
-    pub fn set_dcbaa_ptr(&mut self, addr: PhysAddr) {
-        self.dcbaap.set_ptr(addr)
     }
 }
 
@@ -76,9 +72,9 @@ impl CommandRingControlRegister {
 }
 
 #[repr(transparent)]
-struct DeviceContextBaseAddressArrayPointer(u64);
+pub struct DeviceContextBaseAddressArrayPointer(u64);
 impl DeviceContextBaseAddressArrayPointer {
-    fn set_ptr(&mut self, ptr: PhysAddr) {
+    pub fn set(&mut self, ptr: PhysAddr) {
         assert!(
             ptr.as_u64().trailing_zeros() >= 6,
             "Wrong address: {:?}",

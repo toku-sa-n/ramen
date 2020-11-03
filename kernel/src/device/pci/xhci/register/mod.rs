@@ -39,8 +39,4 @@ impl Registers {
             doorbell_array,
         }
     }
-
-    pub fn set_dcbaap(&mut self, addr: PhysAddr) {
-        self.hc_operational.set_dcbaa_ptr(addr);
-    }
 }

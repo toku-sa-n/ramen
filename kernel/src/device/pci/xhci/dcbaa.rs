@@ -20,7 +20,11 @@ impl<'a> DeviceContextBaseAddressArray<'a> {
     }
 
     fn init(&self) {
-        self.registers.lock().set_dcbaap(self.phys_addr())
+        self.registers
+            .lock()
+            .hc_operational
+            .dcbaap
+            .set(self.phys_addr());
     }
 
     fn phys_addr(&self) -> PhysAddr {
