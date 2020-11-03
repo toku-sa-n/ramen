@@ -107,6 +107,12 @@ impl From<NumberOfDeviceSlots> for u8 {
         num.0
     }
 }
+impl From<NumberOfDeviceSlots> for usize {
+    fn from(num: NumberOfDeviceSlots) -> Self {
+        num.0.into()
+    }
+}
+
 pub struct MaxNumOfPorts(u8);
 impl MaxNumOfPorts {
     fn new(num: u8) -> Self {
