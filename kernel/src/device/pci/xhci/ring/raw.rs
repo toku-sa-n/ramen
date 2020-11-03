@@ -53,6 +53,7 @@ impl From<trb::Trb> for Trb {
         match trb {
             trb::Trb::Noop(noop) => Self(noop.0),
             trb::Trb::CommandComplete(command_complete) => Self(command_complete.0),
+            trb::Trb::Link(link) => Self(link.0),
         }
     }
 }
