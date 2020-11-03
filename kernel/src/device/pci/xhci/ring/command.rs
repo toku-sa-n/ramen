@@ -18,12 +18,14 @@ pub struct Ring<'a> {
 }
 impl<'a> Ring<'a> {
     pub fn new(registers: &'a Spinlock<Registers>) -> Self {
-        Self {
+        let command_ring = Self {
             raw: raw::Ring::new(SIZE_OF_RING),
             enqueue_ptr: 0,
             cycle_bit: CycleBit::new(true),
             registers,
-        }
+        };
+        command_ring.init();
+        command_ring
     }
 
     pub fn phys_addr(&self) -> PhysAddr {
@@ -33,6 +35,13 @@ impl<'a> Ring<'a> {
     pub fn send_noop(&mut self) {
         let noop = Trb::new_noop(self.cycle_bit);
         self.enqueue(noop);
+        self.registers.lock().notify_to_hc();
+    }
+
+    fn init(&self) {
+        self.registers
+            .lock()
+            .set_command_ring_pointer(self.phys_addr());
     }
 
     fn enqueue(&mut self, trb: Trb) {
