@@ -63,11 +63,11 @@ impl<'a> Xhci<'a> {
     }
 
     fn reset(&mut self) {
-        self.start_reset();
+        self.start_resetting();
         self.wait_until_reset_completed()
     }
 
-    fn start_reset(&mut self) {
+    fn start_resetting(&mut self) {
         self.registers
             .lock()
             .hc_operational
