@@ -4,7 +4,7 @@ use {crate::mem::accessor::Accessor, bitfield::bitfield, os_units::Bytes, x86_64
 
 pub struct HCCapabilityRegisters {
     cap_length: Accessor<CapabilityRegistersLength>,
-    hcs_params_1: Accessor<StructuralParameters1>,
+    pub hcs_params_1: Accessor<StructuralParameters1>,
     pub hcs_params_2: Accessor<StructuralParameters2>,
     hc_cp_params_1: Accessor<HCCapabilityParameters1>,
     db_off: Accessor<DoorbellOffset>,
@@ -53,10 +53,6 @@ impl HCCapabilityRegisters {
     pub fn db_off(&self) -> &DoorbellOffset {
         &*self.db_off
     }
-
-    pub fn max_num_of_ports(&self) -> MaxNumOfPorts {
-        self.hcs_params_1.max_num_of_ports()
-    }
 }
 
 #[repr(transparent)]
@@ -78,17 +74,13 @@ impl HCInterfaceVersionNumber {
 
 bitfield! {
     #[repr(transparent)]
-    struct StructuralParameters1(u32);
+    pub struct StructuralParameters1(u32);
     u8, max_slots, _: 7, 0;
-    u8, max_ports, _: 31, 24;
+    pub u8, max_ports, _: 31, 24;
 }
 impl StructuralParameters1 {
     fn number_of_device_slots(&self) -> NumberOfDeviceSlots {
         NumberOfDeviceSlots::new(self.max_slots())
-    }
-
-    fn max_num_of_ports(&self) -> MaxNumOfPorts {
-        MaxNumOfPorts::new(self.max_ports())
     }
 }
 
@@ -106,18 +98,6 @@ impl From<NumberOfDeviceSlots> for u8 {
 impl From<NumberOfDeviceSlots> for usize {
     fn from(num: NumberOfDeviceSlots) -> Self {
         num.0.into()
-    }
-}
-
-pub struct MaxNumOfPorts(u8);
-impl MaxNumOfPorts {
-    fn new(num: u8) -> Self {
-        Self(num)
-    }
-}
-impl From<MaxNumOfPorts> for u8 {
-    fn from(max: MaxNumOfPorts) -> Self {
-        max.0
     }
 }
 

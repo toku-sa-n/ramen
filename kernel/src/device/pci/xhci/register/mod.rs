@@ -7,11 +7,9 @@ pub mod runtime_base_registers;
 pub mod usb_legacy_support_capability;
 
 use {
-    hc_capability::{HCCapabilityRegisters, NumberOfDeviceSlots},
-    hc_operational::HCOperational,
+    hc_capability::HCCapabilityRegisters, hc_operational::HCOperational,
     runtime_base_registers::RuntimeBaseRegisters,
-    usb_legacy_support_capability::UsbLegacySupportCapability,
-    x86_64::PhysAddr,
+    usb_legacy_support_capability::UsbLegacySupportCapability, x86_64::PhysAddr,
 };
 
 pub struct Registers {
@@ -40,10 +38,6 @@ impl Registers {
             runtime_base_registers,
             doorbell_array,
         }
-    }
-
-    pub fn num_of_device_slots(&self) -> NumberOfDeviceSlots {
-        self.hc_capability.number_of_device_slots()
     }
 
     pub fn set_dcbaap(&mut self, addr: PhysAddr) {
