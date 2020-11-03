@@ -35,7 +35,11 @@ impl<'a> Ring<'a> {
     pub fn send_noop(&mut self) {
         let noop = Trb::new_noop(self.cycle_bit);
         self.enqueue(noop);
-        self.registers.lock().notify_to_hc();
+        self.notify_command_is_sent();
+    }
+
+    fn notify_command_is_sent(&mut self) {
+        self.registers.lock().doorbell_array[0] = 0;
     }
 
     fn init(&self) {

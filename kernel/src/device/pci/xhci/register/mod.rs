@@ -17,7 +17,7 @@ pub struct Registers {
     pub hc_capability: HCCapabilityRegisters,
     pub hc_operational: HCOperational,
     pub runtime_base_registers: RuntimeBaseRegisters,
-    doorbell_array: doorbell::Array,
+    pub doorbell_array: doorbell::Array,
 }
 impl Registers {
     pub fn new(mmio_base: PhysAddr) -> Self {
@@ -55,9 +55,5 @@ impl Registers {
 
     pub fn set_event_ring_dequeue_pointer(&mut self, addr: PhysAddr) {
         self.runtime_base_registers.set_event_ring_dequeue_ptr(addr)
-    }
-
-    pub fn notify_to_hc(&mut self) {
-        self.doorbell_array.notify_to_hc();
     }
 }
