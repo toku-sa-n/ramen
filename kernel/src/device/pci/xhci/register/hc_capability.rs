@@ -3,7 +3,7 @@
 use {crate::mem::accessor::Accessor, bitfield::bitfield, os_units::Bytes, x86_64::PhysAddr};
 
 pub struct HCCapabilityRegisters {
-    cap_length: Accessor<CapabilityRegistersLength>,
+    pub cap_length: Accessor<CapabilityRegistersLength>,
     pub hcs_params_1: Accessor<StructuralParameters1>,
     pub hcs_params_2: Accessor<StructuralParameters2>,
     hc_cp_params_1: Accessor<HCCapabilityParameters1>,
@@ -40,17 +40,12 @@ impl HCCapabilityRegisters {
     pub fn xhci_capability_ptr(&self) -> u32 {
         self.hc_cp_params_1.xhci_extended_capabilities_pointer()
     }
-
-    pub fn len(&self) -> usize {
-        self.cap_length.get()
-    }
 }
 
 #[repr(transparent)]
-struct CapabilityRegistersLength(u8);
-
+pub struct CapabilityRegistersLength(u8);
 impl CapabilityRegistersLength {
-    fn get(&self) -> usize {
+    pub fn get(&self) -> usize {
         self.0 as _
     }
 }
