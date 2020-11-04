@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::hc_capability::{HCCapabilityRegisters, NumberOfDeviceSlots},
-    crate::mem::accessor::Accessor,
-    bitfield::bitfield,
-    os_units::Bytes,
-    x86_64::PhysAddr,
+    super::hc_capability::HCCapabilityRegisters, crate::mem::accessor::Accessor,
+    bitfield::bitfield, os_units::Bytes, x86_64::PhysAddr,
 };
 
 pub struct HCOperational {
@@ -35,7 +32,7 @@ impl HCOperational {
         }
     }
 
-    pub fn set_num_of_device_slots(&mut self, num: NumberOfDeviceSlots) {
+    pub fn set_num_of_device_slots(&mut self, num: u8) {
         self.config.set_num_of_slots(num)
     }
 }
@@ -92,8 +89,8 @@ bitfield! {
      u8, _ ,set_max_device_slots_enabled:7,0;
 }
 impl ConfigureRegister {
-    fn set_num_of_slots(&mut self, num: NumberOfDeviceSlots) {
-        self.set_max_device_slots_enabled(num.into())
+    fn set_num_of_slots(&mut self, num: u8) {
+        self.set_max_device_slots_enabled(num)
     }
 }
 

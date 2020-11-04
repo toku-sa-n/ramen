@@ -8,7 +8,7 @@ use {
     super::config::bar,
     dcbaa::DeviceContextBaseAddressArray,
     futures_util::{task::AtomicWaker, StreamExt},
-    register::{hc_capability::NumberOfDeviceSlots, Registers},
+    register::Registers,
     ring::{command, event},
     spinning_top::Spinlock,
 };
@@ -98,8 +98,8 @@ impl<'a> Xhc<'a> {
             .set_num_of_device_slots(num_of_device_slots)
     }
 
-    fn num_of_device_slots(&self) -> NumberOfDeviceSlots {
-        self.registers.lock().hc_capability.number_of_device_slots()
+    fn num_of_device_slots(&self) -> u8 {
+        self.registers.lock().hc_capability.hcs_params_1.max_slots()
     }
 
     fn run(&mut self) {
