@@ -6,7 +6,7 @@ pub struct HCCapabilityRegisters {
     pub cap_length: Accessor<CapabilityRegistersLength>,
     pub hcs_params_1: Accessor<StructuralParameters1>,
     pub hcs_params_2: Accessor<StructuralParameters2>,
-    hc_cp_params_1: Accessor<HCCapabilityParameters1>,
+    pub hc_cp_params_1: Accessor<HCCapabilityParameters1>,
     pub db_off: Accessor<DoorbellOffset>,
     pub rts_off: Accessor<RuntimeRegisterSpaceOffset>,
 }
@@ -35,10 +35,6 @@ impl HCCapabilityRegisters {
 
     pub fn number_of_device_slots(&self) -> NumberOfDeviceSlots {
         self.hcs_params_1.number_of_device_slots()
-    }
-
-    pub fn xhci_capability_ptr(&self) -> u32 {
-        self.hc_cp_params_1.xhci_extended_capabilities_pointer()
     }
 }
 
@@ -100,8 +96,8 @@ impl StructuralParameters2 {
 
 bitfield! {
     #[repr(transparent)]
-    struct HCCapabilityParameters1(u32);
-    xhci_extended_capabilities_pointer,_: 31,16;
+    pub struct HCCapabilityParameters1(u32);
+    pub xhci_extended_capabilities_pointer,_: 31,16;
 }
 
 #[repr(transparent)]

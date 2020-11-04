@@ -18,7 +18,9 @@ impl UsbLegacySupportCapability {
         mmio_base: PhysAddr,
         hc_capability_registers: &HCCapabilityRegisters,
     ) -> Option<Self> {
-        let xecp = hc_capability_registers.xhci_capability_ptr();
+        let xecp = hc_capability_registers
+            .hc_cp_params_1
+            .xhci_extended_capabilities_pointer();
         info!("xECP: {}", xecp);
         let base = mmio_base + ((xecp as usize) << 2);
         let usb_leg_sup = Accessor::<UsbLegacySupportCapabilityRegister>::new(base, Bytes::new(0));
