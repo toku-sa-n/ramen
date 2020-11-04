@@ -22,6 +22,7 @@ pub async fn task() {
     let mut command_ring = command::Ring::new(&registers);
     let _dcbaa = DeviceContextBaseAddressArray::new(&registers);
     xhc.init();
+    xhc.check_connections_of_each_port();
 
     command_ring.send_noop();
 
@@ -35,6 +36,10 @@ pub struct Xhc<'a> {
 }
 
 impl<'a> Xhc<'a> {
+    fn new(registers: &'a Spinlock<Registers>) -> Self {
+        Self { registers }
+    }
+
     fn init(&mut self) {
         self.get_ownership_from_bios();
         self.reset_if_halted();
@@ -109,8 +114,22 @@ impl<'a> Xhc<'a> {
         while registers.hc_operational.usb_sts.hc_halted() {}
     }
 
-    fn new(registers: &'a Spinlock<Registers>) -> Self {
-        Self { registers }
+    fn check_connections_of_each_port(&self) {
+        let num_of_ports: usize = self
+            .registers
+            .lock()
+            .hc_capability
+            .hcs_params_1
+            .max_ports()
+            .into();
+        for i in 0..num_of_ports {
+            if self.registers.lock().hc_operational.port_registers[i]
+                .port_sc
+                .current_connect_status()
+            {
+                info!("Port {}: Connected.", i);
+            }
+        }
     }
 }
 
