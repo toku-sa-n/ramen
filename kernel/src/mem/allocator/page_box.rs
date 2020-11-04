@@ -83,6 +83,14 @@ impl<T: ?Sized> PageBox<T> {
             }
         }
 
+        unsafe {
+            core::ptr::write_bytes(
+                virt_addr.as_mut_ptr::<u8>(),
+                0,
+                num_of_pages.as_bytes().as_usize(),
+            );
+        }
+
         virt_addr
     }
 }
