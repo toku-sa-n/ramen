@@ -8,7 +8,7 @@ pub struct HCCapabilityRegisters {
     pub hcs_params_2: Accessor<StructuralParameters2>,
     hc_cp_params_1: Accessor<HCCapabilityParameters1>,
     pub db_off: Accessor<DoorbellOffset>,
-    rts_off: Accessor<RuntimeRegisterSpaceOffset>,
+    pub rts_off: Accessor<RuntimeRegisterSpaceOffset>,
 }
 
 impl HCCapabilityRegisters {
@@ -43,11 +43,6 @@ impl HCCapabilityRegisters {
 
     pub fn len(&self) -> usize {
         self.cap_length.get()
-    }
-
-    pub fn offset_to_runtime_registers(&self) -> u32 {
-        info!("RTSOFF: {}", self.rts_off.get());
-        self.rts_off.get()
     }
 }
 
@@ -123,9 +118,9 @@ impl DoorbellOffset {
 }
 
 #[repr(transparent)]
-struct RuntimeRegisterSpaceOffset(u32);
+pub struct RuntimeRegisterSpaceOffset(u32);
 impl RuntimeRegisterSpaceOffset {
-    fn get(&self) -> u32 {
+    pub fn get(&self) -> u32 {
         self.0 & !0x1f
     }
 }
