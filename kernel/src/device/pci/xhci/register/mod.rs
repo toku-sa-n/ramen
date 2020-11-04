@@ -29,7 +29,8 @@ impl Registers {
             mmio_base,
             hc_capability_registers.offset_to_runtime_registers() as usize,
         );
-        let doorbell_array = doorbell::Array::new(mmio_base, hc_capability_registers.db_off());
+        let doorbell_array =
+            doorbell::Array::new(mmio_base, hc_capability_registers.db_off.get().into());
 
         Self {
             usb_legacy_support_capability,

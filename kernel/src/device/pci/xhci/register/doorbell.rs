@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::hc_capability::DoorbellOffset,
     crate::mem::accessor::Accessor,
     core::{
         convert::TryInto,
@@ -15,10 +14,10 @@ const NUM_OF_REGISTERS: usize = 256;
 
 pub struct Array(Accessor<[u32]>);
 impl Array {
-    pub fn new(mmio_base: PhysAddr, db_off: &DoorbellOffset) -> Self {
+    pub fn new(mmio_base: PhysAddr, db_off: u32) -> Self {
         Self(Accessor::new_slice(
             mmio_base,
-            Bytes::new(db_off.get().try_into().unwrap()),
+            Bytes::new(db_off.try_into().unwrap()),
             NUM_OF_REGISTERS,
         ))
     }
