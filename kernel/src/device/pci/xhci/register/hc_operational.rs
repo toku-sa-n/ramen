@@ -94,5 +94,3 @@ bitfield! {
      port_reset, _: 4;
      port_power, _: 9;
 }
-
-impl PortStatusAndControlRegister {}
