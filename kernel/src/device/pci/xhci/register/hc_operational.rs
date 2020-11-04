@@ -10,7 +10,7 @@ pub struct HCOperational {
     pub usb_sts: Accessor<UsbStatusRegister>,
     pub crcr: Accessor<CommandRingControlRegister>,
     pub dcbaap: Accessor<DeviceContextBaseAddressArrayPointer>,
-    config: Accessor<ConfigureRegister>,
+    pub config: Accessor<ConfigureRegister>,
 }
 
 impl HCOperational {
@@ -30,10 +30,6 @@ impl HCOperational {
             dcbaap,
             config,
         }
-    }
-
-    pub fn set_num_of_device_slots(&mut self, num: u8) {
-        self.config.set_num_of_slots(num)
     }
 }
 
@@ -84,14 +80,9 @@ impl DeviceContextBaseAddressArrayPointer {
 
 bitfield! {
     #[repr(transparent)]
-     struct ConfigureRegister(u32);
+     pub struct ConfigureRegister(u32);
 
-     u8, _ ,set_max_device_slots_enabled:7,0;
-}
-impl ConfigureRegister {
-    fn set_num_of_slots(&mut self, num: u8) {
-        self.set_max_device_slots_enabled(num)
-    }
+     pub u8, _ ,set_max_device_slots_enabled:7,0;
 }
 
 bitfield! {
