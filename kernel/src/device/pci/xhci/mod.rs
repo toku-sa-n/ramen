@@ -104,9 +104,9 @@ impl<'a> Xhc<'a> {
     }
 
     fn run(&mut self) {
-        let mut registers = self.registers.lock();
-        registers.hc_operational.usb_cmd.set_run_stop(true);
-        while registers.hc_operational.usb_sts.hc_halted() {}
+        let operational = &mut self.registers.lock().hc_operational;
+        operational.usb_cmd.set_run_stop(true);
+        while operational.usb_sts.hc_halted() {}
     }
 
     fn new(registers: &'a Spinlock<Registers>) -> Self {
