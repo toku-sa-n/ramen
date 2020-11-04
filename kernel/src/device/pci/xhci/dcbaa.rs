@@ -11,14 +11,20 @@ pub struct DeviceContextBaseAddressArray<'a> {
 }
 impl<'a> DeviceContextBaseAddressArray<'a> {
     pub fn new(registers: &'a Spinlock<Registers>) -> Self {
-        let arr = PageBox::new_slice(usize::from(registers.lock().num_of_device_slots()) + 1);
+        let arr = PageBox::new_slice(
+            (registers.lock().hc_capability.hcs_params_1.max_ports() + 1).into(),
+        );
         let dcbaa = Self { arr, registers };
         dcbaa.init();
         dcbaa
     }
 
     fn init(&self) {
-        self.registers.lock().set_dcbaap(self.phys_addr())
+        self.registers
+            .lock()
+            .hc_operational
+            .dcbaap
+            .set(self.phys_addr());
     }
 
     fn phys_addr(&self) -> PhysAddr {

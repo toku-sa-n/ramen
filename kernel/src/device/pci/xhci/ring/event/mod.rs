@@ -1,16 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{
-        super::register::{hc_capability_registers::MaxNumOfErst, Registers},
-        raw,
-        trb::Trb,
-        CycleBit,
-    },
+    super::{super::register::Registers, raw, trb::Trb, CycleBit},
     crate::device::pci::xhci,
     alloc::vec::Vec,
     core::{
-        convert::TryFrom,
+        convert::{TryFrom, TryInto},
         pin::Pin,
         task::{Context, Poll},
     },
@@ -34,7 +29,12 @@ impl<'a> Ring<'a> {
     const MAX_NUM_OF_TRB_IN_QUEUE: u16 = 4096;
 
     pub fn new(registers: &'a Spinlock<Registers>) -> Self {
-        let max_num_of_erst = registers.lock().max_num_of_erst();
+        let max_num_of_erst = registers
+            .lock()
+            .hc_capability
+            .hcs_params_2
+            .powered_erst_max();
+
         let mut ring = Self {
             arrays: Self::new_arrays(max_num_of_erst),
             segment_table: SegmentTable::new(max_num_of_erst.into()),
@@ -43,20 +43,13 @@ impl<'a> Ring<'a> {
             dequeue_ptr_segment: 0,
             registers,
         };
+        ring.init_dequeue_ptr();
         ring.init_segment_table();
-        ring.init_registers();
         ring
     }
 
-    fn init_registers(&mut self) {
-        let mut registers = self.registers.lock();
-        registers.set_event_ring_dequeue_pointer(self.phys_addr_to_array_beginning());
-        registers.set_event_ring_segment_table_size();
-        registers.set_event_ring_segment_table_addr(self.phys_addr_to_segment_table());
-    }
-
-    fn phys_addr_to_array_beginning(&self) -> PhysAddr {
-        self.arrays[0].phys_addr()
+    fn init_dequeue_ptr(&mut self) {
+        self.set_dequeue_ptr(self.phys_addr_to_next_trb())
     }
 
     fn phys_addr_to_segment_table(&self) -> PhysAddr {
@@ -64,14 +57,29 @@ impl<'a> Ring<'a> {
     }
 
     fn init_segment_table(&mut self) {
+        self.register_addresses_of_arrays_to_segment_table();
+        self.register_segment_table_to_xhci_registers();
+    }
+
+    fn register_addresses_of_arrays_to_segment_table(&mut self) {
         for i in 0..self.segment_table.len() {
             self.segment_table[i].set(self.arrays[0].phys_addr(), Self::MAX_NUM_OF_TRB_IN_QUEUE);
         }
     }
 
-    fn new_arrays(max_num_of_erst: MaxNumOfErst) -> Vec<raw::Ring> {
+    fn register_segment_table_to_xhci_registers(&mut self) {
+        let runtime_registers = &mut self.registers.lock().runtime_base_registers;
+        runtime_registers
+            .erst_sz
+            .set(self.segment_table.len().try_into().unwrap());
+        runtime_registers
+            .erst_ba
+            .set(self.phys_addr_to_segment_table());
+    }
+
+    fn new_arrays(max_num_of_erst: u16) -> Vec<raw::Ring> {
         let mut arrays = Vec::new();
-        for _ in 0_u16..max_num_of_erst.into() {
+        for _ in 0_u16..max_num_of_erst {
             arrays.push(raw::Ring::new(Self::MAX_NUM_OF_TRB_IN_QUEUE.into()));
         }
 
@@ -106,9 +114,11 @@ impl<'a> Ring<'a> {
             }
         }
 
-        self.registers
-            .lock()
-            .set_event_ring_dequeue_pointer(self.phys_addr_to_next_trb())
+        self.set_dequeue_ptr(self.phys_addr_to_next_trb())
+    }
+
+    fn set_dequeue_ptr(&mut self, addr: PhysAddr) {
+        self.registers.lock().runtime_base_registers.erd_p.set(addr)
     }
 
     fn phys_addr_to_next_trb(&self) -> PhysAddr {

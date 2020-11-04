@@ -2,8 +2,7 @@
 
 use {
     crate::{
-        device::pci::xhci::register::hc_capability_registers::HCCapabilityRegisters,
-        mem::accessor::Accessor,
+        device::pci::xhci::register::hc_capability::HCCapabilityRegisters, mem::accessor::Accessor,
     },
     bitfield::bitfield,
     os_units::Bytes,
@@ -11,7 +10,7 @@ use {
 };
 
 pub struct UsbLegacySupportCapability {
-    usb_leg_sup: Accessor<UsbLegacySupportCapabilityRegister>,
+    pub usb_leg_sup: Accessor<UsbLegacySupportCapabilityRegister>,
 }
 
 impl UsbLegacySupportCapability {
@@ -19,7 +18,9 @@ impl UsbLegacySupportCapability {
         mmio_base: PhysAddr,
         hc_capability_registers: &HCCapabilityRegisters,
     ) -> Option<Self> {
-        let xecp = hc_capability_registers.xhci_capability_ptr();
+        let xecp = hc_capability_registers
+            .hc_cp_params_1
+            .xhci_extended_capabilities_pointer();
         info!("xECP: {}", xecp);
         let base = mmio_base + ((xecp as usize) << 2);
         let usb_leg_sup = Accessor::<UsbLegacySupportCapabilityRegister>::new(base, Bytes::new(0));
@@ -30,29 +31,13 @@ impl UsbLegacySupportCapability {
             None
         }
     }
-
-    pub fn give_hc_ownership_to_os(&mut self) {
-        let usb_leg_sup = &mut self.usb_leg_sup;
-        usb_leg_sup.request_hc_ownership();
-
-        while !usb_leg_sup.ownership_passed() {}
-    }
 }
 
 bitfield! {
     #[repr(transparent)]
-    struct UsbLegacySupportCapabilityRegister(u32);
+    pub struct UsbLegacySupportCapabilityRegister(u32);
 
     id, _: 7, 0;
-    bios_owns_hc, _: 16;
-    os_owns_hc, os_request_ownership: 24;
-}
-impl UsbLegacySupportCapabilityRegister {
-    fn request_hc_ownership(&mut self) {
-        self.os_request_ownership(true);
-    }
-
-    fn ownership_passed(&self) -> bool {
-        !self.bios_owns_hc() && self.os_owns_hc()
-    }
+    pub bios_owns_hc, _: 16;
+    pub os_owns_hc, os_request_ownership: 24;
 }

@@ -18,7 +18,7 @@ pub struct Ring<'a> {
 }
 impl<'a> Ring<'a> {
     pub fn new(registers: &'a Spinlock<Registers>) -> Self {
-        let command_ring = Self {
+        let mut command_ring = Self {
             raw: raw::Ring::new(SIZE_OF_RING),
             enqueue_ptr: 0,
             cycle_bit: CycleBit::new(true),
@@ -35,13 +35,23 @@ impl<'a> Ring<'a> {
     pub fn send_noop(&mut self) {
         let noop = Trb::new_noop(self.cycle_bit);
         self.enqueue(noop);
-        self.registers.lock().notify_to_hc();
+        self.notify_command_is_sent();
     }
 
-    fn init(&self) {
+    fn notify_command_is_sent(&mut self) {
+        self.registers.lock().doorbell_array[0] = 0;
+    }
+
+    fn init(&mut self) {
+        self.register_address_to_xhci_register();
+    }
+
+    fn register_address_to_xhci_register(&mut self) {
         self.registers
             .lock()
-            .set_command_ring_pointer(self.phys_addr());
+            .hc_operational
+            .crcr
+            .set_ptr(self.phys_addr());
     }
 
     fn enqueue(&mut self, trb: Trb) {
