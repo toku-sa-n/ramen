@@ -104,11 +104,8 @@ impl<'a> Xhc<'a> {
 
     fn set_num_of_enabled_slots(&mut self) {
         let num_of_device_slots = self.num_of_device_slots();
-        self.registers
-            .lock()
-            .hc_operational
-            .config
-            .set_max_device_slots_enabled(num_of_device_slots)
+        let config = &mut self.registers.lock().hc_operational.config;
+        config.set_max_device_slots_enabled(num_of_device_slots)
     }
 
     fn num_of_device_slots(&self) -> u8 {
