@@ -39,14 +39,6 @@ impl CapabilityRegistersLength {
     }
 }
 
-#[repr(transparent)]
-struct HCInterfaceVersionNumber(u16);
-impl HCInterfaceVersionNumber {
-    fn get(&self) -> u16 {
-        self.0
-    }
-}
-
 bitfield! {
     #[repr(transparent)]
     pub struct StructuralParameters1(u32);
