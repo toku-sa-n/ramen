@@ -20,12 +20,19 @@ pub async fn task() {
     let mut xhc = Xhc::new(&registers);
     let mut event_ring = event::Ring::new(&registers);
     let mut command_ring = command::Ring::new(&registers);
-    let _dcbaa = DeviceContextBaseAddressArray::new(&registers);
+    let dcbaa = DeviceContextBaseAddressArray::new(&registers);
+
     xhc.init();
-    xhc.check_connections_of_each_port();
+
+    event_ring.init();
+    command_ring.init();
+    dcbaa.init();
+
+    xhc.run();
 
     command_ring.send_noop();
 
+    xhc.check_connections_of_each_port();
     while let Some(trb) = event_ring.next().await {
         info!("TRB: {:?}", trb);
     }
@@ -45,7 +52,6 @@ impl<'a> Xhc<'a> {
         self.reset_if_halted();
         self.wait_until_ready();
         self.set_num_of_enabled_slots();
-        self.run();
     }
 
     fn get_ownership_from_bios(&mut self) {
@@ -86,13 +92,8 @@ impl<'a> Xhc<'a> {
     }
 
     fn wait_until_ready(&self) {
-        while self
-            .registers
-            .lock()
-            .hc_operational
-            .usb_sts
-            .controller_not_ready()
-        {}
+        let usb_sts = &self.registers.lock().hc_operational.usb_sts;
+        while usb_sts.controller_not_ready() {}
     }
 
     fn set_num_of_enabled_slots(&mut self) {

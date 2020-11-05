@@ -18,14 +18,12 @@ pub struct Ring<'a> {
 }
 impl<'a> Ring<'a> {
     pub fn new(registers: &'a Spinlock<Registers>) -> Self {
-        let mut command_ring = Self {
+        Self {
             raw: raw::Ring::new(SIZE_OF_RING),
             enqueue_ptr: 0,
             cycle_bit: CycleBit::new(true),
             registers,
-        };
-        command_ring.init();
-        command_ring
+        }
     }
 
     pub fn phys_addr(&self) -> PhysAddr {
@@ -42,7 +40,7 @@ impl<'a> Ring<'a> {
         self.registers.lock().doorbell_array[0] = 0;
     }
 
-    fn init(&mut self) {
+    pub fn init(&mut self) {
         self.register_address_to_xhci_register();
     }
 
