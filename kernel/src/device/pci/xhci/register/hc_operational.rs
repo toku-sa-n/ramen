@@ -92,6 +92,7 @@ bitfield! {
      pub u8, _ ,set_max_device_slots_enabled:7,0;
 }
 
+#[derive(Debug)]
 pub struct PortRegisters {
     pub port_sc: PortStatusAndControlRegister,
     _port_pmsc: u32,
@@ -102,7 +103,7 @@ pub struct PortRegisters {
 bitfield! {
     #[repr(transparent)]
      pub  struct PortStatusAndControlRegister(u32);
-
+     impl Debug;
      pub current_connect_status, _: 0;
      port_enabled_disabled, _: 1;
      port_reset, _: 4;
