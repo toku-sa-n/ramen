@@ -18,13 +18,12 @@ pub struct Ring<'a> {
 }
 impl<'a> Ring<'a> {
     pub fn new(registers: &'a Spinlock<Registers>) -> Self {
-        let mut command_ring = Self {
+        Self {
             raw: raw::Ring::new(SIZE_OF_RING),
             enqueue_ptr: 0,
             cycle_bit: CycleBit::new(true),
             registers,
-        };
-        command_ring
+        }
     }
 
     pub fn phys_addr(&self) -> PhysAddr {

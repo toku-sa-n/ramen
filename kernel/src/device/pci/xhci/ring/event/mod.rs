@@ -35,15 +35,14 @@ impl<'a> Ring<'a> {
             .hcs_params_2
             .powered_erst_max();
 
-        let ring = Self {
+        Self {
             arrays: Self::new_arrays(max_num_of_erst),
             segment_table: SegmentTable::new(max_num_of_erst.into()),
             current_cycle_bit: CycleBit::new(true),
             dequeue_ptr_trb: 0,
             dequeue_ptr_segment: 0,
             registers,
-        };
-        ring
+        }
     }
 
     pub fn init(&mut self) {
