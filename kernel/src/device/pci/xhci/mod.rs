@@ -116,13 +116,7 @@ impl<'a> Xhc<'a> {
 
     fn check_connections_of_each_port(&self) {
         for i in 0..self.num_of_ports() {
-            info!(
-                "Port {}: {}",
-                i,
-                self.registers.lock().hc_operational.port_registers[i]
-                    .port_sc
-                    .current_connect_status()
-            );
+            self.print_port_status(i);
         }
     }
 
@@ -133,6 +127,16 @@ impl<'a> Xhc<'a> {
             .hcs_params_1
             .max_ports()
             .into()
+    }
+
+    fn print_port_status(&self, index: usize) {
+        info!(
+            "Port {}: {}",
+            index,
+            self.registers.lock().hc_operational.port_registers[index]
+                .port_sc
+                .current_connect_status()
+        );
     }
 }
 
