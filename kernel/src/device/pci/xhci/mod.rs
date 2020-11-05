@@ -81,13 +81,8 @@ impl<'a> Xhc<'a> {
     }
 
     fn wait_until_ready(&self) {
-        while self
-            .registers
-            .lock()
-            .hc_operational
-            .usb_sts
-            .controller_not_ready()
-        {}
+        let usb_sts = &self.registers.lock().hc_operational.usb_sts;
+        while usb_sts.controller_not_ready() {}
     }
 
     fn set_num_of_enabled_slots(&mut self) {
