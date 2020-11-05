@@ -20,8 +20,14 @@ pub async fn task() {
     let mut xhc = Xhc::new(&registers);
     let mut event_ring = event::Ring::new(&registers);
     let mut command_ring = command::Ring::new(&registers);
-    let _dcbaa = DeviceContextBaseAddressArray::new(&registers);
+    let dcbaa = DeviceContextBaseAddressArray::new(&registers);
+
     xhc.init();
+    event_ring.init();
+    command_ring.init();
+    dcbaa.init();
+
+    xhc.run();
 
     command_ring.send_noop();
 
@@ -40,7 +46,6 @@ impl<'a> Xhc<'a> {
         self.reset_if_halted();
         self.wait_until_ready();
         self.set_num_of_enabled_slots();
-        self.run();
     }
 
     fn get_ownership_from_bios(&mut self) {
