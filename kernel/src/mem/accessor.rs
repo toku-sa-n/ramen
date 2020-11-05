@@ -51,11 +51,12 @@ impl<T> DerefMut for Accessor<T> {
 impl<T> Accessor<[T]> {
     pub fn new_slice(phys_base: PhysAddr, offset: Bytes, len: usize) -> Self {
         let phys_base = phys_base + offset.as_usize();
-        let virt = Self::map_pages(phys_base, Bytes::new(mem::size_of::<T>() * len));
+        let bytes = Bytes::new(mem::size_of::<T>() * len);
+        let virt = Self::map_pages(phys_base, bytes);
 
         Self {
             virt,
-            bytes: Bytes::new(mem::size_of::<T>() * len),
+            bytes,
             _marker: PhantomData,
         }
     }
