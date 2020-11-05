@@ -49,7 +49,7 @@ impl<'a> Xhc<'a> {
 
     fn init(&mut self) {
         self.get_ownership_from_bios();
-        self.reset_if_halted();
+        self.stop_and_reset();
         self.wait_until_ready();
         self.set_num_of_enabled_slots();
     }
@@ -63,14 +63,20 @@ impl<'a> Xhc<'a> {
         }
     }
 
-    fn reset_if_halted(&mut self) {
-        if self.halted() {
-            self.reset();
-        }
+    fn stop_and_reset(&mut self) {
+        self.stop();
+        self.wait_until_halt();
+        self.reset();
     }
 
-    fn halted(&self) -> bool {
-        self.registers.lock().hc_operational.usb_sts.hc_halted()
+    fn stop(&mut self) {
+        let usb_cmd = &mut self.registers.lock().hc_operational.usb_cmd;
+        usb_cmd.set_run_stop(false);
+    }
+
+    fn wait_until_halt(&self) {
+        let usb_sts = &self.registers.lock().hc_operational.usb_sts;
+        while !usb_sts.hc_halted() {}
     }
 
     fn reset(&mut self) {
