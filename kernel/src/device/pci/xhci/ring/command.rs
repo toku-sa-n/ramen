@@ -42,14 +42,17 @@ impl<'a> Ring<'a> {
 
     pub fn init(&mut self) {
         self.register_address_to_xhci_register();
+        self.set_initial_command_ring_cycle_state();
     }
 
     fn register_address_to_xhci_register(&mut self) {
-        self.registers
-            .lock()
-            .hc_operational
-            .crcr
-            .set_ptr(self.phys_addr());
+        let crcr = &mut self.registers.lock().hc_operational.crcr;
+        crcr.set_ptr(self.phys_addr());
+    }
+
+    fn set_initial_command_ring_cycle_state(&mut self) {
+        let crcr = &mut self.registers.lock().hc_operational.crcr;
+        crcr.set_ring_cycle_state(true);
     }
 
     fn enqueue(&mut self, trb: Trb) {
