@@ -115,14 +115,7 @@ impl<'a> Xhc<'a> {
     }
 
     fn check_connections_of_each_port(&self) {
-        let num_of_ports: usize = self
-            .registers
-            .lock()
-            .hc_capability
-            .hcs_params_1
-            .max_ports()
-            .into();
-        for i in 0..num_of_ports {
+        for i in 0..self.num_of_ports() {
             info!(
                 "Port {}: {}",
                 i,
@@ -131,6 +124,15 @@ impl<'a> Xhc<'a> {
                     .current_connect_status()
             );
         }
+    }
+
+    fn num_of_ports(&self) -> usize {
+        self.registers
+            .lock()
+            .hc_capability
+            .hcs_params_1
+            .max_ports()
+            .into()
     }
 }
 
