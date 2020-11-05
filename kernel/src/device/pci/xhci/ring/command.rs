@@ -42,7 +42,7 @@ impl<'a> Ring<'a> {
 
     pub fn init(&mut self) {
         self.register_address_to_xhci_register();
-        self.init_command_ring_cycle_state();
+        self.set_initial_command_ring_cycle_state();
     }
 
     fn register_address_to_xhci_register(&mut self) {
@@ -53,7 +53,7 @@ impl<'a> Ring<'a> {
             .set_ptr(self.phys_addr());
     }
 
-    fn init_command_ring_cycle_state(&mut self) {
+    fn set_initial_command_ring_cycle_state(&mut self) {
         let crcr = &mut self.registers.lock().hc_operational.crcr;
         crcr.set_ring_cycle_state(true);
     }
