@@ -50,7 +50,6 @@ impl<'a> Xhc<'a> {
     fn init(&mut self) {
         self.get_ownership_from_bios();
         self.stop_and_reset();
-        self.wait_until_ready();
         self.set_num_of_enabled_slots();
     }
 
@@ -81,7 +80,8 @@ impl<'a> Xhc<'a> {
 
     fn reset(&mut self) {
         self.start_resetting();
-        self.wait_until_reset_completed()
+        self.wait_until_reset_completed();
+        self.wait_until_ready();
     }
 
     fn start_resetting(&mut self) {
