@@ -11,9 +11,7 @@ pub struct DeviceContextBaseAddressArray<'a> {
 }
 impl<'a> DeviceContextBaseAddressArray<'a> {
     pub fn new(registers: &'a Spinlock<Registers>) -> Self {
-        let arr = PageBox::new_slice(
-            (registers.lock().hc_capability.hcs_params_1.max_ports() + 1).into(),
-        );
+        let arr = PageBox::new_slice(Self::num_of_slots(registers));
         let dcbaa = Self { arr, registers };
         dcbaa.init();
         dcbaa
@@ -21,6 +19,10 @@ impl<'a> DeviceContextBaseAddressArray<'a> {
 
     fn init(&self) {
         self.register_address_to_xhci_register();
+    }
+
+    fn num_of_slots(registers: &'a Spinlock<Registers>) -> usize {
+        (registers.lock().hc_capability.hcs_params_1.max_slots() + 1).into()
     }
 
     fn register_address_to_xhci_register(&self) {
