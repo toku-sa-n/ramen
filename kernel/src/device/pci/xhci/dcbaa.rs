@@ -20,6 +20,10 @@ impl<'a> DeviceContextBaseAddressArray<'a> {
     }
 
     fn init(&self) {
+        self.register_address_to_xhci_register();
+    }
+
+    fn register_address_to_xhci_register(&self) {
         self.registers
             .lock()
             .hc_operational
