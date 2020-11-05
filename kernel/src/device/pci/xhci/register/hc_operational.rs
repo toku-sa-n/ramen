@@ -61,6 +61,7 @@ bitfield! {
     #[repr(transparent)]
     pub struct CommandRingControlRegister(u64);
 
+    pub _, set_ring_cycle_state: 0;
     ptr,set_pointer:63,6;
 }
 impl CommandRingControlRegister {
