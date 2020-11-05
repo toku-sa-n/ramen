@@ -123,12 +123,13 @@ impl<'a> Xhc<'a> {
             .max_ports()
             .into();
         for i in 0..num_of_ports {
-            if self.registers.lock().hc_operational.port_registers[i]
-                .port_sc
-                .current_connect_status()
-            {
-                info!("Port {}: Connected.", i);
-            }
+            info!(
+                "Port {}: {}",
+                i,
+                self.registers.lock().hc_operational.port_registers[i]
+                    .port_sc
+                    .current_connect_status()
+            );
         }
     }
 }
