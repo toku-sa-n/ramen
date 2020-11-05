@@ -20,9 +20,6 @@ impl HCCapabilityRegisters {
         let db_off = Accessor::new(mmio_base, Bytes::new(0x14));
         let rts_off = Accessor::new(mmio_base, Bytes::new(0x18));
 
-        let hci_version = Accessor::<HCInterfaceVersionNumber>::new(mmio_base, Bytes::new(0x2));
-        info!("xHC version: {:X}", hci_version.get());
-
         Self {
             cap_length,
             hcs_params_1,

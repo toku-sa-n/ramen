@@ -29,11 +29,13 @@ impl<T> PageBox<[T]> {
         let bytes = Bytes::new(mem::size_of::<T>() * num_of_elements);
         let virt = Self::allocate_pages(bytes.as_num_of_pages());
 
-        Self {
+        let mut page_box = Self {
             virt,
             bytes,
             _marker: PhantomData::<[T]>,
-        }
+        };
+        page_box.write_all_bytes_with_zero();
+        page_box
     }
 
     pub fn phys_addr(&self) -> PhysAddr {
@@ -56,6 +58,12 @@ impl<T> DerefMut for PageBox<[T]> {
     }
 }
 impl<T: ?Sized> PageBox<T> {
+    fn write_all_bytes_with_zero(&mut self) {
+        unsafe {
+            core::ptr::write_bytes(self.virt.as_mut_ptr::<u8>(), 0, self.bytes.as_usize());
+        }
+    }
+
     fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> VirtAddr {
         let virt_addr =
             virt::search_free_addr(num_of_pages).expect("OOM during creating `PageBox`");
