@@ -24,7 +24,6 @@ impl<'a> Ring<'a> {
             cycle_bit: CycleBit::new(true),
             registers,
         };
-        command_ring.init();
         command_ring
     }
 
@@ -42,7 +41,7 @@ impl<'a> Ring<'a> {
         self.registers.lock().doorbell_array[0] = 0;
     }
 
-    fn init(&mut self) {
+    pub fn init(&mut self) {
         self.register_address_to_xhci_register();
     }
 

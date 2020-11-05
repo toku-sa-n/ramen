@@ -13,11 +13,10 @@ impl<'a> DeviceContextBaseAddressArray<'a> {
     pub fn new(registers: &'a Spinlock<Registers>) -> Self {
         let arr = PageBox::new_slice(Self::num_of_slots(registers));
         let dcbaa = Self { arr, registers };
-        dcbaa.init();
         dcbaa
     }
 
-    fn init(&self) {
+    pub fn init(&self) {
         self.register_address_to_xhci_register();
     }
 
