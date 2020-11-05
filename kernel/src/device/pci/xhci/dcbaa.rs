@@ -24,11 +24,8 @@ impl<'a> DeviceContextBaseAddressArray<'a> {
     }
 
     fn register_address_to_xhci_register(&self) {
-        self.registers
-            .lock()
-            .hc_operational
-            .dcbaap
-            .set(self.phys_addr());
+        let dcbaap = &mut self.registers.lock().hc_operational.dcbaap;
+        dcbaap.set(self.phys_addr());
     }
 
     fn phys_addr(&self) -> PhysAddr {
