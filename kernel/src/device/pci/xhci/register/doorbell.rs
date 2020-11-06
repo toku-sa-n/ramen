@@ -1,14 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    crate::mem::accessor::Accessor,
-    core::{
-        convert::TryInto,
-        ops::{Index, IndexMut},
-    },
-    os_units::Bytes,
-    x86_64::PhysAddr,
-};
+use {crate::mem::accessor::Accessor, core::convert::TryInto, os_units::Bytes, x86_64::PhysAddr};
 
 const NUM_OF_REGISTERS: usize = 256;
 
@@ -21,16 +13,11 @@ impl Array {
             NUM_OF_REGISTERS,
         ))
     }
-}
-impl Index<usize> for Array {
-    type Output = u32;
 
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.0[index]
-    }
-}
-impl IndexMut<usize> for Array {
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.0[index]
+    pub fn update<T>(&mut self, index: usize, f: T)
+    where
+        T: Fn(&mut u32),
+    {
+        self.0.update(index, f)
     }
 }
