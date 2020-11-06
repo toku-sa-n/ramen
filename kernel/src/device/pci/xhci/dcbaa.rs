@@ -20,15 +20,13 @@ impl<'a> DeviceContextBaseAddressArray<'a> {
     }
 
     fn num_of_slots(registers: &'a Spinlock<Registers>) -> usize {
-        (registers.lock().hc_capability.hcs_params_1.max_slots() + 1).into()
+        let params1 = &registers.lock().hc_capability.hcs_params_1;
+        (params1.read().max_slots() + 1).into()
     }
 
     fn register_address_to_xhci_register(&self) {
-        self.registers
-            .lock()
-            .hc_operational
-            .dcbaap
-            .set(self.phys_addr());
+        let dcbaap = &mut self.registers.lock().hc_operational.dcbaap;
+        dcbaap.update(|dcbaap| dcbaap.set(self.phys_addr()));
     }
 
     fn phys_addr(&self) -> PhysAddr {

@@ -25,9 +25,12 @@ impl Registers {
         let usb_legacy_support_capability =
             UsbLegacySupportCapability::new(mmio_base, &hc_capability_registers);
         let hc_operational = HCOperational::new(mmio_base, &hc_capability_registers);
-        let runtime_base_registers =
-            RuntimeBaseRegisters::new(mmio_base, hc_capability_registers.rts_off.get() as usize);
-        let doorbell_array = doorbell::Array::new(mmio_base, hc_capability_registers.db_off.get());
+        let runtime_base_registers = RuntimeBaseRegisters::new(
+            mmio_base,
+            hc_capability_registers.rts_off.read().get() as usize,
+        );
+        let doorbell_array =
+            doorbell::Array::new(mmio_base, hc_capability_registers.db_off.read().get());
 
         Self {
             usb_legacy_support_capability,

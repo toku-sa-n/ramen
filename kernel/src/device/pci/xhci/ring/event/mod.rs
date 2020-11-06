@@ -33,6 +33,7 @@ impl<'a> Ring<'a> {
             .lock()
             .hc_capability
             .hcs_params_2
+            .read()
             .powered_erst_max();
 
         Self {
@@ -73,10 +74,10 @@ impl<'a> Ring<'a> {
         let runtime_registers = &mut self.registers.lock().runtime_base_registers;
         runtime_registers
             .erst_sz
-            .set(self.segment_table.len().try_into().unwrap());
+            .update(|sz| sz.set(self.segment_table.len().try_into().unwrap()));
         runtime_registers
             .erst_ba
-            .set(self.phys_addr_to_segment_table());
+            .update(|ba| ba.set(self.phys_addr_to_segment_table()));
     }
 
     fn new_arrays(max_num_of_erst: u16) -> Vec<raw::Ring> {
@@ -120,7 +121,8 @@ impl<'a> Ring<'a> {
     }
 
     fn set_dequeue_ptr(&mut self, addr: PhysAddr) {
-        self.registers.lock().runtime_base_registers.erd_p.set(addr)
+        let erd_p = &mut self.registers.lock().runtime_base_registers.erd_p;
+        erd_p.update(|erd_p| erd_p.set(addr))
     }
 
     fn phys_addr_to_next_trb(&self) -> PhysAddr {

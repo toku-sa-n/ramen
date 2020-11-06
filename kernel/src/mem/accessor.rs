@@ -10,6 +10,7 @@ use {
         marker::PhantomData,
         mem,
         ops::{Deref, DerefMut},
+        ptr,
     },
     os_units::Bytes,
     x86_64::{
@@ -34,17 +35,22 @@ impl<T> Accessor<T> {
             _marker: PhantomData,
         }
     }
-}
-impl<T> Deref for Accessor<T> {
-    type Target = T;
 
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*self.virt.as_ptr() }
+    pub fn read(&self) -> T {
+        unsafe { ptr::read_volatile(self.virt.as_ptr()) }
     }
-}
-impl<T> DerefMut for Accessor<T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { &mut *self.virt.as_mut_ptr() }
+
+    pub fn write(&mut self, val: T) {
+        unsafe { ptr::write_volatile(self.virt.as_mut_ptr(), val) }
+    }
+
+    pub fn update<U>(&mut self, f: U)
+    where
+        U: Fn(&mut T),
+    {
+        let mut val = self.read();
+        f(&mut val);
+        self.write(val);
     }
 }
 
