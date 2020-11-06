@@ -15,7 +15,7 @@ pub struct HCOperational {
 
 impl HCOperational {
     pub fn new(mmio_base: PhysAddr, capabilities: &HCCapabilityRegisters) -> Self {
-        let operational_base = mmio_base + capabilities.cap_length.get();
+        let operational_base = mmio_base + capabilities.cap_length.read().get();
 
         let usb_cmd = Accessor::new(operational_base, Bytes::new(0x00));
         let usb_sts = Accessor::new(operational_base, Bytes::new(0x04));

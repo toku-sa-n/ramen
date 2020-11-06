@@ -20,12 +20,13 @@ impl UsbLegacySupportCapability {
     ) -> Option<Self> {
         let xecp = hc_capability_registers
             .hc_cp_params_1
+            .read()
             .xhci_extended_capabilities_pointer();
         info!("xECP: {}", xecp);
         let base = mmio_base + ((xecp as usize) << 2);
         let usb_leg_sup = Accessor::<UsbLegacySupportCapabilityRegister>::new(base, Bytes::new(0));
 
-        if usb_leg_sup.id() == 1 {
+        if usb_leg_sup.read().id() == 1 {
             Some(Self { usb_leg_sup })
         } else {
             None

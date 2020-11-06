@@ -47,12 +47,12 @@ impl<'a> Ring<'a> {
 
     fn register_address_to_xhci_register(&mut self) {
         let crcr = &mut self.registers.lock().hc_operational.crcr;
-        crcr.set_ptr(self.phys_addr());
+        crcr.update(|crcr| crcr.set_ptr(self.phys_addr()));
     }
 
     fn set_initial_command_ring_cycle_state(&mut self) {
         let crcr = &mut self.registers.lock().hc_operational.crcr;
-        crcr.set_ring_cycle_state(true);
+        crcr.update(|crcr| crcr.set_ring_cycle_state(true));
     }
 
     fn enqueue(&mut self, trb: Trb) {
