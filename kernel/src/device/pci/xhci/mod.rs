@@ -123,13 +123,8 @@ impl<'a> Xhc<'a> {
     }
 
     fn num_of_ports(&self) -> usize {
-        self.registers
-            .lock()
-            .hc_capability
-            .hcs_params_1
-            .read()
-            .max_ports()
-            .into()
+        let params1 = &self.registers.lock().hc_capability.hcs_params_1;
+        params1.read().max_ports().into()
     }
 
     fn print_port_status(&self, index: usize) {
