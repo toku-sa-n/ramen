@@ -136,7 +136,11 @@ impl<'a> Xhc<'a> {
         info!(
             "Port {}: {}",
             index,
-            self.registers.lock().hc_operational.port_registers[index]
+            self.registers
+                .lock()
+                .hc_operational
+                .port_registers
+                .read(index)
                 .port_sc
                 .current_connect_status()
         );
