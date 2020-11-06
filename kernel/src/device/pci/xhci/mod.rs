@@ -134,11 +134,8 @@ impl<'a> Xhc<'a> {
 
     fn print_port_status(&self, index: usize) {
         let port_rg = &self.registers.lock().hc_operational.port_registers;
-        info!(
-            "Port {}: {}",
-            index,
-            port_rg.read(index).port_sc.current_connect_status()
-        );
+        let ccs = port_rg.read(index).port_sc.current_connect_status();
+        info!("Port {}: {}", index, ccs);
     }
 }
 
