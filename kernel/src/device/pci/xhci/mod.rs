@@ -23,6 +23,7 @@ pub async fn task() {
     let dcbaa = DeviceContextBaseAddressArray::new(&registers);
 
     xhc.init();
+
     event_ring.init();
     command_ring.init();
     dcbaa.init();
@@ -31,6 +32,7 @@ pub async fn task() {
 
     command_ring.send_noop();
 
+    xhc.check_connections_of_each_port();
     while let Some(trb) = event_ring.next().await {
         info!("TRB: {:?}", trb);
     }
@@ -41,10 +43,13 @@ pub struct Xhc<'a> {
 }
 
 impl<'a> Xhc<'a> {
+    fn new(registers: &'a Spinlock<Registers>) -> Self {
+        Self { registers }
+    }
+
     fn init(&mut self) {
         self.get_ownership_from_bios();
         self.stop_and_reset();
-        self.wait_until_ready();
         self.set_num_of_enabled_slots();
     }
 
@@ -75,7 +80,8 @@ impl<'a> Xhc<'a> {
 
     fn reset(&mut self) {
         self.start_resetting();
-        self.wait_until_reset_completed()
+        self.wait_until_reset_completed();
+        self.wait_until_ready();
     }
 
     fn start_resetting(&mut self) {
@@ -110,8 +116,21 @@ impl<'a> Xhc<'a> {
         while operational.usb_sts.read().hc_halted() {}
     }
 
-    fn new(registers: &'a Spinlock<Registers>) -> Self {
-        Self { registers }
+    fn check_connections_of_each_port(&self) {
+        for i in 0..self.num_of_ports() {
+            self.print_port_status(i);
+        }
+    }
+
+    fn num_of_ports(&self) -> usize {
+        let params1 = &self.registers.lock().hc_capability.hcs_params_1;
+        params1.read().max_ports().into()
+    }
+
+    fn print_port_status(&self, index: usize) {
+        let port_rg = &self.registers.lock().hc_operational.port_registers;
+        let ccs = port_rg.read(index).port_sc.current_connect_status();
+        info!("Port {}: {}", index, ccs);
     }
 }
 

@@ -11,6 +11,7 @@ pub struct HCOperational {
     pub crcr: Accessor<CommandRingControlRegister>,
     pub dcbaap: Accessor<DeviceContextBaseAddressArrayPointer>,
     pub config: Accessor<ConfigureRegister>,
+    pub port_registers: Accessor<[PortRegisters]>,
 }
 
 impl HCOperational {
@@ -22,6 +23,11 @@ impl HCOperational {
         let crcr = Accessor::new(operational_base, Bytes::new(0x18));
         let dcbaap = Accessor::new(operational_base, Bytes::new(0x30));
         let config = Accessor::new(operational_base, Bytes::new(0x38));
+        let port_registers = Accessor::new_slice(
+            operational_base,
+            Bytes::new(0x400),
+            capabilities.hcs_params_1.read().max_ports().into(),
+        );
 
         Self {
             usb_cmd,
@@ -29,6 +35,7 @@ impl HCOperational {
             crcr,
             dcbaap,
             config,
+            port_registers,
         }
     }
 }
@@ -86,14 +93,21 @@ bitfield! {
      pub u8, _ ,set_max_device_slots_enabled:7,0;
 }
 
-bitfield! {
-    #[repr(transparent)]
-     struct PortStatusAndControlRegister(u32);
-
-     current_connect_status, _: 0;
-     port_enabled_disabled, _: 1;
-     port_reset, _: 4;
-     port_power, _: 9;
+#[derive(Debug)]
+pub struct PortRegisters {
+    pub port_sc: PortStatusAndControlRegister,
+    _port_pmsc: u32,
+    _port_li: u32,
+    _port_hlpmc: u32,
 }
 
-impl PortStatusAndControlRegister {}
+bitfield! {
+    #[repr(transparent)]
+     pub  struct PortStatusAndControlRegister(u32);
+     impl Debug;
+     pub current_connect_status, _: 0;
+     port_enabled_disabled, _: 1;
+     port_reset, _: 4;
+     port_link_state, _: 8, 5;
+     port_power, _: 9;
+}
