@@ -79,11 +79,8 @@ impl<'a> Xhc<'a> {
     }
 
     fn start_resetting(&mut self) {
-        self.registers
-            .lock()
-            .hc_operational
-            .usb_cmd
-            .set_hc_reset(true);
+        let usb_cmd = &mut self.registers.lock().hc_operational.usb_cmd;
+        usb_cmd.set_hc_reset(true);
     }
 
     fn wait_until_reset_completed(&self) {
