@@ -5,13 +5,7 @@ use {
         allocator::{phys::FRAME_MANAGER, virt},
         paging::pml4::PML4,
     },
-    core::{
-        convert::TryFrom,
-        marker::PhantomData,
-        mem,
-        ops::{Deref, DerefMut},
-        ptr,
-    },
+    core::{convert::TryFrom, marker::PhantomData, mem, ptr},
     os_units::Bytes,
     x86_64::{
         structures::paging::{Mapper, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
@@ -67,20 +61,31 @@ impl<T> Accessor<[T]> {
         }
     }
 
+    pub fn read(&self, index: usize) -> T {
+        assert!(index < self.len());
+        unsafe { ptr::read_volatile(self.addr_to_elem(index).as_ptr()) }
+    }
+
+    pub fn write(&mut self, index: usize, val: T) {
+        assert!(index < self.len());
+        unsafe { ptr::write_volatile(self.addr_to_elem(index).as_mut_ptr(), val) }
+    }
+
+    pub fn update<U>(&mut self, index: usize, f: U)
+    where
+        U: Fn(&mut T),
+    {
+        let mut val = self.read(index);
+        f(&mut val);
+        self.write(index, val);
+    }
+
+    fn addr_to_elem(&self, index: usize) -> VirtAddr {
+        self.virt + mem::size_of::<T>() * index
+    }
+
     fn len(&self) -> usize {
         self.bytes.as_usize() / mem::size_of::<T>()
-    }
-}
-impl<T> Deref for Accessor<[T]> {
-    type Target = [T];
-
-    fn deref(&self) -> &Self::Target {
-        unsafe { core::slice::from_raw_parts(self.virt.as_ptr(), self.len()) }
-    }
-}
-impl<T> DerefMut for Accessor<[T]> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { core::slice::from_raw_parts_mut(self.virt.as_mut_ptr(), self.len()) }
     }
 }
 
