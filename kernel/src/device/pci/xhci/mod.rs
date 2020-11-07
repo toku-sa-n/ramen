@@ -32,14 +32,14 @@ pub async fn task() {
     }
 }
 
-fn init<'a>(
-    registers: &'a Spinlock<Registers>,
+fn init(
+    registers: &Spinlock<Registers>,
 ) -> (
-    Xhc<'a>,
-    event::Ring<'a>,
-    command::Ring<'a>,
-    DeviceContextBaseAddressArray<'a>,
-    Vec<Port<'a>>,
+    Xhc,
+    event::Ring,
+    command::Ring,
+    DeviceContextBaseAddressArray,
+    Vec<Port>,
 ) {
     let mut xhc = Xhc::new(&registers);
     let mut event_ring = event::Ring::new(&registers);
