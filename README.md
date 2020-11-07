@@ -8,7 +8,6 @@ A toy OS
 - A computer supporting UEFI or QEMU
 - mtools (if you want to run on QEMU)
 - OVMF_VARS.fd and OVMF_CODE.fd (if you want to run on QEMU)
-- nasm
 - Rustup nightly version
 
 ## Run on QEMU
