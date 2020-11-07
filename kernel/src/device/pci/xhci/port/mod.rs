@@ -3,32 +3,46 @@
 use {
     super::register::{hc_operational::PortRegisters, Registers},
     alloc::vec::Vec,
+    core::slice,
     spinning_top::Spinlock,
 };
+
+pub struct Collection<'a> {
+    collection: Vec<Port<'a>>,
+}
+impl<'a> Collection<'a> {
+    pub fn new(registers: &'a Spinlock<Registers>) -> Self {
+        let mut collection = Vec::new();
+        for i in 0..Self::num_of_ports(registers) {
+            collection.push(Port::new(registers, i));
+        }
+
+        Self { collection }
+    }
+
+    fn num_of_ports(registers: &Spinlock<Registers>) -> usize {
+        let params1 = &registers.lock().hc_capability.hcs_params_1;
+        params1.read().max_ports().into()
+    }
+}
+impl<'a> IntoIterator for &'a mut Collection<'a> {
+    type Item = &'a mut Port<'a>;
+    type IntoIter = slice::IterMut<'a, Port<'a>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.collection.iter_mut()
+    }
+}
 
 pub struct Port<'a> {
     registers: &'a Spinlock<Registers>,
     index: usize,
 }
 impl<'a> Port<'a> {
-    pub fn new_all_ports(registers: &'a Spinlock<Registers>) -> Vec<Self> {
-        let mut ports = Vec::new();
-        for i in 0..Self::num_of_ports(registers) {
-            ports.push(Self::new(registers, i));
-        }
-
-        ports
-    }
-
     pub fn reset_if_connected(&mut self) {
         if self.connected() {
             self.reset();
         }
-    }
-
-    fn num_of_ports(registers: &Spinlock<Registers>) -> usize {
-        let params1 = &registers.lock().hc_capability.hcs_params_1;
-        params1.read().max_ports().into()
     }
 
     fn new(registers: &'a Spinlock<Registers>, index: usize) -> Self {
