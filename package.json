@@ -1,0 +1,10 @@
+{
+    "husky": {
+        "hooks": {
+            "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+        }
+    },
+    "devDependencies": {
+        "husky": "^4.3.0"
+    }
+}
