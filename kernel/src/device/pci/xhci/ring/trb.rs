@@ -13,6 +13,7 @@ pub enum Trb {
     Noop(Noop),
     CommandComplete(CommandComplete),
     Link(Link),
+    PortStatusChange(PortStatusChange),
 }
 impl Trb {
     pub const SIZE: Bytes = Bytes::new(16);
@@ -32,6 +33,9 @@ impl TryFrom<raw::Trb> for Trb {
             x if x == Noop::ID => Ok(Self::Noop(Noop::from(raw))),
             x if x == CommandComplete::ID => Ok(Self::CommandComplete(CommandComplete::from(raw))),
             x if x == Link::ID => Ok(Self::Link(Link::from(raw))),
+            x if x == PortStatusChange::ID => {
+                Ok(Self::PortStatusChange(PortStatusChange::from(raw)))
+            }
             x => {
                 warn!("Unrecognized TRB ID: {}", x);
                 Err(Error::InvalidId)
@@ -103,6 +107,22 @@ impl Link {
     }
 }
 impl From<raw::Trb> for Link {
+    fn from(raw: raw::Trb) -> Self {
+        Self(raw.0)
+    }
+}
+
+bitfield! {
+    #[repr(transparent)]
+    pub struct PortStatusChange(u128);
+    impl Debug;
+    port_id, _: 31, 24;
+    completion_code, _: 64+31, 64+24;
+}
+impl PortStatusChange {
+    const ID: u8 = 34;
+}
+impl From<raw::Trb> for PortStatusChange {
     fn from(raw: raw::Trb) -> Self {
         Self(raw.0)
     }
