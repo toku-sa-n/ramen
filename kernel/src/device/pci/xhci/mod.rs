@@ -9,7 +9,6 @@ use {
     super::config::bar,
     dcbaa::DeviceContextBaseAddressArray,
     futures_util::{task::AtomicWaker, StreamExt},
-    port::collection::PortCollection,
     register::Registers,
     ring::{command, event},
     spinning_top::Spinlock,
@@ -38,13 +37,13 @@ fn init(
     event::Ring,
     command::Ring,
     DeviceContextBaseAddressArray,
-    PortCollection,
+    port::Collection,
 ) {
     let mut xhc = Xhc::new(&registers);
     let mut event_ring = event::Ring::new(&registers);
     let mut command_ring = command::Ring::new(&registers);
     let dcbaa = DeviceContextBaseAddressArray::new(&registers);
-    let ports = PortCollection::new(&registers);
+    let ports = port::Collection::new(&registers);
 
     xhc.init();
 
