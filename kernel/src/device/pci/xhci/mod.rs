@@ -7,6 +7,7 @@ mod ring;
 
 use {
     super::config::bar,
+    alloc::vec::Vec,
     dcbaa::DeviceContextBaseAddressArray,
     futures_util::{task::AtomicWaker, StreamExt},
     port::Port,
@@ -19,6 +20,27 @@ static WAKER: AtomicWaker = AtomicWaker::new();
 
 pub async fn task() {
     let registers = Spinlock::new(iter_devices().next().unwrap());
+    let (_xhc, mut event_ring, mut command_ring, _dcbaa, ports) = init(&registers);
+    command_ring.send_noop();
+
+    for mut port in ports {
+        port.reset_if_connected();
+    }
+
+    while let Some(trb) = event_ring.next().await {
+        info!("TRB: {:?}", trb);
+    }
+}
+
+fn init<'a>(
+    registers: &'a Spinlock<Registers>,
+) -> (
+    Xhc<'a>,
+    event::Ring<'a>,
+    command::Ring<'a>,
+    DeviceContextBaseAddressArray<'a>,
+    Vec<Port<'a>>,
+) {
     let mut xhc = Xhc::new(&registers);
     let mut event_ring = event::Ring::new(&registers);
     let mut command_ring = command::Ring::new(&registers);
@@ -33,15 +55,7 @@ pub async fn task() {
 
     xhc.run();
 
-    command_ring.send_noop();
-
-    for mut port in ports {
-        port.reset_if_connected();
-    }
-
-    while let Some(trb) = event_ring.next().await {
-        info!("TRB: {:?}", trb);
-    }
+    (xhc, event_ring, command_ring, dcbaa, ports)
 }
 
 pub struct Xhc<'a> {
