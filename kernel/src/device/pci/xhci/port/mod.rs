@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+pub mod collection;
+
 use {
     super::register::{hc_operational::PortRegisters, Registers},
-    alloc::vec::Vec,
     spinning_top::Spinlock,
 };
 
@@ -11,24 +12,10 @@ pub struct Port<'a> {
     index: usize,
 }
 impl<'a> Port<'a> {
-    pub fn new_all_ports(registers: &'a Spinlock<Registers>) -> Vec<Self> {
-        let mut ports = Vec::new();
-        for i in 0..Self::num_of_ports(registers) {
-            ports.push(Self::new(registers, i));
-        }
-
-        ports
-    }
-
     pub fn reset_if_connected(&mut self) {
         if self.connected() {
             self.reset();
         }
-    }
-
-    fn num_of_ports(registers: &Spinlock<Registers>) -> usize {
-        let params1 = &registers.lock().hc_capability.hcs_params_1;
-        params1.read().max_ports().into()
     }
 
     fn new(registers: &'a Spinlock<Registers>, index: usize) -> Self {

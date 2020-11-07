@@ -7,10 +7,9 @@ mod ring;
 
 use {
     super::config::bar,
-    alloc::vec::Vec,
     dcbaa::DeviceContextBaseAddressArray,
     futures_util::{task::AtomicWaker, StreamExt},
-    port::Port,
+    port::collection::PortCollection,
     register::Registers,
     ring::{command, event},
     spinning_top::Spinlock,
@@ -20,10 +19,10 @@ static WAKER: AtomicWaker = AtomicWaker::new();
 
 pub async fn task() {
     let registers = Spinlock::new(iter_devices().next().unwrap());
-    let (_xhc, mut event_ring, mut command_ring, _dcbaa, ports) = init(&registers);
+    let (_xhc, mut event_ring, mut command_ring, _dcbaa, mut ports) = init(&registers);
     command_ring.send_noop();
 
-    for mut port in ports {
+    for port in &mut ports {
         port.reset_if_connected();
     }
 
@@ -39,13 +38,13 @@ fn init(
     event::Ring,
     command::Ring,
     DeviceContextBaseAddressArray,
-    Vec<Port>,
+    PortCollection,
 ) {
     let mut xhc = Xhc::new(&registers);
     let mut event_ring = event::Ring::new(&registers);
     let mut command_ring = command::Ring::new(&registers);
     let dcbaa = DeviceContextBaseAddressArray::new(&registers);
-    let ports = Port::new_all_ports(&registers);
+    let ports = PortCollection::new(&registers);
 
     xhc.init();
 
