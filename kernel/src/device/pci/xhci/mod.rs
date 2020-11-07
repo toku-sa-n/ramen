@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 mod dcbaa;
+mod port;
 mod register;
 mod ring;
 
@@ -8,6 +9,7 @@ use {
     super::config::bar,
     dcbaa::DeviceContextBaseAddressArray,
     futures_util::{task::AtomicWaker, StreamExt},
+    port::Port,
     register::Registers,
     ring::{command, event},
     spinning_top::Spinlock,
@@ -21,6 +23,7 @@ pub async fn task() {
     let mut event_ring = event::Ring::new(&registers);
     let mut command_ring = command::Ring::new(&registers);
     let dcbaa = DeviceContextBaseAddressArray::new(&registers);
+    let ports = Port::new_all_ports(&registers);
 
     xhc.init();
 
@@ -32,7 +35,10 @@ pub async fn task() {
 
     command_ring.send_noop();
 
-    xhc.check_connections_of_each_port();
+    for mut port in ports {
+        port.reset_if_connected();
+    }
+
     while let Some(trb) = event_ring.next().await {
         info!("TRB: {:?}", trb);
     }
@@ -114,23 +120,6 @@ impl<'a> Xhc<'a> {
         let operational = &mut self.registers.lock().hc_operational;
         operational.usb_cmd.update(|oper| oper.set_run_stop(true));
         while operational.usb_sts.read().hc_halted() {}
-    }
-
-    fn check_connections_of_each_port(&self) {
-        for i in 0..self.num_of_ports() {
-            self.print_port_status(i);
-        }
-    }
-
-    fn num_of_ports(&self) -> usize {
-        let params1 = &self.registers.lock().hc_capability.hcs_params_1;
-        params1.read().max_ports().into()
-    }
-
-    fn print_port_status(&self, index: usize) {
-        let port_rg = &self.registers.lock().hc_operational.port_registers;
-        let ccs = port_rg.read(index).port_sc.current_connect_status();
-        info!("Port {}: {}", index, ccs);
     }
 }
 
