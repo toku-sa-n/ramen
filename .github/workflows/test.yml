@@ -19,6 +19,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - uses: wagoid/commitlint-github-action@v2
+
     - name: Install rust nightly
       uses: actions-rs/toolchain@v1.0.6
       with:
