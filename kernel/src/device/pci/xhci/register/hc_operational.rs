@@ -107,7 +107,8 @@ bitfield! {
      impl Debug;
      pub current_connect_status, _: 0;
      port_enabled_disabled, _: 1;
-     port_reset, _: 4;
+     pub port_reset, set_port_reset: 4;
      port_link_state, _: 8, 5;
      port_power, _: 9;
+     pub port_reset_changed, _: 21;
 }
