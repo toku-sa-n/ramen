@@ -21,9 +21,7 @@ pub async fn task() {
     let (_xhc, mut event_ring, mut command_ring, _dcbaa, mut ports) = init(&registers);
     command_ring.send_noop();
 
-    for port in &mut ports {
-        port.reset_if_connected();
-    }
+    ports.enable_all_connected_ports();
 
     while let Some(trb) = event_ring.next().await {
         info!("TRB: {:?}", trb);

@@ -20,6 +20,12 @@ impl<'a> Collection<'a> {
         Self { collection }
     }
 
+    pub fn enable_all_connected_ports(&'a mut self) {
+        for port in self {
+            port.reset_if_connected();
+        }
+    }
+
     fn num_of_ports(registers: &Spinlock<Registers>) -> usize {
         let params1 = &registers.lock().hc_capability.hcs_params_1;
         params1.read().max_ports().into()
