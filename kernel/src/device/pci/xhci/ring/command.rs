@@ -37,10 +37,8 @@ impl<'a> Ring<'a> {
     }
 
     fn notify_command_is_sent(&mut self) {
-        self.registers
-            .lock()
-            .doorbell_array
-            .update(0, |reg| *reg = 0)
+        let doorbell_array = &mut self.registers.lock().doorbell_array;
+        doorbell_array.update(0, |reg| *reg = 0)
     }
 
     pub fn init(&mut self) {
