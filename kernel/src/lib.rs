@@ -32,14 +32,19 @@ mod multitask;
 mod panic;
 
 use {
+    alloc::rc::Rc,
     common::kernelboot,
+    core::cell::RefCell,
     device::{keyboard, mouse, pci::xhci},
     graphics::{
         screen::{self, desktop::Desktop, layer},
         Vram,
     },
     mem::allocator::{heap, phys::FrameManager},
-    multitask::{executor::Executor, task::Task},
+    multitask::{
+        executor::Executor,
+        task::{self, Task},
+    },
     x86_64::instructions::interrupts,
 };
 
@@ -84,10 +89,18 @@ fn initialization(boot_info: &mut kernelboot::Info) {
 
 #[cfg(not(feature = "qemu_test"))]
 fn run_tasks() -> ! {
-    let mut executor = Executor::new();
-    executor.spawn(Task::new(keyboard::task()));
-    executor.spawn(Task::new(mouse::task()));
-    executor.spawn(Task::new(xhci::task()));
+    let task_collection = Rc::new(RefCell::new(task::Collection::new()));
+    task_collection
+        .borrow_mut()
+        .add_task_as_woken(Task::new(keyboard::task()));
+    task_collection
+        .borrow_mut()
+        .add_task_as_woken(Task::new(mouse::task()));
+    task_collection
+        .borrow_mut()
+        .add_task_as_woken(Task::new(xhci::task()));
+
+    let mut executor = Executor::new(task_collection.clone());
     executor.run();
 }
 
