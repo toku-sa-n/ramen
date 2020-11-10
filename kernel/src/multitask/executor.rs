@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::task::{self, Task},
+    super::task,
     alloc::{collections::BTreeMap, rc::Rc},
     core::{
         cell::RefCell,
@@ -16,15 +16,11 @@ pub struct Executor {
 }
 
 impl Executor {
-    pub fn new() -> Self {
+    pub fn new(task_collection: Rc<RefCell<task::Collection>>) -> Self {
         Self {
-            task_collection: Rc::new(RefCell::new(task::Collection::new())),
+            task_collection,
             waker_collection: BTreeMap::new(),
         }
-    }
-
-    pub fn spawn(&mut self, task: Task) {
-        self.task_collection.borrow_mut().add_task_as_woken(task);
     }
 
     pub fn run(&mut self) -> ! {
