@@ -63,6 +63,8 @@ impl Collection {
     }
 }
 
+// task::Waker conflicts with alloc::task::Waker.
+#[allow(clippy::module_name_repititions)]
 pub struct TaskWaker {
     id: Id,
     woken_task_ids: Arc<ArrayQueue<Id>>,
