@@ -100,7 +100,7 @@ fn run_tasks() -> ! {
         .borrow_mut()
         .add_task_as_woken(Task::new(xhci::task()));
 
-    let mut executor = Executor::new(task_collection.clone());
+    let mut executor = Executor::new(task_collection);
     executor.run();
 }
 
