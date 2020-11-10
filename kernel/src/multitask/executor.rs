@@ -2,36 +2,29 @@
 
 use {
     super::task::{self, Task},
-    alloc::{collections::BTreeMap, sync::Arc, task::Wake},
-    core::task::{Context, Poll, Waker},
-    crossbeam_queue::ArrayQueue,
+    alloc::{collections::BTreeMap, rc::Rc},
+    core::{
+        cell::RefCell,
+        task::{Context, Poll, Waker},
+    },
     x86_64::instructions::interrupts::{self, enable_interrupts_and_hlt},
 };
 
 pub struct Executor {
-    tasks: BTreeMap<task::Id, Task>,
-    woken_id_queue: Arc<ArrayQueue<task::Id>>,
-    waker_cache: BTreeMap<task::Id, Waker>,
+    task_collection: Rc<RefCell<task::Collection>>,
+    waker_collection: BTreeMap<task::Id, Waker>,
 }
 
 impl Executor {
     pub fn new() -> Self {
         Self {
-            tasks: BTreeMap::new(),
-            woken_id_queue: Arc::new(ArrayQueue::new(100)),
-            waker_cache: BTreeMap::new(),
+            task_collection: Rc::new(RefCell::new(task::Collection::new())),
+            waker_collection: BTreeMap::new(),
         }
     }
 
     pub fn spawn(&mut self, task: Task) {
-        let id = task.id();
-        if self.tasks.insert(id, task).is_some() {
-            panic!("Task ID confliction!");
-        }
-
-        self.woken_id_queue
-            .push(id)
-            .expect("woken_id_queue is full");
+        self.task_collection.borrow_mut().add_task_as_woken(task);
     }
 
     pub fn run(&mut self) -> ! {
@@ -43,67 +36,45 @@ impl Executor {
 
     fn sleep_if_idle(&self) {
         interrupts::disable();
-        if self.woken_id_queue.is_empty() {
-            enable_interrupts_and_hlt()
-        } else {
+        if self.task_collection.borrow().woken_task_exists() {
             interrupts::enable()
+        } else {
+            enable_interrupts_and_hlt()
         }
     }
 
     fn run_woken_tasks(&mut self) {
-        while let Some(id) = self.woken_id_queue.pop() {
+        while let Some(id) = self.pop_woken_task_id() {
             self.run_task(id);
         }
     }
 
+    fn pop_woken_task_id(&mut self) -> Option<task::Id> {
+        self.task_collection.borrow_mut().pop_woken_task_id()
+    }
+
     fn run_task(&mut self, id: task::Id) {
         let Self {
-            tasks,
-            woken_id_queue,
-            waker_cache,
+            task_collection,
+            waker_collection,
         } = self;
 
-        let task = match tasks.get_mut(&id) {
+        let mut task = match task_collection.borrow_mut().remove_task(id) {
             Some(task) => task,
             None => return,
         };
 
-        let waker = waker_cache
+        let waker = waker_collection
             .entry(id)
-            .or_insert_with(|| TaskWaker::create_waker(id, woken_id_queue.clone()));
+            .or_insert_with(|| task_collection.borrow_mut().create_waker(id));
 
         let mut context = Context::from_waker(waker);
         match task.poll(&mut context) {
             Poll::Ready(_) => {
-                tasks.remove(&id);
-                waker_cache.remove(&id);
+                self.task_collection.borrow_mut().remove_task(id);
+                self.waker_collection.remove(&id);
             }
-            Poll::Pending => {}
+            Poll::Pending => self.task_collection.borrow_mut().add_task_as_sleep(task),
         }
-    }
-}
-
-struct TaskWaker {
-    id: task::Id,
-    task_queue: Arc<ArrayQueue<task::Id>>,
-}
-
-impl TaskWaker {
-    fn create_waker(id: task::Id, task_queue: Arc<ArrayQueue<task::Id>>) -> Waker {
-        Waker::from(Arc::new(Self { id, task_queue }))
-    }
-
-    fn wake_task(&self) {
-        self.task_queue.push(self.id).expect("task_queue is full")
-    }
-}
-
-impl Wake for TaskWaker {
-    fn wake(self: Arc<Self>) {
-        self.wake_task();
-    }
-
-    fn wake_by_ref(self: &Arc<Self>) {
-        self.wake_task()
     }
 }
