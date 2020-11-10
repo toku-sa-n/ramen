@@ -42,7 +42,7 @@ fn init(
     let mut event_ring = event::Ring::new(registers.clone());
     let mut command_ring = command::Ring::new(registers.clone());
     let dcbaa = DeviceContextBaseAddressArray::new(registers.clone());
-    let ports = port::Collection::new(registers);
+    let ports = port::Collection::new(&registers);
 
     xhc.init();
 

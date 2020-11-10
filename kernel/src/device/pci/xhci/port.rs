@@ -10,9 +10,9 @@ pub struct Collection {
     collection: Vec<Port>,
 }
 impl<'a> Collection {
-    pub fn new(registers: Rc<RefCell<Registers>>) -> Self {
+    pub fn new(registers: &Rc<RefCell<Registers>>) -> Self {
         let mut collection = Vec::new();
-        for i in 0..Self::num_of_ports(registers.clone()) {
+        for i in 0..Self::num_of_ports(&registers) {
             collection.push(Port::new(registers.clone(), i));
         }
 
@@ -25,7 +25,7 @@ impl<'a> Collection {
         }
     }
 
-    fn num_of_ports(registers: Rc<RefCell<Registers>>) -> usize {
+    fn num_of_ports(registers: &Rc<RefCell<Registers>>) -> usize {
         let params1 = &registers.borrow().hc_capability.hcs_params_1;
         params1.read().max_ports().into()
     }
