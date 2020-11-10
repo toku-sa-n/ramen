@@ -122,20 +122,20 @@ pub extern "x86-interrupt" fn handler_14(_stack_frame: &mut idt::InterruptStackF
 
 pub extern "x86-interrupt" fn handler_20(_stack_frame: &mut idt::InterruptStackFrame) {
     unsafe {
-        Port::new(PIC0_OCW2).write(0x60 as u8);
+        Port::new(PIC0_OCW2).write(0x60_u8);
     }
 }
 
 pub extern "x86-interrupt" fn handler_21(_stack_frame: &mut idt::InterruptStackFrame) {
-    unsafe { Port::new(PIC0_OCW2).write(0x61 as u8) };
+    unsafe { Port::new(PIC0_OCW2).write(0x61_u8) };
     let mut port = PORT_KEY_DATA;
     keyboard::enqueue_scancode(unsafe { port.read() });
 }
 
 pub extern "x86-interrupt" fn handler_2c(_stack_frame: &mut idt::InterruptStackFrame) {
     unsafe {
-        Port::new(PIC1_OCW2).write(0x64 as u8);
-        Port::new(PIC0_OCW2).write(0x62 as u8);
+        Port::new(PIC1_OCW2).write(0x64_u8);
+        Port::new(PIC0_OCW2).write(0x62_u8);
     }
     let mut port = PORT_KEY_DATA;
     mouse::enqueue_packet(unsafe { port.read() });
