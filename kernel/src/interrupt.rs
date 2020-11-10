@@ -30,24 +30,24 @@ pub fn init_pic() {
 
 fn enable_interrupts_from_only_mouse_and_keyboard() {
     unsafe {
-        Port::new(PIC0_IMR).write(0xFF as u8);
-        Port::new(PIC1_IMR).write(0xFF as u8);
-        Port::new(PIC0_IMR).write(0xFB as u8);
-        Port::new(PIC1_IMR).write(0xFF as u8);
+        Port::new(PIC0_IMR).write(0xFF_u8);
+        Port::new(PIC1_IMR).write(0xFF_u8);
+        Port::new(PIC0_IMR).write(0xFB_u8);
+        Port::new(PIC1_IMR).write(0xFF_u8);
     }
 }
 
 fn enable_edge_trigger_mode() {
     unsafe {
-        Port::new(PIC0_ICW1).write(0x11 as u8);
-        Port::new(PIC1_ICW1).write(0x11 as u8);
+        Port::new(PIC0_ICW1).write(0x11_u8);
+        Port::new(PIC1_ICW1).write(0x11_u8);
     }
 }
 
 fn set_irq_receiver() {
     unsafe {
-        Port::new(PIC0_ICW2).write(0x20 as u8);
-        Port::new(PIC1_ICW2).write(0x28 as u8);
+        Port::new(PIC0_ICW2).write(0x20_u8);
+        Port::new(PIC1_ICW2).write(0x28_u8);
     }
 }
 
@@ -60,15 +60,15 @@ fn set_connection() {
 
 fn enable_nonbuffer_mode() {
     unsafe {
-        Port::new(PIC0_ICW4).write(0x01 as u8);
-        Port::new(PIC1_ICW4).write(0x01 as u8);
+        Port::new(PIC0_ICW4).write(0x01_u8);
+        Port::new(PIC1_ICW4).write(0x01_u8);
     }
 }
 
 pub fn set_init_pic_bits() {
     unsafe {
-        Port::new(PIC0_IMR).write(0xF9 as u8);
-        Port::new(PIC1_IMR).write(0xEF as u8);
+        Port::new(PIC0_IMR).write(0xF9_u8);
+        Port::new(PIC1_IMR).write(0xEF_u8);
     }
 }
 
@@ -122,20 +122,20 @@ pub extern "x86-interrupt" fn handler_14(_stack_frame: &mut idt::InterruptStackF
 
 pub extern "x86-interrupt" fn handler_20(_stack_frame: &mut idt::InterruptStackFrame) {
     unsafe {
-        Port::new(PIC0_OCW2).write(0x60 as u8);
+        Port::new(PIC0_OCW2).write(0x60_u8);
     }
 }
 
 pub extern "x86-interrupt" fn handler_21(_stack_frame: &mut idt::InterruptStackFrame) {
-    unsafe { Port::new(PIC0_OCW2).write(0x61 as u8) };
+    unsafe { Port::new(PIC0_OCW2).write(0x61_u8) };
     let mut port = PORT_KEY_DATA;
     keyboard::enqueue_scancode(unsafe { port.read() });
 }
 
 pub extern "x86-interrupt" fn handler_2c(_stack_frame: &mut idt::InterruptStackFrame) {
     unsafe {
-        Port::new(PIC1_OCW2).write(0x64 as u8);
-        Port::new(PIC0_OCW2).write(0x62 as u8);
+        Port::new(PIC1_OCW2).write(0x64_u8);
+        Port::new(PIC0_OCW2).write(0x62_u8);
     }
     let mut port = PORT_KEY_DATA;
     mouse::enqueue_packet(unsafe { port.read() });
