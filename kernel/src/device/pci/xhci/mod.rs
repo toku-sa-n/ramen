@@ -22,7 +22,7 @@ pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
     let registers = Rc::new(RefCell::new(iter_devices().next().unwrap()));
     let (_xhc, event_ring, mut command_ring, _dcbaa, port_task_spawner) =
         init(&registers, task_collection);
-    command_ring.send_noop();
+    command_ring.send_noop().unwrap();
 
     port_task_spawner.spawn_tasks();
 
