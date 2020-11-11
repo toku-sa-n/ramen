@@ -12,11 +12,11 @@ async fn task(mut port: Port) {
     port.reset_if_connected();
 }
 
-pub struct Collection {
+pub struct TaskSpawner {
     registers: Rc<RefCell<Registers>>,
     task_collection: Rc<RefCell<task::Collection>>,
 }
-impl<'a> Collection {
+impl<'a> TaskSpawner {
     pub fn new(
         registers: Rc<RefCell<Registers>>,
         task_collection: Rc<RefCell<task::Collection>>,
@@ -27,7 +27,7 @@ impl<'a> Collection {
         }
     }
 
-    pub fn spawn_port_tasks(&self) {
+    pub fn spawn_tasks(&self) {
         for i in 0..self.num_of_ports() {
             let port = Port::new(self.registers.clone(), i);
             if port.connected() {

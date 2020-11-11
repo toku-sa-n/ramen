@@ -20,10 +20,11 @@ static WAKER: AtomicWaker = AtomicWaker::new();
 
 pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
     let registers = Rc::new(RefCell::new(iter_devices().next().unwrap()));
-    let (_xhc, event_ring, mut command_ring, _dcbaa, ports) = init(&registers, task_collection);
+    let (_xhc, event_ring, mut command_ring, _dcbaa, port_task_spawner) =
+        init(&registers, task_collection);
     command_ring.send_noop();
 
-    ports.spawn_port_tasks();
+    port_task_spawner.spawn_tasks();
 
     event::task(event_ring).await;
 }
@@ -36,13 +37,13 @@ fn init(
     event::Ring,
     command::Ring,
     DeviceContextBaseAddressArray,
-    port::Collection,
+    port::TaskSpawner,
 ) {
     let mut xhc = Xhc::new(registers.clone());
     let mut event_ring = event::Ring::new(registers.clone());
     let mut command_ring = command::Ring::new(registers.clone());
     let dcbaa = DeviceContextBaseAddressArray::new(registers.clone());
-    let ports = port::Collection::new(registers.clone(), task_collection);
+    let ports = port::TaskSpawner::new(registers.clone(), task_collection);
 
     xhc.init();
 
