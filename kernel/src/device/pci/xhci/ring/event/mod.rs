@@ -10,12 +10,18 @@ use {
         pin::Pin,
         task::{Context, Poll},
     },
-    futures_util::stream::Stream,
+    futures_util::{stream::Stream, StreamExt},
     segment_table::SegmentTable,
     x86_64::PhysAddr,
 };
 
 mod segment_table;
+
+pub async fn task(mut ring: Ring) {
+    while let Some(trb) = ring.next().await {
+        info!("TRB: {:?}", trb);
+    }
+}
 
 pub struct Ring {
     arrays: Vec<raw::Ring>,

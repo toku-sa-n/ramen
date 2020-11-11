@@ -10,7 +10,7 @@ use {
     alloc::rc::Rc,
     core::cell::RefCell,
     dcbaa::DeviceContextBaseAddressArray,
-    futures_util::{task::AtomicWaker, StreamExt},
+    futures_util::task::AtomicWaker,
     register::Registers,
     ring::{command, event},
 };
@@ -19,14 +19,12 @@ static WAKER: AtomicWaker = AtomicWaker::new();
 
 pub async fn task() {
     let registers = Rc::new(RefCell::new(iter_devices().next().unwrap()));
-    let (_xhc, mut event_ring, mut command_ring, _dcbaa, mut ports) = init(&registers);
+    let (_xhc, event_ring, mut command_ring, _dcbaa, mut ports) = init(&registers);
     command_ring.send_noop();
 
     ports.enable_all_connected_ports();
 
-    while let Some(trb) = event_ring.next().await {
-        info!("TRB: {:?}", trb);
-    }
+    event::task(event_ring).await;
 }
 
 fn init(
