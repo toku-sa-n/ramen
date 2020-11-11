@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::Registers, crate::mem::allocator::page_box::PageBox, spinning_top::Spinlock,
+    super::Registers, crate::mem::allocator::page_box::PageBox, alloc::rc::Rc, core::cell::RefCell,
     x86_64::PhysAddr,
 };
 
-pub struct DeviceContextBaseAddressArray<'a> {
+pub struct DeviceContextBaseAddressArray {
     arr: PageBox<[usize]>,
-    registers: &'a Spinlock<Registers>,
+    registers: Rc<RefCell<Registers>>,
 }
-impl<'a> DeviceContextBaseAddressArray<'a> {
-    pub fn new(registers: &'a Spinlock<Registers>) -> Self {
-        let arr = PageBox::new_slice(Self::num_of_slots(registers));
+impl<'a> DeviceContextBaseAddressArray {
+    pub fn new(registers: Rc<RefCell<Registers>>) -> Self {
+        let arr = PageBox::new_slice(Self::num_of_slots(&registers));
         Self { arr, registers }
     }
 
@@ -19,13 +19,13 @@ impl<'a> DeviceContextBaseAddressArray<'a> {
         self.register_address_to_xhci_register();
     }
 
-    fn num_of_slots(registers: &'a Spinlock<Registers>) -> usize {
-        let params1 = &registers.lock().hc_capability.hcs_params_1;
+    fn num_of_slots(registers: &Rc<RefCell<Registers>>) -> usize {
+        let params1 = &registers.borrow().hc_capability.hcs_params_1;
         (params1.read().max_slots() + 1).into()
     }
 
     fn register_address_to_xhci_register(&self) {
-        let dcbaap = &mut self.registers.lock().hc_operational.dcbaap;
+        let dcbaap = &mut self.registers.borrow_mut().hc_operational.dcbaap;
         dcbaap.update(|dcbaap| dcbaap.set(self.phys_addr()));
     }
 

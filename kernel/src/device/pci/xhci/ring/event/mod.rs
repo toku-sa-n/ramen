@@ -3,34 +3,34 @@
 use {
     super::{super::register::Registers, raw, trb::Trb, CycleBit},
     crate::device::pci::xhci,
-    alloc::vec::Vec,
+    alloc::{rc::Rc, vec::Vec},
     core::{
+        cell::RefCell,
         convert::{TryFrom, TryInto},
         pin::Pin,
         task::{Context, Poll},
     },
     futures_util::stream::Stream,
     segment_table::SegmentTable,
-    spinning_top::Spinlock,
     x86_64::PhysAddr,
 };
 
 mod segment_table;
 
-pub struct Ring<'a> {
+pub struct Ring {
     arrays: Vec<raw::Ring>,
     segment_table: SegmentTable,
     current_cycle_bit: CycleBit,
     dequeue_ptr_trb: usize,
     dequeue_ptr_segment: usize,
-    registers: &'a Spinlock<Registers>,
+    registers: Rc<RefCell<Registers>>,
 }
-impl<'a> Ring<'a> {
+impl<'a> Ring {
     const MAX_NUM_OF_TRB_IN_QUEUE: u16 = 4096;
 
-    pub fn new(registers: &'a Spinlock<Registers>) -> Self {
+    pub fn new(registers: Rc<RefCell<Registers>>) -> Self {
         let max_num_of_erst = registers
-            .lock()
+            .borrow()
             .hc_capability
             .hcs_params_2
             .read()
@@ -71,7 +71,7 @@ impl<'a> Ring<'a> {
     }
 
     fn register_segment_table_to_xhci_registers(&mut self) {
-        let runtime_registers = &mut self.registers.lock().runtime_base_registers;
+        let runtime_registers = &mut self.registers.borrow_mut().runtime_base_registers;
         runtime_registers
             .erst_sz
             .update(|sz| sz.set(self.segment_table.len().try_into().unwrap()));
@@ -121,7 +121,7 @@ impl<'a> Ring<'a> {
     }
 
     fn set_dequeue_ptr(&mut self, addr: PhysAddr) {
-        let erd_p = &mut self.registers.lock().runtime_base_registers.erd_p;
+        let erd_p = &mut self.registers.borrow_mut().runtime_base_registers.erd_p;
         erd_p.update(|erd_p| erd_p.set(addr))
     }
 
@@ -134,7 +134,7 @@ impl<'a> Ring<'a> {
         self.arrays.len()
     }
 }
-impl<'a> Stream for Ring<'a> {
+impl<'a> Stream for Ring {
     type Item = Trb;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {

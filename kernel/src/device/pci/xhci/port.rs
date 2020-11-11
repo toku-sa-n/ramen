@@ -2,19 +2,18 @@
 
 use {
     super::register::{hc_operational::PortRegisters, Registers},
-    alloc::vec::Vec,
-    core::slice,
-    spinning_top::Spinlock,
+    alloc::{rc::Rc, vec::Vec},
+    core::{cell::RefCell, slice},
 };
 
-pub struct Collection<'a> {
-    collection: Vec<Port<'a>>,
+pub struct Collection {
+    collection: Vec<Port>,
 }
-impl<'a> Collection<'a> {
-    pub fn new(registers: &'a Spinlock<Registers>) -> Self {
+impl<'a> Collection {
+    pub fn new(registers: &Rc<RefCell<Registers>>) -> Self {
         let mut collection = Vec::new();
-        for i in 0..Self::num_of_ports(registers) {
-            collection.push(Port::new(registers, i));
+        for i in 0..Self::num_of_ports(&registers) {
+            collection.push(Port::new(registers.clone(), i));
         }
 
         Self { collection }
@@ -26,32 +25,32 @@ impl<'a> Collection<'a> {
         }
     }
 
-    fn num_of_ports(registers: &Spinlock<Registers>) -> usize {
-        let params1 = &registers.lock().hc_capability.hcs_params_1;
+    fn num_of_ports(registers: &Rc<RefCell<Registers>>) -> usize {
+        let params1 = &registers.borrow().hc_capability.hcs_params_1;
         params1.read().max_ports().into()
     }
 }
-impl<'a> IntoIterator for &'a mut Collection<'a> {
-    type Item = &'a mut Port<'a>;
-    type IntoIter = slice::IterMut<'a, Port<'a>>;
+impl<'a> IntoIterator for &'a mut Collection {
+    type Item = &'a mut Port;
+    type IntoIter = slice::IterMut<'a, Port>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.collection.iter_mut()
     }
 }
 
-pub struct Port<'a> {
-    registers: &'a Spinlock<Registers>,
+pub struct Port {
+    registers: Rc<RefCell<Registers>>,
     index: usize,
 }
-impl<'a> Port<'a> {
+impl<'a> Port {
     pub fn reset_if_connected(&mut self) {
         if self.connected() {
             self.reset();
         }
     }
 
-    fn new(registers: &'a Spinlock<Registers>, index: usize) -> Self {
+    fn new(registers: Rc<RefCell<Registers>>, index: usize) -> Self {
         Self { registers, index }
     }
 
@@ -65,7 +64,7 @@ impl<'a> Port<'a> {
     }
 
     fn start_resetting(&mut self) {
-        let port_rg = &mut self.registers.lock().hc_operational.port_registers;
+        let port_rg = &mut self.registers.borrow_mut().hc_operational.port_registers;
         port_rg.update(self.index, |rg| rg.port_sc.set_port_reset(true))
     }
 
@@ -77,7 +76,7 @@ impl<'a> Port<'a> {
     }
 
     fn read_port_rg(&self) -> PortRegisters {
-        let port_rg = &self.registers.lock().hc_operational.port_registers;
+        let port_rg = &self.registers.borrow().hc_operational.port_registers;
         port_rg.read(self.index)
     }
 }

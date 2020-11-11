@@ -67,7 +67,6 @@ struct Device {
     speed: Vec2<i32>,
     buttons: MouseButtons,
 }
-
 impl Device {
     const fn new() -> Self {
         Self {
@@ -203,7 +202,6 @@ impl Buf {
 }
 
 struct PacketStream;
-
 impl PacketStream {
     fn init_queue() {
         MOUSE_PACKET_QUEUE
@@ -211,7 +209,6 @@ impl PacketStream {
             .expect("MOUSE_PACKET_QUEUE is already initialized.")
     }
 }
-
 impl Stream for PacketStream {
     type Item = u8;
 
@@ -252,7 +249,6 @@ struct MouseButtons {
     center: bool,
     right: bool,
 }
-
 impl MouseButtons {
     const fn new() -> Self {
         Self {

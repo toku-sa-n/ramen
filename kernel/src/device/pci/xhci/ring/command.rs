@@ -3,21 +3,22 @@
 use {
     super::raw,
     super::{super::Registers, trb::Trb, CycleBit},
-    spinning_top::Spinlock,
+    alloc::rc::Rc,
+    core::cell::RefCell,
     x86_64::PhysAddr,
 };
 
 // 4KB / 16 = 256
 const SIZE_OF_RING: usize = 256;
 
-pub struct Ring<'a> {
+pub struct Ring {
     raw: raw::Ring,
     enqueue_ptr: usize,
     cycle_bit: CycleBit,
-    registers: &'a Spinlock<Registers>,
+    registers: Rc<RefCell<Registers>>,
 }
-impl<'a> Ring<'a> {
-    pub fn new(registers: &'a Spinlock<Registers>) -> Self {
+impl<'a> Ring {
+    pub fn new(registers: Rc<RefCell<Registers>>) -> Self {
         Self {
             raw: raw::Ring::new(SIZE_OF_RING),
             enqueue_ptr: 0,
@@ -37,7 +38,7 @@ impl<'a> Ring<'a> {
     }
 
     fn notify_command_is_sent(&mut self) {
-        let doorbell_array = &mut self.registers.lock().doorbell_array;
+        let doorbell_array = &mut self.registers.borrow_mut().doorbell_array;
         doorbell_array.update(0, |reg| *reg = 0)
     }
 
@@ -47,12 +48,12 @@ impl<'a> Ring<'a> {
     }
 
     fn register_address_to_xhci_register(&mut self) {
-        let crcr = &mut self.registers.lock().hc_operational.crcr;
+        let crcr = &mut self.registers.borrow_mut().hc_operational.crcr;
         crcr.update(|crcr| crcr.set_ptr(self.phys_addr()));
     }
 
     fn set_initial_command_ring_cycle_state(&mut self) {
-        let crcr = &mut self.registers.lock().hc_operational.crcr;
+        let crcr = &mut self.registers.borrow_mut().hc_operational.crcr;
         crcr.update(|crcr| crcr.set_ring_cycle_state(true));
     }
 
