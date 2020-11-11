@@ -2,40 +2,45 @@
 
 use {
     super::register::{hc_operational::PortRegisters, Registers},
-    alloc::{rc::Rc, vec::Vec},
-    core::{cell::RefCell, slice},
+    crate::multitask::task::{self, Task},
+    alloc::rc::Rc,
+    core::cell::RefCell,
 };
 
+async fn task(mut port: Port) {
+    info!("This is a task of port {}", port.index);
+    port.reset_if_connected();
+}
+
 pub struct Collection {
-    collection: Vec<Port>,
+    registers: Rc<RefCell<Registers>>,
+    task_collection: Rc<RefCell<task::Collection>>,
 }
 impl<'a> Collection {
-    pub fn new(registers: &Rc<RefCell<Registers>>) -> Self {
-        let mut collection = Vec::new();
-        for i in 0..Self::num_of_ports(&registers) {
-            collection.push(Port::new(registers.clone(), i));
-        }
-
-        Self { collection }
-    }
-
-    pub fn enable_all_connected_ports(&'a mut self) {
-        for port in self {
-            port.reset_if_connected();
+    pub fn new(
+        registers: Rc<RefCell<Registers>>,
+        task_collection: Rc<RefCell<task::Collection>>,
+    ) -> Self {
+        Self {
+            registers,
+            task_collection,
         }
     }
 
-    fn num_of_ports(registers: &Rc<RefCell<Registers>>) -> usize {
-        let params1 = &registers.borrow().hc_capability.hcs_params_1;
+    pub fn spawn_port_tasks(&self) {
+        for i in 0..self.num_of_ports() {
+            let port = Port::new(self.registers.clone(), i);
+            if port.connected() {
+                self.task_collection
+                    .borrow_mut()
+                    .add_task_as_woken(Task::new(task(port)));
+            }
+        }
+    }
+
+    fn num_of_ports(&self) -> usize {
+        let params1 = &self.registers.borrow().hc_capability.hcs_params_1;
         params1.read().max_ports().into()
-    }
-}
-impl<'a> IntoIterator for &'a mut Collection {
-    type Item = &'a mut Port;
-    type IntoIter = slice::IterMut<'a, Port>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.collection.iter_mut()
     }
 }
 

@@ -7,6 +7,7 @@ mod ring;
 
 use {
     super::config::bar,
+    crate::multitask::task,
     alloc::rc::Rc,
     core::cell::RefCell,
     dcbaa::DeviceContextBaseAddressArray,
@@ -17,18 +18,19 @@ use {
 
 static WAKER: AtomicWaker = AtomicWaker::new();
 
-pub async fn task() {
+pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
     let registers = Rc::new(RefCell::new(iter_devices().next().unwrap()));
-    let (_xhc, event_ring, mut command_ring, _dcbaa, mut ports) = init(&registers);
+    let (_xhc, event_ring, mut command_ring, _dcbaa, ports) = init(&registers, task_collection);
     command_ring.send_noop();
 
-    ports.enable_all_connected_ports();
+    ports.spawn_port_tasks();
 
     event::task(event_ring).await;
 }
 
 fn init(
     registers: &Rc<RefCell<Registers>>,
+    task_collection: Rc<RefCell<task::Collection>>,
 ) -> (
     Xhc,
     event::Ring,
@@ -40,7 +42,7 @@ fn init(
     let mut event_ring = event::Ring::new(registers.clone());
     let mut command_ring = command::Ring::new(registers.clone());
     let dcbaa = DeviceContextBaseAddressArray::new(registers.clone());
-    let ports = port::Collection::new(&registers);
+    let ports = port::Collection::new(registers.clone(), task_collection);
 
     xhc.init();
 
