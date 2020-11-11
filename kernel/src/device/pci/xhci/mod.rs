@@ -19,7 +19,7 @@ static WAKER: AtomicWaker = AtomicWaker::new();
 
 pub async fn task() {
     let registers = Rc::new(RefCell::new(iter_devices().next().unwrap()));
-    let (_xhc, mut event_ring, mut command_ring, _dcbaa, mut ports) = init(registers);
+    let (_xhc, mut event_ring, mut command_ring, _dcbaa, mut ports) = init(&registers);
     command_ring.send_noop();
 
     ports.enable_all_connected_ports();
@@ -30,7 +30,7 @@ pub async fn task() {
 }
 
 fn init(
-    registers: Rc<RefCell<Registers>>,
+    registers: &Rc<RefCell<Registers>>,
 ) -> (
     Xhc,
     event::Ring,
