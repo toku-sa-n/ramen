@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+mod command_runner;
 mod dcbaa;
 mod port;
 mod register;
@@ -7,23 +8,29 @@ mod ring;
 
 use {
     super::config::bar,
-    crate::multitask::task,
+    crate::multitask::task::{self, Task},
     alloc::rc::Rc,
+    command_runner::{CommandCompletionReceiver, Runner},
     core::cell::RefCell,
     dcbaa::DeviceContextBaseAddressArray,
+    futures_intrusive::sync::LocalMutex,
     register::Registers,
     ring::{command, event},
 };
 
 pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
     let registers = Rc::new(RefCell::new(iter_devices().next().unwrap()));
-    let (_xhc, event_ring, mut command_ring, _dcbaa, port_task_spawner) =
-        init(&registers, task_collection);
-    command_ring.send_noop();
+    let (_xhc, event_ring, _dcbaa, port_task_spawner, command_completion_receiver) =
+        init(&registers, task_collection.clone());
 
     port_task_spawner.spawn_tasks();
 
-    event::task(event_ring).await;
+    task_collection
+        .borrow_mut()
+        .add_task_as_woken(Task::new(event::task(
+            event_ring,
+            command_completion_receiver,
+        )));
 }
 
 fn init(
@@ -32,25 +39,30 @@ fn init(
 ) -> (
     Xhc,
     event::Ring,
-    command::Ring,
     DeviceContextBaseAddressArray,
     port::TaskSpawner,
+    Rc<RefCell<CommandCompletionReceiver>>,
 ) {
     let mut xhc = Xhc::new(registers.clone());
     let mut event_ring = event::Ring::new(registers.clone());
-    let mut command_ring = command::Ring::new(registers.clone());
+    let command_ring = Rc::new(RefCell::new(command::Ring::new(registers.clone())));
     let dcbaa = DeviceContextBaseAddressArray::new(registers.clone());
-    let ports = port::TaskSpawner::new(registers.clone(), task_collection);
+    let command_completion_receiver = Rc::new(RefCell::new(CommandCompletionReceiver::new()));
+    let command_runner = Rc::new(LocalMutex::new(
+        Runner::new(command_ring.clone(), command_completion_receiver.clone()),
+        false,
+    ));
+    let ports = port::TaskSpawner::new(command_runner, registers.clone(), task_collection);
 
     xhc.init();
 
     event_ring.init();
-    command_ring.init();
+    command_ring.borrow_mut().init();
     dcbaa.init();
 
     xhc.run();
 
-    (xhc, event_ring, command_ring, dcbaa, ports)
+    (xhc, event_ring, dcbaa, ports, command_completion_receiver)
 }
 
 pub struct Xhc {

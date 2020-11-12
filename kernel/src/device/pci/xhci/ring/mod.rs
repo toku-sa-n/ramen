@@ -3,7 +3,7 @@
 pub mod command;
 pub mod event;
 mod raw;
-mod trb;
+pub mod trb;
 
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq)]
 pub struct CycleBit(bool);

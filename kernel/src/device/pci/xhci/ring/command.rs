@@ -31,10 +31,11 @@ impl<'a> Ring {
         self.raw.phys_addr()
     }
 
-    pub fn send_noop(&mut self) {
+    pub fn send_noop(&mut self) -> Result<PhysAddr, Error> {
         let noop = Trb::new_noop(self.cycle_bit);
-        self.enqueue(noop);
+        let phys_addr_to_trb = self.enqueue(noop)?;
         self.notify_command_is_sent();
+        Ok(phys_addr_to_trb)
     }
 
     fn notify_command_is_sent(&mut self) {
@@ -57,22 +58,29 @@ impl<'a> Ring {
         crcr.update(|crcr| crcr.set_ring_cycle_state(true));
     }
 
-    fn enqueue(&mut self, trb: Trb) {
+    fn enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
         if !self.enqueueable() {
-            info!("Failed to enqueue.");
-            return;
+            return Err(Error::QueueIsFull);
         }
 
         self.raw[self.enqueue_ptr] = trb.into();
 
+        let phys_addr_to_trb = self.phys_addr_to_enqueue_ptr();
+
         self.enqueue_ptr += 1;
         if self.enqueue_ptr < self.len() - 1 {
-            return;
+            return Ok(phys_addr_to_trb);
         }
 
         self.raw[self.enqueue_ptr] = Trb::new_link(self.phys_addr(), self.cycle_bit).into();
         self.enqueue_ptr = 0;
         self.cycle_bit.toggle();
+
+        Ok(phys_addr_to_trb)
+    }
+
+    fn phys_addr_to_enqueue_ptr(&self) -> PhysAddr {
+        self.phys_addr() + Trb::SIZE.as_usize() * self.enqueue_ptr
     }
 
     fn enqueueable(&self) -> bool {
@@ -83,4 +91,9 @@ impl<'a> Ring {
     fn len(&self) -> usize {
         self.raw.len()
     }
+}
+
+#[derive(Debug)]
+pub enum Error {
+    QueueIsFull,
 }

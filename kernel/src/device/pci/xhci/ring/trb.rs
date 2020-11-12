@@ -76,6 +76,7 @@ bitfield! {
     #[repr(transparent)]
     pub struct CommandComplete(u128);
     impl Debug;
+    pub u64, addr_to_command_trb, _: 63, 0;
     completion_code, _: 64+31,64+24;
 }
 impl CommandComplete {

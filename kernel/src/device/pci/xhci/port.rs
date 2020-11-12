@@ -1,27 +1,36 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::register::{hc_operational::PortRegisters, Registers},
+    super::{
+        command_runner::Runner,
+        register::{hc_operational::PortRegisters, Registers},
+    },
     crate::multitask::task::{self, Task},
     alloc::rc::Rc,
     core::cell::RefCell,
+    futures_intrusive::sync::LocalMutex,
 };
 
-async fn task(mut port: Port) {
+async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
     info!("This is a task of port {}", port.index);
     port.reset_if_connected();
+    command_runner.lock().await.noop().await.unwrap();
+    info!("NOOP");
 }
 
 pub struct TaskSpawner {
+    command_runner: Rc<LocalMutex<Runner>>,
     registers: Rc<RefCell<Registers>>,
     task_collection: Rc<RefCell<task::Collection>>,
 }
 impl<'a> TaskSpawner {
     pub fn new(
+        command_runner: Rc<LocalMutex<Runner>>,
         registers: Rc<RefCell<Registers>>,
         task_collection: Rc<RefCell<task::Collection>>,
     ) -> Self {
         Self {
+            command_runner,
             registers,
             task_collection,
         }
@@ -33,7 +42,7 @@ impl<'a> TaskSpawner {
             if port.connected() {
                 self.task_collection
                     .borrow_mut()
-                    .add_task_as_woken(Task::new(task(port)));
+                    .add_task_as_woken(Task::new(task(port, self.command_runner.clone())));
             }
         }
     }
