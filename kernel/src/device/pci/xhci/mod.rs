@@ -11,12 +11,9 @@ use {
     alloc::rc::Rc,
     core::cell::RefCell,
     dcbaa::DeviceContextBaseAddressArray,
-    futures_util::task::AtomicWaker,
     register::Registers,
     ring::{command, event},
 };
-
-static WAKER: AtomicWaker = AtomicWaker::new();
 
 pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
     let registers = Rc::new(RefCell::new(iter_devices().next().unwrap()));
