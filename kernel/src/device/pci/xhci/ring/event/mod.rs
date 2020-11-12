@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{super::register::Registers, raw, trb::Trb, CycleBit},
+    super::{
+        super::{command_runner::CommandCompletionReceiver, register::Registers},
+        raw,
+        trb::Trb,
+        CycleBit,
+    },
     alloc::{rc::Rc, vec::Vec},
     core::{
         cell::RefCell,
@@ -16,9 +21,17 @@ use {
 
 mod segment_table;
 
-pub async fn task(mut ring: Ring) {
+pub async fn task(
+    mut ring: Ring,
+    command_completion_receiver: Rc<RefCell<CommandCompletionReceiver>>,
+) {
+    info!("This is the Event ring task.");
     while let Some(trb) = ring.next().await {
         info!("TRB: {:?}", trb);
+        if let Trb::CommandComplete(trb) = trb {
+            info!("Command completion TRB arrived.");
+            command_completion_receiver.borrow_mut().receive(trb);
+        }
     }
 }
 
