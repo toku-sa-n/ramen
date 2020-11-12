@@ -2,7 +2,6 @@
 
 use {
     super::{super::register::Registers, raw, trb::Trb, CycleBit},
-    crate::device::pci::xhci,
     alloc::{rc::Rc, vec::Vec},
     core::{
         cell::RefCell,
@@ -10,7 +9,7 @@ use {
         pin::Pin,
         task::{Context, Poll},
     },
-    futures_util::{stream::Stream, StreamExt},
+    futures_util::{stream::Stream, task::AtomicWaker, StreamExt},
     segment_table::SegmentTable,
     x86_64::PhysAddr,
 };
@@ -144,10 +143,11 @@ impl<'a> Stream for Ring {
     type Item = Trb;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        xhci::WAKER.register(&cx.waker());
+        static WAKER: AtomicWaker = AtomicWaker::new();
+        WAKER.register(&cx.waker());
         match Pin::into_inner(self).dequeue() {
             Some(trb) => {
-                xhci::WAKER.take();
+                WAKER.take();
                 Poll::Ready(Some(trb))
             }
             None => Poll::Pending,
