@@ -97,14 +97,14 @@ impl CommandCompletionReceiver {
         *self
             .trbs
             .get_mut(&addr_to_trb)
-            .ok_or_else(|| Error::NoSuchAddress)? = Some(trb);
+            .ok_or(Error::NoSuchAddress)? = Some(trb);
         Ok(())
     }
 
     fn wake_receiver(&mut self, addr_to_trb: PhysAddr) -> Result<(), Error> {
         self.wakers
             .get_mut(&addr_to_trb)
-            .ok_or_else(|| Error::NoSuchAddress)?
+            .ok_or(Error::NoSuchAddress)?
             .borrow_mut()
             .wake();
         Ok(())
