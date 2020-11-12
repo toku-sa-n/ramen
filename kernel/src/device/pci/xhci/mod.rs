@@ -13,6 +13,7 @@ use {
     command_runner::{CommandCompletionReceiver, Runner},
     core::cell::RefCell,
     dcbaa::DeviceContextBaseAddressArray,
+    futures_intrusive::sync::LocalMutex,
     register::Registers,
     ring::{command, event},
 };
@@ -47,10 +48,10 @@ fn init(
     let command_ring = Rc::new(RefCell::new(command::Ring::new(registers.clone())));
     let dcbaa = DeviceContextBaseAddressArray::new(registers.clone());
     let command_completion_receiver = Rc::new(RefCell::new(CommandCompletionReceiver::new()));
-    let command_runner = Rc::new(RefCell::new(Runner::new(
-        command_ring.clone(),
-        command_completion_receiver.clone(),
-    )));
+    let command_runner = Rc::new(LocalMutex::new(
+        Runner::new(command_ring.clone(), command_completion_receiver.clone()),
+        false,
+    ));
     let ports = port::TaskSpawner::new(command_runner, registers.clone(), task_collection);
 
     xhc.init();
