@@ -136,7 +136,6 @@ struct ReceiveFuture {
     receiver: Rc<RefCell<CommandCompletionReceiver>>,
     waker: Rc<RefCell<AtomicWaker>>,
 }
-
 impl ReceiveFuture {
     fn new(
         addr_to_trb: PhysAddr,
