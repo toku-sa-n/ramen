@@ -12,10 +12,16 @@ use {
 };
 
 async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
-    info!("This is a task of port {}", port.index);
     port.reset_if_connected();
+
     command_runner.lock().await.noop().await.unwrap();
-    info!("NOOP");
+    let slot_id = command_runner
+        .lock()
+        .await
+        .enable_device_slot()
+        .await
+        .unwrap();
+    info!("Slot ID: {}", slot_id);
 }
 
 pub struct TaskSpawner {

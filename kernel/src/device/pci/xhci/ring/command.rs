@@ -38,6 +38,13 @@ impl<'a> Ring {
         Ok(phys_addr_to_trb)
     }
 
+    pub fn send_enable_slot(&mut self) -> Result<PhysAddr, Error> {
+        let enable_slot = Trb::new_enable_slot(self.cycle_bit);
+        let phys_addr_to_trb = self.enqueue(enable_slot)?;
+        self.notify_command_is_sent();
+        Ok(phys_addr_to_trb)
+    }
+
     fn notify_command_is_sent(&mut self) {
         let doorbell_array = &mut self.registers.borrow_mut().doorbell_array;
         doorbell_array.update(0, |reg| *reg = 0)
