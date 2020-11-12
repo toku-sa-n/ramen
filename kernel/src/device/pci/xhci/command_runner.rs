@@ -80,15 +80,15 @@ impl CommandCompletionReceiver {
     }
 
     pub fn receive(&mut self, trb: CommandComplete) {
-        if let Err(e) = self.insert_trb_and_wake_receiver(trb) {
+        if let Err(e) = self.insert_trb_and_wake_runner(trb) {
             panic!("Failed to receive a command completion trb: {:?}", e);
         }
     }
 
-    fn insert_trb_and_wake_receiver(&mut self, trb: CommandComplete) -> Result<(), Error> {
+    fn insert_trb_and_wake_runner(&mut self, trb: CommandComplete) -> Result<(), Error> {
         let addr_to_trb = PhysAddr::new(trb.addr_to_command_trb());
         self.insert_trb(trb)?;
-        self.wake_receiver(addr_to_trb)?;
+        self.wake_runner(addr_to_trb)?;
         Ok(())
     }
 
@@ -101,7 +101,7 @@ impl CommandCompletionReceiver {
         Ok(())
     }
 
-    fn wake_receiver(&mut self, addr_to_trb: PhysAddr) -> Result<(), Error> {
+    fn wake_runner(&mut self, addr_to_trb: PhysAddr) -> Result<(), Error> {
         self.wakers
             .remove(&addr_to_trb)
             .ok_or(Error::NoSuchAddress)?
