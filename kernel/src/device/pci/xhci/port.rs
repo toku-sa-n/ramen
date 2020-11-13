@@ -3,7 +3,7 @@
 use {
     super::{
         command_runner::Runner,
-        device_slot::InputContext,
+        context::InputContext,
         register::{hc_operational::PortRegisters, Registers},
     },
     crate::{

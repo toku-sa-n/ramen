@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 mod command_runner;
+mod context;
 mod dcbaa;
-mod device_slot;
 mod port;
 mod register;
 mod ring;
