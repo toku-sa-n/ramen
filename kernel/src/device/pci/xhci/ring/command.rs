@@ -31,13 +31,6 @@ impl<'a> Ring {
         self.raw.phys_addr()
     }
 
-    pub fn send_noop(&mut self) -> Result<PhysAddr, Error> {
-        let noop = Trb::new_noop(self.cycle_bit);
-        let phys_addr_to_trb = self.enqueue(noop)?;
-        self.notify_command_is_sent();
-        Ok(phys_addr_to_trb)
-    }
-
     pub fn send_enable_slot(&mut self) -> Result<PhysAddr, Error> {
         let enable_slot = Trb::new_enable_slot(self.cycle_bit);
         let phys_addr_to_trb = self.enqueue(enable_slot)?;

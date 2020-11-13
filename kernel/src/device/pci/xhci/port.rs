@@ -14,7 +14,6 @@ use {
 async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
     port.reset_if_connected();
 
-    command_runner.lock().await.noop().await.unwrap();
     let slot_id = command_runner
         .lock()
         .await
