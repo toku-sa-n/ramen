@@ -5,6 +5,7 @@ use {
         command_runner::Runner,
         context,
         register::{hc_operational::PortRegisters, Registers},
+        ring::transfer,
     },
     crate::{
         mem::allocator::page_box::PageBox,
@@ -70,6 +71,7 @@ pub struct Port {
     index: usize,
     input_context: PageBox<context::Input>,
     input_slot_context: PageBox<context::Slot>,
+    transfer_ring: transfer::Ring,
 }
 impl<'a> Port {
     fn reset_if_connected(&mut self) {
@@ -80,10 +82,11 @@ impl<'a> Port {
 
     fn new(registers: Rc<RefCell<Registers>>, index: usize) -> Self {
         Self {
-            registers,
+            registers: registers.clone(),
             index,
             input_context: PageBox::new(context::Input::null()),
             input_slot_context: PageBox::new(context::Slot::null()),
+            transfer_ring: transfer::Ring::new(registers.clone()),
         }
     }
 

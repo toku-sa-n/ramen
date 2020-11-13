@@ -3,6 +3,7 @@
 pub mod command;
 pub mod event;
 mod raw;
+pub mod transfer;
 pub mod trb;
 
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq)]
