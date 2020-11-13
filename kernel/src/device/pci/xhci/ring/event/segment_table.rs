@@ -9,7 +9,7 @@ use {
 pub struct SegmentTable(PageBox<[Entry]>);
 impl SegmentTable {
     pub fn new(len: usize) -> Self {
-        Self(PageBox::new_slice(len))
+        Self(PageBox::new_slice(Entry::null(), len))
     }
 
     pub fn phys_addr(&self) -> PhysAddr {
@@ -34,6 +34,7 @@ impl IndexMut<usize> for SegmentTable {
 }
 
 #[repr(C, packed)]
+#[derive(Copy, Clone)]
 pub struct Entry {
     base_address: u64,
     segment_size: u64,
@@ -43,5 +44,12 @@ impl Entry {
     pub fn set(&mut self, addr: PhysAddr, size: u16) {
         self.base_address = addr.as_u64();
         self.segment_size = u64::from(size);
+    }
+
+    fn null() -> Self {
+        Self {
+            base_address: 0,
+            segment_size: 0,
+        }
     }
 }

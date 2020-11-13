@@ -2,6 +2,7 @@
 
 #![no_std]
 #![feature(alloc_error_handler)]
+#![feature(min_const_generics)]
 #![feature(linked_list_remove)]
 #![feature(const_fn)]
 #![feature(wake_trait)]

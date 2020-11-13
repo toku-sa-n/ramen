@@ -13,7 +13,7 @@ use {
 pub struct Ring(PageBox<[Trb]>);
 impl Ring {
     pub fn new(num_trb: usize) -> Self {
-        Self(PageBox::new_slice(num_trb))
+        Self(PageBox::new_slice(Trb::null(), num_trb))
     }
 
     pub fn len(&self) -> usize {
@@ -46,6 +46,10 @@ impl Trb {
 
     pub fn ty(self) -> u8 {
         ((self.0 >> 106) & 0x3f).try_into().unwrap()
+    }
+
+    fn null() -> Self {
+        Self(0)
     }
 }
 impl From<trb::Trb> for Trb {
