@@ -30,6 +30,22 @@ impl<T> PageBox<T> {
         Self::new_from_bytes(bytes)
     }
 }
+impl<T> Deref for PageBox<T> {
+    type Target = T;
+    fn deref(&self) -> &Self::Target {
+        // Safety: This operation is safe because the memory region `virt` points is allocated and
+        // is not used by the others.
+        unsafe { &*self.virt.as_ptr() }
+    }
+}
+impl<T> DerefMut for PageBox<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        // Safety: This operation is safe because the memory region `virt` points is allocated and
+        // is not used by the others.
+        unsafe { &mut *self.virt.as_mut_ptr() }
+    }
+}
+
 impl<T> PageBox<[T]> {
     pub fn new_slice(num_of_elements: usize) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>() * num_of_elements);
