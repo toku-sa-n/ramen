@@ -44,7 +44,7 @@ fn init(
     Rc<RefCell<CommandCompletionReceiver>>,
 ) {
     let mut xhc = Xhc::new(registers.clone());
-    let mut event_ring = event::Ring::new(registers.clone());
+    let mut event_ring = event::Ring::new(registers.clone(), task_collection.clone());
     let command_ring = Rc::new(RefCell::new(command::Ring::new(registers.clone())));
     let dcbaa = DeviceContextBaseAddressArray::new(registers.clone());
     let command_completion_receiver = Rc::new(RefCell::new(CommandCompletionReceiver::new()));

@@ -7,7 +7,7 @@ use {
         cell::RefCell,
         task::{Context, Poll, Waker},
     },
-    x86_64::instructions::interrupts::{self, enable_interrupts_and_hlt},
+    x86_64::instructions::interrupts,
 };
 
 pub struct Executor {
@@ -35,7 +35,7 @@ impl Executor {
         if self.task_collection.borrow().woken_task_exists() {
             interrupts::enable()
         } else {
-            enable_interrupts_and_hlt()
+            interrupts::enable_and_hlt()
         }
     }
 
