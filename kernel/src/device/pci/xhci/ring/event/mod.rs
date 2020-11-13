@@ -169,14 +169,17 @@ impl<'a> Stream for Ring {
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         WAKER.register(&cx.waker());
         let task_collection = self.task_collection.clone();
-        if let Some(trb) = Pin::into_inner(self).dequeue() {
-            WAKER.take();
-            Poll::Ready(Some(trb))
-        } else {
-            task_collection
-                .borrow_mut()
-                .add_task_as_woken(Task::new(task_to_check_event_ring()));
-            Poll::Pending
-        }
+        Pin::into_inner(self).dequeue().map_or_else(
+            || {
+                task_collection
+                    .borrow_mut()
+                    .add_task_as_woken(Task::new(task_to_check_event_ring()));
+                Poll::Pending
+            },
+            |trb| {
+                WAKER.take();
+                Poll::Ready(Some(trb))
+            },
+        )
     }
 }
