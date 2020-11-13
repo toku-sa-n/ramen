@@ -3,9 +3,13 @@
 use {
     super::{
         command_runner::Runner,
+        device_slot::InputContext,
         register::{hc_operational::PortRegisters, Registers},
     },
-    crate::multitask::task::{self, Task},
+    crate::{
+        mem::allocator::page_box::PageBox,
+        multitask::task::{self, Task},
+    },
     alloc::rc::Rc,
     core::cell::RefCell,
     futures_intrusive::sync::LocalMutex,
@@ -61,6 +65,7 @@ impl<'a> TaskSpawner {
 pub struct Port {
     registers: Rc<RefCell<Registers>>,
     index: usize,
+    input_context: PageBox<InputContext>,
 }
 impl<'a> Port {
     pub fn reset_if_connected(&mut self) {
@@ -70,7 +75,11 @@ impl<'a> Port {
     }
 
     fn new(registers: Rc<RefCell<Registers>>, index: usize) -> Self {
-        Self { registers, index }
+        Self {
+            registers,
+            index,
+            input_context: PageBox::new(),
+        }
     }
 
     fn connected(&self) -> bool {

@@ -24,18 +24,16 @@ pub struct PageBox<T: ?Sized> {
     bytes: Bytes,
     _marker: PhantomData<T>,
 }
+impl<T> PageBox<T> {
+    pub fn new() -> Self {
+        let bytes = Bytes::new(mem::size_of::<T>());
+        Self::new_from_bytes(bytes)
+    }
+}
 impl<T> PageBox<[T]> {
     pub fn new_slice(num_of_elements: usize) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>() * num_of_elements);
-        let virt = Self::allocate_pages(bytes.as_num_of_pages());
-
-        let mut page_box = Self {
-            virt,
-            bytes,
-            _marker: PhantomData::<[T]>,
-        };
-        page_box.write_all_bytes_with_zero();
-        page_box
+        Self::new_from_bytes(bytes)
     }
 
     pub fn phys_addr(&self) -> PhysAddr {
@@ -58,6 +56,18 @@ impl<T> DerefMut for PageBox<[T]> {
     }
 }
 impl<T: ?Sized> PageBox<T> {
+    fn new_from_bytes(bytes: Bytes) -> Self {
+        let virt = Self::allocate_pages(bytes.as_num_of_pages());
+
+        let mut page_box = Self {
+            virt,
+            bytes,
+            _marker: PhantomData,
+        };
+        page_box.write_all_bytes_with_zero();
+        page_box
+    }
+
     fn write_all_bytes_with_zero(&mut self) {
         unsafe {
             core::ptr::write_bytes(self.virt.as_mut_ptr::<u8>(), 0, self.bytes.as_usize());
