@@ -3,7 +3,7 @@
 use {
     super::{
         command_runner::Runner,
-        context::InputContext,
+        context::{InputContext, SlotContext},
         register::{hc_operational::PortRegisters, Registers},
     },
     crate::{
@@ -68,6 +68,7 @@ pub struct Port {
     registers: Rc<RefCell<Registers>>,
     index: usize,
     input_context: PageBox<InputContext>,
+    input_slot_context: PageBox<SlotContext>,
 }
 impl<'a> Port {
     fn reset_if_connected(&mut self) {
@@ -81,6 +82,7 @@ impl<'a> Port {
             registers,
             index,
             input_context: PageBox::new(),
+            input_slot_context: PageBox::new(),
         }
     }
 
@@ -108,6 +110,10 @@ impl<'a> Port {
     fn init_input_control_context(&mut self) {
         self.input_context.input_control_context.set_aflag(0);
         self.input_context.input_control_context.set_aflag(1);
+    }
+
+    fn init_input_slot_context(&mut self) {
+        self.input_slot_context.set_context_entries(1);
     }
 
     fn read_port_rg(&self) -> PortRegisters {
