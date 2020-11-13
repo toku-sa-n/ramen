@@ -30,11 +30,11 @@ impl Runner {
         }
     }
 
-    pub async fn noop(&mut self) -> Result<(), command::Error> {
-        let addr_to_trb = self.ring.borrow_mut().send_noop()?;
+    pub async fn enable_device_slot(&mut self) -> Result<u8, command::Error> {
+        let addr_to_trb = self.ring.borrow_mut().send_enable_slot()?;
         self.register_to_receiver(addr_to_trb);
-        self.get_trb(addr_to_trb).await;
-        Ok(())
+        let completion_trb = self.get_trb(addr_to_trb).await;
+        Ok(completion_trb.slot_id())
     }
 
     fn register_to_receiver(&mut self, addr_to_trb: PhysAddr) {
