@@ -27,6 +27,7 @@ async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
     info!("Slot ID: {}", slot_id);
 
     port.init_input_control_context();
+    port.init_input_slot_context();
 }
 
 pub struct TaskSpawner {
