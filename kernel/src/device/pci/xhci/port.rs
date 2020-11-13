@@ -26,7 +26,7 @@ async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
         .unwrap();
     info!("Slot ID: {}", slot_id);
 
-    port.init_input_control_context();
+    port.init_input_context();
     port.init_input_slot_context();
 }
 
@@ -82,8 +82,8 @@ impl<'a> Port {
         Self {
             registers,
             index,
-            input_context: PageBox::new(),
-            input_slot_context: PageBox::new(),
+            input_context: PageBox::new(context::Input::null()),
+            input_slot_context: PageBox::new(context::Slot::null()),
         }
     }
 
@@ -108,9 +108,8 @@ impl<'a> Port {
         } {}
     }
 
-    fn init_input_control_context(&mut self) {
-        self.input_context.input_control_context.set_aflag(0);
-        self.input_context.input_control_context.set_aflag(1);
+    fn init_input_context(&mut self) {
+        self.input_context.init();
     }
 
     fn init_input_slot_context(&mut self) {

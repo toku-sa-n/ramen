@@ -11,7 +11,7 @@ pub struct DeviceContextBaseAddressArray {
 }
 impl<'a> DeviceContextBaseAddressArray {
     pub fn new(registers: Rc<RefCell<Registers>>) -> Self {
-        let arr = PageBox::new_slice(Self::num_of_slots(&registers));
+        let arr = PageBox::new_slice(0, Self::num_of_slots(&registers));
         Self { arr, registers }
     }
 
