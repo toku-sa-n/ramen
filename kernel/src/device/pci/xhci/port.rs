@@ -26,8 +26,7 @@ async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
         .unwrap();
     info!("Slot ID: {}", slot_id);
 
-    port.input_context.input_control_context.set_aflag(0);
-    port.input_context.input_control_context.set_aflag(1);
+    port.init_input_control_context();
 }
 
 pub struct TaskSpawner {
@@ -104,6 +103,11 @@ impl<'a> Port {
             let port_rg = self.read_port_rg();
             !port_rg.port_sc.port_reset_changed()
         } {}
+    }
+
+    fn init_input_control_context(&mut self) {
+        self.input_context.input_control_context.set_aflag(0);
+        self.input_context.input_control_context.set_aflag(1);
     }
 
     fn read_port_rg(&self) -> PortRegisters {
