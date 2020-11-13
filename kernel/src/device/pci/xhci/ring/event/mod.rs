@@ -7,6 +7,7 @@ use {
         trb::Trb,
         CycleBit,
     },
+    crate::multitask::task::{self, Task},
     alloc::{rc::Rc, vec::Vec},
     core::{
         cell::RefCell,
@@ -20,6 +21,11 @@ use {
 };
 
 mod segment_table;
+static WAKER: AtomicWaker = AtomicWaker::new();
+
+pub async fn task_to_check_event_ring() {
+    WAKER.wake();
+}
 
 pub async fn task(
     mut ring: Ring,
@@ -41,12 +47,16 @@ pub struct Ring {
     current_cycle_bit: CycleBit,
     dequeue_ptr_trb: usize,
     dequeue_ptr_segment: usize,
+    task_collection: Rc<RefCell<task::Collection>>,
     registers: Rc<RefCell<Registers>>,
 }
 impl<'a> Ring {
     const MAX_NUM_OF_TRB_IN_QUEUE: u16 = 4096;
 
-    pub fn new(registers: Rc<RefCell<Registers>>) -> Self {
+    pub fn new(
+        registers: Rc<RefCell<Registers>>,
+        task_collection: Rc<RefCell<task::Collection>>,
+    ) -> Self {
         let max_num_of_erst = registers
             .borrow()
             .hc_capability
@@ -60,6 +70,7 @@ impl<'a> Ring {
             current_cycle_bit: CycleBit::new(true),
             dequeue_ptr_trb: 0,
             dequeue_ptr_segment: 0,
+            task_collection,
             registers,
         }
     }
@@ -156,14 +167,19 @@ impl<'a> Stream for Ring {
     type Item = Trb;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        static WAKER: AtomicWaker = AtomicWaker::new();
         WAKER.register(&cx.waker());
+        let task_collection = self.task_collection.clone();
         match Pin::into_inner(self).dequeue() {
             Some(trb) => {
                 WAKER.take();
                 Poll::Ready(Some(trb))
             }
-            None => Poll::Pending,
+            None => {
+                task_collection
+                    .borrow_mut()
+                    .add_task_as_woken(Task::new(task_to_check_event_ring()));
+                Poll::Pending
+            }
         }
     }
 }
