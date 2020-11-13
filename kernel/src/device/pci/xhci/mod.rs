@@ -2,6 +2,7 @@
 
 mod command_runner;
 mod dcbaa;
+mod device_slot;
 mod port;
 mod register;
 mod ring;
