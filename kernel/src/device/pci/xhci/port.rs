@@ -86,7 +86,7 @@ impl Port {
             index,
             input_context: PageBox::new(context::Input::null()),
             input_slot_context: PageBox::new(context::Slot::null()),
-            transfer_ring: transfer::Ring::new(registers.clone()),
+            transfer_ring: transfer::Ring::new(registers),
         }
     }
 
