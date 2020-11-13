@@ -73,7 +73,7 @@ pub struct Port {
     input_slot_context: PageBox<context::Slot>,
     transfer_ring: transfer::Ring,
 }
-impl<'a> Port {
+impl Port {
     fn reset_if_connected(&mut self) {
         if self.connected() {
             self.reset();
