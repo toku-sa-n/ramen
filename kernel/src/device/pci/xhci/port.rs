@@ -71,7 +71,7 @@ pub struct Port {
     input_context: PageBox<InputContext>,
 }
 impl<'a> Port {
-    pub fn reset_if_connected(&mut self) {
+    fn reset_if_connected(&mut self) {
         if self.connected() {
             self.reset();
         }
