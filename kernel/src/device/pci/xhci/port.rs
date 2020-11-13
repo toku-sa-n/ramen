@@ -3,7 +3,7 @@
 use {
     super::{
         command_runner::Runner,
-        context::{InputContext, SlotContext},
+        context,
         register::{hc_operational::PortRegisters, Registers},
     },
     crate::{
@@ -68,8 +68,8 @@ impl<'a> TaskSpawner {
 pub struct Port {
     registers: Rc<RefCell<Registers>>,
     index: usize,
-    input_context: PageBox<InputContext>,
-    input_slot_context: PageBox<SlotContext>,
+    input_context: PageBox<context::Input>,
+    input_slot_context: PageBox<context::Slot>,
 }
 impl<'a> Port {
     fn reset_if_connected(&mut self) {
