@@ -31,6 +31,10 @@ impl Space {
         self.common().is_xhci()
     }
 
+    pub fn is_ahci(&self) -> bool {
+        self.common().is_ahci()
+    }
+
     pub fn base_address(&self, index: bar::Index) -> PhysAddr {
         self.type_spec().base_address(index)
     }

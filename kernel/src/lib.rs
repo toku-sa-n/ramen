@@ -36,7 +36,10 @@ use {
     alloc::rc::Rc,
     common::kernelboot,
     core::cell::RefCell,
-    device::{keyboard, mouse, pci::xhci},
+    device::{
+        keyboard, mouse,
+        pci::{ahci, xhci},
+    },
     graphics::{
         screen::{self, desktop::Desktop, layer},
         Vram,
@@ -100,6 +103,9 @@ fn run_tasks() -> ! {
     task_collection
         .borrow_mut()
         .add_task_as_woken(Task::new(xhci::task(task_collection.clone())));
+    task_collection
+        .borrow_mut()
+        .add_task_as_woken(Task::new(ahci::task()));
 
     let mut executor = Executor::new(task_collection);
     executor.run();
