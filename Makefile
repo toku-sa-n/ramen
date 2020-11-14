@@ -33,7 +33,7 @@ OVMF_CODE		:= OVMF_CODE.fd
 OVMF_VARS		:= OVMF_VARS.fd
 
 # If you change values of `iobase` and `iosize`, don't forget to change the corresponding values in `kernel/src/lib.rs`!
-VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -no-reboot -m 4G -d int -device isa-debug-exit,iobase=0xf4,iosize=0x04 -device qemu-xhci,id=xhci -device usb-tablet,bus=xhci.0 --trace events=trace.event
+VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -no-reboot -m 4G -d int -device isa-debug-exit,iobase=0xf4,iosize=0x04 -device qemu-xhci,id=xhci -device usb-tablet,bus=xhci.0 --trace events=trace.event -device ahci
 
 # This is a workaround for `compiler_builtins` crate which is supported only for optimized build.
 RELEASE_FLAGS	:= --release

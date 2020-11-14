@@ -19,6 +19,10 @@ impl<'a> Common<'a> {
         self.class().is_xhci()
     }
 
+    pub fn is_ahci(&self) -> bool {
+        self.class().is_ahci()
+    }
+
     pub fn bridge_type(&self) -> BridgeType {
         self.header_type().bridge_type()
     }
@@ -66,6 +70,10 @@ struct Class<'a> {
 impl<'a> Class<'a> {
     fn is_xhci(&self) -> bool {
         self.base() == 0x0c && self.sub() == 0x03 && self.interface() == 0x30
+    }
+
+    fn is_ahci(&self) -> bool {
+        self.base() == 0x01 && self.sub() == 0x06
     }
 
     fn new(registers: &'a Registers) -> Self {
