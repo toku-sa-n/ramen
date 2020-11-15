@@ -10,6 +10,5 @@ pub async fn task() {
         None => return,
     };
     ahc.place_into_minimally_initialized_state();
-    ahc.print_available_ports();
     ahc.get_ownership_from_bios();
 }
