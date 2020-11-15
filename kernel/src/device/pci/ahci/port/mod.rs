@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+mod command_list;
+
 use {
     super::registers::Registers,
+    crate::mem::allocator::page_box::PageBox,
     alloc::{rc::Rc, vec::Vec},
-    core::cell::RefCell,
-    core::convert::TryInto,
+    command_list::CommandList,
+    core::{cell::RefCell, convert::TryInto},
 };
 
 pub struct Collection(Vec<Port>);
@@ -32,6 +35,7 @@ impl Collection {
 
 pub struct Port {
     registers: Rc<RefCell<Registers>>,
+    command_list: CommandList,
     index: usize,
 }
 impl Port {
@@ -49,9 +53,18 @@ impl Port {
 
     fn new(registers: Rc<RefCell<Registers>>, index: usize) -> Option<Self> {
         if Self::exists(&registers, index) {
-            Some(Self { registers, index })
+            Some(Self::generate(registers, index))
         } else {
             None
+        }
+    }
+
+    fn generate(registers: Rc<RefCell<Registers>>, index: usize) -> Self {
+        let command_list = CommandList::new(&*registers.borrow());
+        Self {
+            registers,
+            index,
+            command_list,
         }
     }
 
