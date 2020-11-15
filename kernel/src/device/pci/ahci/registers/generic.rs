@@ -34,6 +34,7 @@ bitfield! {
     pub struct GlobalHbaControl(u32);
     impl Debug;
     pub _, set_ahci_enable: 31;
+    pub hba_reset, set_hba_reset: 0;
 }
 
 bitfield! {

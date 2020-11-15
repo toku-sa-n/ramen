@@ -15,9 +15,26 @@ impl Ahc {
         ghc.update(|ghc| ghc.set_ahci_enable(true));
     }
 
+    pub fn reset(&mut self) {
+        self.start_resetting();
+        self.wait_until_reset_is_completed();
+    }
+
     pub fn get_ownership_from_bios(&mut self) {
         self.request_ownership_to_bios();
         self.wait_until_ownership_is_moved();
+    }
+
+    fn start_resetting(&mut self) {
+        let registers = &mut self.registers.borrow_mut();
+        let ghc = &mut registers.generic.ghc;
+        ghc.update(|ghc| ghc.set_hba_reset(true));
+    }
+
+    fn wait_until_reset_is_completed(&self) {
+        let registers = &self.registers.borrow();
+        let ghc = &registers.generic.ghc;
+        while ghc.read().hba_reset() {}
     }
 
     fn request_ownership_to_bios(&mut self) {

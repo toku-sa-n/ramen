@@ -37,6 +37,7 @@ fn fetch_registers() -> Option<Registers> {
 }
 
 fn place_into_minimally_initialized_state(ahc: &mut Ahc, ports: &mut port::Collection) {
+    ahc.reset();
     ahc.indicate_system_software_is_ahci_aware();
     ports.idle_all_ports();
     ports.register_command_lists_and_fis();
