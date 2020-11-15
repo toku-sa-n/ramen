@@ -29,6 +29,12 @@ impl Collection {
         }
     }
 
+    pub fn register_command_lists_and_fis(&mut self) {
+        for port in self.iter_mut() {
+            port.register_command_list_and_received_fis();
+        }
+    }
+
     fn iter_mut(&mut self) -> impl Iterator<Item = &mut Port> {
         self.0.iter_mut()
     }
@@ -61,6 +67,12 @@ impl Port {
         }
     }
 
+    fn exists(registers: &Rc<RefCell<Registers>>, index: usize) -> bool {
+        let registers = &registers.borrow();
+        let pi: usize = registers.generic.pi.read().0.try_into().unwrap();
+        pi & (1 << index) != 0
+    }
+
     fn generate(registers: Rc<RefCell<Registers>>, index: usize) -> Self {
         let command_list = CommandList::new(&*registers.borrow());
         let received_fis = ReceivedFis::new();
@@ -72,9 +84,30 @@ impl Port {
         }
     }
 
-    fn exists(registers: &Rc<RefCell<Registers>>, index: usize) -> bool {
-        let registers = &registers.borrow();
-        let pi: usize = registers.generic.pi.read().0.try_into().unwrap();
-        pi & (1 << index) != 0
+    fn register_command_list_and_received_fis(&mut self) {
+        self.assert_64bit_accessing_is_supported();
+        self.register_command_list();
+        self.register_received_fis();
+    }
+
+    fn assert_64bit_accessing_is_supported(&self) {
+        let registers = &self.registers.borrow();
+        assert!(registers.generic.cap.read().supports_64bit_addressing());
+    }
+
+    fn register_command_list(&mut self) {
+        let registers = &mut self.registers.borrow_mut();
+        let port_rg = registers.port_regs[self.index].as_mut().unwrap();
+        let addr = self.command_list.phys_addr();
+
+        port_rg.px_clb.update(|b| b.set(addr));
+    }
+
+    fn register_received_fis(&mut self) {
+        let registers = &mut self.registers.borrow_mut();
+        let port_rg = registers.port_regs[self.index].as_mut().unwrap();
+        let addr = self.received_fis.phys_addr();
+
+        port_rg.px_fb.update(|b| b.set(addr));
     }
 }
