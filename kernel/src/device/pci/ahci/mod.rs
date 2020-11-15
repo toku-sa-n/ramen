@@ -1,21 +1,45 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 mod ahc;
+mod port;
 mod registers;
 
 use {
     crate::device::pci::{self, config::bar},
     ahc::Ahc,
+    alloc::rc::Rc,
+    core::cell::RefCell,
+    port::PortCollection,
+    registers::Registers,
     x86_64::PhysAddr,
 };
 
 pub async fn task() {
-    let mut ahc = match Ahc::new() {
-        Some(ahc) => ahc,
+    let (mut ahc, mut ports) = match init() {
+        Some(x) => x,
         None => return,
     };
-    ahc.place_into_minimally_initialized_state();
+
+    place_into_minimally_initialized_state(&mut ahc, &mut ports);
     ahc.get_ownership_from_bios();
+}
+
+fn init() -> Option<(Ahc, PortCollection)> {
+    let registers = Rc::new(RefCell::new(fetch_registers()?));
+    let ahc = Ahc::new(registers.clone());
+    let port_collection = PortCollection::new(registers);
+
+    Some((ahc, port_collection))
+}
+
+fn fetch_registers() -> Option<Registers> {
+    let abar = AchiBaseAddr::new()?;
+    Some(Registers::new(abar.into()))
+}
+
+fn place_into_minimally_initialized_state(ahc: &mut Ahc, ports: &mut PortCollection) {
+    ahc.indicate_system_software_is_ahci_aware();
+    ports.idle_all_ports();
 }
 
 #[derive(Copy, Clone)]
