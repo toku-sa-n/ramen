@@ -6,14 +6,16 @@ use {
 
 pub struct Generic {
     pub ghc: Accessor<GlobalHbaControl>,
+    pub pi: Accessor<PortsImplemented>,
     pub bohc: Accessor<BiosOsHandoffControlAndStatus>,
 }
 impl Generic {
     pub fn new(abar: AchiBaseAddr) -> Self {
         let ghc = Accessor::new(abar.into(), Bytes::new(0x04));
+        let pi = Accessor::new(abar.into(), Bytes::new(0x0c));
         let bohc = Accessor::new(abar.into(), Bytes::new(0x28));
 
-        Self { ghc, bohc }
+        Self { ghc, pi, bohc }
     }
 }
 
@@ -31,3 +33,7 @@ bitfield! {
     pub os_owned_semaphore, set_os_owned_semaphore: 1;
     pub bios_owned_semaphore, _: 0;
 }
+
+#[repr(transparent)]
+#[derive(Debug)]
+pub struct PortsImplemented(u32);
