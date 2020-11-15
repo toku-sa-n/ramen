@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 mod command_list;
+mod received_fis;
 
 use {
     super::registers::Registers,
-    crate::mem::allocator::page_box::PageBox,
     alloc::{rc::Rc, vec::Vec},
     command_list::CommandList,
     core::{cell::RefCell, convert::TryInto},
+    received_fis::ReceivedFis,
 };
 
 pub struct Collection(Vec<Port>);
@@ -36,6 +37,7 @@ impl Collection {
 pub struct Port {
     registers: Rc<RefCell<Registers>>,
     command_list: CommandList,
+    received_fis: ReceivedFis,
     index: usize,
 }
 impl Port {
@@ -61,10 +63,12 @@ impl Port {
 
     fn generate(registers: Rc<RefCell<Registers>>, index: usize) -> Self {
         let command_list = CommandList::new(&*registers.borrow());
+        let received_fis = ReceivedFis::new();
         Self {
             registers,
-            index,
+            received_fis,
             command_list,
+            index,
         }
     }
 
