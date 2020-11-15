@@ -9,6 +9,8 @@ use {
 };
 
 pub struct Registers {
+    pub px_clb: Accessor<PortxCommandListBaseAddress>,
+    pub px_fb: Accessor<PortxFisBaseAddress>,
     pub px_cmd: Accessor<PortxCommandAndStatus>,
 }
 impl Registers {
@@ -26,9 +28,16 @@ impl Registers {
 
     fn fetch(abar: AchiBaseAddr, port_index: usize) -> Self {
         let base_addr = Self::base_addr_to_registers(abar, port_index);
+
+        let px_clb = Accessor::new(base_addr, Bytes::new(0x00));
+        let px_fb = Accessor::new(base_addr, Bytes::new(0x08));
         let px_cmd = Accessor::new(base_addr, Bytes::new(0x18));
 
-        Self { px_cmd }
+        Self {
+            px_clb,
+            px_fb,
+            px_cmd,
+        }
     }
 
     fn base_addr_to_registers(abar: AchiBaseAddr, port_index: usize) -> PhysAddr {
@@ -44,4 +53,22 @@ bitfield! {
     pub fis_receive_enable, set_fis_receive_enable: 4;
     pub fis_receive_running, _: 14;
     pub command_list_running, _: 15;
+}
+
+#[repr(transparent)]
+pub struct PortxCommandListBaseAddress(u64);
+impl PortxCommandListBaseAddress {
+    pub fn set(&mut self, addr: PhysAddr) {
+        assert!(addr.as_u64().trailing_zeros() >= 10);
+        self.0 = addr.as_u64();
+    }
+}
+
+#[repr(transparent)]
+pub struct PortxFisBaseAddress(u64);
+impl PortxFisBaseAddress {
+    pub fn set(&mut self, addr: PhysAddr) {
+        assert!(addr.as_u64().trailing_zeros() >= 8);
+        self.0 = addr.as_u64();
+    }
 }

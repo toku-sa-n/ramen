@@ -67,10 +67,6 @@ where
         page_box
     }
 
-    pub fn phys_addr(&self) -> PhysAddr {
-        PML4.lock().translate_addr(self.virt).unwrap()
-    }
-
     fn write_all_elements_with_same_value(&mut self, x: T)
     where
         T: Copy + Clone,
@@ -106,6 +102,10 @@ where
     }
 }
 impl<T: ?Sized> PageBox<T> {
+    pub fn phys_addr(&self) -> PhysAddr {
+        PML4.lock().translate_addr(self.virt).unwrap()
+    }
+
     fn new_zeroed_from_bytes(bytes: Bytes) -> Self {
         let virt = Self::allocate_pages(bytes.as_num_of_pages());
 
