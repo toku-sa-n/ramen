@@ -119,7 +119,7 @@ impl Port {
 
     fn clear_error_bits(&mut self) {
         // Refer to P.31 and P.104 of Serial ATA AHCI 1.3.1 Specification
-        const BIT_MASK: u32 = 0x07ff0f03;
+        const BIT_MASK: u32 = 0x07ff_0f03;
         let registers = &mut self.registers.borrow_mut();
         let port_rg = registers.port_regs[self.index].as_mut().unwrap();
         port_rg.px_serr.update(|serr| serr.0 = BIT_MASK);
