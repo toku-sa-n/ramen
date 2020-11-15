@@ -29,6 +29,12 @@ impl Collection {
         }
     }
 
+    pub fn clear_error_bits(&mut self) {
+        for port in self.iter_mut() {
+            port.clear_error_bits();
+        }
+    }
+
     fn iter_mut(&mut self) -> impl Iterator<Item = &mut Port> {
         self.0.iter_mut()
     }
@@ -76,5 +82,13 @@ impl Port {
         let registers = &registers.borrow();
         let pi: usize = registers.generic.pi.read().0.try_into().unwrap();
         pi & (1 << index) != 0
+    }
+
+    fn clear_error_bits(&mut self) {
+        // Refer to P.31 and P.104 of Serial ATA AHCI 1.3.1 Specification
+        const BIT_MASK: u32 = 0x07ff0f03;
+        let registers = &mut self.registers.borrow_mut();
+        let port_rg = registers.port_regs[self.index].as_mut().unwrap();
+        port_rg.px_serr.update(|serr| serr.0 = BIT_MASK);
     }
 }

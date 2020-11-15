@@ -10,6 +10,7 @@ use {
 
 pub struct Registers {
     pub px_cmd: Accessor<PortxCommandAndStatus>,
+    pub px_serr: Accessor<PortxSerialAtaError>,
 }
 impl Registers {
     pub fn new(abar: AchiBaseAddr, port_index: usize, generic: &Generic) -> Option<Self> {
@@ -26,9 +27,11 @@ impl Registers {
 
     fn fetch(abar: AchiBaseAddr, port_index: usize) -> Self {
         let base_addr = Self::base_addr_to_registers(abar, port_index);
-        let px_cmd = Accessor::new(base_addr, Bytes::new(0x18));
 
-        Self { px_cmd }
+        let px_cmd = Accessor::new(base_addr, Bytes::new(0x18));
+        let px_serr = Accessor::new(base_addr, Bytes::new(0x30));
+
+        Self { px_cmd, px_serr }
     }
 
     fn base_addr_to_registers(abar: AchiBaseAddr, port_index: usize) -> PhysAddr {
@@ -45,3 +48,6 @@ bitfield! {
     pub fis_receive_running, _: 14;
     pub command_list_running, _: 15;
 }
+
+#[repr(transparent)]
+pub struct PortxSerialAtaError(pub u32);
