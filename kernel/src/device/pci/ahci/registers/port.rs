@@ -9,10 +9,10 @@ use {
 };
 
 pub struct Registers {
-    pub px_clb: Accessor<PortxCommandListBaseAddress>,
-    pub px_fb: Accessor<PortxFisBaseAddress>,
-    pub px_cmd: Accessor<PortxCommandAndStatus>,
-    pub px_serr: Accessor<PortxSerialAtaError>,
+    pub clb: Accessor<PortxCommandListBaseAddress>,
+    pub fb: Accessor<PortxFisBaseAddress>,
+    pub cmd: Accessor<PortxCommandAndStatus>,
+    pub serr: Accessor<PortxSerialAtaError>,
 }
 impl Registers {
     pub fn new(abar: AchiBaseAddr, port_index: usize, generic: &Generic) -> Option<Self> {
@@ -36,10 +36,10 @@ impl Registers {
         let px_serr = Accessor::new(base_addr, Bytes::new(0x30));
 
         Self {
-            px_clb,
-            px_fb,
-            px_cmd,
-            px_serr,
+            clb: px_clb,
+            fb: px_fb,
+            cmd: px_cmd,
+            serr: px_serr,
         }
     }
 

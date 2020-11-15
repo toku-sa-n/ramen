@@ -4,7 +4,7 @@ mod command_list;
 mod received_fis;
 
 use {
-    super::registers::Registers,
+    super::registers::{port, Registers},
     alloc::{rc::Rc, vec::Vec},
     command_list::CommandList,
     core::{cell::RefCell, convert::TryInto},
@@ -54,15 +54,19 @@ pub struct Port {
 }
 impl Port {
     pub fn idle(&mut self) {
-        let registers = &mut self.registers.borrow_mut();
-        let port_rg = registers.port_regs[self.index].as_mut().unwrap();
-        let px_cmd = &mut port_rg.px_cmd;
+        self.edit_port_rg(|rg| {
+            rg.cmd.update(|cmd| {
+                cmd.set_start_bit(false);
+                cmd.set_fis_receive_enable(false)
+            })
+        });
 
-        px_cmd.update(|cmd| cmd.set_start_bit(false));
-        while px_cmd.read().command_list_running() {}
-
-        px_cmd.update(|cmd| cmd.set_fis_receive_enable(false));
-        while px_cmd.read().fis_receive_running() {}
+        while {
+            self.parse_port_rg(|reg| {
+                let cmd = reg.cmd.read();
+                cmd.command_list_running() || cmd.fis_receive_running()
+            })
+        } {}
     }
 
     fn new(registers: Rc<RefCell<Registers>>, index: usize) -> Option<Self> {
@@ -102,26 +106,36 @@ impl Port {
     }
 
     fn register_command_list(&mut self) {
-        let registers = &mut self.registers.borrow_mut();
-        let port_rg = registers.port_regs[self.index].as_mut().unwrap();
         let addr = self.command_list.phys_addr();
-
-        port_rg.px_clb.update(|b| b.set(addr));
+        self.edit_port_rg(|rg| rg.clb.update(|b| b.set(addr)));
     }
 
     fn register_received_fis(&mut self) {
-        let registers = &mut self.registers.borrow_mut();
-        let port_rg = registers.port_regs[self.index].as_mut().unwrap();
         let addr = self.received_fis.phys_addr();
-
-        port_rg.px_fb.update(|b| b.set(addr));
+        self.edit_port_rg(|rg| rg.fb.update(|b| b.set(addr)));
     }
 
     fn clear_error_bits(&mut self) {
         // Refer to P.31 and P.104 of Serial ATA AHCI 1.3.1 Specification
         const BIT_MASK: u32 = 0x07ff_0f03;
+        self.edit_port_rg(|rg| rg.serr.update(|serr| serr.0 = BIT_MASK));
+    }
+
+    fn parse_port_rg<T, U>(&self, f: T) -> U
+    where
+        T: Fn(&port::Registers) -> U,
+    {
+        let registers = &self.registers.borrow_mut();
+        let port_rg = registers.port_regs[self.index].as_ref().unwrap();
+        f(port_rg)
+    }
+
+    fn edit_port_rg<T>(&mut self, f: T)
+    where
+        T: Fn(&mut port::Registers),
+    {
         let registers = &mut self.registers.borrow_mut();
         let port_rg = registers.port_regs[self.index].as_mut().unwrap();
-        port_rg.px_serr.update(|serr| serr.0 = BIT_MASK);
+        f(port_rg);
     }
 }
