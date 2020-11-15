@@ -11,7 +11,7 @@ pub struct Collection(Vec<Port>);
 impl Collection {
     const MAX_PORTS: usize = 32;
 
-    pub fn new(registers: Rc<RefCell<Registers>>) -> Self {
+    pub fn new(registers: &Rc<RefCell<Registers>>) -> Self {
         Self(
             (0..Self::MAX_PORTS)
                 .filter_map(|i| Port::new(registers.clone(), i))
@@ -37,7 +37,7 @@ pub struct Port {
 impl Port {
     pub fn idle(&mut self) {
         let registers = &mut self.registers.borrow_mut();
-        let port_rg = &mut registers.port_regs[self.index].as_mut().unwrap();
+        let port_rg = registers.port_regs[self.index].as_mut().unwrap();
         let px_cmd = &mut port_rg.px_cmd;
 
         px_cmd.update(|cmd| cmd.set_start_bit(false));

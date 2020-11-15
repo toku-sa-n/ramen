@@ -26,14 +26,14 @@ pub async fn task() {
 fn init() -> Option<(Ahc, port::Collection)> {
     let registers = Rc::new(RefCell::new(fetch_registers()?));
     let ahc = Ahc::new(registers.clone());
-    let port_collection = port::Collection::new(registers);
+    let port_collection = port::Collection::new(&registers);
 
     Some((ahc, port_collection))
 }
 
 fn fetch_registers() -> Option<Registers> {
     let abar = AchiBaseAddr::new()?;
-    Some(Registers::new(abar.into()))
+    Some(Registers::new(abar))
 }
 
 fn place_into_minimally_initialized_state(ahc: &mut Ahc, ports: &mut port::Collection) {
