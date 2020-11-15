@@ -20,11 +20,6 @@ impl Ahc {
         self.wait_until_ownership_is_moved();
     }
 
-    pub fn num_of_supported_command_slots(&self) -> u32 {
-        let registers = &self.registers.borrow();
-        registers.generic.cap.read().num_of_command_slots()
-    }
-
     fn request_ownership_to_bios(&mut self) {
         let registers = &mut self.registers.borrow_mut();
         let bohc = &mut registers.generic.bohc;

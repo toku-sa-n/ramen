@@ -2,7 +2,7 @@
 
 use {
     super::Registers, crate::mem::allocator::page_box::PageBox, bitfield::bitfield,
-    core::convert::TryInto,
+    core::convert::TryInto, x86_64::PhysAddr,
 };
 
 pub struct CommandList(PageBox<[CommandHeader]>);
@@ -14,6 +14,10 @@ impl CommandList {
                 .try_into()
                 .unwrap(),
         ))
+    }
+
+    pub fn phys_addr(&self) -> PhysAddr {
+        self.0.phys_addr()
     }
 
     fn num_of_command_slots_supported(registers: &Registers) -> u32 {
