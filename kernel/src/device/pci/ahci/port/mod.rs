@@ -55,7 +55,7 @@ pub struct Port {
 impl Port {
     pub fn idle(&mut self) {
         self.edit_port_rg(|rg| {
-            rg.px_cmd.update(|cmd| {
+            rg.cmd.update(|cmd| {
                 cmd.set_start_bit(false);
                 cmd.set_fis_receive_enable(false)
             })
@@ -63,7 +63,7 @@ impl Port {
 
         while {
             self.parse_port_rg(|reg| {
-                let cmd = reg.px_cmd.read();
+                let cmd = reg.cmd.read();
                 cmd.command_list_running() || cmd.fis_receive_running()
             })
         } {}
@@ -107,18 +107,18 @@ impl Port {
 
     fn register_command_list(&mut self) {
         let addr = self.command_list.phys_addr();
-        self.edit_port_rg(|rg| rg.px_clb.update(|b| b.set(addr)));
+        self.edit_port_rg(|rg| rg.clb.update(|b| b.set(addr)));
     }
 
     fn register_received_fis(&mut self) {
         let addr = self.received_fis.phys_addr();
-        self.edit_port_rg(|rg| rg.px_fb.update(|b| b.set(addr)));
+        self.edit_port_rg(|rg| rg.fb.update(|b| b.set(addr)));
     }
 
     fn clear_error_bits(&mut self) {
         // Refer to P.31 and P.104 of Serial ATA AHCI 1.3.1 Specification
         const BIT_MASK: u32 = 0x07ff_0f03;
-        self.edit_port_rg(|rg| rg.px_serr.update(|serr| serr.0 = BIT_MASK));
+        self.edit_port_rg(|rg| rg.serr.update(|serr| serr.0 = BIT_MASK));
     }
 
     fn parse_port_rg<T, U>(&self, f: T) -> U
