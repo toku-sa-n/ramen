@@ -38,6 +38,7 @@ impl Ahc {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct AchiBaseAddr(PhysAddr);
 impl AchiBaseAddr {
     fn new() -> Option<Self> {
