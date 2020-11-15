@@ -20,11 +20,7 @@ impl Ahc {
 
     pub fn place_into_minimally_initialized_state(&mut self) {
         self.indicate_system_software_is_ahci_aware();
-    }
-
-    pub fn print_available_ports(&self) {
-        let availables: Vec<_> = (0..32).map(|x| self.port_available(x)).collect();
-        info!("Available ports: {:?}", availables);
+        self.idle_ports();
     }
 
     pub fn get_ownership_from_bios(&mut self) {
@@ -35,6 +31,38 @@ impl Ahc {
     fn indicate_system_software_is_ahci_aware(&mut self) {
         let ghc = &mut self.registers.generic.ghc;
         ghc.update(|ghc| ghc.set_ahci_enable(true));
+    }
+
+    fn idle_ports(&mut self) {
+        let available_ports = self.available_ports();
+        for port_index in available_ports {
+            if !self.port_is_idle(port_index) {
+                self.make_port_idle(port_index)
+            }
+        }
+    }
+
+    fn available_ports(&self) -> Vec<usize> {
+        (0..32).filter(|x| self.port_available(*x)).collect()
+    }
+
+    fn port_is_idle(&self, index: usize) -> bool {
+        let px_cmd = &self.registers.port_regs[index].as_ref().unwrap().px_cmd;
+        let px_cmd = px_cmd.read();
+        !px_cmd.start_bit()
+            & !px_cmd.command_list_running()
+            & !px_cmd.fis_receive_enable()
+            & !px_cmd.fis_receive_running()
+    }
+
+    fn make_port_idle(&mut self, index: usize) {
+        let px_cmd = &mut self.registers.port_regs[index].as_mut().unwrap().px_cmd;
+
+        px_cmd.update(|cmd| cmd.set_start_bit(false));
+        while px_cmd.read().command_list_running() {}
+
+        px_cmd.update(|cmd| cmd.set_fis_receive_enable(false));
+        while px_cmd.read().fis_receive_running() {}
     }
 
     fn port_available(&self, port_index: usize) -> bool {
