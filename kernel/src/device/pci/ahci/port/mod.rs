@@ -61,6 +61,12 @@ impl Port {
         }
     }
 
+    fn exists(registers: &Rc<RefCell<Registers>>, index: usize) -> bool {
+        let registers = &registers.borrow();
+        let pi: usize = registers.generic.pi.read().0.try_into().unwrap();
+        pi & (1 << index) != 0
+    }
+
     fn generate(registers: Rc<RefCell<Registers>>, index: usize) -> Self {
         let command_list = CommandList::new(&*registers.borrow());
         let received_fis = ReceivedFis::new();
@@ -70,11 +76,5 @@ impl Port {
             command_list,
             index,
         }
-    }
-
-    fn exists(registers: &Rc<RefCell<Registers>>, index: usize) -> bool {
-        let registers = &registers.borrow();
-        let pi: usize = registers.generic.pi.read().0.try_into().unwrap();
-        pi & (1 << index) != 0
     }
 }
