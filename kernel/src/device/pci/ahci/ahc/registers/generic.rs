@@ -5,14 +5,23 @@ use {
 };
 
 pub struct Generic {
+    pub ghc: Accessor<GlobalHbaControl>,
     pub bohc: Accessor<BiosOsHandoffControlAndStatus>,
 }
 impl Generic {
     pub fn new(abar: AchiBaseAddr) -> Self {
+        let ghc = Accessor::new(abar.into(), Bytes::new(0x04));
         let bohc = Accessor::new(abar.into(), Bytes::new(0x28));
 
-        Self { bohc }
+        Self { ghc, bohc }
     }
+}
+
+bitfield! {
+    #[repr(transparent)]
+    pub struct GlobalHbaControl(u32);
+    impl Debug;
+    pub _, set_ahci_enable: 31;
 }
 
 bitfield! {
