@@ -26,6 +26,7 @@ bitfield! {
     pub struct HbaCapability(u32);
     impl Debug;
     pub num_of_command_slots, _: 12, 8;
+    pub supports_64bit_addressing, _: 31;
 }
 
 bitfield! {

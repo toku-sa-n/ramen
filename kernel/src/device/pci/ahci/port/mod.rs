@@ -85,8 +85,14 @@ impl Port {
     }
 
     fn register_command_list_and_received_fis(&mut self) {
+        self.assert_64bit_accessing_is_supported();
         self.register_command_list();
         self.register_received_fis();
+    }
+
+    fn assert_64bit_accessing_is_supported(&self) {
+        let registers = &self.registers.borrow();
+        assert!(registers.generic.cap.read().supports_64bit_addressing());
     }
 
     fn register_command_list(&mut self) {
