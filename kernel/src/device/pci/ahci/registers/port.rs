@@ -80,16 +80,16 @@ bitfield! {
     #[repr(transparent)]
     pub struct PortxTaskFileData(u32);
     impl Debug;
-    busy, _: 14;
-    data_transfer_is_required, _: 10;
+    pub busy, _: 14;
+    pub data_transfer_is_required, _: 10;
 }
 
 bitfield! {
     #[repr(transparent)]
     pub struct PortxSerialAtaStatus(u32);
     impl Debug;
-    device_detection, _: 3, 0;
-    interface_power_management, _: 11, 8;
+    pub device_detection, _: 3, 0;
+    pub interface_power_management, _: 11, 8;
 }
 
 #[repr(transparent)]
