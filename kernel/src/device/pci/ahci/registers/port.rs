@@ -12,6 +12,7 @@ pub struct Registers {
     pub clb: Accessor<PortxCommandListBaseAddress>,
     pub fb: Accessor<PortxFisBaseAddress>,
     pub cmd: Accessor<PortxCommandAndStatus>,
+    pub tfd: Accessor<PortxTaskFileData>,
     pub serr: Accessor<PortxSerialAtaError>,
 }
 impl Registers {
@@ -33,9 +34,16 @@ impl Registers {
         let clb = Accessor::new(base_addr, Bytes::new(0x00));
         let fb = Accessor::new(base_addr, Bytes::new(0x08));
         let cmd = Accessor::new(base_addr, Bytes::new(0x18));
+        let tfd = Accessor::new(base_addr, Bytes::new(0x20));
         let serr = Accessor::new(base_addr, Bytes::new(0x30));
 
-        Self { clb, fb, cmd, serr }
+        Self {
+            clb,
+            fb,
+            cmd,
+            tfd,
+            serr,
+        }
     }
 
     fn base_addr_to_registers(abar: AchiBaseAddr, port_index: usize) -> PhysAddr {
@@ -63,6 +71,14 @@ impl PortxCommandListBaseAddress {
         assert!(addr.as_u64().trailing_zeros() >= 10);
         self.0 = addr.as_u64();
     }
+}
+
+bitfield! {
+    #[repr(transparent)]
+    pub struct PortxTaskFileData(u32);
+    impl Debug;
+    busy, _: 14;
+    data_transfer_is_required, _: 10;
 }
 
 #[repr(transparent)]
