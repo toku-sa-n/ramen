@@ -9,5 +9,6 @@ pub async fn task() {
         Some(ahc) => ahc,
         None => return,
     };
+    ahc.place_into_minimally_initialized_state();
     ahc.get_ownership_from_bios();
 }
