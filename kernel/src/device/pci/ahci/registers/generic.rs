@@ -25,7 +25,7 @@ bitfield! {
     #[repr(transparent)]
     pub struct HbaCapability(u32);
     impl Debug;
-    num_of_command_slots, _: 12, 8;
+    pub num_of_command_slots, _: 12, 8;
 }
 
 bitfield! {
