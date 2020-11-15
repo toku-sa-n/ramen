@@ -121,11 +121,6 @@ impl Port {
         self.edit_port_rg(|rg| rg.px_serr.update(|serr| serr.0 = BIT_MASK));
     }
 
-    fn read_port_rg(&self) {
-        let registers = &self.registers.borrow();
-        let port_rg = registers.port_regs[self.index].as_ref().unwrap();
-    }
-
     fn parse_port_rg<T, U>(&self, f: T) -> U
     where
         T: Fn(&port::Registers) -> U,
