@@ -5,18 +5,27 @@ use {
 };
 
 pub struct Generic {
+    pub cap: Accessor<HbaCapability>,
     pub ghc: Accessor<GlobalHbaControl>,
     pub pi: Accessor<PortsImplemented>,
     pub bohc: Accessor<BiosOsHandoffControlAndStatus>,
 }
 impl Generic {
     pub fn new(abar: AchiBaseAddr) -> Self {
+        let cap = Accessor::new(abar.into(), Bytes::new(0x00));
         let ghc = Accessor::new(abar.into(), Bytes::new(0x04));
         let pi = Accessor::new(abar.into(), Bytes::new(0x0c));
         let bohc = Accessor::new(abar.into(), Bytes::new(0x28));
 
-        Self { ghc, pi, bohc }
+        Self { cap, ghc, pi, bohc }
     }
+}
+
+bitfield! {
+    #[repr(transparent)]
+    pub struct HbaCapability(u32);
+    impl Debug;
+    pub num_of_command_slots, _: 12, 8;
 }
 
 bitfield! {
