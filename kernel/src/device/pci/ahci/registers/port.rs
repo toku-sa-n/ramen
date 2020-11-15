@@ -12,6 +12,7 @@ pub struct Registers {
     pub px_clb: Accessor<PortxCommandListBaseAddress>,
     pub px_fb: Accessor<PortxFisBaseAddress>,
     pub px_cmd: Accessor<PortxCommandAndStatus>,
+    pub px_serr: Accessor<PortxSerialAtaError>,
 }
 impl Registers {
     pub fn new(abar: AchiBaseAddr, port_index: usize, generic: &Generic) -> Option<Self> {
@@ -32,11 +33,13 @@ impl Registers {
         let px_clb = Accessor::new(base_addr, Bytes::new(0x00));
         let px_fb = Accessor::new(base_addr, Bytes::new(0x08));
         let px_cmd = Accessor::new(base_addr, Bytes::new(0x18));
+        let px_serr = Accessor::new(base_addr, Bytes::new(0x30));
 
         Self {
             px_clb,
             px_fb,
             px_cmd,
+            px_serr,
         }
     }
 
@@ -54,6 +57,9 @@ bitfield! {
     pub fis_receive_running, _: 14;
     pub command_list_running, _: 15;
 }
+
+#[repr(transparent)]
+pub struct PortxSerialAtaError(pub u32);
 
 #[repr(transparent)]
 pub struct PortxCommandListBaseAddress(u64);

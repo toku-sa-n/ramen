@@ -29,6 +29,12 @@ impl Collection {
         }
     }
 
+    pub fn clear_error_bits(&mut self) {
+        for port in self.iter_mut() {
+            port.clear_error_bits();
+        }
+    }
+
     pub fn register_command_lists_and_fis(&mut self) {
         for port in self.iter_mut() {
             port.register_command_list_and_received_fis();
@@ -109,5 +115,13 @@ impl Port {
         let addr = self.received_fis.phys_addr();
 
         port_rg.px_fb.update(|b| b.set(addr));
+    }
+
+    fn clear_error_bits(&mut self) {
+        // Refer to P.31 and P.104 of Serial ATA AHCI 1.3.1 Specification
+        const BIT_MASK: u32 = 0x07ff_0f03;
+        let registers = &mut self.registers.borrow_mut();
+        let port_rg = registers.port_regs[self.index].as_mut().unwrap();
+        port_rg.px_serr.update(|serr| serr.0 = BIT_MASK);
     }
 }
