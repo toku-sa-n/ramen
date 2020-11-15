@@ -1,12 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod registers;
-
 use {
-    crate::device::pci::{self, config::bar},
+    super::{registers::Registers, AchiBaseAddr},
     alloc::vec::Vec,
-    registers::Registers,
-    x86_64::PhysAddr,
 };
 
 pub struct Ahc {
@@ -84,25 +80,5 @@ impl Ahc {
     fn fetch_registers() -> Option<Registers> {
         let abar = AchiBaseAddr::new()?;
         Some(Registers::new(abar))
-    }
-}
-
-#[derive(Copy, Clone)]
-pub struct AchiBaseAddr(PhysAddr);
-impl AchiBaseAddr {
-    fn new() -> Option<Self> {
-        for device in pci::iter_devices() {
-            if device.is_ahci() {
-                let addr = device.base_address(bar::Index::new(5));
-                return Some(Self(addr));
-            }
-        }
-
-        None
-    }
-}
-impl From<AchiBaseAddr> for PhysAddr {
-    fn from(abar: AchiBaseAddr) -> Self {
-        abar.0
     }
 }
