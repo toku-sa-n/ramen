@@ -30,17 +30,12 @@ impl Registers {
     fn fetch(abar: AchiBaseAddr, port_index: usize) -> Self {
         let base_addr = Self::base_addr_to_registers(abar, port_index);
 
-        let px_clb = Accessor::new(base_addr, Bytes::new(0x00));
-        let px_fb = Accessor::new(base_addr, Bytes::new(0x08));
-        let px_cmd = Accessor::new(base_addr, Bytes::new(0x18));
-        let px_serr = Accessor::new(base_addr, Bytes::new(0x30));
+        let clb = Accessor::new(base_addr, Bytes::new(0x00));
+        let fb = Accessor::new(base_addr, Bytes::new(0x08));
+        let cmd = Accessor::new(base_addr, Bytes::new(0x18));
+        let serr = Accessor::new(base_addr, Bytes::new(0x30));
 
-        Self {
-            clb: px_clb,
-            fb: px_fb,
-            cmd: px_cmd,
-            serr: px_serr,
-        }
+        Self { clb, fb, cmd, serr }
     }
 
     fn base_addr_to_registers(abar: AchiBaseAddr, port_index: usize) -> PhysAddr {
