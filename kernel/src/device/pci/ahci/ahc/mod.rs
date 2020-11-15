@@ -4,6 +4,7 @@ mod registers;
 
 use {
     crate::device::pci::{self, config::bar},
+    alloc::vec::Vec,
     registers::Registers,
     x86_64::PhysAddr,
 };
@@ -21,6 +22,11 @@ impl Ahc {
         self.indicate_system_software_is_ahci_aware();
     }
 
+    pub fn print_available_ports(&self) {
+        let availables: Vec<_> = (0..32).map(|x| self.port_available(x)).collect();
+        info!("Available ports: {:?}", availables);
+    }
+
     pub fn get_ownership_from_bios(&mut self) {
         self.request_ownership_to_bios();
         self.wait_until_ownership_is_moved();
@@ -29,6 +35,12 @@ impl Ahc {
     fn indicate_system_software_is_ahci_aware(&mut self) {
         let ghc = &mut self.registers.generic.ghc;
         ghc.update(|ghc| ghc.set_ahci_enable(true));
+    }
+
+    fn port_available(&self, port_index: usize) -> bool {
+        assert!(port_index < 32);
+        let pi = &self.registers.generic.pi;
+        pi.read().0 & (1 << port_index) != 0
     }
 
     fn request_ownership_to_bios(&mut self) {

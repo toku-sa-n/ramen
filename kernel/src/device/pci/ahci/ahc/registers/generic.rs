@@ -36,4 +36,4 @@ bitfield! {
 
 #[repr(transparent)]
 #[derive(Debug)]
-pub struct PortsImplemented(u32);
+pub struct PortsImplemented(pub u32);
