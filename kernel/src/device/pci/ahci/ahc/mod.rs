@@ -17,9 +17,18 @@ impl Ahc {
         Some(Self { registers })
     }
 
+    pub fn place_into_minimally_initialized_state(&mut self) {
+        self.indicate_system_software_is_ahci_aware();
+    }
+
     pub fn get_ownership_from_bios(&mut self) {
         self.request_ownership_to_bios();
         self.wait_until_ownership_is_moved();
+    }
+
+    fn indicate_system_software_is_ahci_aware(&mut self) {
+        let ghc = &mut self.registers.generic.ghc;
+        ghc.update(|ghc| ghc.set_ahci_enable(true));
     }
 
     fn request_ownership_to_bios(&mut self) {
@@ -38,6 +47,7 @@ impl Ahc {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct AchiBaseAddr(PhysAddr);
 impl AchiBaseAddr {
     fn new() -> Option<Self> {
