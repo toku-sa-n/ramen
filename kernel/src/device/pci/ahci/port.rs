@@ -7,8 +7,8 @@ use {
     core::convert::TryInto,
 };
 
-pub struct PortCollection(Vec<Port>);
-impl PortCollection {
+pub struct Collection(Vec<Port>);
+impl Collection {
     const MAX_PORTS: usize = 32;
 
     pub fn new(registers: Rc<RefCell<Registers>>) -> Self {

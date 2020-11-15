@@ -9,7 +9,6 @@ use {
     ahc::Ahc,
     alloc::rc::Rc,
     core::cell::RefCell,
-    port::PortCollection,
     registers::Registers,
     x86_64::PhysAddr,
 };
@@ -24,10 +23,10 @@ pub async fn task() {
     ahc.get_ownership_from_bios();
 }
 
-fn init() -> Option<(Ahc, PortCollection)> {
+fn init() -> Option<(Ahc, port::Collection)> {
     let registers = Rc::new(RefCell::new(fetch_registers()?));
     let ahc = Ahc::new(registers.clone());
-    let port_collection = PortCollection::new(registers);
+    let port_collection = port::Collection::new(registers);
 
     Some((ahc, port_collection))
 }
@@ -37,7 +36,7 @@ fn fetch_registers() -> Option<Registers> {
     Some(Registers::new(abar.into()))
 }
 
-fn place_into_minimally_initialized_state(ahc: &mut Ahc, ports: &mut PortCollection) {
+fn place_into_minimally_initialized_state(ahc: &mut Ahc, ports: &mut port::Collection) {
     ahc.indicate_system_software_is_ahci_aware();
     ports.idle_all_ports();
 }
