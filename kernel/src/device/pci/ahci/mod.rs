@@ -19,7 +19,6 @@ pub async fn task() {
         None => return,
     };
 
-    ahc.get_ownership_from_bios();
     place_into_minimally_initialized_state(&mut ahc, &mut ports);
     ports.start();
 }
@@ -38,8 +37,7 @@ fn fetch_registers() -> Option<Registers> {
 }
 
 fn place_into_minimally_initialized_state(ahc: &mut Ahc, ports: &mut port::Collection) {
-    ahc.reset();
-    ahc.indicate_system_software_is_ahci_aware();
+    ahc.init();
     ports.init();
 }
 
