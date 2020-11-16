@@ -16,7 +16,7 @@ const MAX_PORTS: usize = 32;
 
 pub fn spawn_tasks(
     registers: &Rc<RefCell<Registers>>,
-    task_collection: Rc<RefCell<task::Collection>>,
+    task_collection: &Rc<RefCell<task::Collection>>,
 ) {
     (0..MAX_PORTS)
         .filter_map(|i| Port::new(registers.clone(), i))

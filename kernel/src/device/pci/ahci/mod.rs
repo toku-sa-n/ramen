@@ -23,7 +23,7 @@ pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
     };
 
     ahc.init();
-    port::spawn_tasks(&registers, task_collection);
+    port::spawn_tasks(&registers, &task_collection);
 }
 
 fn init() -> Option<(Rc<RefCell<Registers>>, Ahc)> {
