@@ -21,6 +21,7 @@ pub async fn task() {
 
     place_into_minimally_initialized_state(&mut ahc, &mut ports);
     ahc.get_ownership_from_bios();
+    ports.start();
 }
 
 fn init() -> Option<(Ahc, port::Collection)> {
