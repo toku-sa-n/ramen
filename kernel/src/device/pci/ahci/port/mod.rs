@@ -5,51 +5,32 @@ mod received_fis;
 
 use {
     super::registers::{port, Registers},
-    alloc::{rc::Rc, vec::Vec},
+    crate::multitask::task::{self, Task},
+    alloc::rc::Rc,
     command_list::CommandList,
     core::{cell::RefCell, convert::TryInto},
     received_fis::ReceivedFis,
 };
 
-pub struct Collection(Vec<Port>);
-impl Collection {
-    const MAX_PORTS: usize = 32;
+const MAX_PORTS: usize = 32;
 
-    pub fn new(registers: &Rc<RefCell<Registers>>) -> Self {
-        Self(
-            (0..Self::MAX_PORTS)
-                .filter_map(|i| Port::new(registers.clone(), i))
-                .collect(),
-        )
-    }
+pub fn spawn_tasks(
+    registers: &Rc<RefCell<Registers>>,
+    task_collection: &Rc<RefCell<task::Collection>>,
+) {
+    (0..MAX_PORTS)
+        .filter_map(|i| Port::new(registers.clone(), i))
+        .for_each(|port| {
+            task_collection
+                .borrow_mut()
+                .add_task_as_woken(Task::new(task(port)))
+        })
+}
 
-    pub fn idle_all_ports(&mut self) {
-        for port in self.iter_mut() {
-            port.idle();
-        }
-    }
-
-    pub fn clear_error_bits(&mut self) {
-        for port in self.iter_mut() {
-            port.clear_error_bits();
-        }
-    }
-
-    pub fn register_command_lists_and_fis(&mut self) {
-        for port in self.iter_mut() {
-            port.register_command_list_and_received_fis();
-        }
-    }
-
-    pub fn start(&mut self) {
-        for port in self.iter_mut() {
-            port.start();
-        }
-    }
-
-    fn iter_mut(&mut self) -> impl Iterator<Item = &mut Port> {
-        self.0.iter_mut()
-    }
+async fn task(mut port: Port) {
+    info!("This is a task of port {}", port.index);
+    port.init();
+    port.start();
 }
 
 pub struct Port {
@@ -98,6 +79,12 @@ impl Port {
             command_list,
             index,
         }
+    }
+
+    fn init(&mut self) {
+        self.idle();
+        self.register_command_list_and_received_fis();
+        self.clear_error_bits();
     }
 
     fn register_command_list_and_received_fis(&mut self) {

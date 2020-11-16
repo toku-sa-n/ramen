@@ -5,7 +5,10 @@ mod port;
 mod registers;
 
 use {
-    crate::device::pci::{self, config::bar},
+    crate::{
+        device::pci::{self, config::bar},
+        multitask::task,
+    },
     ahc::Ahc,
     alloc::rc::Rc,
     core::cell::RefCell,
@@ -13,36 +16,26 @@ use {
     x86_64::PhysAddr,
 };
 
-pub async fn task() {
-    let (mut ahc, mut ports) = match init() {
+pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
+    let (registers, mut ahc) = match init() {
         Some(x) => x,
         None => return,
     };
 
-    ahc.get_ownership_from_bios();
-    place_into_minimally_initialized_state(&mut ahc, &mut ports);
-    ports.start();
+    ahc.init();
+    port::spawn_tasks(&registers, &task_collection);
 }
 
-fn init() -> Option<(Ahc, port::Collection)> {
+fn init() -> Option<(Rc<RefCell<Registers>>, Ahc)> {
     let registers = Rc::new(RefCell::new(fetch_registers()?));
     let ahc = Ahc::new(registers.clone());
-    let port_collection = port::Collection::new(&registers);
 
-    Some((ahc, port_collection))
+    Some((registers, ahc))
 }
 
 fn fetch_registers() -> Option<Registers> {
     let abar = AchiBaseAddr::new()?;
     Some(Registers::new(abar))
-}
-
-fn place_into_minimally_initialized_state(ahc: &mut Ahc, ports: &mut port::Collection) {
-    ahc.reset();
-    ahc.indicate_system_software_is_ahci_aware();
-    ports.idle_all_ports();
-    ports.register_command_lists_and_fis();
-    ports.clear_error_bits();
 }
 
 #[derive(Copy, Clone)]

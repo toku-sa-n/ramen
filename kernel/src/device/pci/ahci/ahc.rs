@@ -10,6 +10,12 @@ impl Ahc {
         Self { registers }
     }
 
+    pub fn init(&mut self) {
+        self.get_ownership_from_bios();
+        self.reset();
+        self.indicate_system_software_is_ahci_aware();
+    }
+
     pub fn indicate_system_software_is_ahci_aware(&mut self) {
         let ghc = &mut self.registers.borrow_mut().generic.ghc;
         ghc.update(|ghc| ghc.set_ahci_enable(true));
