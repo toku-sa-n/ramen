@@ -41,6 +41,12 @@ impl Collection {
         }
     }
 
+    pub fn start(&mut self) {
+        for port in self.iter_mut() {
+            port.start();
+        }
+    }
+
     fn iter_mut(&mut self) -> impl Iterator<Item = &mut Port> {
         self.0.iter_mut()
     }
@@ -53,7 +59,7 @@ pub struct Port {
     index: usize,
 }
 impl Port {
-    pub fn idle(&mut self) {
+    fn idle(&mut self) {
         self.edit_port_rg(|rg| {
             rg.cmd.update(|cmd| {
                 cmd.set_start_bit(false);
@@ -119,6 +125,35 @@ impl Port {
         // Refer to P.31 and P.104 of Serial ATA AHCI 1.3.1 Specification
         const BIT_MASK: u32 = 0x07ff_0f03;
         self.edit_port_rg(|rg| rg.serr.update(|serr| serr.0 = BIT_MASK));
+    }
+
+    fn start(&mut self) {
+        if self.ready_to_start() {
+            self.start_processing();
+        }
+    }
+
+    fn ready_to_start(&self) -> bool {
+        !self.command_list_is_running() && self.fis_receive_enabled() && self.device_is_present()
+    }
+
+    fn command_list_is_running(&self) -> bool {
+        self.parse_port_rg(|r| r.cmd.read().command_list_running())
+    }
+
+    fn fis_receive_enabled(&self) -> bool {
+        self.parse_port_rg(|r| r.cmd.read().fis_receive_enable())
+    }
+
+    fn device_is_present(&self) -> bool {
+        self.parse_port_rg(|r| {
+            r.ssts.read().device_detection() == 3
+                || [2, 6, 8].contains(&r.ssts.read().interface_power_management())
+        })
+    }
+
+    fn start_processing(&mut self) {
+        self.edit_port_rg(|r| r.cmd.update(|r| r.set_start_bit(true)))
     }
 
     fn parse_port_rg<T, U>(&self, f: T) -> U

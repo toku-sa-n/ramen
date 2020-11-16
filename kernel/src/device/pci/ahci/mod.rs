@@ -19,8 +19,9 @@ pub async fn task() {
         None => return,
     };
 
-    place_into_minimally_initialized_state(&mut ahc, &mut ports);
     ahc.get_ownership_from_bios();
+    place_into_minimally_initialized_state(&mut ahc, &mut ports);
+    ports.start();
 }
 
 fn init() -> Option<(Ahc, port::Collection)> {

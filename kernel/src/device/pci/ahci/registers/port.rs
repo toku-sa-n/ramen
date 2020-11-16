@@ -12,6 +12,8 @@ pub struct Registers {
     pub clb: Accessor<PortxCommandListBaseAddress>,
     pub fb: Accessor<PortxFisBaseAddress>,
     pub cmd: Accessor<PortxCommandAndStatus>,
+    pub tfd: Accessor<PortxTaskFileData>,
+    pub ssts: Accessor<PortxSerialAtaStatus>,
     pub serr: Accessor<PortxSerialAtaError>,
 }
 impl Registers {
@@ -30,16 +32,20 @@ impl Registers {
     fn fetch(abar: AchiBaseAddr, port_index: usize) -> Self {
         let base_addr = Self::base_addr_to_registers(abar, port_index);
 
-        let px_clb = Accessor::new(base_addr, Bytes::new(0x00));
-        let px_fb = Accessor::new(base_addr, Bytes::new(0x08));
-        let px_cmd = Accessor::new(base_addr, Bytes::new(0x18));
-        let px_serr = Accessor::new(base_addr, Bytes::new(0x30));
+        let clb = Accessor::new(base_addr, Bytes::new(0x00));
+        let fb = Accessor::new(base_addr, Bytes::new(0x08));
+        let cmd = Accessor::new(base_addr, Bytes::new(0x18));
+        let tfd = Accessor::new(base_addr, Bytes::new(0x20));
+        let ssts = Accessor::new(base_addr, Bytes::new(0x28));
+        let serr = Accessor::new(base_addr, Bytes::new(0x30));
 
         Self {
-            clb: px_clb,
-            fb: px_fb,
-            cmd: px_cmd,
-            serr: px_serr,
+            clb,
+            fb,
+            cmd,
+            tfd,
+            ssts,
+            serr,
         }
     }
 
@@ -68,6 +74,22 @@ impl PortxCommandListBaseAddress {
         assert!(addr.as_u64().trailing_zeros() >= 10);
         self.0 = addr.as_u64();
     }
+}
+
+bitfield! {
+    #[repr(transparent)]
+    pub struct PortxTaskFileData(u32);
+    impl Debug;
+    pub busy, _: 14;
+    pub data_transfer_is_required, _: 10;
+}
+
+bitfield! {
+    #[repr(transparent)]
+    pub struct PortxSerialAtaStatus(u32);
+    impl Debug;
+    pub device_detection, _: 3, 0;
+    pub interface_power_management, _: 11, 8;
 }
 
 #[repr(transparent)]
