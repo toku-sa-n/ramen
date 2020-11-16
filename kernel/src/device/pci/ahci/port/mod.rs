@@ -41,6 +41,12 @@ impl Collection {
         }
     }
 
+    pub fn init(&mut self) {
+        for port in self.iter_mut() {
+            port.init();
+        }
+    }
+
     pub fn start(&mut self) {
         for port in self.iter_mut() {
             port.start();
@@ -98,6 +104,12 @@ impl Port {
             command_list,
             index,
         }
+    }
+
+    fn init(&mut self) {
+        self.idle();
+        self.register_command_list_and_received_fis();
+        self.clear_error_bits();
     }
 
     fn register_command_list_and_received_fis(&mut self) {
