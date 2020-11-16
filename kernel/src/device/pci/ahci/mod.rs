@@ -19,7 +19,8 @@ pub async fn task() {
         None => return,
     };
 
-    place_into_minimally_initialized_state(&mut ahc, &mut ports);
+    ahc.init();
+    ports.init();
     ports.start();
 }
 
@@ -34,11 +35,6 @@ fn init() -> Option<(Ahc, port::Collection)> {
 fn fetch_registers() -> Option<Registers> {
     let abar = AchiBaseAddr::new()?;
     Some(Registers::new(abar))
-}
-
-fn place_into_minimally_initialized_state(ahc: &mut Ahc, ports: &mut port::Collection) {
-    ahc.init();
-    ports.init();
 }
 
 #[derive(Copy, Clone)]
