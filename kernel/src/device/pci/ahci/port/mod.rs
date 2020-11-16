@@ -117,8 +117,17 @@ impl Port {
     }
 
     fn register_received_fis(&mut self) {
+        self.register_fis_addr();
+        self.enable_receiving_fis();
+    }
+
+    fn register_fis_addr(&mut self) {
         let addr = self.received_fis.phys_addr();
         self.edit_port_rg(|rg| rg.fb.update(|b| b.set(addr)));
+    }
+
+    fn enable_receiving_fis(&mut self) {
+        self.edit_port_rg(|r| r.cmd.update(|r| r.set_fis_receive_enable(true)));
     }
 
     fn clear_error_bits(&mut self) {
@@ -130,6 +139,7 @@ impl Port {
     fn start(&mut self) {
         if self.ready_to_start() {
             self.start_processing();
+            info!("Port {} started.", self.index);
         }
     }
 
