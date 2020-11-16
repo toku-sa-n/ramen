@@ -16,6 +16,8 @@ pub struct Registers {
     pub sig: Accessor<PortxSignature>,
     pub ssts: Accessor<PortxSerialAtaStatus>,
     pub serr: Accessor<PortxSerialAtaError>,
+    pub sact: Accessor<PortxSerialAtaActive>,
+    pub ci: Accessor<PortxCommandIssue>,
 }
 impl Registers {
     pub fn new(abar: AchiBaseAddr, port_index: usize, generic: &Generic) -> Option<Self> {
@@ -40,6 +42,8 @@ impl Registers {
         let sig = Accessor::new(base_addr, Bytes::new(0x24));
         let ssts = Accessor::new(base_addr, Bytes::new(0x28));
         let serr = Accessor::new(base_addr, Bytes::new(0x30));
+        let sact = Accessor::new(base_addr, Bytes::new(0x34));
+        let ci = Accessor::new(base_addr, Bytes::new(0x38));
 
         Self {
             clb,
@@ -49,6 +53,8 @@ impl Registers {
             sig,
             ssts,
             serr,
+            sact,
+            ci,
         }
     }
 
@@ -109,5 +115,21 @@ impl PortxFisBaseAddress {
     pub fn set(&mut self, addr: PhysAddr) {
         assert!(addr.as_u64().trailing_zeros() >= 8);
         self.0 = addr.as_u64();
+    }
+}
+
+#[repr(transparent)]
+pub struct PortxSerialAtaActive(u32);
+impl PortxSerialAtaActive {
+    pub fn get(&self) -> u32 {
+        self.0
+    }
+}
+
+#[repr(transparent)]
+pub struct PortxCommandIssue(u32);
+impl PortxCommandIssue {
+    pub fn get(&self) -> u32 {
+        self.0
     }
 }
