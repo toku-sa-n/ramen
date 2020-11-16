@@ -23,24 +23,6 @@ impl Collection {
         )
     }
 
-    pub fn idle_all_ports(&mut self) {
-        for port in self.iter_mut() {
-            port.idle();
-        }
-    }
-
-    pub fn clear_error_bits(&mut self) {
-        for port in self.iter_mut() {
-            port.clear_error_bits();
-        }
-    }
-
-    pub fn register_command_lists_and_fis(&mut self) {
-        for port in self.iter_mut() {
-            port.register_command_list_and_received_fis();
-        }
-    }
-
     pub fn init(&mut self) {
         for port in self.iter_mut() {
             port.init();
