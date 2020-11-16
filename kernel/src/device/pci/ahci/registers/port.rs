@@ -16,6 +16,8 @@ pub struct Registers {
     pub sig: Accessor<PortxSignature>,
     pub ssts: Accessor<PortxSerialAtaStatus>,
     pub serr: Accessor<PortxSerialAtaError>,
+    pub sact: Accessor<PortxSerialAtaActive>,
+    pub ci: Accessor<PortxCommandIssue>,
 }
 impl Registers {
     pub fn new(abar: AchiBaseAddr, port_index: usize, generic: &Generic) -> Option<Self> {
@@ -33,13 +35,21 @@ impl Registers {
     fn fetch(abar: AchiBaseAddr, port_index: usize) -> Self {
         let base_addr = Self::base_addr_to_registers(abar, port_index);
 
-        let clb = Accessor::new(base_addr, Bytes::new(0x00));
-        let fb = Accessor::new(base_addr, Bytes::new(0x08));
-        let cmd = Accessor::new(base_addr, Bytes::new(0x18));
-        let tfd = Accessor::new(base_addr, Bytes::new(0x20));
-        let sig = Accessor::new(base_addr, Bytes::new(0x24));
-        let ssts = Accessor::new(base_addr, Bytes::new(0x28));
-        let serr = Accessor::new(base_addr, Bytes::new(0x30));
+        macro_rules! new_accessor {
+            ($offset:expr) => {
+                Accessor::new(base_addr, Bytes::new($offset))
+            };
+        }
+
+        let clb = new_accessor!(0x00);
+        let fb = new_accessor!(0x08);
+        let cmd = new_accessor!(0x18);
+        let tfd = new_accessor!(0x20);
+        let sig = new_accessor!(0x24);
+        let ssts = new_accessor!(0x28);
+        let serr = new_accessor!(0x30);
+        let sact = new_accessor!(0x34);
+        let ci = new_accessor!(0x38);
 
         Self {
             clb,
@@ -49,6 +59,8 @@ impl Registers {
             sig,
             ssts,
             serr,
+            sact,
+            ci,
         }
     }
 
@@ -109,5 +121,21 @@ impl PortxFisBaseAddress {
     pub fn set(&mut self, addr: PhysAddr) {
         assert!(addr.as_u64().trailing_zeros() >= 8);
         self.0 = addr.as_u64();
+    }
+}
+
+#[repr(transparent)]
+pub struct PortxSerialAtaActive(u32);
+impl PortxSerialAtaActive {
+    pub fn get(&self) -> u32 {
+        self.0
+    }
+}
+
+#[repr(transparent)]
+pub struct PortxCommandIssue(u32);
+impl PortxCommandIssue {
+    pub fn get(&self) -> u32 {
+        self.0
     }
 }
