@@ -5,7 +5,10 @@ mod port;
 mod registers;
 
 use {
-    crate::device::pci::{self, config::bar},
+    crate::{
+        device::pci::{self, config::bar},
+        multitask::task,
+    },
     ahc::Ahc,
     alloc::rc::Rc,
     core::cell::RefCell,
@@ -13,23 +16,21 @@ use {
     x86_64::PhysAddr,
 };
 
-pub async fn task() {
-    let (mut ahc, mut ports) = match init() {
+pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
+    let (registers, mut ahc) = match init() {
         Some(x) => x,
         None => return,
     };
 
     ahc.init();
-    ports.init();
-    ports.start();
+    port::spawn_tasks(&registers, task_collection);
 }
 
-fn init() -> Option<(Ahc, port::Collection)> {
+fn init() -> Option<(Rc<RefCell<Registers>>, Ahc)> {
     let registers = Rc::new(RefCell::new(fetch_registers()?));
     let ahc = Ahc::new(registers.clone());
-    let port_collection = port::Collection::new(&registers);
 
-    Some((ahc, port_collection))
+    Some((registers, ahc))
 }
 
 fn fetch_registers() -> Option<Registers> {
