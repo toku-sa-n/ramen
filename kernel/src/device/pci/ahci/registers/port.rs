@@ -13,6 +13,7 @@ pub struct Registers {
     pub fb: Accessor<PortxFisBaseAddress>,
     pub cmd: Accessor<PortxCommandAndStatus>,
     pub tfd: Accessor<PortxTaskFileData>,
+    pub sig: Accessor<PortxSignature>,
     pub ssts: Accessor<PortxSerialAtaStatus>,
     pub serr: Accessor<PortxSerialAtaError>,
 }
@@ -36,6 +37,7 @@ impl Registers {
         let fb = Accessor::new(base_addr, Bytes::new(0x08));
         let cmd = Accessor::new(base_addr, Bytes::new(0x18));
         let tfd = Accessor::new(base_addr, Bytes::new(0x20));
+        let sig = Accessor::new(base_addr, Bytes::new(0x24));
         let ssts = Accessor::new(base_addr, Bytes::new(0x28));
         let serr = Accessor::new(base_addr, Bytes::new(0x30));
 
@@ -44,6 +46,7 @@ impl Registers {
             fb,
             cmd,
             tfd,
+            sig,
             ssts,
             serr,
         }
@@ -82,6 +85,14 @@ bitfield! {
     impl Debug;
     pub busy, _: 14;
     pub data_transfer_is_required, _: 10;
+}
+
+#[repr(transparent)]
+pub struct PortxSignature(u32);
+impl PortxSignature {
+    pub fn get(&self) -> u32 {
+        self.0
+    }
 }
 
 bitfield! {

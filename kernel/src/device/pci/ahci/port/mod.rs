@@ -139,7 +139,11 @@ impl Port {
     fn start(&mut self) {
         if self.ready_to_start() {
             self.start_processing();
-            info!("Port {} started.", self.index);
+            info!(
+                "Port {} signature: {:X}.",
+                self.index,
+                self.parse_port_rg(|r| r.sig.read().get())
+            );
         }
     }
 
