@@ -61,8 +61,9 @@ endif
 run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE) $(FAT_IMG)
 	$(VIEWER) $(VIEWERFLAGS) -no-shutdown -monitor stdio
 
-test_general:
+test_general:$(IMG_FILE)
 	make $(IMG_FILE) RELEASE_FLAGS=$(RELEASE_FLAGS) TEST_FLAG=--features=qemu_test -B
+	make $(FAT_IMG)
 	$(VIEWER) $(VIEWERFLAGS) -nographic; if [[ $$? -eq 33 ]];\
 		then echo "Booting test succeed! ($(TEST_MODE) mode)"; exit 0;\
 		else echo "Booting test failed ($(TEST_MODE) mode)"; exit 1;fi
