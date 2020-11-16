@@ -31,6 +31,11 @@ async fn task(mut port: Port) {
     info!("This is a task of port {}", port.index);
     port.init();
     port.start();
+
+    info!(
+        "Available command slot: {:?}",
+        port.get_available_command_slot()
+    );
 }
 
 pub struct Port {
@@ -155,6 +160,26 @@ impl Port {
 
     fn start_processing(&mut self) {
         self.edit_port_rg(|r| r.cmd.update(|r| r.set_start_bit(true)))
+    }
+
+    fn get_available_command_slot(&self) -> Option<usize> {
+        for i in 0..self.num_of_command_slots() {
+            if self.slot_available(i) {
+                return Some(i);
+            }
+        }
+
+        None
+    }
+
+    fn num_of_command_slots(&self) -> usize {
+        let cap = &self.registers.borrow().generic.cap.read();
+        cap.num_of_command_slots().try_into().unwrap()
+    }
+
+    fn slot_available(&self, index: usize) -> bool {
+        let bitflag_used_slots = self.parse_port_rg(|r| r.sact.read().get() | r.ci.read().get());
+        bitflag_used_slots & (1 << index) == 0
     }
 
     fn parse_port_rg<T, U>(&self, f: T) -> U

@@ -35,15 +35,21 @@ impl Registers {
     fn fetch(abar: AchiBaseAddr, port_index: usize) -> Self {
         let base_addr = Self::base_addr_to_registers(abar, port_index);
 
-        let clb = Accessor::new(base_addr, Bytes::new(0x00));
-        let fb = Accessor::new(base_addr, Bytes::new(0x08));
-        let cmd = Accessor::new(base_addr, Bytes::new(0x18));
-        let tfd = Accessor::new(base_addr, Bytes::new(0x20));
-        let sig = Accessor::new(base_addr, Bytes::new(0x24));
-        let ssts = Accessor::new(base_addr, Bytes::new(0x28));
-        let serr = Accessor::new(base_addr, Bytes::new(0x30));
-        let sact = Accessor::new(base_addr, Bytes::new(0x34));
-        let ci = Accessor::new(base_addr, Bytes::new(0x38));
+        macro_rules! new_accessor {
+            ($offset:expr) => {
+                Accessor::new(base_addr, Bytes::new($offset))
+            };
+        }
+
+        let clb = new_accessor!(0x00);
+        let fb = new_accessor!(0x08);
+        let cmd = new_accessor!(0x18);
+        let tfd = new_accessor!(0x20);
+        let sig = new_accessor!(0x24);
+        let ssts = new_accessor!(0x28);
+        let serr = new_accessor!(0x30);
+        let sact = new_accessor!(0x34);
+        let ci = new_accessor!(0x38);
 
         Self {
             clb,
