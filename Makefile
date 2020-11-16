@@ -23,6 +23,7 @@ EFI_FILE		:= $(BUILD_DIR)/bootx64.efi
 KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
 LIB_FILE		:= $(BUILD_DIR)/libramen_os.a
 IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
+FAT_IMG			:= $(BUILD_DIR)/fat.img
 
 LD				:= ld
 RUSTCC			:= cargo
@@ -33,7 +34,7 @@ OVMF_CODE		:= OVMF_CODE.fd
 OVMF_VARS		:= OVMF_VARS.fd
 
 # If you change values of `iobase` and `iosize`, don't forget to change the corresponding values in `kernel/src/lib.rs`!
-VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -no-reboot -m 4G -d int -device isa-debug-exit,iobase=0xf4,iosize=0x04 -device qemu-xhci,id=xhci -device usb-tablet,bus=xhci.0 --trace events=trace.event -device ahci
+VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -no-reboot -m 4G -d int -device isa-debug-exit,iobase=0xf4,iosize=0x04 -device qemu-xhci,id=xhci -device usb-tablet,bus=xhci.0 --trace events=trace.event -drive id=disk,file=$(FAT_IMG),if=none,format=raw -device ahci,id=ahci -device ide-drive,drive=disk,bus=ahci.0
 
 # This is a workaround for `compiler_builtins` crate which is supported only for optimized build.
 RELEASE_FLAGS	:= --release
@@ -57,7 +58,7 @@ else
 	sudo umount /mnt
 endif
 
-run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE)
+run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE) $(FAT_IMG)
 	$(VIEWER) $(VIEWERFLAGS) -no-shutdown -monitor stdio
 
 test_general:
@@ -82,6 +83,9 @@ $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 	mmd -i $@ ::/efi/boot
 	mcopy -i $@ $(KERNEL_FILE) ::
 	mcopy -i $@ $(EFI_FILE) ::/efi/boot
+
+$(FAT_IMG):$(IMG_FILE)
+	cp $^ $@
 
 release:
 	make RELEASE_FLAGS=--release -B
