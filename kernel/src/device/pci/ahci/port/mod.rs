@@ -53,7 +53,7 @@ pub struct Port {
     index: usize,
 }
 impl Port {
-    pub fn idle(&mut self) {
+    fn idle(&mut self) {
         self.edit_port_rg(|rg| {
             rg.cmd.update(|cmd| {
                 cmd.set_start_bit(false);
