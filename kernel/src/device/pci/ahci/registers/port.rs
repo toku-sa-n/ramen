@@ -41,26 +41,16 @@ impl Registers {
             };
         }
 
-        let clb = new_accessor!(0x00);
-        let fb = new_accessor!(0x08);
-        let cmd = new_accessor!(0x18);
-        let tfd = new_accessor!(0x20);
-        let sig = new_accessor!(0x24);
-        let ssts = new_accessor!(0x28);
-        let serr = new_accessor!(0x30);
-        let sact = new_accessor!(0x34);
-        let ci = new_accessor!(0x38);
-
         Self {
-            clb,
-            fb,
-            cmd,
-            tfd,
-            sig,
-            ssts,
-            serr,
-            sact,
-            ci,
+            clb: new_accessor!(0x00),
+            fb: new_accessor!(0x08),
+            cmd: new_accessor!(0x18),
+            tfd: new_accessor!(0x20),
+            sig: new_accessor!(0x24),
+            ssts: new_accessor!(0x28),
+            serr: new_accessor!(0x30),
+            sact: new_accessor!(0x34),
+            ci: new_accessor!(0x38),
         }
     }
 
