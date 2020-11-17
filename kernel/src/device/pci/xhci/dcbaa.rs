@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::Registers, crate::mem::allocator::page_box::PageBox, alloc::rc::Rc, core::cell::RefCell,
+    super::Registers,
+    crate::mem::allocator::page_box::PageBox,
+    alloc::rc::Rc,
+    core::{
+        cell::RefCell,
+        ops::{Index, IndexMut},
+    },
     x86_64::PhysAddr,
 };
 
@@ -31,5 +37,16 @@ impl<'a> DeviceContextBaseAddressArray {
 
     fn phys_addr(&self) -> PhysAddr {
         self.arr.phys_addr()
+    }
+}
+impl Index<usize> for DeviceContextBaseAddressArray {
+    type Output = PhysAddr;
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.arr[index]
+    }
+}
+impl IndexMut<usize> for DeviceContextBaseAddressArray {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.arr[index]
     }
 }
