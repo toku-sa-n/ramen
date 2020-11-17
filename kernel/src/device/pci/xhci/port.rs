@@ -4,6 +4,7 @@ use {
     super::{
         command_runner::Runner,
         context::{self, EndpointType},
+        dcbaa::DeviceContextBaseAddressArray,
         register::{hc_operational::PortRegisters, Registers},
         ring::transfer,
     },
@@ -25,34 +26,37 @@ async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
         .enable_device_slot()
         .await
         .unwrap();
-    info!("Slot ID: {}", slot_id);
 
     port.init_input_context();
     port.init_input_slot_context();
     port.init_input_default_control_endpoint0_context();
+    port.register_to_dcbaa(slot_id.into());
 }
 
 pub struct TaskSpawner {
     command_runner: Rc<LocalMutex<Runner>>,
     registers: Rc<RefCell<Registers>>,
     task_collection: Rc<RefCell<task::Collection>>,
+    dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
 }
 impl<'a> TaskSpawner {
     pub fn new(
         command_runner: Rc<LocalMutex<Runner>>,
         registers: Rc<RefCell<Registers>>,
         task_collection: Rc<RefCell<task::Collection>>,
+        dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
     ) -> Self {
         Self {
             command_runner,
             registers,
             task_collection,
+            dcbaa,
         }
     }
 
     pub fn spawn_tasks(&self) {
         for i in 0..self.num_of_ports() {
-            let port = Port::new(self.registers.clone(), i);
+            let port = Port::new(self.registers.clone(), self.dcbaa.clone(), i);
             if port.connected() {
                 self.task_collection
                     .borrow_mut()
@@ -74,6 +78,7 @@ pub struct Port {
     input_slot_context: PageBox<context::Slot>,
     output_device_context: PageBox<context::Device>,
     transfer_ring: transfer::Ring,
+    dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
 }
 impl Port {
     fn reset_if_connected(&mut self) {
@@ -82,13 +87,18 @@ impl Port {
         }
     }
 
-    fn new(registers: Rc<RefCell<Registers>>, index: usize) -> Self {
+    fn new(
+        registers: Rc<RefCell<Registers>>,
+        dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
+        index: usize,
+    ) -> Self {
         Self {
             registers: registers.clone(),
             index,
             input_context: PageBox::new(context::Input::null()),
             input_slot_context: PageBox::new(context::Slot::null()),
             output_device_context: PageBox::new(context::Device::null()),
+            dcbaa,
             transfer_ring: transfer::Ring::new(registers),
         }
     }
@@ -129,6 +139,10 @@ impl Port {
         ep_0.set_dequeue_ptr(self.transfer_ring.phys_addr().as_u64());
         ep_0.set_dequeue_cycle_state(false);
         ep_0.set_error_count(3);
+    }
+
+    fn register_to_dcbaa(&mut self, slot_id: usize) {
+        self.dcbaa.borrow_mut()[slot_id] = self.output_device_context.phys_addr();
     }
 
     fn read_port_rg(&self) -> PortRegisters {

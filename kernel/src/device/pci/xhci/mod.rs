@@ -42,26 +42,33 @@ fn init(
 ) -> (
     Xhc,
     event::Ring,
-    DeviceContextBaseAddressArray,
+    Rc<RefCell<DeviceContextBaseAddressArray>>,
     port::TaskSpawner,
     Rc<RefCell<CommandCompletionReceiver>>,
 ) {
     let mut xhc = Xhc::new(registers.clone());
     let mut event_ring = event::Ring::new(registers.clone(), task_collection.clone());
     let command_ring = Rc::new(RefCell::new(command::Ring::new(registers.clone())));
-    let dcbaa = DeviceContextBaseAddressArray::new(registers.clone());
+    let dcbaa = Rc::new(RefCell::new(DeviceContextBaseAddressArray::new(
+        registers.clone(),
+    )));
     let command_completion_receiver = Rc::new(RefCell::new(CommandCompletionReceiver::new()));
     let command_runner = Rc::new(LocalMutex::new(
         Runner::new(command_ring.clone(), command_completion_receiver.clone()),
         false,
     ));
-    let ports = port::TaskSpawner::new(command_runner, registers.clone(), task_collection);
+    let ports = port::TaskSpawner::new(
+        command_runner,
+        registers.clone(),
+        task_collection,
+        dcbaa.clone(),
+    );
 
     xhc.init();
 
     event_ring.init();
     command_ring.borrow_mut().init();
-    dcbaa.init();
+    dcbaa.borrow_mut().init();
 
     xhc.run();
 
