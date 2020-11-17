@@ -1,17 +1,23 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::Registers, crate::mem::allocator::page_box::PageBox, alloc::rc::Rc, core::cell::RefCell,
+    super::Registers,
+    crate::mem::allocator::page_box::PageBox,
+    alloc::rc::Rc,
+    core::{
+        cell::RefCell,
+        ops::{Index, IndexMut},
+    },
     x86_64::PhysAddr,
 };
 
 pub struct DeviceContextBaseAddressArray {
-    arr: PageBox<[usize]>,
+    arr: PageBox<[PhysAddr]>,
     registers: Rc<RefCell<Registers>>,
 }
 impl<'a> DeviceContextBaseAddressArray {
     pub fn new(registers: Rc<RefCell<Registers>>) -> Self {
-        let arr = PageBox::new_slice(0, Self::num_of_slots(&registers));
+        let arr = PageBox::new_slice(PhysAddr::zero(), Self::num_of_slots(&registers));
         Self { arr, registers }
     }
 
@@ -31,5 +37,16 @@ impl<'a> DeviceContextBaseAddressArray {
 
     fn phys_addr(&self) -> PhysAddr {
         self.arr.phys_addr()
+    }
+}
+impl Index<usize> for DeviceContextBaseAddressArray {
+    type Output = PhysAddr;
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.arr[index]
+    }
+}
+impl IndexMut<usize> for DeviceContextBaseAddressArray {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.arr[index]
     }
 }

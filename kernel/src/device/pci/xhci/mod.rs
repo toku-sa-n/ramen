@@ -23,10 +23,10 @@ use {
 
 pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
     let registers = Rc::new(RefCell::new(iter_devices().next().unwrap()));
-    let (_xhc, event_ring, _dcbaa, port_task_spawner, command_completion_receiver) =
-        init(&registers, task_collection.clone());
+    let (event_ring, dcbaa, runner, command_completion_receiver) =
+        init(&registers, &task_collection);
 
-    port_task_spawner.spawn_tasks();
+    port::spawn_tasks(&runner, &dcbaa, &registers, &task_collection);
 
     task_collection
         .borrow_mut()
@@ -36,36 +36,43 @@ pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
         )));
 }
 
+// FIXME
+#[allow(clippy::type_complexity)]
 fn init(
     registers: &Rc<RefCell<Registers>>,
-    task_collection: Rc<RefCell<task::Collection>>,
+    task_collection: &Rc<RefCell<task::Collection>>,
 ) -> (
-    Xhc,
     event::Ring,
-    DeviceContextBaseAddressArray,
-    port::TaskSpawner,
+    Rc<RefCell<DeviceContextBaseAddressArray>>,
+    Rc<LocalMutex<Runner>>,
     Rc<RefCell<CommandCompletionReceiver>>,
 ) {
     let mut xhc = Xhc::new(registers.clone());
     let mut event_ring = event::Ring::new(registers.clone(), task_collection.clone());
     let command_ring = Rc::new(RefCell::new(command::Ring::new(registers.clone())));
-    let dcbaa = DeviceContextBaseAddressArray::new(registers.clone());
+    let dcbaa = Rc::new(RefCell::new(DeviceContextBaseAddressArray::new(
+        registers.clone(),
+    )));
     let command_completion_receiver = Rc::new(RefCell::new(CommandCompletionReceiver::new()));
     let command_runner = Rc::new(LocalMutex::new(
         Runner::new(command_ring.clone(), command_completion_receiver.clone()),
         false,
     ));
-    let ports = port::TaskSpawner::new(command_runner, registers.clone(), task_collection);
 
     xhc.init();
 
     event_ring.init();
     command_ring.borrow_mut().init();
-    dcbaa.init();
+    dcbaa.borrow_mut().init();
 
     xhc.run();
 
-    (xhc, event_ring, dcbaa, ports, command_completion_receiver)
+    (
+        event_ring,
+        dcbaa,
+        command_runner,
+        command_completion_receiver,
+    )
 }
 
 pub fn iter_devices() -> impl Iterator<Item = Registers> {
