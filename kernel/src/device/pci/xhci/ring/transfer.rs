@@ -4,6 +4,7 @@ use {
     super::{super::Registers, raw, CycleBit},
     alloc::rc::Rc,
     core::cell::RefCell,
+    x86_64::PhysAddr,
 };
 
 const SIZE_OF_RING: usize = 256;
@@ -22,5 +23,9 @@ impl Ring {
             cycle_bit: CycleBit::new(true),
             registers,
         }
+    }
+
+    pub fn phys_addr(&self) -> PhysAddr {
+        self.raw.phys_addr()
     }
 }

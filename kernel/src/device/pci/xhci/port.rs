@@ -3,7 +3,7 @@
 use {
     super::{
         command_runner::Runner,
-        context,
+        context::{self, EndpointType},
         register::{hc_operational::PortRegisters, Registers},
         ring::transfer,
     },
@@ -29,6 +29,7 @@ async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
 
     port.init_input_context();
     port.init_input_slot_context();
+    port.init_input_default_control_endpoint0_context();
 }
 
 pub struct TaskSpawner {
@@ -112,11 +113,20 @@ impl Port {
     }
 
     fn init_input_context(&mut self) {
-        self.input_context.init();
+        self.input_context.input_control.set_aflag(0);
+        self.input_context.input_control.set_aflag(1);
     }
 
     fn init_input_slot_context(&mut self) {
         self.input_slot_context.set_context_entries(1);
+    }
+
+    fn init_input_default_control_endpoint0_context(&mut self) {
+        let ep_0 = &mut self.input_context.device.ep_0.0;
+        ep_0.set_endpoint_type(EndpointType::Control);
+        ep_0.set_dequeue_ptr(self.transfer_ring.phys_addr().as_u64());
+        ep_0.set_dequeue_cycle_state(false);
+        ep_0.set_error_count(3);
     }
 
     fn read_port_rg(&self) -> PortRegisters {

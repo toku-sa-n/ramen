@@ -6,19 +6,15 @@ use {
 };
 
 pub struct Input {
-    input_control_context: InputControl,
-    endpoint_context: [Endpoint; 32],
+    pub input_control: InputControl,
+    pub device: Device,
 }
 impl Input {
     pub fn null() -> Self {
         Self {
-            input_control_context: InputControl::null(),
-            endpoint_context: [Endpoint::null(); 32],
+            input_control: InputControl::null(),
+            device: Device::null(),
         }
-    }
-
-    pub fn init(&mut self) {
-        self.input_control_context.init();
     }
 }
 
@@ -29,24 +25,72 @@ impl InputControl {
         Self([0; 8])
     }
 
-    pub fn init(&mut self) {
-        self.set_aflag(0);
-        self.set_aflag(1);
-    }
-
-    fn set_aflag(&mut self, index: usize) {
+    pub fn set_aflag(&mut self, index: usize) {
         assert!(index < 32);
         self.0[1] |= 1 << index;
     }
 }
 
+pub struct Device {
+    slot: Slot,
+    pub ep_0: Endpoint,
+    ep_inout: [EndpointOutIn; 15],
+}
+impl Device {
+    fn null() -> Self {
+        Self {
+            slot: Slot::null(),
+            ep_0: Endpoint::null(),
+            ep_inout: [EndpointOutIn::null(); 15],
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct EndpointOutIn {
+    out: Endpoint,
+    input: Endpoint,
+}
+impl EndpointOutIn {
+    fn null() -> Self {
+        Self {
+            out: Endpoint::null(),
+            input: Endpoint::null(),
+        }
+    }
+}
+
 #[repr(transparent)]
 #[derive(Copy, Clone)]
-pub struct Endpoint([u32; 8]);
+pub struct Endpoint(pub EndpointStructure<[u32; 8]>);
 impl Endpoint {
+    fn null() -> Self {
+        Self(EndpointStructure::null())
+    }
+}
+bitfield! {
+    #[repr(transparent)]
+    #[derive(Copy,Clone)]
+    pub struct EndpointStructure([u32]);
+    impl Debug;
+    pub u32, _, set_endpoint_type_as_u32: 32+5, 32+3;
+    pub u32, _, set_max_packet_size: 32+31, 32+16;
+    pub u64, _, set_dequeue_ptr: 96+31, 64;
+    pub _, set_dequeue_cycle_state: 64;
+    pub u32, _, set_error_count: 32+2, 32+1;
+}
+impl EndpointStructure<[u32; 8]> {
+    pub fn set_endpoint_type(&mut self, ty: EndpointType) {
+        self.set_endpoint_type_as_u32(ty as u32);
+    }
+
     fn null() -> Self {
         Self([0; 8])
     }
+}
+
+pub enum EndpointType {
+    Control = 4,
 }
 
 pub struct Slot(SlotStructure<[u32; 8]>);
