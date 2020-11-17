@@ -36,6 +36,8 @@ pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
         )));
 }
 
+// FIXME
+#[allow(clippy::type_complexity)]
 fn init(
     registers: &Rc<RefCell<Registers>>,
     task_collection: &Rc<RefCell<task::Collection>>,
