@@ -33,6 +33,8 @@ async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
     port.register_to_dcbaa(slot_id.into());
 }
 
+// FIXME: Resolve this.
+#[allow(clippy::too_many_arguments)]
 pub fn spawn_tasks(
     command_runner: Rc<LocalMutex<Runner>>,
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
