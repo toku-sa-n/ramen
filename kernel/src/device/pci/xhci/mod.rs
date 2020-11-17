@@ -23,10 +23,10 @@ use {
 
 pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
     let registers = Rc::new(RefCell::new(iter_devices().next().unwrap()));
-    let (_xhc, event_ring, _dcbaa, port_task_spawner, command_completion_receiver) =
+    let (_xhc, event_ring, dcbaa, runner, command_completion_receiver) =
         init(&registers, task_collection.clone());
 
-    port_task_spawner.spawn_tasks();
+    port::spawn_tasks(runner, dcbaa, registers, task_collection.clone());
 
     task_collection
         .borrow_mut()
@@ -43,7 +43,7 @@ fn init(
     Xhc,
     event::Ring,
     Rc<RefCell<DeviceContextBaseAddressArray>>,
-    port::TaskSpawner,
+    Rc<LocalMutex<Runner>>,
     Rc<RefCell<CommandCompletionReceiver>>,
 ) {
     let mut xhc = Xhc::new(registers.clone());
@@ -57,12 +57,6 @@ fn init(
         Runner::new(command_ring.clone(), command_completion_receiver.clone()),
         false,
     ));
-    let ports = port::TaskSpawner::new(
-        command_runner,
-        registers.clone(),
-        task_collection,
-        dcbaa.clone(),
-    );
 
     xhc.init();
 
@@ -72,7 +66,13 @@ fn init(
 
     xhc.run();
 
-    (xhc, event_ring, dcbaa, ports, command_completion_receiver)
+    (
+        xhc,
+        event_ring,
+        dcbaa,
+        command_runner,
+        command_completion_receiver,
+    )
 }
 
 pub fn iter_devices() -> impl Iterator<Item = Registers> {

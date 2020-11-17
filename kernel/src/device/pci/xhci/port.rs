@@ -33,42 +33,25 @@ async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
     port.register_to_dcbaa(slot_id.into());
 }
 
-pub struct TaskSpawner {
+pub fn spawn_tasks(
     command_runner: Rc<LocalMutex<Runner>>,
+    dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
     registers: Rc<RefCell<Registers>>,
     task_collection: Rc<RefCell<task::Collection>>,
-    dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
+) {
+    for i in 0..num_of_ports(&registers) {
+        let port = Port::new(registers.clone(), dcbaa.clone(), i);
+        if port.connected() {
+            task_collection
+                .borrow_mut()
+                .add_task_as_woken(Task::new(task(port, command_runner.clone())));
+        }
+    }
 }
-impl<'a> TaskSpawner {
-    pub fn new(
-        command_runner: Rc<LocalMutex<Runner>>,
-        registers: Rc<RefCell<Registers>>,
-        task_collection: Rc<RefCell<task::Collection>>,
-        dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
-    ) -> Self {
-        Self {
-            command_runner,
-            registers,
-            task_collection,
-            dcbaa,
-        }
-    }
 
-    pub fn spawn_tasks(&self) {
-        for i in 0..self.num_of_ports() {
-            let port = Port::new(self.registers.clone(), self.dcbaa.clone(), i);
-            if port.connected() {
-                self.task_collection
-                    .borrow_mut()
-                    .add_task_as_woken(Task::new(task(port, self.command_runner.clone())));
-            }
-        }
-    }
-
-    fn num_of_ports(&self) -> usize {
-        let params1 = &self.registers.borrow().hc_capability.hcs_params_1;
-        params1.read().max_ports().into()
-    }
+fn num_of_ports(registers: &Rc<RefCell<Registers>>) -> usize {
+    let params1 = registers.borrow().hc_capability.hcs_params_1.read();
+    params1.max_ports().into()
 }
 
 pub struct Port {
