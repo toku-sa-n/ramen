@@ -37,7 +37,7 @@ pub struct Device {
     ep_inout: [EndpointOutIn; 15],
 }
 impl Device {
-    fn null() -> Self {
+    pub fn null() -> Self {
         Self {
             slot: Slot::null(),
             ep_0: Endpoint::null(),
