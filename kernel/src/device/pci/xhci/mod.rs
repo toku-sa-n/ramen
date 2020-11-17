@@ -24,9 +24,9 @@ use {
 pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
     let registers = Rc::new(RefCell::new(iter_devices().next().unwrap()));
     let (_xhc, event_ring, dcbaa, runner, command_completion_receiver) =
-        init(&registers, task_collection.clone());
+        init(&registers, &task_collection.clone());
 
-    port::spawn_tasks(runner, dcbaa, registers, task_collection.clone());
+    port::spawn_tasks(&runner, &dcbaa, &registers, &task_collection.clone());
 
     task_collection
         .borrow_mut()
@@ -38,7 +38,7 @@ pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
 
 fn init(
     registers: &Rc<RefCell<Registers>>,
-    task_collection: Rc<RefCell<task::Collection>>,
+    task_collection: &Rc<RefCell<task::Collection>>,
 ) -> (
     Xhc,
     event::Ring,

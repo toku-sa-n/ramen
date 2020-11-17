@@ -36,10 +36,10 @@ async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
 // FIXME: Resolve this.
 #[allow(clippy::too_many_arguments)]
 pub fn spawn_tasks(
-    command_runner: Rc<LocalMutex<Runner>>,
-    dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
-    registers: Rc<RefCell<Registers>>,
-    task_collection: Rc<RefCell<task::Collection>>,
+    command_runner: &Rc<LocalMutex<Runner>>,
+    dcbaa: &Rc<RefCell<DeviceContextBaseAddressArray>>,
+    registers: &Rc<RefCell<Registers>>,
+    task_collection: &Rc<RefCell<task::Collection>>,
 ) {
     for i in 0..num_of_ports(&registers) {
         let port = Port::new(registers.clone(), dcbaa.clone(), i);
