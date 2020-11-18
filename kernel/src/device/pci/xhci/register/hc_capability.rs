@@ -12,7 +12,9 @@ pub struct HCCapabilityRegisters {
 }
 
 impl HCCapabilityRegisters {
-    pub fn new(mmio_base: PhysAddr) -> Self {
+    /// Safety: This method is unsafe because if `mmio_base` is not the valid MMIO base address, it
+    /// can violate memory safety.
+    pub unsafe fn new(mmio_base: PhysAddr) -> Self {
         let cap_length = Accessor::new(mmio_base, Bytes::new(0));
         let hcs_params_1 = Accessor::new(mmio_base, Bytes::new(0x04));
         let hcs_params_2 = Accessor::new(mmio_base, Bytes::new(0x08));

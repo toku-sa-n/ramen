@@ -35,7 +35,9 @@ fn init() -> Option<(Rc<RefCell<Registers>>, Ahc)> {
 
 fn fetch_registers() -> Option<Registers> {
     let abar = AchiBaseAddr::new()?;
-    Some(Registers::new(abar))
+
+    // Safety: This operation is safe because `abar` is generated from the 5th BAR.
+    Some(unsafe { Registers::new(abar) })
 }
 
 #[derive(Copy, Clone)]
