@@ -63,14 +63,7 @@ impl EndpointOutIn {
     }
 }
 
-#[repr(transparent)]
-#[derive(Copy, Clone)]
-pub struct Endpoint(pub EndpointStructure<[u32; 8]>);
-impl Endpoint {
-    fn null() -> Self {
-        Self(EndpointStructure::null())
-    }
-}
+pub type Endpoint = EndpointStructure<[u32; 8]>;
 bitfield! {
     #[repr(transparent)]
     #[derive(Copy,Clone)]
@@ -96,13 +89,7 @@ pub enum EndpointType {
     Control = 4,
 }
 
-#[repr(transparent)]
-pub struct Slot(pub SlotStructure<[u32; 8]>);
-impl Slot {
-    pub fn null() -> Self {
-        Self(SlotStructure::null())
-    }
-}
+pub type Slot = SlotStructure<[u32; 8]>;
 bitfield! {
     #[repr(transparent)]
     pub struct SlotStructure([u32]);
