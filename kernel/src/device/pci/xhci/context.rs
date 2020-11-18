@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    bitfield::bitfield,
-    core::ops::{Deref, DerefMut},
-};
+use bitfield::bitfield;
 
 #[repr(C, packed)]
 pub struct Input {
