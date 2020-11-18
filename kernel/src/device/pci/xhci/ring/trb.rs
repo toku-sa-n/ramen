@@ -186,7 +186,7 @@ impl AddressDevice {
     pub fn new(cycle_bit: CycleBit, addr_to_input_context: PhysAddr, slot_id: u8) -> Self {
         let mut trb = Self(0);
 
-        assert!(addr_to_input_context.as_u64().trailing_zeros() >= 4);
+        assert!(addr_to_input_context.is_aligned(16_u64));
         trb.set_input_context_ptr_as_u64(addr_to_input_context.as_u64());
         trb.set_cycle_bit(cycle_bit.into());
         trb.set_trb_type(Self::ID);
