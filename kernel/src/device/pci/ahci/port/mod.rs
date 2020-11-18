@@ -104,7 +104,7 @@ impl Port {
     }
 
     fn register_command_list(&mut self) {
-        let addr = self.command_list.phys_addr();
+        let addr = self.command_list.phys_addr_to_headers();
         self.edit_port_rg(|rg| rg.clb.update(|b| b.set(addr)));
     }
 
