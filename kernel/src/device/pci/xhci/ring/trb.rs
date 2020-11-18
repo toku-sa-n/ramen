@@ -15,6 +15,7 @@ pub enum Trb {
     Link(Link),
     PortStatusChange(PortStatusChange),
     EnableSlot(EnableSlot),
+    AddressDevice(AddressDevice),
 }
 impl Trb {
     pub const SIZE: Bytes = Bytes::new(16);
@@ -29,6 +30,18 @@ impl Trb {
     pub fn new_enable_slot(cycle_bit: CycleBit) -> Self {
         Self::EnableSlot(EnableSlot::new(cycle_bit))
     }
+
+    pub fn new_address_device(
+        cycle_bit: CycleBit,
+        addr_to_input_context: PhysAddr,
+        slot_id: u8,
+    ) -> Self {
+        Self::AddressDevice(AddressDevice::new(
+            cycle_bit,
+            addr_to_input_context,
+            slot_id,
+        ))
+    }
 }
 impl TryFrom<raw::Trb> for Trb {
     type Error = Error;
@@ -42,6 +55,7 @@ impl TryFrom<raw::Trb> for Trb {
                 Ok(Self::PortStatusChange(PortStatusChange::from(raw)))
             }
             x if x == EnableSlot::ID => Ok(Self::EnableSlot(EnableSlot::from(raw))),
+            x if x == AddressDevice::ID => Ok(Self::AddressDevice(AddressDevice::from(raw))),
             x => {
                 warn!("Unrecognized TRB ID: {}", x);
                 Err(Error::InvalidId)
@@ -153,6 +167,34 @@ impl EnableSlot {
     }
 }
 impl From<raw::Trb> for EnableSlot {
+    fn from(raw: raw::Trb) -> Self {
+        Self(raw.0)
+    }
+}
+
+bitfield! {
+    #[repr(transparent)]
+    pub struct AddressDevice(u128);
+    impl Debug;
+    u64, _, set_input_context_ptr_as_u64: 63, 0;
+    _, set_cycle_bit: 96;
+    u8, _, set_trb_type: 96+15, 96+10;
+    u8 ,_, set_slot_id: 96+31, 96+24;
+}
+impl AddressDevice {
+    const ID: u8 = 11;
+    pub fn new(cycle_bit: CycleBit, addr_to_input_context: PhysAddr, slot_id: u8) -> Self {
+        let mut trb = Self(0);
+
+        assert!(addr_to_input_context.as_u64().trailing_zeros() >= 4);
+        trb.set_input_context_ptr_as_u64(addr_to_input_context.as_u64());
+        trb.set_cycle_bit(cycle_bit.into());
+        trb.set_trb_type(Self::ID);
+        trb.set_slot_id(slot_id);
+        trb
+    }
+}
+impl From<raw::Trb> for AddressDevice {
     fn from(raw: raw::Trb) -> Self {
         Self(raw.0)
     }

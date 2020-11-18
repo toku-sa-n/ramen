@@ -15,6 +15,7 @@ use {
     alloc::rc::Rc,
     core::cell::RefCell,
     futures_intrusive::sync::LocalMutex,
+    x86_64::PhysAddr,
 };
 
 async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
@@ -31,6 +32,12 @@ async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
     port.init_input_slot_context();
     port.init_input_default_control_endpoint0_context();
     port.register_to_dcbaa(slot_id.into());
+    command_runner
+        .lock()
+        .await
+        .address_device(port.input_context_addr(), slot_id)
+        .await
+        .unwrap();
 }
 
 // FIXME: Resolve this.
@@ -124,6 +131,10 @@ impl Port {
         ep_0.set_dequeue_ptr(self.transfer_ring.phys_addr().as_u64());
         ep_0.set_dequeue_cycle_state(false);
         ep_0.set_error_count(3);
+    }
+
+    fn input_context_addr(&self) -> PhysAddr {
+        self.input_context.phys_addr()
     }
 
     fn register_to_dcbaa(&mut self, slot_id: usize) {

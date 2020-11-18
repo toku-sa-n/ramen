@@ -60,6 +60,7 @@ impl From<trb::Trb> for Trb {
             trb::Trb::Link(link) => Self(link.0),
             trb::Trb::PortStatusChange(change) => Self(change.0),
             trb::Trb::EnableSlot(enable) => Self(enable.0),
+            trb::Trb::AddressDevice(address) => Self(address.0),
         }
     }
 }
