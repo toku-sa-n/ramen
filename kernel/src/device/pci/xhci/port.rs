@@ -35,7 +35,7 @@ async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
     command_runner
         .lock()
         .await
-        .address_device(port.input_context_addr(), slot_id)
+        .address_device(port.addr_to_input_context(), slot_id)
         .await
         .unwrap();
 }
@@ -133,7 +133,7 @@ impl Port {
         ep_0.set_error_count(3);
     }
 
-    fn input_context_addr(&self) -> PhysAddr {
+    fn addr_to_input_context(&self) -> PhysAddr {
         self.input_context.phys_addr()
     }
 
