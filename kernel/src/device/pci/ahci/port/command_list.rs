@@ -25,13 +25,7 @@ impl CommandList {
     }
 }
 
-#[derive(Copy, Clone)]
-pub struct CommandHeader(CommandHeaderStructure<[u32; 8]>);
-impl CommandHeader {
-    fn null() -> Self {
-        Self(CommandHeaderStructure::null())
-    }
-}
+pub type CommandHeader = CommandHeaderStructure<[u32; 8]>;
 bitfield! {
     #[repr(transparent)]
     #[derive(Copy,Clone)]
