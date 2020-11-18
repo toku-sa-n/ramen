@@ -5,6 +5,7 @@ use {
     core::ops::{Deref, DerefMut},
 };
 
+#[repr(C, packed)]
 pub struct Input {
     pub input_control: InputControl,
     pub device: Device,
@@ -31,6 +32,7 @@ impl InputControl {
     }
 }
 
+#[repr(C, packed)]
 pub struct Device {
     pub slot: Slot,
     pub ep_0: Endpoint,
@@ -46,6 +48,7 @@ impl Device {
     }
 }
 
+#[repr(C, packed)]
 #[derive(Copy, Clone)]
 pub struct EndpointOutIn {
     out: Endpoint,
@@ -93,6 +96,7 @@ pub enum EndpointType {
     Control = 4,
 }
 
+#[repr(transparent)]
 pub struct Slot(pub SlotStructure<[u32; 8]>);
 impl Slot {
     pub fn null() -> Self {
