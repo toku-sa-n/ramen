@@ -67,7 +67,6 @@ pub struct Port {
     registers: Rc<RefCell<Registers>>,
     index: usize,
     input_context: PageBox<context::Input>,
-    input_slot_context: PageBox<context::Slot>,
     output_device_context: PageBox<context::Device>,
     transfer_ring: transfer::Ring,
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
@@ -88,7 +87,6 @@ impl Port {
             registers: registers.clone(),
             index,
             input_context: PageBox::new(context::Input::null()),
-            input_slot_context: PageBox::new(context::Slot::null()),
             output_device_context: PageBox::new(context::Device::null()),
             dcbaa,
             transfer_ring: transfer::Ring::new(registers),
@@ -122,7 +120,7 @@ impl Port {
     }
 
     fn init_input_slot_context(&mut self) {
-        self.input_slot_context.set_context_entries(1);
+        self.input_context.device.slot.0.set_context_entries(1);
     }
 
     fn init_input_default_control_endpoint0_context(&mut self) {

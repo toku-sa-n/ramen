@@ -32,7 +32,7 @@ impl InputControl {
 }
 
 pub struct Device {
-    slot: Slot,
+    pub slot: Slot,
     pub ep_0: Endpoint,
     ep_inout: [EndpointOutIn; 15],
 }
@@ -93,21 +93,10 @@ pub enum EndpointType {
     Control = 4,
 }
 
-pub struct Slot(SlotStructure<[u32; 8]>);
+pub struct Slot(pub SlotStructure<[u32; 8]>);
 impl Slot {
     pub fn null() -> Self {
         Self(SlotStructure::null())
-    }
-}
-impl Deref for Slot {
-    type Target = SlotStructure<[u32; 8]>;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-impl DerefMut for Slot {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
     }
 }
 bitfield! {
