@@ -20,7 +20,9 @@ pub struct Registers {
     pub doorbell_array: doorbell::Array,
 }
 impl Registers {
-    pub fn new(mmio_base: PhysAddr) -> Self {
+    /// Safety: This method is unsafe because if `mmio_base` is not the valid MMIO base address,
+    /// it can violate memory safety.
+    pub unsafe fn new(mmio_base: PhysAddr) -> Self {
         let hc_capability_registers = HCCapabilityRegisters::new(mmio_base);
         let usb_legacy_support_capability =
             UsbLegacySupportCapability::new(mmio_base, &hc_capability_registers);
