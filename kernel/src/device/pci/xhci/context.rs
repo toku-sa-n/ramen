@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use bitfield::bitfield;
+use {bitfield::bitfield, x86_64::PhysAddr};
 
 #[repr(C, packed)]
 pub struct Input {
@@ -68,13 +68,18 @@ bitfield! {
     impl Debug;
     pub u32, _, set_endpoint_type_as_u32: 32+5, 32+3;
     pub u32, _, set_max_packet_size: 32+31, 32+16;
-    pub u64, _, set_dequeue_ptr: 96+31, 64;
+    u64, _, set_dequeue_ptr_as_u64: 96+31, 64;
     pub _, set_dequeue_cycle_state: 64;
     pub u32, _, set_error_count: 32+2, 32+1;
 }
 impl EndpointStructure<[u32; 8]> {
     pub fn set_endpoint_type(&mut self, ty: EndpointType) {
         self.set_endpoint_type_as_u32(ty as u32);
+    }
+
+    pub fn set_dequeue_ptr(&mut self, addr: PhysAddr) {
+        assert!(addr.is_aligned(16_u64));
+        self.set_dequeue_ptr_as_u64(addr.as_u64());
     }
 
     fn null() -> Self {

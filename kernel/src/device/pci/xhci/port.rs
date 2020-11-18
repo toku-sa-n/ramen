@@ -126,7 +126,8 @@ impl Port {
     fn init_input_default_control_endpoint0_context(&mut self) {
         let ep_0 = &mut self.input_context.device.ep_0;
         ep_0.set_endpoint_type(EndpointType::Control);
-        ep_0.set_dequeue_ptr(self.transfer_ring.phys_addr().as_u64());
+        compile_error!("Get the maximum packet size!");
+        ep_0.set_dequeue_ptr(self.transfer_ring.phys_addr());
         ep_0.set_dequeue_cycle_state(false);
         ep_0.set_error_count(3);
     }
