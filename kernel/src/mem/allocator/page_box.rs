@@ -4,6 +4,7 @@ use {
     super::{super::paging::pml4::PML4, phys::FRAME_MANAGER, virt},
     core::{
         convert::TryFrom,
+        fmt,
         marker::PhantomData,
         mem,
         ops::{Deref, DerefMut},
@@ -55,6 +56,11 @@ impl<T> DerefMut for PageBox<T> {
         unsafe { &mut *self.virt.as_mut_ptr() }
     }
 }
+impl<T: fmt::Display> fmt::Display for PageBox<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&**self, f)
+    }
+}
 
 impl<T> PageBox<[T]>
 where
@@ -101,6 +107,16 @@ where
         unsafe { slice::from_raw_parts_mut(self.virt.as_mut_ptr(), self.num_of_elements()) }
     }
 }
+impl<T> fmt::Display for PageBox<[T]>
+where
+    T: Copy + Clone,
+    [T]: fmt::Display,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&**self, f)
+    }
+}
+
 impl<T: ?Sized> PageBox<T> {
     pub fn phys_addr(&self) -> PhysAddr {
         PML4.lock().translate_addr(self.virt).unwrap()
