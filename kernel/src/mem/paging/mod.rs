@@ -2,7 +2,8 @@
 
 pub mod pml4;
 
-use {common::constant::RECUR_PML4_ADDR, x86_64::structures::paging::PageTable};
+use common::constant::RECUR_PML4_ADDR;
+use x86_64::structures::paging::PageTable;
 
 pub fn mark_pages_as_unused() {
     let page_table = unsafe { &mut *(RECUR_PML4_ADDR.as_mut_ptr() as *mut PageTable) };

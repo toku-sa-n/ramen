@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {crate::mem::accessor::Accessor, core::convert::TryInto, os_units::Bytes, x86_64::PhysAddr};
+use crate::mem::accessor::Accessor;
+use core::convert::TryInto;
+use os_units::Bytes;
+use x86_64::PhysAddr;
 
 const NUM_OF_REGISTERS: usize = 256;
 

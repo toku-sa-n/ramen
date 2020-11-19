@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::{bar, Bar, RegisterIndex, Registers},
-    x86_64::PhysAddr,
-};
+use super::{bar, Bar, RegisterIndex, Registers};
+use x86_64::PhysAddr;
 
 #[derive(Debug)]
 pub struct TypeSpec<'a> {

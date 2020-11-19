@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::{trb, CycleBit},
-    crate::mem::allocator::page_box::PageBox,
-    core::{
-        convert::TryInto,
-        ops::{Index, IndexMut},
-    },
-    x86_64::PhysAddr,
+use super::{trb, CycleBit};
+use crate::mem::allocator::page_box::PageBox;
+use core::{
+    convert::TryInto,
+    ops::{Index, IndexMut},
 };
+use x86_64::PhysAddr;
 
 pub struct Ring(PageBox<[Trb]>);
 impl Ring {

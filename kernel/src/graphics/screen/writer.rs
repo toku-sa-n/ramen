@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::{font, Vram},
-    core::convert::TryFrom,
-    rgb::RGB8,
-    vek::Vec2,
-};
+use super::{font, Vram};
+use core::convert::TryFrom;
+use rgb::RGB8;
+use vek::Vec2;
 
 pub struct Writer {
     coord: Vec2<i32>,

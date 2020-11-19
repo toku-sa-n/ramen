@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::hc_capability::HCCapabilityRegisters, crate::mem::accessor::Accessor,
-    bitfield::bitfield, os_units::Bytes, x86_64::PhysAddr,
-};
+use super::hc_capability::HCCapabilityRegisters;
+use crate::mem::accessor::Accessor;
+use bitfield::bitfield;
+use os_units::Bytes;
+use x86_64::PhysAddr;
 
 pub struct HCOperational {
     pub usb_cmd: Accessor<UsbCommandRegister>,

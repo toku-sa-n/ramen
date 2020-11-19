@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {crate::mem::allocator::page_box::PageBox, x86_64::PhysAddr};
+use crate::mem::allocator::page_box::PageBox;
+use x86_64::PhysAddr;
 
 // This is a temporary implementation.
 pub struct ReceivedFis(PageBox<u32>);

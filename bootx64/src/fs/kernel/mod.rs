@@ -2,20 +2,21 @@
 
 use super::root_dir;
 use common::constant::{KERNEL_ADDR, KERNEL_NAME};
-use core::cmp;
-use core::convert::TryFrom;
-use core::slice;
+use core::{cmp, convert::TryFrom, slice};
 use elf_rs::Elf;
 use os_units::Bytes;
-use uefi::proto::media::file;
-use uefi::proto::media::file::File;
-use uefi::proto::media::file::FileAttribute;
-use uefi::proto::media::file::FileMode;
-use uefi::table::boot;
-use uefi::table::boot::{AllocateType, MemoryType};
-use uefi::ResultExt;
-use x86_64::structures::paging::Size4KiB;
-use x86_64::{PhysAddr, VirtAddr};
+use uefi::{
+    proto::media::{
+        file,
+        file::{File, FileAttribute, FileMode},
+    },
+    table::{
+        boot,
+        boot::{AllocateType, MemoryType},
+    },
+    ResultExt,
+};
+use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 
 mod size;
 

@@ -3,18 +3,16 @@
 // WORKAROUND: https://stackoverflow.com/questions/63933070/clippy-says-too-many-arguments-to-static-declaration
 #![allow(clippy::too_many_arguments)]
 
-use {
-    super::super::paging::pml4::PML4,
-    common::constant::{BYTES_KERNEL_HEAP, KERNEL_HEAP_ADDR},
-    core::{alloc::Layout, convert::TryFrom},
-    linked_list_allocator::LockedHeap,
-    uefi::table::boot,
-    x86_64::{
-        structures::paging::{
-            FrameAllocator, Mapper, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB,
-        },
-        PhysAddr,
+use super::super::paging::pml4::PML4;
+use common::constant::{BYTES_KERNEL_HEAP, KERNEL_HEAP_ADDR};
+use core::{alloc::Layout, convert::TryFrom};
+use linked_list_allocator::LockedHeap;
+use uefi::table::boot;
+use x86_64::{
+    structures::paging::{
+        FrameAllocator, Mapper, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB,
     },
+    PhysAddr,
 };
 
 #[global_allocator]

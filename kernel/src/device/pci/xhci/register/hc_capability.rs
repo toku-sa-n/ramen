@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {crate::mem::accessor::Accessor, bitfield::bitfield, os_units::Bytes, x86_64::PhysAddr};
+use crate::mem::accessor::Accessor;
+use bitfield::bitfield;
+use os_units::Bytes;
+use x86_64::PhysAddr;
 
 pub struct HCCapabilityRegisters {
     pub cap_length: Accessor<CapabilityRegistersLength>,

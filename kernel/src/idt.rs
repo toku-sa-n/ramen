@@ -2,8 +2,7 @@
 
 // See P.114
 
-use crate::interrupt;
-use crate::x86_64::structures::idt::InterruptDescriptorTable;
+use crate::{interrupt, x86_64::structures::idt::InterruptDescriptorTable};
 use conquer_once::spin::Lazy;
 
 static IDT: Lazy<InterruptDescriptorTable> = Lazy::new(|| {

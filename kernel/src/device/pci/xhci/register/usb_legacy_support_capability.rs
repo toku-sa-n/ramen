@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    crate::{
-        device::pci::xhci::register::hc_capability::HCCapabilityRegisters, mem::accessor::Accessor,
-    },
-    bitfield::bitfield,
-    os_units::Bytes,
-    x86_64::PhysAddr,
+use crate::{
+    device::pci::xhci::register::hc_capability::HCCapabilityRegisters, mem::accessor::Accessor,
 };
+use bitfield::bitfield;
+use os_units::Bytes;
+use x86_64::PhysAddr;
 
 pub struct UsbLegacySupportCapability {
     pub usb_leg_sup: Accessor<UsbLegacySupportCapabilityRegister>,

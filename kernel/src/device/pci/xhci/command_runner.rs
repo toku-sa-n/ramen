@@ -1,17 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::ring::{command, trb::CommandComplete},
-    alloc::{collections::BTreeMap, rc::Rc},
-    core::{
-        cell::RefCell,
-        future::Future,
-        pin::Pin,
-        task::{Context, Poll},
-    },
-    futures_util::task::AtomicWaker,
-    x86_64::PhysAddr,
+use super::ring::{command, trb::CommandComplete};
+use alloc::{collections::BTreeMap, rc::Rc};
+use core::{
+    cell::RefCell,
+    future::Future,
+    pin::Pin,
+    task::{Context, Poll},
 };
+use futures_util::task::AtomicWaker;
+use x86_64::PhysAddr;
 
 pub struct Runner {
     ring: Rc<RefCell<command::Ring>>,

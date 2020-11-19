@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::{generic::Generic, AchiBaseAddr},
-    crate::mem::accessor::Accessor,
-    bitfield::bitfield,
-    os_units::Bytes,
-    x86_64::PhysAddr,
-};
+use super::{generic::Generic, AchiBaseAddr};
+use crate::mem::accessor::Accessor;
+use bitfield::bitfield;
+use os_units::Bytes;
+use x86_64::PhysAddr;
 
 pub struct Registers {
     pub clb: Accessor<PortxCommandListBaseAddress>,
