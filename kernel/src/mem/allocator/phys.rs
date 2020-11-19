@@ -1,17 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    crate::mem::paging,
-    alloc::collections::vec_deque::VecDeque,
-    conquer_once::spin::Lazy,
-    core::convert::TryFrom,
-    os_units::NumOfPages,
-    spinning_top::Spinlock,
-    uefi::table::boot::{self, MemoryType},
-    x86_64::{
-        structures::paging::{FrameAllocator, FrameDeallocator, PageSize, PhysFrame, Size4KiB},
-        PhysAddr,
-    },
+use crate::mem::paging;
+use alloc::collections::vec_deque::VecDeque;
+use conquer_once::spin::Lazy;
+use core::convert::TryFrom;
+use os_units::NumOfPages;
+use spinning_top::Spinlock;
+use uefi::table::boot::{self, MemoryType};
+use x86_64::{
+    structures::paging::{FrameAllocator, FrameDeallocator, PageSize, PhysFrame, Size4KiB},
+    PhysAddr,
 };
 
 pub static FRAME_MANAGER: Lazy<Spinlock<FrameManager>> =

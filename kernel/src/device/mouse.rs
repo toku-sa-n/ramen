@@ -1,20 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    crate::graphics::screen::cursor::Cursor,
-    common::constant::{PORT_KEY_CMD, PORT_KEY_DATA},
-    conquer_once::spin::OnceCell,
-    core::{
-        pin::Pin,
-        task::{Context, Poll},
-    },
-    crossbeam_queue::ArrayQueue,
-    futures_util::{
-        stream::{Stream, StreamExt},
-        task::AtomicWaker,
-    },
-    vek::Vec2,
+use crate::graphics::screen::cursor::Cursor;
+use common::constant::{PORT_KEY_CMD, PORT_KEY_DATA};
+use conquer_once::spin::OnceCell;
+use core::{
+    pin::Pin,
+    task::{Context, Poll},
 };
+use crossbeam_queue::ArrayQueue;
+use futures_util::{
+    stream::{Stream, StreamExt},
+    task::AtomicWaker,
+};
+use vek::Vec2;
 
 static MOUSE_PACKET_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
 static WAKER: AtomicWaker = AtomicWaker::new();

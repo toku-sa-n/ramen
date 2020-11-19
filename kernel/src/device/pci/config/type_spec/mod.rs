@@ -2,14 +2,12 @@
 
 mod non_bridge;
 
-use {
-    super::{
-        bar,
-        common::{BridgeType, Common},
-        Bar, RegisterIndex, Registers,
-    },
-    x86_64::PhysAddr,
+use super::{
+    bar,
+    common::{BridgeType, Common},
+    Bar, RegisterIndex, Registers,
 };
+use x86_64::PhysAddr;
 
 #[derive(Debug)]
 pub enum TypeSpec<'a> {

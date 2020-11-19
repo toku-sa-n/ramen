@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::x86_64::instructions::segmentation;
-use crate::x86_64::structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector};
-use crate::x86_64::PrivilegeLevel;
+use crate::x86_64::{
+    instructions::segmentation,
+    structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector},
+    PrivilegeLevel,
+};
 use conquer_once::spin::Lazy;
 
 pub static GDT: Lazy<Gdt> = Lazy::new(|| {

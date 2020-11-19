@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::super::AchiBaseAddr, crate::mem::accessor::Accessor, bitfield::bitfield, os_units::Bytes,
-};
+use super::super::AchiBaseAddr;
+use crate::mem::accessor::Accessor;
+use bitfield::bitfield;
+use os_units::Bytes;
 
 pub struct Generic {
     pub cap: Accessor<HbaCapability>,

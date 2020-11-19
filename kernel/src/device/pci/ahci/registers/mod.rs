@@ -3,7 +3,9 @@
 pub mod generic;
 pub mod port;
 
-use {super::AchiBaseAddr, alloc::vec::Vec, generic::Generic};
+use super::AchiBaseAddr;
+use alloc::vec::Vec;
+use generic::Generic;
 
 pub struct Registers {
     pub generic: Generic,

@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    crate::mem::paging::pml4::PML4,
-    common::constant::BYTES_AVAILABLE_RAM,
-    core::convert::TryFrom,
-    os_units::NumOfPages,
-    x86_64::{
-        structures::paging::{MapperAllSizes, PageSize, Size4KiB},
-        VirtAddr,
-    },
+use crate::mem::paging::pml4::PML4;
+use common::constant::BYTES_AVAILABLE_RAM;
+use core::convert::TryFrom;
+use os_units::NumOfPages;
+use x86_64::{
+    structures::paging::{MapperAllSizes, PageSize, Size4KiB},
+    VirtAddr,
 };
 
 pub fn search_free_addr(num_pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {

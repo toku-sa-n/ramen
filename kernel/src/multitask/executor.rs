@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::task,
-    alloc::{collections::BTreeMap, rc::Rc},
-    core::{
-        cell::RefCell,
-        task::{Context, Poll, Waker},
-    },
-    x86_64::instructions::interrupts,
+use super::task;
+use alloc::{collections::BTreeMap, rc::Rc};
+use core::{
+    cell::RefCell,
+    task::{Context, Poll, Waker},
 };
+use x86_64::instructions::interrupts;
 
 pub struct Executor {
     task_collection: Rc<RefCell<task::Collection>>,

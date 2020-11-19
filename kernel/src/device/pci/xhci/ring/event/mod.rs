@@ -1,24 +1,22 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::{
-        super::{command_runner::CommandCompletionReceiver, register::Registers},
-        raw,
-        trb::Trb,
-        CycleBit,
-    },
-    crate::multitask::task::{self, Task},
-    alloc::{rc::Rc, vec::Vec},
-    core::{
-        cell::RefCell,
-        convert::{TryFrom, TryInto},
-        pin::Pin,
-        task::{Context, Poll},
-    },
-    futures_util::{stream::Stream, task::AtomicWaker, StreamExt},
-    segment_table::SegmentTable,
-    x86_64::PhysAddr,
+use super::{
+    super::{command_runner::CommandCompletionReceiver, register::Registers},
+    raw,
+    trb::Trb,
+    CycleBit,
 };
+use crate::multitask::task::{self, Task};
+use alloc::{rc::Rc, vec::Vec};
+use core::{
+    cell::RefCell,
+    convert::{TryFrom, TryInto},
+    pin::Pin,
+    task::{Context, Poll},
+};
+use futures_util::{stream::Stream, task::AtomicWaker, StreamExt};
+use segment_table::SegmentTable;
+use x86_64::PhysAddr;
 
 mod segment_table;
 static WAKER: AtomicWaker = AtomicWaker::new();

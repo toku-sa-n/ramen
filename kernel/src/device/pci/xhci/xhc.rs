@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {super::register::Registers, alloc::rc::Rc, core::cell::RefCell};
+use super::register::Registers;
+use alloc::rc::Rc;
+use core::cell::RefCell;
 
 pub struct Xhc {
     registers: Rc<RefCell<Registers>>,

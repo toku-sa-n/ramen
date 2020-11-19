@@ -1,23 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::{super::paging::pml4::PML4, phys::FRAME_MANAGER, virt},
-    core::{
-        convert::TryFrom,
-        fmt,
-        marker::PhantomData,
-        mem,
-        ops::{Deref, DerefMut},
-        ptr, slice,
+use super::{super::paging::pml4::PML4, phys::FRAME_MANAGER, virt};
+use core::{
+    convert::TryFrom,
+    fmt,
+    marker::PhantomData,
+    mem,
+    ops::{Deref, DerefMut},
+    ptr, slice,
+};
+use os_units::{Bytes, NumOfPages};
+use x86_64::{
+    structures::paging::{
+        FrameDeallocator, Mapper, MapperAllSizes, Page, PageSize, PageTableFlags, PhysFrame,
+        Size4KiB,
     },
-    os_units::{Bytes, NumOfPages},
-    x86_64::{
-        structures::paging::{
-            FrameDeallocator, Mapper, MapperAllSizes, Page, PageSize, PageTableFlags, PhysFrame,
-            Size4KiB,
-        },
-        PhysAddr, VirtAddr,
-    },
+    PhysAddr, VirtAddr,
 };
 
 pub struct PageBox<T: ?Sized> {

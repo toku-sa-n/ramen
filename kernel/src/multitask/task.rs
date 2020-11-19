@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    alloc::{boxed::Box, collections::BTreeMap, sync::Arc, task::Wake},
-    core::{
-        future::Future,
-        pin::Pin,
-        sync::atomic::{AtomicU64, Ordering},
-        task::{Context, Poll, Waker},
-    },
-    crossbeam_queue::ArrayQueue,
+use alloc::{boxed::Box, collections::BTreeMap, sync::Arc, task::Wake};
+use core::{
+    future::Future,
+    pin::Pin,
+    sync::atomic::{AtomicU64, Ordering},
+    task::{Context, Poll, Waker},
 };
+use crossbeam_queue::ArrayQueue;
 
 pub struct Collection {
     tasks: BTreeMap<Id, Task>,

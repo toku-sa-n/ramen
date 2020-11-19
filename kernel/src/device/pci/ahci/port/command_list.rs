@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::Registers, crate::mem::allocator::page_box::PageBox, alloc::vec::Vec,
-    bitfield::bitfield, core::convert::TryInto, x86_64::PhysAddr,
-};
+use super::Registers;
+use crate::mem::allocator::page_box::PageBox;
+use alloc::vec::Vec;
+use bitfield::bitfield;
+use core::convert::TryInto;
+use x86_64::PhysAddr;
 
 const NUM_OF_PRDT: usize = 8;
 

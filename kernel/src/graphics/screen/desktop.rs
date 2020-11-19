@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::{layer, Vram},
-    core::convert::TryFrom,
-    rgb::RGB8,
-    screen_layer::Layer,
-    vek::Vec2,
-};
+use super::{layer, Vram};
+use core::convert::TryFrom;
+use rgb::RGB8;
+use screen_layer::Layer;
+use vek::Vec2;
 
 pub struct Desktop {
     id: screen_layer::Id,

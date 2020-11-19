@@ -1,17 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use common::constant::RECUR_PML4_ADDR;
-use common::kernelboot;
-use common::mem::reserved;
+use common::{constant::RECUR_PML4_ADDR, kernelboot, mem::reserved};
 use core::convert::TryFrom;
-use uefi::table::boot;
-use uefi::table::boot::MemoryType;
-use x86_64::addr::PhysAddr;
-use x86_64::registers::control::Cr3;
-use x86_64::registers::control::{Cr0, Cr0Flags};
-use x86_64::structures::paging::{
-    FrameAllocator, Mapper, Page, PageSize, PageTable, PageTableFlags, PhysFrame,
-    RecursivePageTable, Size4KiB,
+use uefi::table::{boot, boot::MemoryType};
+use x86_64::{
+    addr::PhysAddr,
+    registers::control::{Cr0, Cr0Flags, Cr3},
+    structures::paging::{
+        FrameAllocator, Mapper, Page, PageSize, PageTable, PageTableFlags, PhysFrame,
+        RecursivePageTable, Size4KiB,
+    },
 };
 
 struct AllocatorWithEfiMemoryMap<'a> {

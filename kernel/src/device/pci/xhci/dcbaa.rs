@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::Registers,
-    crate::mem::allocator::page_box::PageBox,
-    alloc::rc::Rc,
-    core::{
-        cell::RefCell,
-        ops::{Index, IndexMut},
-    },
-    x86_64::PhysAddr,
+use super::Registers;
+use crate::mem::allocator::page_box::PageBox;
+use alloc::rc::Rc;
+use core::{
+    cell::RefCell,
+    ops::{Index, IndexMut},
 };
+use x86_64::PhysAddr;
 
 pub struct DeviceContextBaseAddressArray {
     arr: PageBox<[PhysAddr]>,

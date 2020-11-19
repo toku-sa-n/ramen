@@ -2,8 +2,7 @@
 
 use core::convert::TryFrom;
 use os_units::Bytes;
-use uefi::proto::media::file;
-use uefi::proto::media::file::RegularFile;
+use uefi::proto::media::{file, file::RegularFile};
 
 pub fn get(root_dir: &mut file::Directory) -> Bytes {
     let mut handler = super::get_handler(root_dir);

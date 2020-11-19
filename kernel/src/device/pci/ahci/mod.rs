@@ -4,17 +4,15 @@ mod ahc;
 mod port;
 mod registers;
 
-use {
-    crate::{
-        device::pci::{self, config::bar},
-        multitask::task,
-    },
-    ahc::Ahc,
-    alloc::rc::Rc,
-    core::cell::RefCell,
-    registers::Registers,
-    x86_64::PhysAddr,
+use crate::{
+    device::pci::{self, config::bar},
+    multitask::task,
 };
+use ahc::Ahc;
+use alloc::rc::Rc;
+use core::cell::RefCell;
+use registers::Registers;
+use x86_64::PhysAddr;
 
 pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
     let (registers, mut ahc) = match init() {

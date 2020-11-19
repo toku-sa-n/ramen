@@ -1,16 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    crate::mem::{
-        allocator::{phys::FRAME_MANAGER, virt},
-        paging::pml4::PML4,
-    },
-    core::{convert::TryFrom, marker::PhantomData, mem, ptr},
-    os_units::Bytes,
-    x86_64::{
-        structures::paging::{Mapper, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
-        PhysAddr, VirtAddr,
-    },
+use crate::mem::{
+    allocator::{phys::FRAME_MANAGER, virt},
+    paging::pml4::PML4,
+};
+use core::{convert::TryFrom, marker::PhantomData, mem, ptr};
+use os_units::Bytes;
+use x86_64::{
+    structures::paging::{Mapper, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
+    PhysAddr, VirtAddr,
 };
 
 pub struct Accessor<T: ?Sized> {

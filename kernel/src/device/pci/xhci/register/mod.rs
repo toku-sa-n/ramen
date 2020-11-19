@@ -6,11 +6,11 @@ pub mod hc_operational;
 pub mod runtime_base_registers;
 pub mod usb_legacy_support_capability;
 
-use {
-    hc_capability::HCCapabilityRegisters, hc_operational::HCOperational,
-    runtime_base_registers::RuntimeBaseRegisters,
-    usb_legacy_support_capability::UsbLegacySupportCapability, x86_64::PhysAddr,
-};
+use hc_capability::HCCapabilityRegisters;
+use hc_operational::HCOperational;
+use runtime_base_registers::RuntimeBaseRegisters;
+use usb_legacy_support_capability::UsbLegacySupportCapability;
+use x86_64::PhysAddr;
 
 pub struct Registers {
     pub usb_legacy_support_capability: Option<UsbLegacySupportCapability>,

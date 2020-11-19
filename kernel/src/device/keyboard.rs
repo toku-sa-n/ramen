@@ -1,20 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    common::constant::{
-        KEY_CMD_MODE, KEY_CMD_WRITE_MODE, KEY_STATUS_SEND_NOT_READY, PORT_KEY_CMD, PORT_KEY_DATA,
-        PORT_KEY_STATUS,
-    },
-    conquer_once::spin::OnceCell,
-    core::{
-        pin::Pin,
-        task::{Context, Poll},
-    },
-    crossbeam_queue::ArrayQueue,
-    futures_util::{
-        stream::{Stream, StreamExt},
-        task::AtomicWaker,
-    },
+use common::constant::{
+    KEY_CMD_MODE, KEY_CMD_WRITE_MODE, KEY_STATUS_SEND_NOT_READY, PORT_KEY_CMD, PORT_KEY_DATA,
+    PORT_KEY_STATUS,
+};
+use conquer_once::spin::OnceCell;
+use core::{
+    pin::Pin,
+    task::{Context, Poll},
+};
+use crossbeam_queue::ArrayQueue;
+use futures_util::{
+    stream::{Stream, StreamExt},
+    task::AtomicWaker,
 };
 
 const SIZE_OF_SCANCODE_QUEUE: usize = 100;

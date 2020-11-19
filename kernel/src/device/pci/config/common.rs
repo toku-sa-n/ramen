@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::{RegisterIndex, Registers},
-    core::convert::TryFrom,
-};
+use super::{RegisterIndex, Registers};
+use core::convert::TryFrom;
 
 #[derive(Debug)]
 pub struct Common<'a> {

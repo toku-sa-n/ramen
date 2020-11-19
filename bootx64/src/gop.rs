@@ -2,10 +2,11 @@
 
 use common::vram;
 use core::mem::MaybeUninit;
-use uefi::proto::console::gop;
-use uefi::proto::console::gop::PixelFormat;
-use uefi::table::boot;
-use uefi::ResultExt;
+use uefi::{
+    proto::console::{gop, gop::PixelFormat},
+    table::boot,
+    ResultExt,
+};
 
 pub fn init(boot_services: &boot::BootServices) -> vram::Info {
     let gop = fetch_gop(boot_services);

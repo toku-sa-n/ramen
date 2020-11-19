@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    bitfield::bitfield,
-    core::ops::{Deref, DerefMut},
-};
+use bitfield::bitfield;
+use core::ops::{Deref, DerefMut};
 
 pub struct Input {
     pub input_control: InputControl,
