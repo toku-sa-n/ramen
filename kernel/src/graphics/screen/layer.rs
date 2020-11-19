@@ -3,7 +3,6 @@
 use super::Vram;
 use conquer_once::spin::OnceCell;
 use core::convert::TryFrom;
-use screen_layer;
 use spinning_top::Spinlock;
 
 pub static CONTROLLER: OnceCell<Spinlock<screen_layer::Controller>> = OnceCell::uninit();
