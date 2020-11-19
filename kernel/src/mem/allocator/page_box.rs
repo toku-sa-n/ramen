@@ -1,22 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::{super::paging::pml4::PML4, phys::FRAME_MANAGER, virt},
-    core::{
-        convert::TryFrom,
-        marker::PhantomData,
-        mem,
-        ops::{Deref, DerefMut},
-        ptr, slice,
+use super::{super::paging::pml4::PML4, phys::FRAME_MANAGER, virt};
+use core::{
+    convert::TryFrom,
+    fmt,
+    marker::PhantomData,
+    mem,
+    ops::{Deref, DerefMut},
+    ptr, slice,
+};
+use os_units::{Bytes, NumOfPages};
+use x86_64::{
+    structures::paging::{
+        FrameDeallocator, Mapper, MapperAllSizes, Page, PageSize, PageTableFlags, PhysFrame,
+        Size4KiB,
     },
-    os_units::{Bytes, NumOfPages},
-    x86_64::{
-        structures::paging::{
-            FrameDeallocator, Mapper, MapperAllSizes, Page, PageSize, PageTableFlags, PhysFrame,
-            Size4KiB,
-        },
-        PhysAddr, VirtAddr,
-    },
+    PhysAddr, VirtAddr,
 };
 
 pub struct PageBox<T: ?Sized> {
@@ -53,6 +52,19 @@ impl<T> DerefMut for PageBox<T> {
         // Safety: This operation is safe because the memory region `virt` points is allocated and
         // is not used by the others.
         unsafe { &mut *self.virt.as_mut_ptr() }
+    }
+}
+impl<T: fmt::Display> fmt::Display for PageBox<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&**self, f)
+    }
+}
+impl<T> fmt::Debug for PageBox<T>
+where
+    T: Copy + Clone + fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&**self, f)
     }
 }
 
@@ -101,6 +113,25 @@ where
         unsafe { slice::from_raw_parts_mut(self.virt.as_mut_ptr(), self.num_of_elements()) }
     }
 }
+impl<T> fmt::Display for PageBox<[T]>
+where
+    T: Copy + Clone,
+    [T]: fmt::Display,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&**self, f)
+    }
+}
+impl<T> fmt::Debug for PageBox<[T]>
+where
+    T: Copy + Clone,
+    [T]: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&**self, f)
+    }
+}
+
 impl<T: ?Sized> PageBox<T> {
     pub fn phys_addr(&self) -> PhysAddr {
         PML4.lock().translate_addr(self.virt).unwrap()

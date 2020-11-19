@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {bitfield::bitfield, x86_64::PhysAddr};
+use bitfield::bitfield;
+use x86_64::PhysAddr;
 
 #[repr(C, packed)]
 pub struct Input {

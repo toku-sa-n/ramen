@@ -4,15 +4,13 @@ pub mod bar;
 mod common;
 pub mod type_spec;
 
-use {
-    self::common::Common,
-    bar::Bar,
-    core::{convert::TryFrom, ops::Add},
-    type_spec::TypeSpec,
-    x86_64::{
-        instructions::port::{Port, PortWriteOnly},
-        PhysAddr,
-    },
+use self::common::Common;
+use bar::Bar;
+use core::{convert::TryFrom, ops::Add};
+use type_spec::TypeSpec;
+use x86_64::{
+    instructions::port::{Port, PortWriteOnly},
+    PhysAddr,
 };
 
 #[derive(Debug)]

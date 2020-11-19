@@ -3,14 +3,12 @@
 mod command_list;
 mod received_fis;
 
-use {
-    super::registers::{port, Registers},
-    crate::multitask::task::{self, Task},
-    alloc::rc::Rc,
-    command_list::CommandList,
-    core::{cell::RefCell, convert::TryInto},
-    received_fis::ReceivedFis,
-};
+use super::registers::{port, Registers};
+use crate::multitask::task::{self, Task};
+use alloc::rc::Rc;
+use command_list::CommandList;
+use core::{cell::RefCell, convert::TryInto};
+use received_fis::ReceivedFis;
 
 const MAX_PORTS: usize = 32;
 
@@ -104,7 +102,7 @@ impl Port {
     }
 
     fn register_command_list(&mut self) {
-        let addr = self.command_list.phys_addr();
+        let addr = self.command_list.phys_addr_to_headers();
         self.edit_port_rg(|rg| rg.clb.update(|b| b.set(addr)));
     }
 

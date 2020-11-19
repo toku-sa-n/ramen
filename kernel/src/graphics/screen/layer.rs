@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::Vram, conquer_once::spin::OnceCell, core::convert::TryFrom, screen_layer,
-    spinning_top::Spinlock,
-};
+use super::Vram;
+use conquer_once::spin::OnceCell;
+use core::convert::TryFrom;
+use spinning_top::Spinlock;
 
 pub static CONTROLLER: OnceCell<Spinlock<screen_layer::Controller>> = OnceCell::uninit();
 

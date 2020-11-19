@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::writer::Writer,
-    conquer_once::spin::Lazy,
-    core::fmt::Write,
-    log::{Level, LevelFilter, Metadata, Record, SetLoggerError},
-    rgb::RGB8,
-    spinning_top::Spinlock,
-    vek::Vec2,
-};
+use super::writer::Writer;
+use conquer_once::spin::Lazy;
+use core::fmt::Write;
+use log::{Level, LevelFilter, Metadata, Record, SetLoggerError};
+use rgb::RGB8;
+use spinning_top::Spinlock;
+use vek::Vec2;
 
 struct Logger;
 

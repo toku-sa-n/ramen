@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use uefi::proto::media::file;
-use uefi::proto::media::fs;
-use uefi::table::boot;
-use uefi::ResultExt;
+use uefi::{
+    proto::media::{file, fs},
+    table::boot,
+    ResultExt,
+};
 
 pub fn open(boot_services: &boot::BootServices) -> file::Directory {
     let simple_file_system = boot_services

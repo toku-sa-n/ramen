@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::{generic::Generic, AchiBaseAddr},
-    crate::mem::accessor::Accessor,
-    bitfield::bitfield,
-    os_units::Bytes,
-    x86_64::PhysAddr,
-};
+use super::{generic::Generic, AchiBaseAddr};
+use crate::mem::accessor::Accessor;
+use bitfield::bitfield;
+use os_units::Bytes;
+use x86_64::PhysAddr;
 
 pub struct Registers {
     pub clb: Accessor<PortxCommandListBaseAddress>,
@@ -20,7 +18,9 @@ pub struct Registers {
     pub ci: Accessor<PortxCommandIssue>,
 }
 impl Registers {
-    pub fn new(abar: AchiBaseAddr, port_index: usize, generic: &Generic) -> Option<Self> {
+    /// Safety: This method is unsafe because if `abar` is not a valid AHCI base address, it can
+    /// violate memory safety.
+    pub unsafe fn new(abar: AchiBaseAddr, port_index: usize, generic: &Generic) -> Option<Self> {
         if Self::exist(port_index, generic) {
             Some(Self::fetch(abar, port_index))
         } else {
@@ -32,7 +32,9 @@ impl Registers {
         generic.pi.read().0 & (1 << port_index) != 0
     }
 
-    fn fetch(abar: AchiBaseAddr, port_index: usize) -> Self {
+    /// Safety: This method is unsafe because if `abar` is not a valid AHCI base address, it can
+    /// violate memory safety.
+    unsafe fn fetch(abar: AchiBaseAddr, port_index: usize) -> Self {
         let base_addr = Self::base_addr_to_registers(abar, port_index);
 
         macro_rules! new_accessor {

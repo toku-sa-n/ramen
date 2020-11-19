@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::{raw, CycleBit},
-    bitfield::bitfield,
-    core::convert::TryFrom,
-    os_units::Bytes,
-    x86_64::PhysAddr,
-};
+use super::{raw, CycleBit};
+use bitfield::bitfield;
+use core::convert::TryFrom;
+use os_units::Bytes;
+use x86_64::PhysAddr;
 
 #[derive(Debug)]
 pub enum Trb {

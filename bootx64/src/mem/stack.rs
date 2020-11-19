@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use common::constant::NUM_OF_PAGES_STACK;
-use uefi::table::boot;
-use uefi::table::boot::{AllocateType, MemoryType};
-use uefi::ResultExt;
+use uefi::{
+    table::{
+        boot,
+        boot::{AllocateType, MemoryType},
+    },
+    ResultExt,
+};
 use x86_64::PhysAddr;
 
 pub fn allocate(boot_services: &boot::BootServices) -> PhysAddr {

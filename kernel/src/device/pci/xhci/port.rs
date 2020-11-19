@@ -1,22 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::{
-        command_runner::Runner,
-        context::{self, EndpointType},
-        dcbaa::DeviceContextBaseAddressArray,
-        register::{hc_operational::PortRegisters, Registers},
-        ring::transfer,
-    },
-    crate::{
-        mem::allocator::page_box::PageBox,
-        multitask::task::{self, Task},
-    },
-    alloc::rc::Rc,
-    core::{cell::RefCell, convert::TryInto},
-    futures_intrusive::sync::LocalMutex,
-    x86_64::PhysAddr,
+use super::{
+    command_runner::Runner,
+    context::{self, EndpointType},
+    dcbaa::DeviceContextBaseAddressArray,
+    register::{hc_operational::PortRegisters, Registers},
+    ring::transfer,
 };
+use crate::{
+    mem::allocator::page_box::PageBox,
+    multitask::task::{self, Task},
+};
+use alloc::rc::Rc;
+use core::{cell::RefCell, convert::TryInto};
+use futures_intrusive::sync::LocalMutex;
+use x86_64::PhysAddr;
 
 async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
     port.reset_if_connected();

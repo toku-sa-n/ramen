@@ -6,11 +6,11 @@ pub mod hc_operational;
 pub mod runtime_base_registers;
 pub mod usb_legacy_support_capability;
 
-use {
-    hc_capability::HCCapabilityRegisters, hc_operational::HCOperational,
-    runtime_base_registers::RuntimeBaseRegisters,
-    usb_legacy_support_capability::UsbLegacySupportCapability, x86_64::PhysAddr,
-};
+use hc_capability::HCCapabilityRegisters;
+use hc_operational::HCOperational;
+use runtime_base_registers::RuntimeBaseRegisters;
+use usb_legacy_support_capability::UsbLegacySupportCapability;
+use x86_64::PhysAddr;
 
 pub struct Registers {
     pub usb_legacy_support_capability: Option<UsbLegacySupportCapability>,
@@ -20,7 +20,9 @@ pub struct Registers {
     pub doorbell_array: doorbell::Array,
 }
 impl Registers {
-    pub fn new(mmio_base: PhysAddr) -> Self {
+    /// Safety: This method is unsafe because if `mmio_base` is not the valid MMIO base address,
+    /// it can violate memory safety.
+    pub unsafe fn new(mmio_base: PhysAddr) -> Self {
         let hc_capability_registers = HCCapabilityRegisters::new(mmio_base);
         let usb_legacy_support_capability =
             UsbLegacySupportCapability::new(mmio_base, &hc_capability_registers);

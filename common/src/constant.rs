@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    os_units::{Bytes, NumOfPages},
-    x86_64::{
-        instructions::port::Port,
-        structures::paging::{PageSize, Size4KiB},
-        PhysAddr, VirtAddr,
-    },
+use os_units::{Bytes, NumOfPages};
+use x86_64::{
+    instructions::port::Port,
+    structures::paging::{PageSize, Size4KiB},
+    PhysAddr, VirtAddr,
 };
 
 pub const LOCAL_APIC_ID_REGISTER_ADDR: PhysAddr = PhysAddr::new_truncate(0xfee0_0020);

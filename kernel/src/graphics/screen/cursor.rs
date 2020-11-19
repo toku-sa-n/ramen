@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::{layer, MOUSE_CURSOR_HEIGHT, MOUSE_CURSOR_WIDTH, MOUSE_GRAPHIC},
-    crate::graphics::Vram,
-    rgb::RGB8,
-    screen_layer::{self, Layer},
-    vek::Vec2,
-};
+use super::{layer, MOUSE_CURSOR_HEIGHT, MOUSE_CURSOR_WIDTH, MOUSE_GRAPHIC};
+use crate::graphics::Vram;
+use rgb::RGB8;
+use screen_layer::{self, Layer};
+use vek::Vec2;
 
 pub struct Cursor {
     coord: Vec2<i32>,

@@ -8,18 +8,16 @@ mod register;
 mod ring;
 mod xhc;
 
-use {
-    super::config::bar,
-    crate::multitask::task::{self, Task},
-    alloc::rc::Rc,
-    command_runner::{CommandCompletionReceiver, Runner},
-    core::cell::RefCell,
-    dcbaa::DeviceContextBaseAddressArray,
-    futures_intrusive::sync::LocalMutex,
-    register::Registers,
-    ring::{command, event},
-    xhc::Xhc,
-};
+use super::config::bar;
+use crate::multitask::task::{self, Task};
+use alloc::rc::Rc;
+use command_runner::{CommandCompletionReceiver, Runner};
+use core::cell::RefCell;
+use dcbaa::DeviceContextBaseAddressArray;
+use futures_intrusive::sync::LocalMutex;
+use register::Registers;
+use ring::{command, event};
+use xhc::Xhc;
 
 pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
     let registers = Rc::new(RefCell::new(iter_devices().next().unwrap()));
@@ -78,7 +76,9 @@ fn init(
 pub fn iter_devices() -> impl Iterator<Item = Registers> {
     super::iter_devices().filter_map(|device| {
         if device.is_xhci() {
-            Some(Registers::new(device.base_address(bar::Index::new(0))))
+            // Safety: This operation is safe because MMIO base address is generated from the 0th
+            // BAR.
+            Some(unsafe { Registers::new(device.base_address(bar::Index::new(0))) })
         } else {
             None
         }

@@ -32,25 +32,23 @@ mod mem;
 mod multitask;
 mod panic;
 
-use {
-    alloc::rc::Rc,
-    common::kernelboot,
-    core::cell::RefCell,
-    device::{
-        keyboard, mouse,
-        pci::{ahci, xhci},
-    },
-    graphics::{
-        screen::{self, desktop::Desktop, layer},
-        Vram,
-    },
-    mem::allocator::{heap, phys::FrameManager},
-    multitask::{
-        executor::Executor,
-        task::{self, Task},
-    },
-    x86_64::instructions::interrupts,
+use alloc::rc::Rc;
+use common::kernelboot;
+use core::cell::RefCell;
+use device::{
+    keyboard, mouse,
+    pci::{ahci, xhci},
 };
+use graphics::{
+    screen::{self, desktop::Desktop, layer},
+    Vram,
+};
+use mem::allocator::{heap, phys::FrameManager};
+use multitask::{
+    executor::Executor,
+    task::{self, Task},
+};
+use x86_64::instructions::interrupts;
 
 #[no_mangle]
 #[start]

@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    crate::device::{keyboard, mouse},
-    common::constant::PORT_KEY_DATA,
-    x86_64::{instructions::port::Port, structures::idt},
-};
+use crate::device::{keyboard, mouse};
+use common::constant::PORT_KEY_DATA;
+use x86_64::{instructions::port::Port, structures::idt};
 
 const PIC0_ICW1: u16 = 0x0020;
 const PIC0_OCW2: u16 = 0x0020;

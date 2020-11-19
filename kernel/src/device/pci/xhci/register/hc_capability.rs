@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {crate::mem::accessor::Accessor, bitfield::bitfield, os_units::Bytes, x86_64::PhysAddr};
+use crate::mem::accessor::Accessor;
+use bitfield::bitfield;
+use os_units::Bytes;
+use x86_64::PhysAddr;
 
 pub struct HCCapabilityRegisters {
     pub cap_length: Accessor<CapabilityRegistersLength>,
@@ -12,7 +15,9 @@ pub struct HCCapabilityRegisters {
 }
 
 impl HCCapabilityRegisters {
-    pub fn new(mmio_base: PhysAddr) -> Self {
+    /// Safety: This method is unsafe because if `mmio_base` is not the valid MMIO base address, it
+    /// can violate memory safety.
+    pub unsafe fn new(mmio_base: PhysAddr) -> Self {
         let cap_length = Accessor::new(mmio_base, Bytes::new(0));
         let hcs_params_1 = Accessor::new(mmio_base, Bytes::new(0x04));
         let hcs_params_2 = Accessor::new(mmio_base, Bytes::new(0x08));

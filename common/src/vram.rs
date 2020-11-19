@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    core::convert::TryFrom, os_units::Bytes, uefi::proto::console::gop, vek::Vec2, x86_64::PhysAddr,
-};
+use core::convert::TryFrom;
+use os_units::Bytes;
+use uefi::proto::console::gop;
+use vek::Vec2;
+use x86_64::PhysAddr;
 
 #[derive(Copy, Clone)]
 #[repr(C)]

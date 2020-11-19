@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::super::AchiBaseAddr, crate::mem::accessor::Accessor, bitfield::bitfield, os_units::Bytes,
-};
+use super::super::AchiBaseAddr;
+use crate::mem::accessor::Accessor;
+use bitfield::bitfield;
+use os_units::Bytes;
 
 pub struct Generic {
     pub cap: Accessor<HbaCapability>,
@@ -11,7 +12,9 @@ pub struct Generic {
     pub bohc: Accessor<BiosOsHandoffControlAndStatus>,
 }
 impl Generic {
-    pub fn new(abar: AchiBaseAddr) -> Self {
+    /// Safety: This method is unsafe because if `abar` is not the valid AHCI base address, this
+    /// method can violate memory safety.
+    pub unsafe fn new(abar: AchiBaseAddr) -> Self {
         let cap = Accessor::new(abar.into(), Bytes::new(0x00));
         let ghc = Accessor::new(abar.into(), Bytes::new(0x04));
         let pi = Accessor::new(abar.into(), Bytes::new(0x0c));

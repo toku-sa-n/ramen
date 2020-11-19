@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use {
-    super::hc_capability::HCCapabilityRegisters, crate::mem::accessor::Accessor,
-    bitfield::bitfield, os_units::Bytes, x86_64::PhysAddr,
-};
+use super::hc_capability::HCCapabilityRegisters;
+use crate::mem::accessor::Accessor;
+use bitfield::bitfield;
+use os_units::Bytes;
+use x86_64::PhysAddr;
 
 pub struct HCOperational {
     pub usb_cmd: Accessor<UsbCommandRegister>,
@@ -15,7 +16,9 @@ pub struct HCOperational {
 }
 
 impl HCOperational {
-    pub fn new(mmio_base: PhysAddr, capabilities: &HCCapabilityRegisters) -> Self {
+    /// Safety: This method is unsafe because if `mmio_base` is not a valid MMIO base address, it
+    /// can violate memory safety.
+    pub unsafe fn new(mmio_base: PhysAddr, capabilities: &HCCapabilityRegisters) -> Self {
         let operational_base = mmio_base + capabilities.cap_length.read().get();
 
         let usb_cmd = Accessor::new(operational_base, Bytes::new(0x00));
