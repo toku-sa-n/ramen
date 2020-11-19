@@ -97,6 +97,7 @@ bitfield! {
     pub struct SlotStructure([u32]);
 
     pub u8, _, set_context_entries: 31, 27;
+    pub u8, _, set_root_hub_port_number: 32+23, 32+16;
 }
 impl<const N: usize> SlotStructure<[u32; N]> {
     fn null() -> Self {

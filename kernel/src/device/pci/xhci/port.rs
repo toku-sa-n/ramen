@@ -13,7 +13,7 @@ use {
         multitask::task::{self, Task},
     },
     alloc::rc::Rc,
-    core::cell::RefCell,
+    core::{cell::RefCell, convert::TryInto},
     futures_intrusive::sync::LocalMutex,
     x86_64::PhysAddr,
 };
@@ -121,6 +121,10 @@ impl Port {
 
     fn init_input_slot_context(&mut self) {
         self.input_context.device.slot.set_context_entries(1);
+        self.input_context
+            .device
+            .slot
+            .set_root_hub_port_number(self.index.try_into().unwrap());
     }
 
     fn init_input_default_control_endpoint0_context(&mut self) {
