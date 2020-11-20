@@ -31,7 +31,7 @@ impl<'a> Ring {
 
     pub fn send_enable_slot(&mut self) -> Result<PhysAddr, Error> {
         let enable_slot = Trb::new_enable_slot(self.cycle_bit);
-        let phys_addr_to_trb = self.enqueue(enable_slot)?;
+        let phys_addr_to_trb = self.try_enqueue(enable_slot)?;
         self.notify_command_is_sent();
         Ok(phys_addr_to_trb)
     }
@@ -43,7 +43,7 @@ impl<'a> Ring {
     ) -> Result<PhysAddr, Error> {
         let address_device =
             Trb::new_address_device(self.cycle_bit, addr_to_input_context, slot_id);
-        let phys_addr_to_trb = self.enqueue(address_device)?;
+        let phys_addr_to_trb = self.try_enqueue(address_device)?;
         self.notify_command_is_sent();
         Ok(phys_addr_to_trb)
     }
@@ -67,38 +67,55 @@ impl<'a> Ring {
         crcr.update(|crcr| crcr.set_ring_cycle_state(true));
     }
 
-    fn enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
-        if !self.enqueueable() {
-            return Err(Error::QueueIsFull);
+    fn try_enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
+        if self.full() {
+            Err(Error::QueueIsFull)
+        } else {
+            Ok(self.enqueue(trb))
         }
-
-        self.raw[self.enqueue_ptr] = trb.into();
-
-        let phys_addr_to_trb = self.phys_addr_to_enqueue_ptr();
-
-        self.enqueue_ptr += 1;
-        if self.enqueue_ptr < self.len() - 1 {
-            return Ok(phys_addr_to_trb);
-        }
-
-        self.raw[self.enqueue_ptr] = Trb::new_link(self.phys_addr(), self.cycle_bit).into();
-        self.enqueue_ptr = 0;
-        self.cycle_bit.toggle();
-
-        Ok(phys_addr_to_trb)
     }
 
-    fn phys_addr_to_enqueue_ptr(&self) -> PhysAddr {
+    fn full(&self) -> bool {
+        let raw = self.raw[self.enqueue_ptr];
+        raw.cycle_bit() == self.cycle_bit
+    }
+
+    fn enqueue(&mut self, trb: Trb) -> PhysAddr {
+        self.write_trb_on_memory(trb);
+        let addr_to_trb = self.addr_to_enqueue_ptr();
+        self.increment_enqueue_ptr();
+        addr_to_trb
+    }
+
+    fn write_trb_on_memory(&mut self, trb: Trb) {
+        self.raw[self.enqueue_ptr] = trb.into();
+    }
+
+    fn addr_to_enqueue_ptr(&self) -> PhysAddr {
         self.phys_addr() + Trb::SIZE.as_usize() * self.enqueue_ptr
     }
 
-    fn enqueueable(&self) -> bool {
-        let raw = self.raw[self.enqueue_ptr];
-        raw.cycle_bit() != self.cycle_bit
+    fn increment_enqueue_ptr(&mut self) {
+        self.enqueue_ptr += 1;
+        if self.enqueue_ptr < self.len() - 1 {
+            return;
+        }
+
+        self.append_link_trb();
+        self.move_enqueue_ptr_to_the_beginning();
     }
 
     fn len(&self) -> usize {
         self.raw.len()
+    }
+
+    fn append_link_trb(&mut self) {
+        self.raw[self.enqueue_ptr] = Trb::new_link(self.phys_addr(), self.cycle_bit).into();
+    }
+
+    fn move_enqueue_ptr_to_the_beginning(&mut self) {
+        self.enqueue_ptr = 0;
+        self.cycle_bit.toggle();
     }
 }
 
