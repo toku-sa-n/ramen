@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod command_runner;
 mod context;
 mod dcbaa;
+mod exchanger;
 mod port;
 mod register;
 mod ring;
@@ -11,9 +11,9 @@ mod xhc;
 use super::config::bar;
 use crate::multitask::task::{self, Task};
 use alloc::rc::Rc;
-use command_runner::{CommandCompletionReceiver, Runner};
 use core::cell::RefCell;
 use dcbaa::DeviceContextBaseAddressArray;
+use exchanger::command::{Receiver, Sender};
 use futures_intrusive::sync::LocalMutex;
 use register::Registers;
 use ring::{command, event};
@@ -42,8 +42,8 @@ fn init(
 ) -> (
     event::Ring,
     Rc<RefCell<DeviceContextBaseAddressArray>>,
-    Rc<LocalMutex<Runner>>,
-    Rc<RefCell<CommandCompletionReceiver>>,
+    Rc<LocalMutex<Sender>>,
+    Rc<RefCell<Receiver>>,
 ) {
     let mut xhc = Xhc::new(registers.clone());
     let mut event_ring = event::Ring::new(registers.clone(), task_collection.clone());
@@ -51,9 +51,9 @@ fn init(
     let dcbaa = Rc::new(RefCell::new(DeviceContextBaseAddressArray::new(
         registers.clone(),
     )));
-    let command_completion_receiver = Rc::new(RefCell::new(CommandCompletionReceiver::new()));
+    let command_completion_receiver = Rc::new(RefCell::new(Receiver::new()));
     let command_runner = Rc::new(LocalMutex::new(
-        Runner::new(command_ring.clone(), command_completion_receiver.clone()),
+        Sender::new(command_ring.clone(), command_completion_receiver.clone()),
         false,
     ));
 

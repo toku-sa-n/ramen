@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{
-    super::{command_runner::CommandCompletionReceiver, register::Registers},
+    super::{exchanger::command::Receiver, register::Registers},
     raw,
     trb::Trb,
     CycleBit,
@@ -25,10 +25,7 @@ pub async fn task_to_check_event_ring() {
     WAKER.wake();
 }
 
-pub async fn task(
-    mut ring: Ring,
-    command_completion_receiver: Rc<RefCell<CommandCompletionReceiver>>,
-) {
+pub async fn task(mut ring: Ring, command_completion_receiver: Rc<RefCell<Receiver>>) {
     info!("This is the Event ring task.");
     while let Some(trb) = ring.next().await {
         info!("TRB: {:?}", trb);

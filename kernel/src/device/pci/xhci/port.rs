@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{
-    command_runner::Runner,
     context::{self, EndpointType},
     dcbaa::DeviceContextBaseAddressArray,
+    exchanger::command::Sender,
     register::{hc_operational::PortRegisters, Registers},
     ring::transfer,
 };
@@ -16,7 +16,7 @@ use core::{cell::RefCell, convert::TryInto};
 use futures_intrusive::sync::LocalMutex;
 use x86_64::PhysAddr;
 
-async fn task(mut port: Port, runner: Rc<LocalMutex<Runner>>) {
+async fn task(mut port: Port, runner: Rc<LocalMutex<Sender>>) {
     port.reset_if_connected();
 
     let slot_id = runner.lock().await.enable_device_slot().await.unwrap();
@@ -27,7 +27,7 @@ async fn task(mut port: Port, runner: Rc<LocalMutex<Runner>>) {
 // FIXME: Resolve this.
 #[allow(clippy::too_many_arguments)]
 pub fn spawn_tasks(
-    command_runner: &Rc<LocalMutex<Runner>>,
+    command_runner: &Rc<LocalMutex<Sender>>,
     dcbaa: &Rc<RefCell<DeviceContextBaseAddressArray>>,
     registers: &Rc<RefCell<Registers>>,
     task_collection: &Rc<RefCell<task::Collection>>,
@@ -98,7 +98,7 @@ impl Port {
         } {}
     }
 
-    async fn init_device_slot(&mut self, slot_id: u8, runner: Rc<LocalMutex<Runner>>) {
+    async fn init_device_slot(&mut self, slot_id: u8, runner: Rc<LocalMutex<Sender>>) {
         self.init_input_context();
         self.init_input_slot_context();
         self.init_input_default_control_endpoint0_context();
