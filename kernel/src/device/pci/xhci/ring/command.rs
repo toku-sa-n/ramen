@@ -24,8 +24,9 @@ impl<'a> Ring {
         }
     }
 
-    pub fn phys_addr(&self) -> PhysAddr {
-        self.raw.phys_addr()
+    pub fn init(&mut self) {
+        self.register_address_to_xhci_register();
+        self.set_initial_command_ring_cycle_state();
     }
 
     pub fn send_enable_slot(&mut self) -> Result<PhysAddr, Error> {
@@ -47,14 +48,13 @@ impl<'a> Ring {
         Ok(phys_addr_to_trb)
     }
 
+    pub fn phys_addr(&self) -> PhysAddr {
+        self.raw.phys_addr()
+    }
+
     fn notify_command_is_sent(&mut self) {
         let doorbell_array = &mut self.registers.borrow_mut().doorbell_array;
         doorbell_array.update(0, |reg| *reg = 0)
-    }
-
-    pub fn init(&mut self) {
-        self.register_address_to_xhci_register();
-        self.set_initial_command_ring_cycle_state();
     }
 
     fn register_address_to_xhci_register(&mut self) {
