@@ -65,6 +65,7 @@ impl StructuralParameters2 {
 bitfield! {
     #[repr(transparent)]
     pub struct HCCapabilityParameters1(u32);
+    pub csz, _: 2;
     pub xhci_extended_capabilities_pointer,_: 31,16;
 }
 
