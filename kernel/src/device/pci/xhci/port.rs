@@ -26,16 +26,7 @@ async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
         .await
         .unwrap();
 
-    port.init_input_context();
-    port.init_input_slot_context();
-    port.init_input_default_control_endpoint0_context();
-    port.register_to_dcbaa(slot_id.into());
-    command_runner
-        .lock()
-        .await
-        .address_device(port.addr_to_input_context(), slot_id)
-        .await
-        .unwrap();
+    port.init_device_slot(slot_id, command_runner).await;
 }
 
 // FIXME: Resolve this.
@@ -110,6 +101,20 @@ impl Port {
             let port_rg = self.read_port_rg();
             !port_rg.port_sc.port_reset_changed()
         } {}
+    }
+
+    async fn init_device_slot(&mut self, slot_id: u8, runner: Rc<LocalMutex<Runner>>) {
+        self.init_input_context();
+        self.init_input_slot_context();
+        self.init_input_default_control_endpoint0_context();
+        self.register_to_dcbaa(slot_id.into());
+
+        runner
+            .lock()
+            .await
+            .address_device(self.addr_to_input_context(), slot_id)
+            .await
+            .unwrap();
     }
 
     fn init_input_context(&mut self) {
