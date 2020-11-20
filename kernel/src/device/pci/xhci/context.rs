@@ -73,7 +73,7 @@ bitfield! {
     pub _, set_dequeue_cycle_state: 64;
     pub u32, _, set_error_count: 32+2, 32+1;
 }
-impl EndpointStructure<[u32; 8]> {
+impl Endpoint {
     pub fn set_endpoint_type(&mut self, ty: EndpointType) {
         self.set_endpoint_type_as_u32(ty as u32);
     }
@@ -100,8 +100,8 @@ bitfield! {
     pub u8, _, set_context_entries: 31, 27;
     pub u8, _, set_root_hub_port_number: 32+23, 32+16;
 }
-impl<const N: usize> SlotStructure<[u32; N]> {
+impl Slot {
     fn null() -> Self {
-        Self([0; N])
+        Self([0; 8])
     }
 }
