@@ -212,3 +212,16 @@ bitfield! {
     _, set_trb_type: 96+15, 96+10;
     _, set_trt: 96+17, 96+16;
 }
+
+bitfield! {
+    #[repr(transparent)]
+    pub struct DataStage(u128);
+    impl Debug;
+    u64, _, set_data_buffer_as_u64: 63, 0;
+    _, set_trb_transfer_length: 64+16, 64;
+    _, set_td_size: 64+21, 64+17;
+    _, set_cycle_bit: 96;
+    _, set_ioc: 96+5;
+    _, set_trb_type: 96+15, 96+10;
+    _, set_dir: 96+16;
+}
