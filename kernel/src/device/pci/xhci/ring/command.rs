@@ -75,17 +75,17 @@ impl<'a> Ring {
         }
     }
 
+    fn full(&self) -> bool {
+        let raw = self.raw[self.enqueue_ptr];
+        raw.cycle_bit() == self.cycle_bit
+    }
+
     fn enqueue(&mut self, trb: Trb) -> PhysAddr {
         self.raw[self.enqueue_ptr] = trb.into();
 
         let addr_to_trb = self.addr_to_enqueue_ptr();
         self.increment_enqueue_ptr();
         addr_to_trb
-    }
-
-    fn full(&self) -> bool {
-        let raw = self.raw[self.enqueue_ptr];
-        raw.cycle_bit() == self.cycle_bit
     }
 
     fn addr_to_enqueue_ptr(&self) -> PhysAddr {
