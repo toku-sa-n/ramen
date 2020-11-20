@@ -3,7 +3,7 @@
 use super::{
     context::{self, EndpointType},
     dcbaa::DeviceContextBaseAddressArray,
-    exchanger::Runner,
+    exchanger::command::Runner,
     register::{hc_operational::PortRegisters, Registers},
     ring::transfer,
 };

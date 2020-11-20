@@ -13,7 +13,7 @@ use crate::multitask::task::{self, Task};
 use alloc::rc::Rc;
 use core::cell::RefCell;
 use dcbaa::DeviceContextBaseAddressArray;
-use exchanger::{Receiver, Runner};
+use exchanger::command::{Receiver, Runner};
 use futures_intrusive::sync::LocalMutex;
 use register::Registers;
 use ring::{command, event};

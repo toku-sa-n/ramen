@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{
-    super::{exchanger::Receiver, register::Registers},
+    super::{exchanger::command::Receiver, register::Registers},
     raw,
     trb::Trb,
     CycleBit,
