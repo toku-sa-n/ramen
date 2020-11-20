@@ -68,7 +68,7 @@ impl<'a> Ring {
     }
 
     fn enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
-        if !self.enqueueable() {
+        if self.full() {
             return Err(Error::QueueIsFull);
         }
 
@@ -92,9 +92,9 @@ impl<'a> Ring {
         self.phys_addr() + Trb::SIZE.as_usize() * self.enqueue_ptr
     }
 
-    fn enqueueable(&self) -> bool {
+    fn full(&self) -> bool {
         let raw = self.raw[self.enqueue_ptr];
-        raw.cycle_bit() != self.cycle_bit
+        raw.cycle_bit() == self.cycle_bit
     }
 
     fn len(&self) -> usize {
