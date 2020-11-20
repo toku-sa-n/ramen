@@ -94,13 +94,17 @@ impl<'a> Ring {
             return;
         }
 
-        self.raw[self.enqueue_ptr] = Trb::new_link(self.phys_addr(), self.cycle_bit).into();
+        self.append_link_trb();
         self.enqueue_ptr = 0;
         self.cycle_bit.toggle();
     }
 
     fn len(&self) -> usize {
         self.raw.len()
+    }
+
+    fn append_link_trb(&mut self) {
+        self.raw[self.enqueue_ptr] = Trb::new_link(self.phys_addr(), self.cycle_bit).into();
     }
 }
 
