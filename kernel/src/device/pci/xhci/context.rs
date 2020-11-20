@@ -1,31 +1,108 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use super::register::Registers;
+use crate::mem::allocator::page_box::PageBox;
+use alloc::rc::Rc;
 use bitfield::bitfield;
+use core::cell::RefCell;
 use x86_64::PhysAddr;
 
-#[repr(C)]
-pub struct Input {
-    pub control: InputControl,
-    pub device: Device,
+pub enum Input {
+    Bit32(PageBox<InputWithControl32Bit>),
+    Bit64(PageBox<InputWithControl64Bit>),
 }
 impl Input {
-    pub fn null() -> Self {
+    pub fn null(registers: &Rc<RefCell<Registers>>) -> Self {
+        if Self::csz(&registers.borrow()) {
+            Self::Bit64(PageBox::new(InputWithControl64Bit::null()))
+        } else {
+            Self::Bit32(PageBox::new(InputWithControl32Bit::null()))
+        }
+    }
+
+    pub fn control_mut(&mut self) -> &mut dyn InputControl {
+        match self {
+            Self::Bit32(b32) => &mut b32.control,
+            Self::Bit64(b64) => &mut b64.control,
+        }
+    }
+
+    pub fn device_mut(&mut self) -> &mut Device {
+        match self {
+            Self::Bit32(b32) => &mut b32.device,
+            Self::Bit64(b64) => &mut b64.device,
+        }
+    }
+
+    pub fn phys_addr(&self) -> PhysAddr {
+        match self {
+            Self::Bit32(b32) => b32.phys_addr(),
+            Self::Bit64(b64) => b64.phys_addr(),
+        }
+    }
+
+    fn csz(registers: &Registers) -> bool {
+        let params1 = registers.hc_capability.hc_cp_params_1.read();
+        params1.csz()
+    }
+}
+
+#[repr(C)]
+pub struct InputWithControl32Bit {
+    control: InputControl32Bit,
+    device: Device,
+}
+impl InputWithControl32Bit {
+    fn null() -> Self {
         Self {
-            control: InputControl::null(),
+            control: InputControl32Bit::null(),
             device: Device::null(),
         }
     }
 }
 
+#[repr(C)]
+pub struct InputWithControl64Bit {
+    control: InputControl64Bit,
+    device: Device,
+}
+impl InputWithControl64Bit {
+    fn null() -> Self {
+        Self {
+            control: InputControl64Bit::null(),
+            device: Device::null(),
+        }
+    }
+}
+
+pub trait InputControl {
+    fn set_aflag(&mut self, inde: usize);
+}
+
 #[repr(transparent)]
-pub struct InputControl([u32; 8]);
-impl InputControl {
-    pub fn null() -> Self {
+pub struct InputControl32Bit([u32; 8]);
+impl InputControl32Bit {
+    fn null() -> Self {
         Self([0; 8])
     }
-
-    pub fn set_aflag(&mut self, index: usize) {
+}
+impl InputControl for InputControl32Bit {
+    fn set_aflag(&mut self, index: usize) {
         assert!(index < 32);
+        self.0[1] |= 1 << index;
+    }
+}
+
+#[repr(transparent)]
+pub struct InputControl64Bit([u64; 8]);
+impl InputControl64Bit {
+    fn null() -> Self {
+        Self([0; 8])
+    }
+}
+impl InputControl for InputControl64Bit {
+    fn set_aflag(&mut self, index: usize) {
+        assert!(index < 64);
         self.0[1] |= 1 << index;
     }
 }
