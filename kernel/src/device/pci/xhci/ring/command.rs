@@ -88,13 +88,13 @@ impl<'a> Ring {
         Ok(phys_addr_to_trb)
     }
 
-    fn phys_addr_to_enqueue_ptr(&self) -> PhysAddr {
-        self.phys_addr() + Trb::SIZE.as_usize() * self.enqueue_ptr
-    }
-
     fn full(&self) -> bool {
         let raw = self.raw[self.enqueue_ptr];
         raw.cycle_bit() == self.cycle_bit
+    }
+
+    fn phys_addr_to_enqueue_ptr(&self) -> PhysAddr {
+        self.phys_addr() + Trb::SIZE.as_usize() * self.enqueue_ptr
     }
 
     fn len(&self) -> usize {
