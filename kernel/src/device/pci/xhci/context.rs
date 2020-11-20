@@ -3,7 +3,7 @@
 use bitfield::bitfield;
 use x86_64::PhysAddr;
 
-#[repr(C, packed)]
+#[repr(C)]
 pub struct Input {
     pub input_control: InputControl,
     pub device: Device,
@@ -30,7 +30,7 @@ impl InputControl {
     }
 }
 
-#[repr(C, packed)]
+#[repr(C)]
 pub struct Device {
     pub slot: Slot,
     pub ep_0: Endpoint,
@@ -46,7 +46,7 @@ impl Device {
     }
 }
 
-#[repr(C, packed)]
+#[repr(C)]
 #[derive(Copy, Clone)]
 pub struct EndpointOutIn {
     out: Endpoint,

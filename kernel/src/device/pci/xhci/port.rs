@@ -113,24 +113,24 @@ impl Port {
     }
 
     fn init_input_context(&mut self) {
-        self.input_context.input_control.set_aflag(0);
-        self.input_context.input_control.set_aflag(1);
+        let input_control = &mut self.input_context.input_control;
+        input_control.set_aflag(0);
+        input_control.set_aflag(1);
     }
 
     fn init_input_slot_context(&mut self) {
-        self.input_context.device.slot.set_context_entries(1);
-        self.input_context
-            .device
-            .slot
-            .set_root_hub_port_number(self.index.try_into().unwrap());
+        let slot = &mut self.input_context.device.slot;
+        slot.set_context_entries(1);
+        slot.set_root_hub_port_number(self.index.try_into().unwrap());
     }
 
     fn init_input_default_control_endpoint0_context(&mut self) {
         let ep_0 = &mut self.input_context.device.ep_0;
         ep_0.set_endpoint_type(EndpointType::Control);
-        compile_error!("Get the maximum packet size!");
+        // FIXME
+        ep_0.set_max_packet_size(64);
         ep_0.set_dequeue_ptr(self.transfer_ring.phys_addr());
-        ep_0.set_dequeue_cycle_state(false);
+        ep_0.set_dequeue_cycle_state(true);
         ep_0.set_error_count(3);
     }
 
