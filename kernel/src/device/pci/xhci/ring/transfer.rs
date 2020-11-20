@@ -35,15 +35,7 @@ impl Ring {
         self.raw[self.enqueue_ptr] = trb.into();
 
         let addr_to_trb = self.addr_to_enqueue_ptr();
-        self.enqueue_ptr += 1;
-        if self.enqueue_ptr < self.len() {
-            return Ok(addr_to_trb);
-        }
-
-        self.raw[self.enqueue_ptr] = Trb::new_link(self.phys_addr(), self.cycle_bit).into();
-
-        self.enqueue_ptr = 0;
-        self.cycle_bit.toggle();
+        self.increment_enqueue_ptr();
 
         Ok(addr_to_trb)
     }
@@ -55,6 +47,17 @@ impl Ring {
 
     fn addr_to_enqueue_ptr(&self) -> PhysAddr {
         self.phys_addr() + Trb::SIZE.as_usize() * self.enqueue_ptr
+    }
+
+    fn increment_enqueue_ptr(&mut self) {
+        self.enqueue_ptr += 1;
+        if self.enqueue_ptr < self.len() - 1 {
+            return;
+        }
+
+        self.raw[self.enqueue_ptr] = Trb::new_link(self.phys_addr(), self.cycle_bit).into();
+        self.enqueue_ptr = 0;
+        self.cycle_bit.toggle();
     }
 
     fn len(&self) -> usize {
