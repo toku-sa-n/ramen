@@ -95,8 +95,7 @@ impl<'a> Ring {
         }
 
         self.append_link_trb();
-        self.enqueue_ptr = 0;
-        self.cycle_bit.toggle();
+        self.move_enqueue_ptr_to_the_beginning();
     }
 
     fn len(&self) -> usize {
@@ -105,6 +104,11 @@ impl<'a> Ring {
 
     fn append_link_trb(&mut self) {
         self.raw[self.enqueue_ptr] = Trb::new_link(self.phys_addr(), self.cycle_bit).into();
+    }
+
+    fn move_enqueue_ptr_to_the_beginning(&mut self) {
+        self.enqueue_ptr = 0;
+        self.cycle_bit.toggle();
     }
 }
 
