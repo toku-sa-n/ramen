@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod command_runner;
 mod context;
 mod dcbaa;
+mod exchanger;
 mod port;
 mod register;
 mod ring;
@@ -11,9 +11,9 @@ mod xhc;
 use super::config::bar;
 use crate::multitask::task::{self, Task};
 use alloc::rc::Rc;
-use command_runner::{Receiver, Runner};
 use core::cell::RefCell;
 use dcbaa::DeviceContextBaseAddressArray;
+use exchanger::{Receiver, Runner};
 use futures_intrusive::sync::LocalMutex;
 use register::Registers;
 use ring::{command, event};

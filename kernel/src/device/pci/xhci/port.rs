@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{
-    command_runner::Runner,
     context::{self, EndpointType},
     dcbaa::DeviceContextBaseAddressArray,
+    exchanger::Runner,
     register::{hc_operational::PortRegisters, Registers},
     ring::transfer,
 };
