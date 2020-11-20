@@ -30,7 +30,7 @@ impl<'a> Ring {
 
     pub fn send_enable_slot(&mut self) -> Result<PhysAddr, Error> {
         let enable_slot = Trb::new_enable_slot(self.cycle_bit);
-        let phys_addr_to_trb = self.enqueue(enable_slot)?;
+        let phys_addr_to_trb = self.try_enqueue(enable_slot)?;
         self.notify_command_is_sent();
         Ok(phys_addr_to_trb)
     }
@@ -42,7 +42,7 @@ impl<'a> Ring {
     ) -> Result<PhysAddr, Error> {
         let address_device =
             Trb::new_address_device(self.cycle_bit, addr_to_input_context, slot_id);
-        let phys_addr_to_trb = self.enqueue(address_device)?;
+        let phys_addr_to_trb = self.try_enqueue(address_device)?;
         self.notify_command_is_sent();
         Ok(phys_addr_to_trb)
     }
@@ -67,16 +67,20 @@ impl<'a> Ring {
         crcr.update(|crcr| crcr.set_ring_cycle_state(true));
     }
 
-    fn enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
+    fn try_enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
         if self.full() {
-            return Err(Error::QueueIsFull);
+            Err(Error::QueueIsFull)
+        } else {
+            Ok(self.enqueue(trb))
         }
+    }
 
+    fn enqueue(&mut self, trb: Trb) -> PhysAddr {
         self.raw[self.enqueue_ptr] = trb.into();
 
         let addr_to_trb = self.addr_to_enqueue_ptr();
         self.increment_enqueue_ptr();
-        Ok(addr_to_trb)
+        addr_to_trb
     }
 
     fn full(&self) -> bool {
