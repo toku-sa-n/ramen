@@ -41,12 +41,15 @@ impl Ring {
     }
 
     fn enqueue(&mut self, trb: Trb) -> PhysAddr {
-        self.raw[self.enqueue_ptr] = trb.into();
-
+        self.write_trb_on_memory(trb);
         let addr_to_trb = self.addr_to_enqueue_ptr();
         self.increment_enqueue_ptr();
 
         addr_to_trb
+    }
+
+    fn write_trb_on_memory(&mut self, trb: Trb) {
+        self.raw[self.enqueue_ptr] = trb.into();
     }
 
     fn addr_to_enqueue_ptr(&self) -> PhysAddr {
