@@ -233,3 +233,9 @@ bitfield! {
     _, set_cycle_bit: 96;
     _, set_trb_type: 96+15, 96+10;
 }
+
+bitfield! {
+    #[repr(transparent)]
+    pub struct TransferEvent(u128);
+    impl Debug;
+}
