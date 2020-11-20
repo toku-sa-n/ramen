@@ -13,14 +13,11 @@ use x86_64::PhysAddr;
 
 pub struct Runner {
     ring: Rc<RefCell<command::Ring>>,
-    receiver: Rc<RefCell<CommandCompletionReceiver>>,
+    receiver: Rc<RefCell<Receiver>>,
     waker: Rc<RefCell<AtomicWaker>>,
 }
 impl Runner {
-    pub fn new(
-        ring: Rc<RefCell<command::Ring>>,
-        receiver: Rc<RefCell<CommandCompletionReceiver>>,
-    ) -> Self {
+    pub fn new(ring: Rc<RefCell<command::Ring>>, receiver: Rc<RefCell<Receiver>>) -> Self {
         Self {
             ring,
             receiver,
@@ -60,11 +57,11 @@ impl Runner {
     }
 }
 
-pub struct CommandCompletionReceiver {
+pub struct Receiver {
     trbs: BTreeMap<PhysAddr, Option<CommandComplete>>,
     wakers: BTreeMap<PhysAddr, Rc<RefCell<AtomicWaker>>>,
 }
-impl CommandCompletionReceiver {
+impl Receiver {
     pub fn new() -> Self {
         Self {
             trbs: BTreeMap::new(),
@@ -145,13 +142,13 @@ pub enum Error {
 
 struct ReceiveFuture {
     addr_to_trb: PhysAddr,
-    receiver: Rc<RefCell<CommandCompletionReceiver>>,
+    receiver: Rc<RefCell<Receiver>>,
     waker: Rc<RefCell<AtomicWaker>>,
 }
 impl ReceiveFuture {
     fn new(
         addr_to_trb: PhysAddr,
-        receiver: Rc<RefCell<CommandCompletionReceiver>>,
+        receiver: Rc<RefCell<Receiver>>,
         waker: Rc<RefCell<AtomicWaker>>,
     ) -> Self {
         Self {

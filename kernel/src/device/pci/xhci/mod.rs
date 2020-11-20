@@ -11,7 +11,7 @@ mod xhc;
 use super::config::bar;
 use crate::multitask::task::{self, Task};
 use alloc::rc::Rc;
-use command_runner::{CommandCompletionReceiver, Runner};
+use command_runner::{Receiver, Runner};
 use core::cell::RefCell;
 use dcbaa::DeviceContextBaseAddressArray;
 use futures_intrusive::sync::LocalMutex;
@@ -43,7 +43,7 @@ fn init(
     event::Ring,
     Rc<RefCell<DeviceContextBaseAddressArray>>,
     Rc<LocalMutex<Runner>>,
-    Rc<RefCell<CommandCompletionReceiver>>,
+    Rc<RefCell<Receiver>>,
 ) {
     let mut xhc = Xhc::new(registers.clone());
     let mut event_ring = event::Ring::new(registers.clone(), task_collection.clone());
@@ -51,7 +51,7 @@ fn init(
     let dcbaa = Rc::new(RefCell::new(DeviceContextBaseAddressArray::new(
         registers.clone(),
     )));
-    let command_completion_receiver = Rc::new(RefCell::new(CommandCompletionReceiver::new()));
+    let command_completion_receiver = Rc::new(RefCell::new(Receiver::new()));
     let command_runner = Rc::new(LocalMutex::new(
         Runner::new(command_ring.clone(), command_completion_receiver.clone()),
         false,
