@@ -225,3 +225,11 @@ bitfield! {
     _, set_trb_type: 96+15, 96+10;
     _, set_dir: 96+16;
 }
+
+bitfield! {
+    #[repr(transparent)]
+    pub struct StatusStage(u128);
+    impl Debug;
+    _, set_cycle_bit: 96;
+    _, set_trb_type: 96+15, 96+10;
+}
