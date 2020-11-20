@@ -29,15 +29,19 @@ impl Ring {
 
     fn try_enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
         if self.full() {
-            return Err(Error::QueueIsFull);
+            Err(Error::QueueIsFull)
+        } else {
+            Ok(self.enqueue(trb))
         }
+    }
 
+    fn enqueue(&mut self, trb: Trb) -> PhysAddr {
         self.raw[self.enqueue_ptr] = trb.into();
 
         let addr_to_trb = self.addr_to_enqueue_ptr();
         self.increment_enqueue_ptr();
 
-        Ok(addr_to_trb)
+        addr_to_trb
     }
 
     fn full(&self) -> bool {
