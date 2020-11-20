@@ -13,7 +13,7 @@ use crate::multitask::task::{self, Task};
 use alloc::rc::Rc;
 use core::cell::RefCell;
 use dcbaa::DeviceContextBaseAddressArray;
-use exchanger::command::{Receiver, Runner};
+use exchanger::command::{Receiver, Sender};
 use futures_intrusive::sync::LocalMutex;
 use register::Registers;
 use ring::{command, event};
@@ -42,7 +42,7 @@ fn init(
 ) -> (
     event::Ring,
     Rc<RefCell<DeviceContextBaseAddressArray>>,
-    Rc<LocalMutex<Runner>>,
+    Rc<LocalMutex<Sender>>,
     Rc<RefCell<Receiver>>,
 ) {
     let mut xhc = Xhc::new(registers.clone());
@@ -53,7 +53,7 @@ fn init(
     )));
     let command_completion_receiver = Rc::new(RefCell::new(Receiver::new()));
     let command_runner = Rc::new(LocalMutex::new(
-        Runner::new(command_ring.clone(), command_completion_receiver.clone()),
+        Sender::new(command_ring.clone(), command_completion_receiver.clone()),
         false,
     ));
 

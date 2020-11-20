@@ -11,12 +11,12 @@ use core::{
 use futures_util::task::AtomicWaker;
 use x86_64::PhysAddr;
 
-pub struct Runner {
+pub struct Sender {
     ring: Rc<RefCell<command::Ring>>,
     receiver: Rc<RefCell<Receiver>>,
     waker: Rc<RefCell<AtomicWaker>>,
 }
-impl Runner {
+impl Sender {
     pub fn new(ring: Rc<RefCell<command::Ring>>, receiver: Rc<RefCell<Receiver>>) -> Self {
         Self {
             ring,
