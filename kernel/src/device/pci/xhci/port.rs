@@ -33,7 +33,7 @@ pub fn spawn_tasks(
     task_collection: &Rc<RefCell<task::Collection>>,
 ) {
     for i in 0..num_of_ports(&registers) {
-        let port = Port::new(registers.clone(), dcbaa.clone(), i);
+        let port = Port::new(registers.clone(), dcbaa.clone(), i + 1);
         if port.connected() {
             task_collection
                 .borrow_mut()
@@ -88,7 +88,7 @@ impl Port {
 
     fn start_resetting(&mut self) {
         let port_rg = &mut self.registers.borrow_mut().hc_operational.port_registers;
-        port_rg.update(self.index, |rg| rg.port_sc.set_port_reset(true))
+        port_rg.update(self.index - 1, |rg| rg.port_sc.set_port_reset(true))
     }
 
     fn wait_until_reset_completed(&self) {
@@ -144,6 +144,6 @@ impl Port {
 
     fn read_port_rg(&self) -> PortRegisters {
         let port_rg = &self.registers.borrow().hc_operational.port_registers;
-        port_rg.read(self.index)
+        port_rg.read(self.index - 1)
     }
 }
