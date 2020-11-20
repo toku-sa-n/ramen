@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use bitfield::bitfield;
-use core::ops::{Deref, DerefMut};
+use x86_64::PhysAddr;
 
+#[repr(C)]
 pub struct Input {
-    pub input_control: InputControl,
+    pub control: InputControl,
     pub device: Device,
 }
 impl Input {
     pub fn null() -> Self {
         Self {
-            input_control: InputControl::null(),
+            control: InputControl::null(),
             device: Device::null(),
         }
     }
@@ -29,8 +30,9 @@ impl InputControl {
     }
 }
 
+#[repr(C)]
 pub struct Device {
-    slot: Slot,
+    pub slot: Slot,
     pub ep_0: Endpoint,
     ep_inout: [EndpointOutIn; 15],
 }
@@ -44,6 +46,21 @@ impl Device {
     }
 }
 
+pub type Slot = SlotStructure<[u32; 8]>;
+bitfield! {
+    #[repr(transparent)]
+    pub struct SlotStructure([u32]);
+
+    pub u8, _, set_context_entries: 31, 27;
+    pub u8, _, set_root_hub_port_number: 32+23, 32+16;
+}
+impl Slot {
+    fn null() -> Self {
+        Self([0; 8])
+    }
+}
+
+#[repr(C)]
 #[derive(Copy, Clone)]
 pub struct EndpointOutIn {
     out: Endpoint,
@@ -58,14 +75,7 @@ impl EndpointOutIn {
     }
 }
 
-#[repr(transparent)]
-#[derive(Copy, Clone)]
-pub struct Endpoint(pub EndpointStructure<[u32; 8]>);
-impl Endpoint {
-    fn null() -> Self {
-        Self(EndpointStructure::null())
-    }
-}
+pub type Endpoint = EndpointStructure<[u32; 8]>;
 bitfield! {
     #[repr(transparent)]
     #[derive(Copy,Clone)]
@@ -73,13 +83,18 @@ bitfield! {
     impl Debug;
     pub u32, _, set_endpoint_type_as_u32: 32+5, 32+3;
     pub u32, _, set_max_packet_size: 32+31, 32+16;
-    pub u64, _, set_dequeue_ptr: 96+31, 64;
+    u64, _, set_dequeue_ptr_as_u64: 96+31, 64;
     pub _, set_dequeue_cycle_state: 64;
     pub u32, _, set_error_count: 32+2, 32+1;
 }
-impl EndpointStructure<[u32; 8]> {
+impl Endpoint {
     pub fn set_endpoint_type(&mut self, ty: EndpointType) {
         self.set_endpoint_type_as_u32(ty as u32);
+    }
+
+    pub fn set_dequeue_ptr(&mut self, addr: PhysAddr) {
+        assert!(addr.is_aligned(16_u64));
+        self.set_dequeue_ptr_as_u64(addr.as_u64());
     }
 
     fn null() -> Self {
@@ -89,33 +104,4 @@ impl EndpointStructure<[u32; 8]> {
 
 pub enum EndpointType {
     Control = 4,
-}
-
-pub struct Slot(SlotStructure<[u32; 8]>);
-impl Slot {
-    pub fn null() -> Self {
-        Self(SlotStructure::null())
-    }
-}
-impl Deref for Slot {
-    type Target = SlotStructure<[u32; 8]>;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-impl DerefMut for Slot {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-bitfield! {
-    #[repr(transparent)]
-    pub struct SlotStructure([u32]);
-
-    pub u8, _, set_context_entries: 31, 27;
-}
-impl<const N: usize> SlotStructure<[u32; N]> {
-    fn null() -> Self {
-        Self([0; N])
-    }
 }

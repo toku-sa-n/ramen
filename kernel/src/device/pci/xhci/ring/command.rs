@@ -35,6 +35,18 @@ impl<'a> Ring {
         Ok(phys_addr_to_trb)
     }
 
+    pub fn send_address_device(
+        &mut self,
+        addr_to_input_context: PhysAddr,
+        slot_id: u8,
+    ) -> Result<PhysAddr, Error> {
+        let address_device =
+            Trb::new_address_device(self.cycle_bit, addr_to_input_context, slot_id);
+        let phys_addr_to_trb = self.enqueue(address_device)?;
+        self.notify_command_is_sent();
+        Ok(phys_addr_to_trb)
+    }
+
     fn notify_command_is_sent(&mut self) {
         let doorbell_array = &mut self.registers.borrow_mut().doorbell_array;
         doorbell_array.update(0, |reg| *reg = 0)

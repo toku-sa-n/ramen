@@ -12,23 +12,16 @@ use crate::{
     multitask::task::{self, Task},
 };
 use alloc::rc::Rc;
-use core::cell::RefCell;
+use core::{cell::RefCell, convert::TryInto};
 use futures_intrusive::sync::LocalMutex;
+use x86_64::PhysAddr;
 
-async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
+async fn task(mut port: Port, runner: Rc<LocalMutex<Runner>>) {
     port.reset_if_connected();
 
-    let slot_id = command_runner
-        .lock()
-        .await
-        .enable_device_slot()
-        .await
-        .unwrap();
+    let slot_id = runner.lock().await.enable_device_slot().await.unwrap();
 
-    port.init_input_context();
-    port.init_input_slot_context();
-    port.init_input_default_control_endpoint0_context();
-    port.register_to_dcbaa(slot_id.into());
+    port.init_device_slot(slot_id, runner).await;
 }
 
 // FIXME: Resolve this.
@@ -40,7 +33,7 @@ pub fn spawn_tasks(
     task_collection: &Rc<RefCell<task::Collection>>,
 ) {
     for i in 0..num_of_ports(&registers) {
-        let port = Port::new(registers.clone(), dcbaa.clone(), i);
+        let port = Port::new(registers.clone(), dcbaa.clone(), i + 1);
         if port.connected() {
             task_collection
                 .borrow_mut()
@@ -57,8 +50,7 @@ fn num_of_ports(registers: &Rc<RefCell<Registers>>) -> usize {
 pub struct Port {
     registers: Rc<RefCell<Registers>>,
     index: usize,
-    input_context: PageBox<context::Input>,
-    input_slot_context: PageBox<context::Slot>,
+    input_context: PageBox<context::Input>, // FIXME: Support 64-bit Input Control Context. See the note of xHCI dev manual 6.2.5.1.
     output_device_context: PageBox<context::Device>,
     transfer_ring: transfer::Ring,
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
@@ -79,7 +71,6 @@ impl Port {
             registers: registers.clone(),
             index,
             input_context: PageBox::new(context::Input::null()),
-            input_slot_context: PageBox::new(context::Slot::null()),
             output_device_context: PageBox::new(context::Device::null()),
             dcbaa,
             transfer_ring: transfer::Ring::new(registers),
@@ -97,7 +88,7 @@ impl Port {
 
     fn start_resetting(&mut self) {
         let port_rg = &mut self.registers.borrow_mut().hc_operational.port_registers;
-        port_rg.update(self.index, |rg| rg.port_sc.set_port_reset(true))
+        port_rg.update(self.index - 1, |rg| rg.port_sc.set_port_reset(true))
     }
 
     fn wait_until_reset_completed(&self) {
@@ -107,21 +98,44 @@ impl Port {
         } {}
     }
 
+    async fn init_device_slot(&mut self, slot_id: u8, runner: Rc<LocalMutex<Runner>>) {
+        self.init_input_context();
+        self.init_input_slot_context();
+        self.init_input_default_control_endpoint0_context();
+        self.register_to_dcbaa(slot_id.into());
+
+        runner
+            .lock()
+            .await
+            .address_device(self.addr_to_input_context(), slot_id)
+            .await
+            .unwrap();
+    }
+
     fn init_input_context(&mut self) {
-        self.input_context.input_control.set_aflag(0);
-        self.input_context.input_control.set_aflag(1);
+        let input_control = &mut self.input_context.control;
+        input_control.set_aflag(0);
+        input_control.set_aflag(1);
     }
 
     fn init_input_slot_context(&mut self) {
-        self.input_slot_context.set_context_entries(1);
+        let slot = &mut self.input_context.device.slot;
+        slot.set_context_entries(1);
+        slot.set_root_hub_port_number(self.index.try_into().unwrap());
     }
 
     fn init_input_default_control_endpoint0_context(&mut self) {
-        let ep_0 = &mut self.input_context.device.ep_0.0;
+        let ep_0 = &mut self.input_context.device.ep_0;
         ep_0.set_endpoint_type(EndpointType::Control);
-        ep_0.set_dequeue_ptr(self.transfer_ring.phys_addr().as_u64());
-        ep_0.set_dequeue_cycle_state(false);
+        // FIXME
+        ep_0.set_max_packet_size(64);
+        ep_0.set_dequeue_ptr(self.transfer_ring.phys_addr());
+        ep_0.set_dequeue_cycle_state(true);
         ep_0.set_error_count(3);
+    }
+
+    fn addr_to_input_context(&self) -> PhysAddr {
+        self.input_context.phys_addr()
     }
 
     fn register_to_dcbaa(&mut self, slot_id: usize) {
@@ -130,6 +144,6 @@ impl Port {
 
     fn read_port_rg(&self) -> PortRegisters {
         let port_rg = &self.registers.borrow().hc_operational.port_registers;
-        port_rg.read(self.index)
+        port_rg.read(self.index - 1)
     }
 }

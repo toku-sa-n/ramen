@@ -35,6 +35,20 @@ impl Runner {
         Ok(completion_trb.slot_id())
     }
 
+    pub async fn address_device(
+        &mut self,
+        addr_to_input_context: PhysAddr,
+        slot_id: u8,
+    ) -> Result<(), command::Error> {
+        let addr_to_trb = self
+            .ring
+            .borrow_mut()
+            .send_address_device(addr_to_input_context, slot_id)?;
+        self.register_to_receiver(addr_to_trb);
+        let completion_trb = self.get_trb(addr_to_trb).await;
+        Ok(())
+    }
+
     fn register_to_receiver(&mut self, addr_to_trb: PhysAddr) {
         self.receiver
             .borrow_mut()
