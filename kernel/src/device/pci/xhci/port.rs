@@ -16,17 +16,12 @@ use core::{cell::RefCell, convert::TryInto};
 use futures_intrusive::sync::LocalMutex;
 use x86_64::PhysAddr;
 
-async fn task(mut port: Port, command_runner: Rc<LocalMutex<Runner>>) {
+async fn task(mut port: Port, runner: Rc<LocalMutex<Runner>>) {
     port.reset_if_connected();
 
-    let slot_id = command_runner
-        .lock()
-        .await
-        .enable_device_slot()
-        .await
-        .unwrap();
+    let slot_id = runner.lock().await.enable_device_slot().await.unwrap();
 
-    port.init_device_slot(slot_id, command_runner).await;
+    port.init_device_slot(slot_id, runner).await;
 }
 
 // FIXME: Resolve this.
