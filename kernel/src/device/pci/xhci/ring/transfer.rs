@@ -27,22 +27,29 @@ impl Ring {
         self.raw.phys_addr()
     }
 
-    fn enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
+    fn try_enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
         if self.full() {
-            return Err(Error::QueueIsFull);
+            Err(Error::QueueIsFull)
+        } else {
+            Ok(self.enqueue(trb))
         }
-
-        self.raw[self.enqueue_ptr] = trb.into();
-
-        let addr_to_trb = self.addr_to_enqueue_ptr();
-        self.increment_enqueue_ptr();
-
-        Ok(addr_to_trb)
     }
 
     fn full(&self) -> bool {
         let raw = self.raw[self.enqueue_ptr];
         raw.cycle_bit() == self.cycle_bit
+    }
+
+    fn enqueue(&mut self, trb: Trb) -> PhysAddr {
+        self.write_trb_on_memory(trb);
+        let addr_to_trb = self.addr_to_enqueue_ptr();
+        self.increment_enqueue_ptr();
+
+        addr_to_trb
+    }
+
+    fn write_trb_on_memory(&mut self, trb: Trb) {
+        self.raw[self.enqueue_ptr] = trb.into();
     }
 
     fn addr_to_enqueue_ptr(&self) -> PhysAddr {
