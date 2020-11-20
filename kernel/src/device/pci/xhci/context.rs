@@ -46,6 +46,20 @@ impl Device {
     }
 }
 
+pub type Slot = SlotStructure<[u32; 8]>;
+bitfield! {
+    #[repr(transparent)]
+    pub struct SlotStructure([u32]);
+
+    pub u8, _, set_context_entries: 31, 27;
+    pub u8, _, set_root_hub_port_number: 32+23, 32+16;
+}
+impl Slot {
+    fn null() -> Self {
+        Self([0; 8])
+    }
+}
+
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct EndpointOutIn {
@@ -90,18 +104,4 @@ impl Endpoint {
 
 pub enum EndpointType {
     Control = 4,
-}
-
-pub type Slot = SlotStructure<[u32; 8]>;
-bitfield! {
-    #[repr(transparent)]
-    pub struct SlotStructure([u32]);
-
-    pub u8, _, set_context_entries: 31, 27;
-    pub u8, _, set_root_hub_port_number: 32+23, 32+16;
-}
-impl Slot {
-    fn null() -> Self {
-        Self([0; 8])
-    }
 }
