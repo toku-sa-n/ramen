@@ -50,7 +50,7 @@ fn num_of_ports(registers: &Rc<RefCell<Registers>>) -> usize {
 pub struct Port {
     registers: Rc<RefCell<Registers>>,
     index: usize,
-    input_context: PageBox<context::Input>, // FIXME: Support 64-bit Input Control Context. See the note of xHCI dev manual 6.2.5.1.
+    input_context: PageBox<context::Input>,
     output_device_context: PageBox<context::Device>,
     transfer_ring: transfer::Ring,
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
