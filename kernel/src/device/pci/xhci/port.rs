@@ -113,7 +113,7 @@ impl Port {
     }
 
     fn init_input_context(&mut self) {
-        let input_control = &mut self.input_context.input_control;
+        let input_control = &mut self.input_context.control;
         input_control.set_aflag(0);
         input_control.set_aflag(1);
     }

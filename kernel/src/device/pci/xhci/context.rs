@@ -5,13 +5,13 @@ use x86_64::PhysAddr;
 
 #[repr(C)]
 pub struct Input {
-    pub input_control: InputControl,
+    pub control: InputControl,
     pub device: Device,
 }
 impl Input {
     pub fn null() -> Self {
         Self {
-            input_control: InputControl::null(),
+            control: InputControl::null(),
             device: Device::null(),
         }
     }
