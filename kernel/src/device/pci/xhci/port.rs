@@ -50,7 +50,7 @@ fn num_of_ports(registers: &Rc<RefCell<Registers>>) -> usize {
 pub struct Port {
     registers: Rc<RefCell<Registers>>,
     index: usize,
-    input_context: PageBox<context::Input>, // FIXME: Support 64-bit Input Control Context. See the note of xHCI dev manual 6.2.5.1.
+    input_context: context::Input,
     output_device_context: PageBox<context::Device>,
     transfer_ring: transfer::Ring,
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
@@ -70,7 +70,7 @@ impl Port {
         Self {
             registers: registers.clone(),
             index,
-            input_context: PageBox::new(context::Input::null()),
+            input_context: context::Input::null(&registers),
             output_device_context: PageBox::new(context::Device::null()),
             dcbaa,
             transfer_ring: transfer::Ring::new(registers),
@@ -113,19 +113,19 @@ impl Port {
     }
 
     fn init_input_context(&mut self) {
-        let input_control = &mut self.input_context.control;
+        let input_control = self.input_context.control_mut();
         input_control.set_aflag(0);
         input_control.set_aflag(1);
     }
 
     fn init_input_slot_context(&mut self) {
-        let slot = &mut self.input_context.device.slot;
+        let slot = &mut self.input_context.device_mut().slot;
         slot.set_context_entries(1);
         slot.set_root_hub_port_number(self.index.try_into().unwrap());
     }
 
     fn init_input_default_control_endpoint0_context(&mut self) {
-        let ep_0 = &mut self.input_context.device.ep_0;
+        let ep_0 = &mut self.input_context.device_mut().ep_0;
         ep_0.set_endpoint_type(EndpointType::Control);
         // FIXME
         ep_0.set_max_packet_size(64);
