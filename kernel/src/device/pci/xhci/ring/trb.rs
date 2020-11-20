@@ -197,3 +197,18 @@ impl From<raw::Trb> for AddressDevice {
         Self(raw.0)
     }
 }
+
+bitfield! {
+    #[repr(transparent)]
+    pub struct SetupStage(u128);
+    impl Debug;
+    _, set_bm_request_type: 7, 0;
+    _, set_b_request: 15, 8;
+    _, set_w_value: 31, 16;
+    _, set_w_index: 32+15, 32;
+    _, set_w_length: 32+31, 32+16;
+    _, set_trb_transfer_length: 64+16, 64;
+    _, set_cycle_bit: 96;
+    _, set_trb_type: 96+15, 96+10;
+    _, set_trt: 96+17, 96+16;
+}
