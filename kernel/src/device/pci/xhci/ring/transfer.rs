@@ -27,7 +27,7 @@ impl Ring {
         self.raw.phys_addr()
     }
 
-    fn enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
+    fn try_enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
         if self.full() {
             return Err(Error::QueueIsFull);
         }
