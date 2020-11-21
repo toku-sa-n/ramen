@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{trb, CycleBit};
+use super::CycleBit;
 use crate::mem::allocator::page_box::PageBox;
 use bit_field::{BitArray, BitField};
 use core::{
@@ -49,18 +49,6 @@ impl Trb {
 
     fn null() -> Self {
         Self([0; 4])
-    }
-}
-impl From<trb::Trb> for Trb {
-    fn from(trb: trb::Trb) -> Self {
-        match trb {
-            trb::Trb::Noop(noop) => Self(noop.0),
-            trb::Trb::CommandComplete(command_complete) => Self(command_complete.0),
-            trb::Trb::Link(link) => Self(link.0),
-            trb::Trb::PortStatusChange(change) => Self(change.0),
-            trb::Trb::EnableSlot(enable) => Self(enable.0),
-            trb::Trb::AddressDevice(address) => Self(address.0),
-        }
     }
 }
 impl From<Trb> for CycleBit {
