@@ -75,7 +75,7 @@ impl Noop {
     const ID: u8 = 23;
     fn new(cycle_bit: CycleBit) -> Self {
         let mut noop = Self([0; 4]);
-        noop.set_cycle_bit(cycle_bit.into());
+        noop.set_cycle_bit(cycle_bit);
         noop.set_trb_type(Self::ID);
 
         noop
