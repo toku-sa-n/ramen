@@ -67,9 +67,10 @@ pub enum Error {
     InvalidId,
 }
 
+pub type Noop = NoopStructure<[u32; 4]>;
 bitfield! {
     #[repr(transparent)]
-    pub struct Noop(u128);
+    pub struct NoopStructure([u32]);
     impl Debug;
     _, set_cycle_bit: 96;
     u8, trb_type, set_trb_type: 96+15, 96+10;
@@ -77,7 +78,7 @@ bitfield! {
 impl Noop {
     const ID: u8 = 23;
     fn new(cycle_bit: CycleBit) -> Self {
-        let mut noop = Noop(0);
+        let mut noop = Self([0; 4]);
         noop.set_cycle_bit(cycle_bit.into());
         noop.set_trb_type(Self::ID);
 
@@ -90,12 +91,13 @@ impl From<raw::Trb> for Noop {
     }
 }
 
+pub type CommandComplete = CommandCompleteStructure<[u32; 4]>;
 bitfield! {
     #[repr(transparent)]
-    pub struct CommandComplete(u128);
+    pub struct CommandCompleteStructure([u32]);
     impl Debug;
     pub u64, addr_to_command_trb, _: 63, 0;
-    completion_code, _: 64+31,64+24;
+    u128,completion_code, _: 64+31,64+24;
     pub u8, slot_id, _: 96+31, 96+24;
 }
 impl CommandComplete {
@@ -107,11 +109,12 @@ impl From<raw::Trb> for CommandComplete {
     }
 }
 
+pub type Link = LinkStructure<[u32; 4]>;
 bitfield! {
     #[repr(transparent)]
-    pub struct Link(u128);
+    pub struct LinkStructure([u32]);
     impl Debug;
-    _, set_addr: 63, 0;
+    u128, _, set_addr: 63, 0;
     _, set_cycle_bit: 96;
     u8, _, set_trb_type: 96+15,96+10;
 }
@@ -119,7 +122,7 @@ impl Link {
     const ID: u8 = 6;
     fn new(addr_to_ring: PhysAddr, cycle_bit: CycleBit) -> Self {
         assert!(addr_to_ring.is_aligned(u64::try_from(Trb::SIZE.as_usize()).unwrap()));
-        let mut trb = Link(0);
+        let mut trb = Self([0; 4]);
         trb.set_cycle_bit(cycle_bit.into());
         trb.set_trb_type(Self::ID);
         trb.set_addr(addr_to_ring.as_u64().into());
@@ -132,12 +135,13 @@ impl From<raw::Trb> for Link {
     }
 }
 
+pub type PortStatusChange = PortStatusChangeStructure<[u32; 4]>;
 bitfield! {
     #[repr(transparent)]
-    pub struct PortStatusChange(u128);
+    pub struct PortStatusChangeStructure([u32]);
     impl Debug;
-    port_id, _: 31, 24;
-    completion_code, _: 64+31, 64+24;
+    u128, port_id, _: 31, 24;
+    u128, completion_code, _: 64+31, 64+24;
 }
 impl PortStatusChange {
     const ID: u8 = 34;
@@ -148,9 +152,10 @@ impl From<raw::Trb> for PortStatusChange {
     }
 }
 
+pub type EnableSlot = EnableSlotStructure<[u32; 4]>;
 bitfield! {
     #[repr(transparent)]
-    pub struct EnableSlot(u128);
+    pub struct EnableSlotStructure([u32]);
     impl Debug;
     _, set_cycle_bit: 96;
     u8,_, set_trb_type: 96+15, 96+10;
@@ -158,7 +163,7 @@ bitfield! {
 impl EnableSlot {
     const ID: u8 = 9;
     pub fn new(cycle_bit: CycleBit) -> Self {
-        let mut enable_slot = Self(0);
+        let mut enable_slot = Self([0; 4]);
         enable_slot.set_cycle_bit(cycle_bit.into());
         enable_slot.set_trb_type(Self::ID);
         enable_slot
@@ -170,9 +175,10 @@ impl From<raw::Trb> for EnableSlot {
     }
 }
 
+pub type AddressDevice = AddressDeviceStructure<[u32; 4]>;
 bitfield! {
     #[repr(transparent)]
-    pub struct AddressDevice(u128);
+    pub struct AddressDeviceStructure([u32]);
     impl Debug;
     u64, _, set_input_context_ptr_as_u64: 63, 0;
     _, set_cycle_bit: 96;
@@ -182,7 +188,7 @@ bitfield! {
 impl AddressDevice {
     const ID: u8 = 11;
     pub fn new(cycle_bit: CycleBit, addr_to_input_context: PhysAddr, slot_id: u8) -> Self {
-        let mut trb = Self(0);
+        let mut trb = Self([0; 4]);
 
         assert!(addr_to_input_context.is_aligned(16_u64));
         trb.set_input_context_ptr_as_u64(addr_to_input_context.as_u64());
@@ -198,44 +204,48 @@ impl From<raw::Trb> for AddressDevice {
     }
 }
 
+pub type SetupStage = SetupStageStructure<[u32; 4]>;
 bitfield! {
     #[repr(transparent)]
-    pub struct SetupStage(u128);
+    pub struct SetupStageStructure([u32]);
     impl Debug;
-    _, set_bm_request_type: 7, 0;
-    _, set_b_request: 15, 8;
-    _, set_w_value: 31, 16;
-    _, set_w_index: 32+15, 32;
-    _, set_w_length: 32+31, 32+16;
-    _, set_trb_transfer_length: 64+16, 64;
-    _, set_cycle_bit: 96;
-    _, set_trb_type: 96+15, 96+10;
-    _, set_trt: 96+17, 96+16;
+    u128, _, set_bm_request_type: 7, 0;
+    u128, _, set_b_request: 15, 8;
+    u128, _, set_w_value: 31, 16;
+    u128, _, set_w_index: 32+15, 32;
+    u128, _, set_w_length: 32+31, 32+16;
+    u128, _, set_trb_transfer_length: 64+16, 64;
+    u128, _, set_cycle_bit: 96;
+    u128, _, set_trb_type: 96+15, 96+10;
+    u128, _, set_trt: 96+17, 96+16;
 }
 
+pub type DataStage = DataStageStructure<[u32; 4]>;
 bitfield! {
     #[repr(transparent)]
-    pub struct DataStage(u128);
+    pub struct DataStageStructure([u32]);
     impl Debug;
     u64, _, set_data_buffer_as_u64: 63, 0;
-    _, set_trb_transfer_length: 64+16, 64;
-    _, set_td_size: 64+21, 64+17;
+    u128, _, set_trb_transfer_length: 64+16, 64;
+    u128, _, set_td_size: 64+21, 64+17;
     _, set_cycle_bit: 96;
     _, set_ioc: 96+5;
-    _, set_trb_type: 96+15, 96+10;
+    u128, _, set_trb_type: 96+15, 96+10;
     _, set_dir: 96+16;
 }
 
+pub type StatusStage = StatusStageStructure<[u32; 4]>;
 bitfield! {
     #[repr(transparent)]
-    pub struct StatusStage(u128);
+    pub struct StatusStageStructure([u32]);
     impl Debug;
     _, set_cycle_bit: 96;
-    _, set_trb_type: 96+15, 96+10;
+    u128, _, set_trb_type: 96+15, 96+10;
 }
 
+pub type TransferEvent = TransferEventStructure<[u32; 4]>;
 bitfield! {
     #[repr(transparent)]
-    pub struct TransferEvent(u128);
+    pub struct TransferEventStructure([u32]);
     impl Debug;
 }
