@@ -2,6 +2,7 @@
 
 use super::{trb, CycleBit};
 use crate::mem::allocator::page_box::PageBox;
+use bit_field::{BitArray, BitField};
 use core::{
     convert::TryInto,
     ops::{Index, IndexMut},
@@ -36,18 +37,18 @@ impl IndexMut<usize> for Ring {
 
 #[repr(transparent)]
 #[derive(Copy, Clone)]
-pub struct Trb(pub u128);
+pub struct Trb(pub [u32; 4]);
 impl Trb {
     pub fn cycle_bit(self) -> CycleBit {
         self.into()
     }
 
     pub fn ty(self) -> u8 {
-        ((self.0 >> 106) & 0x3f).try_into().unwrap()
+        self.0[3].get_bits(10..=15).try_into().unwrap()
     }
 
     fn null() -> Self {
-        Self(0)
+        Self([0; 4])
     }
 }
 impl From<trb::Trb> for Trb {
@@ -64,6 +65,6 @@ impl From<trb::Trb> for Trb {
 }
 impl From<Trb> for CycleBit {
     fn from(raw: Trb) -> Self {
-        Self((raw.0 >> 96) & 1 != 0)
+        Self(raw.0[3].get_bit(0))
     }
 }
