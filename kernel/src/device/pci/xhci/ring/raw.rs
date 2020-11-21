@@ -2,7 +2,7 @@
 
 use super::CycleBit;
 use crate::mem::allocator::page_box::PageBox;
-use bit_field::{BitArray, BitField};
+use bit_field::BitField;
 use core::{
     convert::TryInto,
     ops::{Index, IndexMut},
