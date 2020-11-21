@@ -6,7 +6,9 @@ use core::convert::TryFrom;
 use os_units::Bytes;
 use x86_64::PhysAddr;
 
-pub enum Trb {}
+pub enum Trb {
+    SetupStageStructure,
+}
 impl Trb {
     pub const SIZE: Bytes = Bytes::new(16);
 
