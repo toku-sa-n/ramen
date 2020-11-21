@@ -2,9 +2,7 @@
 
 use super::{
     super::{exchanger::command::Receiver, register::Registers},
-    raw,
-    trb::Trb,
-    CycleBit,
+    raw, CycleBit,
 };
 use crate::multitask::task::{self, Task};
 use alloc::{rc::Rc, vec::Vec};
@@ -16,9 +14,11 @@ use core::{
 };
 use futures_util::{stream::Stream, task::AtomicWaker, StreamExt};
 use segment_table::SegmentTable;
+use trb::Trb;
 use x86_64::PhysAddr;
 
 mod segment_table;
+pub mod trb;
 static WAKER: AtomicWaker = AtomicWaker::new();
 
 pub async fn task_to_check_event_ring() {
@@ -29,7 +29,7 @@ pub async fn task(mut ring: Ring, command_completion_receiver: Rc<RefCell<Receiv
     info!("This is the Event ring task.");
     while let Some(trb) = ring.next().await {
         info!("TRB: {:?}", trb);
-        if let Trb::CommandComplete(trb) = trb {
+        if let Trb::CommandCompletion(trb) = trb {
             info!("Command completion TRB arrived.");
             command_completion_receiver.borrow_mut().receive(trb);
         }

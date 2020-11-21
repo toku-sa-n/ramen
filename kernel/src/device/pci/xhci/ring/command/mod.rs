@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{super::Registers, raw, trb::Trb, CycleBit};
+use super::{super::Registers, raw, CycleBit};
 use alloc::rc::Rc;
 use core::cell::RefCell;
+use trb::Trb;
 use x86_64::PhysAddr;
+
+mod trb;
 
 // 4KB / 16 = 256
 const SIZE_OF_RING: usize = 256;
