@@ -164,21 +164,24 @@ impl From<raw::Trb> for PortStatusChange {
     }
 }
 
-pub type EnableSlot = EnableSlotStructure<[u32; 4]>;
-bitfield! {
-    #[repr(transparent)]
-    pub struct EnableSlotStructure([u32]);
-    impl Debug;
-    _, set_cycle_bit: 96;
-    u8,_, set_trb_type: 96+15, 96+10;
-}
+#[repr(transparent)]
+#[derive(Debug)]
+pub struct EnableSlot(pub [u32; 4]);
 impl EnableSlot {
     const ID: u8 = 9;
     pub fn new(cycle_bit: CycleBit) -> Self {
         let mut enable_slot = Self([0; 4]);
-        enable_slot.set_cycle_bit(cycle_bit.into());
+        enable_slot.set_cycle_bit(cycle_bit);
         enable_slot.set_trb_type(Self::ID);
         enable_slot
+    }
+
+    fn set_cycle_bit(&mut self, c: CycleBit) {
+        self.0[3].set_bit(0, c.into());
+    }
+
+    fn set_trb_type(&mut self, t: u8) {
+        self.0[3].set_bits(10..=15, t.into());
     }
 }
 impl From<raw::Trb> for EnableSlot {
