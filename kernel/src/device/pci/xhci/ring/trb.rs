@@ -117,24 +117,33 @@ impl From<raw::Trb> for CommandComplete {
     }
 }
 
-pub type Link = LinkStructure<[u32; 4]>;
-bitfield! {
-    #[repr(transparent)]
-    pub struct LinkStructure([u32]);
-    impl Debug;
-    u128, _, set_addr: 63, 0;
-    _, set_cycle_bit: 96;
-    u8, _, set_trb_type: 96+15,96+10;
-}
+#[repr(transparent)]
+#[derive(Debug)]
+pub struct Link(pub [u32; 4]);
 impl Link {
     const ID: u8 = 6;
     fn new(addr_to_ring: PhysAddr, cycle_bit: CycleBit) -> Self {
         assert!(addr_to_ring.is_aligned(u64::try_from(Trb::SIZE.as_usize()).unwrap()));
         let mut trb = Self([0; 4]);
-        trb.set_cycle_bit(cycle_bit.into());
+        trb.set_cycle_bit(cycle_bit);
         trb.set_trb_type(Self::ID);
-        trb.set_addr(addr_to_ring.as_u64().into());
+        trb.set_addr(addr_to_ring.as_u64());
         trb
+    }
+
+    fn set_addr(&mut self, a: u64) {
+        let l = a & 0xffff_ffff;
+        let u = a >> 32;
+        self.0.set_bits(0..32, l.try_into().unwrap());
+        self.0.set_bits(32..64, u.try_into().unwrap());
+    }
+
+    fn set_cycle_bit(&mut self, c: CycleBit) {
+        self.0[3].set_bit(0, c.into());
+    }
+
+    fn set_trb_type(&mut self, t: u8) {
+        self.0[3].set_bits(10..=15, t.into());
     }
 }
 impl From<raw::Trb> for Link {
