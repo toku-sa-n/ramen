@@ -3,7 +3,7 @@
 use super::{raw, CycleBit};
 use bit_field::{BitArray, BitField};
 use bitfield::bitfield;
-use core::convert::TryFrom;
+use core::convert::{TryFrom, TryInto};
 use os_units::Bytes;
 use x86_64::PhysAddr;
 
@@ -95,17 +95,21 @@ impl From<raw::Trb> for Noop {
     }
 }
 
-pub type CommandComplete = CommandCompleteStructure<[u32; 4]>;
-bitfield! {
-    #[repr(transparent)]
-    pub struct CommandCompleteStructure([u32]);
-    impl Debug;
-    pub u64, addr_to_command_trb, _: 63, 0;
-    u128,completion_code, _: 64+31,64+24;
-    pub u8, slot_id, _: 96+31, 96+24;
-}
+#[repr(transparent)]
+#[derive(Debug)]
+pub struct CommandComplete(pub [u32; 4]);
 impl CommandComplete {
     const ID: u8 = 33;
+
+    pub fn addr_to_command_trb(&self) -> u64 {
+        let l: u64 = self.0.get_bits(0..32).into();
+        let u: u64 = self.0.get_bits(32..64).into();
+        u << 32 | l
+    }
+
+    pub fn slot_id(&self) -> u8 {
+        self.0[3].get_bits(24..=31).try_into().unwrap()
+    }
 }
 impl From<raw::Trb> for CommandComplete {
     fn from(raw: raw::Trb) -> Self {
