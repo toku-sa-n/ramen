@@ -190,16 +190,9 @@ impl From<raw::Trb> for EnableSlot {
     }
 }
 
-pub type AddressDevice = AddressDeviceStructure<[u32; 4]>;
-bitfield! {
-    #[repr(transparent)]
-    pub struct AddressDeviceStructure([u32]);
-    impl Debug;
-    u64, _, set_input_context_ptr_as_u64: 63, 0;
-    _, set_cycle_bit: 96;
-    u8, _, set_trb_type: 96+15, 96+10;
-    u8 ,_, set_slot_id: 96+31, 96+24;
-}
+#[repr(transparent)]
+#[derive(Debug)]
+pub struct AddressDevice(pub [u32; 4]);
 impl AddressDevice {
     const ID: u8 = 11;
     pub fn new(cycle_bit: CycleBit, addr_to_input_context: PhysAddr, slot_id: u8) -> Self {
@@ -207,10 +200,29 @@ impl AddressDevice {
 
         assert!(addr_to_input_context.is_aligned(16_u64));
         trb.set_input_context_ptr_as_u64(addr_to_input_context.as_u64());
-        trb.set_cycle_bit(cycle_bit.into());
+        trb.set_cycle_bit(cycle_bit);
         trb.set_trb_type(Self::ID);
         trb.set_slot_id(slot_id);
         trb
+    }
+
+    fn set_input_context_ptr_as_u64(&mut self, p: u64) {
+        let l = p & 0xffff_ffff;
+        let u = p >> 32;
+        self.0[0] = l.try_into().unwrap();
+        self.0[1] = u.try_into().unwrap();
+    }
+
+    fn set_cycle_bit(&mut self, c: CycleBit) {
+        self.0[3].set_bit(0, c.into());
+    }
+
+    fn set_trb_type(&mut self, t: u8) {
+        self.0[3].set_bits(10..=15, t.into());
+    }
+
+    fn set_slot_id(&mut self, id: u8) {
+        self.0[3].set_bits(24..=31, id.into());
     }
 }
 impl From<raw::Trb> for AddressDevice {
