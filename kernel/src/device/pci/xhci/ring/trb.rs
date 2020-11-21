@@ -46,7 +46,7 @@ impl TryFrom<raw::Trb> for Trb {
     type Error = Error;
 
     fn try_from(raw: raw::Trb) -> Result<Self, Self::Error> {
-        match raw.ty() {
+        match raw.id() {
             x if x == Noop::ID => Ok(Self::Noop(Noop::from(raw))),
             x if x == CommandComplete::ID => Ok(Self::CommandComplete(CommandComplete::from(raw))),
             x if x == Link::ID => Ok(Self::Link(Link::from(raw))),

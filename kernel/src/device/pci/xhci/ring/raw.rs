@@ -43,7 +43,7 @@ impl Trb {
         self.into()
     }
 
-    pub fn ty(self) -> u8 {
+    pub fn id(self) -> u8 {
         self.0[3].get_bits(10..=15).try_into().unwrap()
     }
 
