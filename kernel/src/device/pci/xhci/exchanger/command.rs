@@ -42,7 +42,7 @@ impl Sender {
             .borrow_mut()
             .send_address_device(addr_to_input_context, slot_id)?;
         self.register_to_receiver(addr_to_trb);
-        let completion_trb = self.get_trb(addr_to_trb).await;
+        self.get_trb(addr_to_trb).await;
         Ok(())
     }
 
