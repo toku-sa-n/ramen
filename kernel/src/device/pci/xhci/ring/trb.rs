@@ -152,14 +152,9 @@ impl From<raw::Trb> for Link {
     }
 }
 
-pub type PortStatusChange = PortStatusChangeStructure<[u32; 4]>;
-bitfield! {
-    #[repr(transparent)]
-    pub struct PortStatusChangeStructure([u32]);
-    impl Debug;
-    u128, port_id, _: 31, 24;
-    u128, completion_code, _: 64+31, 64+24;
-}
+#[repr(transparent)]
+#[derive(Debug)]
+pub struct PortStatusChange(pub [u32; 4]);
 impl PortStatusChange {
     const ID: u8 = 34;
 }
