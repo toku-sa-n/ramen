@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{raw, CycleBit};
+use bit_field::{BitArray, BitField};
 use bitfield::bitfield;
 use core::convert::TryFrom;
 use os_units::Bytes;
@@ -67,14 +68,9 @@ pub enum Error {
     InvalidId,
 }
 
-pub type Noop = NoopStructure<[u32; 4]>;
-bitfield! {
-    #[repr(transparent)]
-    pub struct NoopStructure([u32]);
-    impl Debug;
-    _, set_cycle_bit: 96;
-    u8, trb_type, set_trb_type: 96+15, 96+10;
-}
+#[repr(transparent)]
+#[derive(Debug)]
+pub struct Noop(pub [u32; 4]);
 impl Noop {
     const ID: u8 = 23;
     fn new(cycle_bit: CycleBit) -> Self {
@@ -83,6 +79,14 @@ impl Noop {
         noop.set_trb_type(Self::ID);
 
         noop
+    }
+
+    fn set_cycle_bit(&mut self, c: CycleBit) {
+        self.0[3].set_bit(0, c.into());
+    }
+
+    fn set_trb_type(&mut self, t: u8) {
+        self.0[3].set_bits(10..=15, t.into());
     }
 }
 impl From<raw::Trb> for Noop {
