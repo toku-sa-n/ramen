@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{
-    super::{exchanger::command::Receiver, register::Registers},
+    super::{exchanger::command::Receiver, registers::Registers},
     raw, CycleBit,
 };
 use crate::multitask::task::{self, Task};
@@ -95,12 +95,10 @@ impl<'a> Ring {
     }
 
     fn register_segment_table_to_xhci_registers(&mut self) {
-        let runtime_registers = &mut self.registers.borrow_mut().runtime_base_registers;
-        runtime_registers
-            .erst_sz
+        let r = &mut self.registers.borrow_mut().runtime;
+        r.erst_sz
             .update(|sz| sz.set(self.segment_table.len().try_into().unwrap()));
-        runtime_registers
-            .erst_ba
+        r.erst_ba
             .update(|ba| ba.set(self.phys_addr_to_segment_table()));
     }
 
@@ -145,7 +143,7 @@ impl<'a> Ring {
     }
 
     fn set_dequeue_ptr(&mut self, addr: PhysAddr) {
-        let erd_p = &mut self.registers.borrow_mut().runtime_base_registers.erd_p;
+        let erd_p = &mut self.registers.borrow_mut().runtime.erd_p;
         erd_p.update(|erd_p| erd_p.set(addr))
     }
 

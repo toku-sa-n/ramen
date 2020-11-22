@@ -5,12 +5,12 @@ use bitfield::bitfield;
 use os_units::Bytes;
 use x86_64::PhysAddr;
 
-pub struct RuntimeBaseRegisters {
+pub struct Runtime {
     pub erst_sz: Accessor<EventRingSegmentTableSizeRegister>,
     pub erst_ba: Accessor<EventRingSegmentTableBaseAddressRegister>,
     pub erd_p: Accessor<EventRingDequeuePointerRegister>,
 }
-impl<'a> RuntimeBaseRegisters {
+impl<'a> Runtime {
     /// Safety: This method is unsafe because if `mmio_base` is not a valid address, or
     /// `runtime_register_space_offset` is not a valid value, it can violate memory safety.
     pub unsafe fn new(mmio_base: PhysAddr, runtime_register_space_offset: usize) -> Self {

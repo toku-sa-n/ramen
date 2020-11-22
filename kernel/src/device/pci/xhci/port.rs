@@ -4,7 +4,7 @@ use super::{
     context::{self, EndpointType},
     dcbaa::DeviceContextBaseAddressArray,
     exchanger::command::Sender,
-    register::{hc_operational::PortRegisters, Registers},
+    registers::{hc_operational::PortRegisters, Registers},
     ring::transfer,
 };
 use crate::{
