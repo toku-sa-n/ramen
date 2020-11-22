@@ -100,12 +100,14 @@ impl<'a> Ring {
 
     fn increment_enqueue_ptr(&mut self) {
         self.enqueue_ptr += 1;
-        if self.enqueue_ptr < self.len() - 1 {
-            return;
+        if !self.enqueue_ptr_within_range() {
+            self.append_link_trb();
+            self.move_enqueue_ptr_to_the_beginning();
         }
+    }
 
-        self.append_link_trb();
-        self.move_enqueue_ptr_to_the_beginning();
+    fn enqueue_ptr_within_range(&self) -> bool {
+        self.enqueue_ptr < self.len() - 1
     }
 
     fn len(&self) -> usize {
