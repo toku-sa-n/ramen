@@ -4,7 +4,7 @@ use super::{
     context::{self, EndpointType},
     dcbaa::DeviceContextBaseAddressArray,
     exchanger::command::Sender,
-    registers::{hc_operational::PortRegisters, Registers},
+    registers::{operational::PortRegisters, Registers},
     ring::transfer,
 };
 use crate::{
@@ -43,7 +43,7 @@ pub fn spawn_tasks(
 }
 
 fn num_of_ports(registers: &Rc<RefCell<Registers>>) -> usize {
-    let params1 = registers.borrow().hc_capability.hcs_params_1.read();
+    let params1 = registers.borrow().capability.hcs_params_1.read();
     params1.max_ports().into()
 }
 
@@ -87,7 +87,7 @@ impl Port {
     }
 
     fn start_resetting(&mut self) {
-        let port_rg = &mut self.registers.borrow_mut().hc_operational.port_registers;
+        let port_rg = &mut self.registers.borrow_mut().operational.port_registers;
         port_rg.update(self.index - 1, |rg| rg.port_sc.set_port_reset(true))
     }
 
@@ -143,7 +143,7 @@ impl Port {
     }
 
     fn read_port_rg(&self) -> PortRegisters {
-        let port_rg = &self.registers.borrow().hc_operational.port_registers;
+        let port_rg = &self.registers.borrow().operational.port_registers;
         port_rg.read(self.index - 1)
     }
 }

@@ -54,7 +54,7 @@ impl<'a> Ring {
     ) -> Self {
         let max_num_of_erst = registers
             .borrow()
-            .hc_capability
+            .capability
             .hcs_params_2
             .read()
             .powered_erst_max();

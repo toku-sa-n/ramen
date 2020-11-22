@@ -24,12 +24,12 @@ impl<'a> DeviceContextBaseAddressArray {
     }
 
     fn num_of_slots(registers: &Rc<RefCell<Registers>>) -> usize {
-        let params1 = &registers.borrow().hc_capability.hcs_params_1;
+        let params1 = &registers.borrow().capability.hcs_params_1;
         (params1.read().max_slots() + 1).into()
     }
 
     fn register_address_to_xhci_register(&self) {
-        let dcbaap = &mut self.registers.borrow_mut().hc_operational.dcbaap;
+        let dcbaap = &mut self.registers.borrow_mut().operational.dcbaap;
         dcbaap.update(|dcbaap| dcbaap.set(self.phys_addr()));
     }
 

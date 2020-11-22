@@ -61,12 +61,12 @@ impl<'a> Ring {
     }
 
     fn register_address_to_xhci_register(&mut self) {
-        let crcr = &mut self.registers.borrow_mut().hc_operational.crcr;
+        let crcr = &mut self.registers.borrow_mut().operational.crcr;
         crcr.update(|crcr| crcr.set_ptr(self.phys_addr()));
     }
 
     fn set_initial_command_ring_cycle_state(&mut self) {
-        let crcr = &mut self.registers.borrow_mut().hc_operational.crcr;
+        let crcr = &mut self.registers.borrow_mut().operational.crcr;
         crcr.update(|crcr| crcr.set_ring_cycle_state(true));
     }
 

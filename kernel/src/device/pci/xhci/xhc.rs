@@ -20,7 +20,7 @@ impl Xhc {
     }
 
     pub fn run(&mut self) {
-        let operational = &mut self.registers.borrow_mut().hc_operational;
+        let operational = &mut self.registers.borrow_mut().operational;
         operational.usb_cmd.update(|oper| oper.set_run_stop(true));
         while operational.usb_sts.read().hc_halted() {}
     }
@@ -43,12 +43,12 @@ impl Xhc {
     }
 
     fn stop(&mut self) {
-        let usb_cmd = &mut self.registers.borrow_mut().hc_operational.usb_cmd;
+        let usb_cmd = &mut self.registers.borrow_mut().operational.usb_cmd;
         usb_cmd.update(|cmd| cmd.set_run_stop(false));
     }
 
     fn wait_until_halt(&self) {
-        let usb_sts = &self.registers.borrow().hc_operational.usb_sts;
+        let usb_sts = &self.registers.borrow().operational.usb_sts;
         while !usb_sts.read().hc_halted() {}
     }
 
@@ -59,28 +59,28 @@ impl Xhc {
     }
 
     fn start_resetting(&mut self) {
-        let usb_cmd = &mut self.registers.borrow_mut().hc_operational.usb_cmd;
+        let usb_cmd = &mut self.registers.borrow_mut().operational.usb_cmd;
         usb_cmd.update(|cmd| cmd.set_hc_reset(true));
     }
 
     fn wait_until_reset_completed(&self) {
-        let usb_cmd = &self.registers.borrow().hc_operational.usb_cmd;
+        let usb_cmd = &self.registers.borrow().operational.usb_cmd;
         while usb_cmd.read().hc_reset() {}
     }
 
     fn wait_until_ready(&self) {
-        let usb_sts = &self.registers.borrow().hc_operational.usb_sts;
+        let usb_sts = &self.registers.borrow().operational.usb_sts;
         while usb_sts.read().controller_not_ready() {}
     }
 
     fn set_num_of_enabled_slots(&mut self) {
         let num_of_device_slots = self.num_of_device_slots();
-        let config = &mut self.registers.borrow_mut().hc_operational.config;
+        let config = &mut self.registers.borrow_mut().operational.config;
         config.update(|config| config.set_max_device_slots_enabled(num_of_device_slots))
     }
 
     fn num_of_device_slots(&self) -> u8 {
-        let params1 = &self.registers.borrow().hc_capability.hcs_params_1;
+        let params1 = &self.registers.borrow().capability.hcs_params_1;
         params1.read().max_slots()
     }
 }

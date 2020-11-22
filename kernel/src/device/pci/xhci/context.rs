@@ -42,7 +42,7 @@ impl Input {
     }
 
     fn csz(registers: &Registers) -> bool {
-        let params1 = registers.hc_capability.hc_cp_params_1.read();
+        let params1 = registers.capability.hc_cp_params_1.read();
         params1.csz()
     }
 }
