@@ -95,7 +95,7 @@ impl<'a> Ring {
     }
 
     fn register_segment_table_to_xhci_registers(&mut self) {
-        let runtime_registers = &mut self.registers.borrow_mut().runtime_base_registers;
+        let runtime_registers = &mut self.registers.borrow_mut().runtime;
         runtime_registers
             .erst_sz
             .update(|sz| sz.set(self.segment_table.len().try_into().unwrap()));
@@ -145,7 +145,7 @@ impl<'a> Ring {
     }
 
     fn set_dequeue_ptr(&mut self, addr: PhysAddr) {
-        let erd_p = &mut self.registers.borrow_mut().runtime_base_registers.erd_p;
+        let erd_p = &mut self.registers.borrow_mut().runtime.erd_p;
         erd_p.update(|erd_p| erd_p.set(addr))
     }
 
