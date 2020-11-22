@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+pub mod capability;
 pub mod doorbell;
-pub mod hc_capability;
-pub mod hc_operational;
+pub mod operational;
 pub mod runtime;
 pub mod usb_legacy_support_capability;
 
-use hc_capability::HCCapabilityRegisters;
-use hc_operational::HCOperational;
+use capability::HCCapabilityRegisters;
+use operational::HCOperational;
 use runtime::Runtime;
 use usb_legacy_support_capability::UsbLegacySupportCapability;
 use x86_64::PhysAddr;

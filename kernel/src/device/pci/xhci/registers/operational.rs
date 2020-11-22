@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::hc_capability::HCCapabilityRegisters;
+use super::capability::HCCapabilityRegisters;
 use crate::mem::accessor::Accessor;
 use bitfield::bitfield;
 use os_units::Bytes;

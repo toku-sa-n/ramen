@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::{
-    device::pci::xhci::registers::hc_capability::HCCapabilityRegisters, mem::accessor::Accessor,
+    device::pci::xhci::registers::capability::HCCapabilityRegisters, mem::accessor::Accessor,
 };
 use bitfield::bitfield;
 use os_units::Bytes;
