@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{
-    super::{super::exchanger::command::Receiver, registers::Registers},
-    raw, CycleBit,
+use super::{super::registers::Registers, raw, CycleBit};
+use crate::{
+    device::pci::xhci::exchanger::receiver::Receiver,
+    multitask::task::{self, Task},
 };
-use crate::multitask::task::{self, Task};
 use alloc::{rc::Rc, vec::Vec};
 use core::{
     cell::RefCell,

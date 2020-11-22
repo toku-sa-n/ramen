@@ -9,7 +9,7 @@ use super::config::bar;
 use crate::multitask::task::{self, Task};
 use alloc::rc::Rc;
 use core::cell::RefCell;
-use exchanger::command::{Receiver, Sender};
+use exchanger::{command::Sender, receiver::Receiver};
 use futures_intrusive::sync::LocalMutex;
 use structures::{
     dcbaa::DeviceContextBaseAddressArray,
