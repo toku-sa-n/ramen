@@ -8,7 +8,7 @@ COMMON_SRC_DIR	:= common
 KERNEL_DIR		:= kernel
 KERNEL_SRC_DIR	:= $(KERNEL_DIR)/$(RUST_SRC_DIR)
 
-CARGO_JSON		:= cargo_settings.json
+CARGO_JSON		:= x86_64-unknown-ramen.json
 RUST_SRC		:= $(shell find $(KERNEL_DIR) -name '*.rs')
 EFI_SRC			:= $(shell find $(EFI_DIR) -name '*.rs')
 CARGO_TOML		:= Cargo.toml
