@@ -24,7 +24,7 @@ impl<'a> DeviceContextBaseAddressArray {
     }
 
     fn num_of_slots(registers: &Rc<RefCell<Registers>>) -> usize {
-        let params1 = &registers.borrow().hc_capability.hcs_params_1;
+        let params1 = &registers.borrow().capability.hcs_params_1;
         (params1.read().max_slots() + 1).into()
     }
 

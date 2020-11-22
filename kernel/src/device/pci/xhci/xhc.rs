@@ -80,7 +80,7 @@ impl Xhc {
     }
 
     fn num_of_device_slots(&self) -> u8 {
-        let params1 = &self.registers.borrow().hc_capability.hcs_params_1;
+        let params1 = &self.registers.borrow().capability.hcs_params_1;
         params1.read().max_slots()
     }
 }

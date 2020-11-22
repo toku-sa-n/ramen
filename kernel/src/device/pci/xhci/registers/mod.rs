@@ -14,7 +14,7 @@ use x86_64::PhysAddr;
 
 pub struct Registers {
     pub usb_legacy_support_capability: Option<UsbLegacySupportCapability>,
-    pub hc_capability: Capability,
+    pub capability: Capability,
     pub hc_operational: Operational,
     pub runtime: Runtime,
     pub doorbell_array: doorbell::Array,
@@ -36,7 +36,7 @@ impl Registers {
 
         Self {
             usb_legacy_support_capability,
-            hc_capability: hc_capability_registers,
+            capability: hc_capability_registers,
             hc_operational,
             runtime: runtime_base_registers,
             doorbell_array,

@@ -43,7 +43,7 @@ pub fn spawn_tasks(
 }
 
 fn num_of_ports(registers: &Rc<RefCell<Registers>>) -> usize {
-    let params1 = registers.borrow().hc_capability.hcs_params_1.read();
+    let params1 = registers.borrow().capability.hcs_params_1.read();
     params1.max_ports().into()
 }
 
