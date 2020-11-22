@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::super::raw;
+use crate::add_trb;
 use bit_field::BitField;
 use core::convert::{TryFrom, TryInto};
 use os_units::Bytes;
@@ -25,9 +26,7 @@ impl TryFrom<raw::Trb> for Trb {
     }
 }
 
-#[repr(transparent)]
-#[derive(Debug)]
-pub struct CommandCompletion([u32; 4]);
+add_trb!(CommandCompletion);
 impl CommandCompletion {
     const ID: u8 = 33;
 
@@ -54,9 +53,7 @@ impl TryFrom<raw::Trb> for CommandCompletion {
     }
 }
 
-#[repr(transparent)]
-#[derive(Debug)]
-pub struct PortStatusChange([u32; 4]);
+add_trb!(PortStatusChange);
 impl PortStatusChange {
     const ID: u8 = 34;
 }
