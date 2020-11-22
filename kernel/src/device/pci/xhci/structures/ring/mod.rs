@@ -21,3 +21,23 @@ impl From<CycleBit> for bool {
         cycle_bit.0
     }
 }
+
+#[macro_export]
+macro_rules! add_trb {
+    ($t:ident) => {
+        #[repr(transparent)]
+        #[derive(Debug)]
+        pub struct $t([u32; 4]);
+        impl $t {
+            #[allow(dead_code)]
+            fn set_cycle_bit(&mut self, c: crate::device::pci::xhci::structures::ring::CycleBit) {
+                self.0[3].set_bit(0, c.into());
+            }
+
+            #[allow(dead_code)]
+            fn set_trb_type(&mut self, t: u8) {
+                self.0[3].set_bits(10..=15, t.into());
+            }
+        }
+    };
+}
