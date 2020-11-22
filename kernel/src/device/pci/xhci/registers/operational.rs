@@ -6,7 +6,7 @@ use bitfield::bitfield;
 use os_units::Bytes;
 use x86_64::PhysAddr;
 
-pub struct HCOperational {
+pub struct Operational {
     pub usb_cmd: Accessor<UsbCommandRegister>,
     pub usb_sts: Accessor<UsbStatusRegister>,
     pub crcr: Accessor<CommandRingControlRegister>,
@@ -15,7 +15,7 @@ pub struct HCOperational {
     pub port_registers: Accessor<[PortRegisters]>,
 }
 
-impl HCOperational {
+impl Operational {
     /// Safety: This method is unsafe because if `mmio_base` is not a valid MMIO base address, it
     /// can violate memory safety.
     pub unsafe fn new(mmio_base: PhysAddr, capabilities: &Capability) -> Self {

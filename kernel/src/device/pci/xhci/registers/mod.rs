@@ -7,7 +7,7 @@ pub mod runtime;
 pub mod usb_legacy_support_capability;
 
 use capability::Capability;
-use operational::HCOperational;
+use operational::Operational;
 use runtime::Runtime;
 use usb_legacy_support_capability::UsbLegacySupportCapability;
 use x86_64::PhysAddr;
@@ -15,7 +15,7 @@ use x86_64::PhysAddr;
 pub struct Registers {
     pub usb_legacy_support_capability: Option<UsbLegacySupportCapability>,
     pub hc_capability: Capability,
-    pub hc_operational: HCOperational,
+    pub hc_operational: Operational,
     pub runtime: Runtime,
     pub doorbell_array: doorbell::Array,
 }
@@ -26,7 +26,7 @@ impl Registers {
         let hc_capability_registers = Capability::new(mmio_base);
         let usb_legacy_support_capability =
             UsbLegacySupportCapability::new(mmio_base, &hc_capability_registers);
-        let hc_operational = HCOperational::new(mmio_base, &hc_capability_registers);
+        let hc_operational = Operational::new(mmio_base, &hc_capability_registers);
         let runtime_base_registers = Runtime::new(
             mmio_base,
             hc_capability_registers.rts_off.read().get() as usize,
