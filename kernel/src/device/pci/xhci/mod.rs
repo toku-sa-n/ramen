@@ -63,7 +63,7 @@ fn init(
     (event_ring, dcbaa, sender, receiver)
 }
 
-pub fn iter_devices() -> impl Iterator<Item = Registers> {
+fn iter_devices() -> impl Iterator<Item = Registers> {
     super::iter_devices().filter_map(|device| {
         if device.is_xhci() {
             // Safety: This operation is safe because MMIO base address is generated from the 0th
