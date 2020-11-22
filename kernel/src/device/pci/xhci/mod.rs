@@ -50,8 +50,7 @@ fn init(
     let dcbaa = Rc::new(RefCell::new(DeviceContextBaseAddressArray::new(
         registers.clone(),
     )));
-    let (command_runner, command_completion_receiver) =
-        exchanger::command::channel(command_ring.clone());
+    let (sender, receiver) = exchanger::command::channel(command_ring.clone());
 
     xhc.init();
 
@@ -61,12 +60,7 @@ fn init(
 
     xhc.run();
 
-    (
-        event_ring,
-        dcbaa,
-        command_runner,
-        command_completion_receiver,
-    )
+    (event_ring, dcbaa, sender, receiver)
 }
 
 pub fn iter_devices() -> impl Iterator<Item = Registers> {
