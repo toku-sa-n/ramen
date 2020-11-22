@@ -61,7 +61,8 @@ impl Sender {
     fn register_to_receiver(&mut self, addr_to_trb: PhysAddr) {
         self.receiver
             .borrow_mut()
-            .add_entry(addr_to_trb, self.waker.clone());
+            .add_entry(addr_to_trb, self.waker.clone())
+            .expect("Sender is already registered.");
     }
 
     async fn get_trb(&mut self, addr_to_trb: PhysAddr) -> CommandCompletion {

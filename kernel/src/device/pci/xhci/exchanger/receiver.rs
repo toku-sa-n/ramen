@@ -23,17 +23,7 @@ impl Receiver {
         }
     }
 
-    pub fn add_entry(&mut self, addr_to_trb: PhysAddr, waker: Rc<RefCell<AtomicWaker>>) {
-        self.insert_entry(addr_to_trb, waker).unwrap()
-    }
-
-    pub fn receive(&mut self, trb: CommandCompletion) {
-        if let Err(e) = self.insert_trb_and_wake_runner(trb) {
-            panic!("Failed to receive a command completion trb: {:?}", e);
-        }
-    }
-
-    fn insert_entry(
+    pub fn add_entry(
         &mut self,
         addr_to_trb: PhysAddr,
         waker: Rc<RefCell<AtomicWaker>>,
@@ -46,6 +36,12 @@ impl Receiver {
             return Err(Error::AddrAlreadyRegistered);
         }
         Ok(())
+    }
+
+    pub fn receive(&mut self, trb: CommandCompletion) {
+        if let Err(e) = self.insert_trb_and_wake_runner(trb) {
+            panic!("Failed to receive a command completion trb: {:?}", e);
+        }
     }
 
     fn insert_trb_and_wake_runner(&mut self, trb: CommandCompletion) -> Result<(), Error> {
