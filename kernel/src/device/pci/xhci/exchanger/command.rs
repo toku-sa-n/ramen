@@ -8,8 +8,17 @@ use core::{
     pin::Pin,
     task::{Context, Poll},
 };
+use futures_intrusive::sync::LocalMutex;
 use futures_util::task::AtomicWaker;
 use x86_64::PhysAddr;
+
+pub fn channel(
+    ring: Rc<RefCell<command::Ring>>,
+) -> (Rc<LocalMutex<Sender>>, Rc<RefCell<Receiver>>) {
+    let r = Rc::new(RefCell::new(Receiver::new()));
+    let s = Rc::new(LocalMutex::new(Sender::new(ring, r.clone()), false));
+    (s, r)
+}
 
 pub struct Sender {
     ring: Rc<RefCell<command::Ring>>,
@@ -17,14 +26,6 @@ pub struct Sender {
     waker: Rc<RefCell<AtomicWaker>>,
 }
 impl Sender {
-    pub fn new(ring: Rc<RefCell<command::Ring>>, receiver: Rc<RefCell<Receiver>>) -> Self {
-        Self {
-            ring,
-            receiver,
-            waker: Rc::new(RefCell::new(AtomicWaker::new())),
-        }
-    }
-
     pub async fn enable_device_slot(&mut self) -> Result<u8, command::Error> {
         let addr_to_trb = self.ring.borrow_mut().send_enable_slot()?;
         self.register_to_receiver(addr_to_trb);
@@ -46,6 +47,14 @@ impl Sender {
         Ok(())
     }
 
+    fn new(ring: Rc<RefCell<command::Ring>>, receiver: Rc<RefCell<Receiver>>) -> Self {
+        Self {
+            ring,
+            receiver,
+            waker: Rc::new(RefCell::new(AtomicWaker::new())),
+        }
+    }
+
     fn register_to_receiver(&mut self, addr_to_trb: PhysAddr) {
         self.receiver
             .borrow_mut()
@@ -62,15 +71,14 @@ pub struct Receiver {
     wakers: BTreeMap<PhysAddr, Rc<RefCell<AtomicWaker>>>,
 }
 impl Receiver {
-    pub fn new() -> Self {
-        Self {
-            trbs: BTreeMap::new(),
-            wakers: BTreeMap::new(),
-        }
-    }
-
     pub fn add_entry(&mut self, addr_to_trb: PhysAddr, waker: Rc<RefCell<AtomicWaker>>) {
         self.insert_entry(addr_to_trb, waker).unwrap()
+    }
+
+    pub fn receive(&mut self, trb: CommandCompletion) {
+        if let Err(e) = self.insert_trb_and_wake_runner(trb) {
+            panic!("Failed to receive a command completion trb: {:?}", e);
+        }
     }
 
     fn insert_entry(
@@ -88,9 +96,10 @@ impl Receiver {
         Ok(())
     }
 
-    pub fn receive(&mut self, trb: CommandCompletion) {
-        if let Err(e) = self.insert_trb_and_wake_runner(trb) {
-            panic!("Failed to receive a command completion trb: {:?}", e);
+    fn new() -> Self {
+        Self {
+            trbs: BTreeMap::new(),
+            wakers: BTreeMap::new(),
         }
     }
 
