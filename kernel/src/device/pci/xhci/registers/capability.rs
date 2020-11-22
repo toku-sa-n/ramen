@@ -5,7 +5,7 @@ use bitfield::bitfield;
 use os_units::Bytes;
 use x86_64::PhysAddr;
 
-pub struct HCCapabilityRegisters {
+pub struct Capability {
     pub cap_length: Accessor<CapabilityRegistersLength>,
     pub hcs_params_1: Accessor<StructuralParameters1>,
     pub hcs_params_2: Accessor<StructuralParameters2>,
@@ -14,7 +14,7 @@ pub struct HCCapabilityRegisters {
     pub rts_off: Accessor<RuntimeRegisterSpaceOffset>,
 }
 
-impl HCCapabilityRegisters {
+impl Capability {
     /// Safety: This method is unsafe because if `mmio_base` is not the valid MMIO base address, it
     /// can violate memory safety.
     pub unsafe fn new(mmio_base: PhysAddr) -> Self {

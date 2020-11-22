@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{
-    device::pci::xhci::registers::capability::HCCapabilityRegisters, mem::accessor::Accessor,
-};
+use crate::{device::pci::xhci::registers::capability::Capability, mem::accessor::Accessor};
 use bitfield::bitfield;
 use os_units::Bytes;
 use x86_64::PhysAddr;
@@ -14,10 +12,7 @@ pub struct UsbLegacySupportCapability {
 impl UsbLegacySupportCapability {
     /// Safety: This method is unsafe because if `mmio_base` is not a valid MMIO base address, it
     /// can violate memory safety.
-    pub unsafe fn new(
-        mmio_base: PhysAddr,
-        hc_capability_registers: &HCCapabilityRegisters,
-    ) -> Option<Self> {
+    pub unsafe fn new(mmio_base: PhysAddr, hc_capability_registers: &Capability) -> Option<Self> {
         let xecp = hc_capability_registers
             .hc_cp_params_1
             .read()
