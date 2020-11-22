@@ -6,7 +6,7 @@ use os_units::Bytes;
 use x86_64::PhysAddr;
 
 pub struct Capability {
-    pub cap_length: Accessor<CapabilityRegistersLength>,
+    pub cap_length: Accessor<Len>,
     pub hcs_params_1: Accessor<StructuralParameters1>,
     pub hcs_params_2: Accessor<StructuralParameters2>,
     pub hc_cp_params_1: Accessor<HCCapabilityParameters1>,
@@ -37,8 +37,8 @@ impl Capability {
 }
 
 #[repr(transparent)]
-pub struct CapabilityRegistersLength(u8);
-impl CapabilityRegistersLength {
+pub struct Len(u8);
+impl Len {
     pub fn get(&self) -> usize {
         self.0 as _
     }
