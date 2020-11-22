@@ -29,7 +29,7 @@ impl<'a> DeviceContextBaseAddressArray {
     }
 
     fn register_address_to_xhci_register(&self) {
-        let dcbaap = &mut self.registers.borrow_mut().hc_operational.dcbaap;
+        let dcbaap = &mut self.registers.borrow_mut().operational.dcbaap;
         dcbaap.update(|dcbaap| dcbaap.set(self.phys_addr()));
     }
 
