@@ -95,12 +95,10 @@ impl<'a> Ring {
     }
 
     fn register_segment_table_to_xhci_registers(&mut self) {
-        let runtime_registers = &mut self.registers.borrow_mut().runtime;
-        runtime_registers
-            .erst_sz
+        let r = &mut self.registers.borrow_mut().runtime;
+        r.erst_sz
             .update(|sz| sz.set(self.segment_table.len().try_into().unwrap()));
-        runtime_registers
-            .erst_ba
+        r.erst_ba
             .update(|ba| ba.set(self.phys_addr_to_segment_table()));
     }
 
