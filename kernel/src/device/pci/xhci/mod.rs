@@ -4,7 +4,7 @@ mod context;
 mod dcbaa;
 mod exchanger;
 mod port;
-mod register;
+mod registers;
 mod ring;
 mod xhc;
 
@@ -15,7 +15,7 @@ use core::cell::RefCell;
 use dcbaa::DeviceContextBaseAddressArray;
 use exchanger::command::{Receiver, Sender};
 use futures_intrusive::sync::LocalMutex;
-use register::Registers;
+use registers::Registers;
 use ring::{command, event};
 use xhc::Xhc;
 

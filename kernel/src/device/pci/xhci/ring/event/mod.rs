@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{
-    super::{exchanger::command::Receiver, register::Registers},
+    super::{exchanger::command::Receiver, registers::Registers},
     raw, CycleBit,
 };
 use crate::multitask::task::{self, Task};
