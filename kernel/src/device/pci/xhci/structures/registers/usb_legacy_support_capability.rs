@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{device::pci::xhci::registers::capability::Capability, mem::accessor::Accessor};
+use crate::{
+    device::pci::xhci::structures::registers::capability::Capability, mem::accessor::Accessor,
+};
 use bitfield::bitfield;
 use os_units::Bytes;
 use x86_64::PhysAddr;

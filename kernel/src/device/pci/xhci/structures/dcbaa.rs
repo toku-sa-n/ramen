@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::Registers;
+use super::registers::Registers;
 use crate::mem::allocator::page_box::PageBox;
 use alloc::rc::Rc;
 use core::{

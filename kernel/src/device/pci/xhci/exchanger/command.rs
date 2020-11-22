@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::super::ring::{command, event::trb::CommandCompletion};
+use super::super::structures::ring::{command, event::trb::CommandCompletion};
 use alloc::{collections::BTreeMap, rc::Rc};
 use core::{
     cell::RefCell,
