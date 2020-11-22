@@ -50,7 +50,11 @@ fn init(
     let dcbaa = Rc::new(RefCell::new(DeviceContextBaseAddressArray::new(
         registers.clone(),
     )));
-    let (sender, receiver) = exchanger::command::channel(command_ring.clone());
+    let receiver = Rc::new(RefCell::new(Receiver::new()));
+    let sender = Rc::new(LocalMutex::new(
+        Sender::new(command_ring.clone(), receiver.clone()),
+        false,
+    ));
 
     xhc.init();
 
