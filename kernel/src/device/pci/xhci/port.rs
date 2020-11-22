@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{
-    context::{self, EndpointType},
-    dcbaa::DeviceContextBaseAddressArray,
     exchanger::command::Sender,
-    registers::{operational::PortRegisters, Registers},
-    ring::transfer,
+    structures::{
+        context::{self, EndpointType},
+        dcbaa::DeviceContextBaseAddressArray,
+        registers::{operational::PortRegisters, Registers},
+        ring::transfer,
+    },
 };
 use crate::{
     mem::allocator::page_box::PageBox,

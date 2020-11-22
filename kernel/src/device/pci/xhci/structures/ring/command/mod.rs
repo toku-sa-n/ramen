@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{super::Registers, raw, CycleBit};
+use super::{super::registers::Registers, raw, CycleBit};
 use alloc::rc::Rc;
 use core::cell::RefCell;
 use trb::Trb;

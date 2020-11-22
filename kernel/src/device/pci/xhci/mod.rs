@@ -1,22 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod context;
-mod dcbaa;
 mod exchanger;
 mod port;
-mod registers;
-mod ring;
+mod structures;
 mod xhc;
 
 use super::config::bar;
 use crate::multitask::task::{self, Task};
 use alloc::rc::Rc;
 use core::cell::RefCell;
-use dcbaa::DeviceContextBaseAddressArray;
 use exchanger::command::{Receiver, Sender};
 use futures_intrusive::sync::LocalMutex;
-use registers::Registers;
-use ring::{command, event};
+use structures::{
+    dcbaa::DeviceContextBaseAddressArray,
+    registers::Registers,
+    ring::{command, event},
+};
 use xhc::Xhc;
 
 pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::registers::Registers;
+use super::structures::registers::Registers;
 use alloc::rc::Rc;
 use core::cell::RefCell;
 
