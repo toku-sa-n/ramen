@@ -3,12 +3,12 @@
 pub mod doorbell;
 pub mod hc_capability;
 pub mod hc_operational;
-pub mod runtime_base_registers;
+pub mod runtime;
 pub mod usb_legacy_support_capability;
 
 use hc_capability::HCCapabilityRegisters;
 use hc_operational::HCOperational;
-use runtime_base_registers::RuntimeBaseRegisters;
+use runtime::RuntimeBaseRegisters;
 use usb_legacy_support_capability::UsbLegacySupportCapability;
 use x86_64::PhysAddr;
 
