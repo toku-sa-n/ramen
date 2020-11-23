@@ -87,13 +87,6 @@ impl DataStage {
 
 add_trb!(StatusStage);
 
-pub type TransferEvent = TransferEventStructure<[u32; 4]>;
-bitfield! {
-    #[repr(transparent)]
-    pub struct TransferEventStructure([u32]);
-    impl Debug;
-}
-
 #[derive(Debug)]
 pub enum Error {
     UnrecognizedId,
