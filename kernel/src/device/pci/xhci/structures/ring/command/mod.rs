@@ -13,6 +13,7 @@ use x86_64::{
 
 mod trb;
 
+#[allow(clippy::cast_possible_truncation)]
 const NUM_OF_TRBS: usize = Size4KiB::SIZE as usize / Trb::SIZE.as_usize();
 
 pub struct Ring {
