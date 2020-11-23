@@ -7,6 +7,8 @@ use core::convert::{TryFrom, TryInto};
 use os_units::Bytes;
 use x86_64::PhysAddr;
 
+mod control;
+
 pub enum Trb {
     SetupStageStructure,
 }
