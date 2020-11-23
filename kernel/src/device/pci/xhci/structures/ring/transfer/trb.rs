@@ -4,6 +4,7 @@ use super::super::{raw, CycleBit};
 use crate::add_trb;
 use bit_field::BitField;
 use bitfield::bitfield;
+use bitflags::bitflags;
 use core::convert::{TryFrom, TryInto};
 use os_units::Bytes;
 use x86_64::PhysAddr;
@@ -59,6 +60,12 @@ impl SetupStage {
 
     fn set_trt(&mut self, t: u8) {
         self.0[3].set_bits(16..=17, t.into());
+    }
+}
+
+bitflags! {
+    struct DescTy:u8{
+        const DEVICE=1;
     }
 }
 
