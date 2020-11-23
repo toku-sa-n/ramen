@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::super::{raw, CycleBit};
-use crate::add_trb;
+use crate::{add_trb, mem::allocator::page_box::PageBox};
 use bit_field::BitField;
 use core::convert::{TryFrom, TryInto};
 use os_units::Bytes;
@@ -32,6 +32,21 @@ impl From<Trb> for raw::Trb {
 
 add_trb!(SetupStage);
 impl SetupStage {
+    const ID: u8 = 2;
+
+    fn new_get_descriptor<T>(b: &PageBox<T>, dt: DescTy, desc_i: u8, c: CycleBit) -> Self {
+        let mut t = Self::null();
+        t.set_request_type(0b1000_0000);
+        t.set_request(Request::GetDescriptor);
+        t.set_value((dt as u16) << 8 | desc_i as u16);
+        t.set_length(b.bytes().as_usize().try_into().unwrap());
+        t.set_trb_transfer_length(8);
+        t.set_cycle_bit(c);
+        t.set_trb_type(Self::ID);
+        t.set_trt(3);
+        t
+    }
+
     fn null() -> Self {
         Self([0; 4])
     }
