@@ -4,7 +4,7 @@ use super::super::{raw, CycleBit};
 use crate::add_trb;
 use bit_field::BitField;
 use bitfield::bitfield;
-use core::convert::TryFrom;
+use core::convert::{TryFrom, TryInto};
 use os_units::Bytes;
 use x86_64::PhysAddr;
 
@@ -62,18 +62,27 @@ impl SetupStage {
     }
 }
 
-pub type DataStage = DataStageStructure<[u32; 4]>;
-bitfield! {
-    #[repr(transparent)]
-    pub struct DataStageStructure([u32]);
-    impl Debug;
-    u64, _, set_data_buffer_as_u64: 63, 0;
-    u128, _, set_trb_transfer_length: 64+16, 64;
-    u128, _, set_td_size: 64+21, 64+17;
-    _, set_cycle_bit: 96;
-    _, set_ioc: 96+5;
-    u128, _, set_trb_type: 96+15, 96+10;
-    _, set_dir: 96+16;
+add_trb!(DataStage);
+impl DataStage {
+    fn set_data_buf(&mut self, b: PhysAddr) {
+        let l = b.as_u64() & 0xffff_ffff;
+        let u = b.as_u64() >> 32;
+
+        self.0[0] = l.try_into().unwrap();
+        self.0[1] = u.try_into().unwrap();
+    }
+
+    fn set_transfer_length(&mut self, l: u32) {
+        self.0[2].set_bits(0..=16, l);
+    }
+
+    fn set_td_size(&mut self, s: u8) {
+        self.0[2].set_bits(17..=21, s.into());
+    }
+
+    fn set_dir(&mut self, d: bool) {
+        self.0[3].set_bit(16, d);
+    }
 }
 
 pub type StatusStage = StatusStageStructure<[u32; 4]>;
