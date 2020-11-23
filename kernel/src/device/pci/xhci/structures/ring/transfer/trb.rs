@@ -85,14 +85,7 @@ impl DataStage {
     }
 }
 
-pub type StatusStage = StatusStageStructure<[u32; 4]>;
-bitfield! {
-    #[repr(transparent)]
-    pub struct StatusStageStructure([u32]);
-    impl Debug;
-    _, set_cycle_bit: 96;
-    u128, _, set_trb_type: 96+15, 96+10;
-}
+add_trb!(StatusStage);
 
 pub type TransferEvent = TransferEventStructure<[u32; 4]>;
 bitfield! {
