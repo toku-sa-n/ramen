@@ -48,7 +48,7 @@ impl<'a> Ring {
         Ok(phys_addr_to_trb)
     }
 
-    pub fn phys_addr(&self) -> PhysAddr {
+    fn phys_addr(&self) -> PhysAddr {
         self.raw.head_addr()
     }
 
