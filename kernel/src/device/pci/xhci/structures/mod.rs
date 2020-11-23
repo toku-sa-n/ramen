@@ -2,5 +2,6 @@
 
 pub mod context;
 pub mod dcbaa;
+pub mod descriptor;
 pub mod registers;
 pub mod ring;
