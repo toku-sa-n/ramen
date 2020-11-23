@@ -154,6 +154,11 @@ impl From<Direction> for bool {
 }
 
 add_trb!(StatusStage);
+impl StatusStage {
+    fn set_ioc(&mut self, ioc: bool) {
+        self.0[3].set_bit(5, ioc);
+    }
+}
 
 #[derive(Debug)]
 pub enum Error {
