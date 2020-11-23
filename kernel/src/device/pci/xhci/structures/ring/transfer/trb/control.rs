@@ -59,10 +59,6 @@ impl SetupStage {
         self.0[0].set_bits(16..=31, v.into());
     }
 
-    fn set_index(&mut self, i: u16) {
-        self.0[1].set_bits(0..=15, i.into());
-    }
-
     fn set_length(&mut self, l: u16) {
         self.0[1].set_bits(16..=31, l.into());
     }
