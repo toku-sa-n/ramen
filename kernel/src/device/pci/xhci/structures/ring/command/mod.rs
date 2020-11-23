@@ -13,7 +13,7 @@ use x86_64::{
 
 mod trb;
 
-const SIZE_OF_RING: usize = Size4KiB::SIZE as usize / Trb::SIZE.as_usize();
+const NUM_OF_TRBS: usize = Size4KiB::SIZE as usize / Trb::SIZE.as_usize();
 
 pub struct Ring {
     raw: Raw,
@@ -71,7 +71,7 @@ struct Raw {
 impl Raw {
     fn new() -> Self {
         Self {
-            raw: PageBox::new_slice([0; 4], SIZE_OF_RING),
+            raw: PageBox::new_slice([0; 4], NUM_OF_TRBS),
             enq_p: 0,
             c: CycleBit::new(true),
         }
@@ -115,7 +115,7 @@ impl Raw {
     }
 
     fn next_enq_p(&self) -> usize {
-        (self.enq_p + 1) % SIZE_OF_RING
+        (self.enq_p + 1) % NUM_OF_TRBS
     }
 
     fn enqueue(&mut self, mut trb: Trb) -> PhysAddr {
