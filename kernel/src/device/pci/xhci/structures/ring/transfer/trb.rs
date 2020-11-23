@@ -54,7 +54,7 @@ impl SetupStage {
     }
 
     fn set_trb_transfer_length(&mut self, l: u32) {
-        self.0[2].set_bits(0..=16, l.into());
+        self.0[2].set_bits(0..=16, l);
     }
 
     fn set_trt(&mut self, t: u8) {
