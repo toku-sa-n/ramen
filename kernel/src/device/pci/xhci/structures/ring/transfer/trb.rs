@@ -34,6 +34,10 @@ impl From<Trb> for raw::Trb {
 
 add_trb!(SetupStage);
 impl SetupStage {
+    fn null() -> Self {
+        Self([0; 4])
+    }
+
     fn set_request_type(&mut self, t: u8) {
         self.0[0].set_bits(0..=7, t.into());
     }
