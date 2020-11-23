@@ -155,6 +155,16 @@ impl From<Direction> for bool {
 
 add_trb!(StatusStage);
 impl StatusStage {
+    const ID: u8 = 4;
+
+    fn new(c: CycleBit) -> Self {
+        let mut t = Self::null();
+        t.set_cycle_bit(c);
+        t.set_ioc(true);
+        t.set_trb_type(Self::ID);
+        t
+    }
+
     fn null() -> Self {
         Self([0; 4])
     }
