@@ -42,8 +42,8 @@ impl SetupStage {
         self.0[0].set_bits(0..=7, t.into());
     }
 
-    fn set_request(&mut self, r: u8) {
-        self.0[0].set_bits(8..=15, r.into());
+    fn set_request(&mut self, r: Request) {
+        self.0[0].set_bits(8..=15, r as _);
     }
 
     fn set_value(&mut self, v: u16) {
@@ -65,6 +65,10 @@ impl SetupStage {
     fn set_trt(&mut self, t: u8) {
         self.0[3].set_bits(16..=17, t.into());
     }
+}
+
+enum Request {
+    GetDescriptor = 6,
 }
 
 bitflags! {
