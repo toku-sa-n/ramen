@@ -6,12 +6,14 @@ use alloc::rc::Rc;
 use bit_field::BitField;
 use core::cell::RefCell;
 use trb::Trb;
-use x86_64::PhysAddr;
+use x86_64::{
+    structures::paging::{PageSize, Size4KiB},
+    PhysAddr,
+};
 
 mod trb;
 
-// 4KB / 16 = 256
-const SIZE_OF_RING: usize = 256;
+const SIZE_OF_RING: usize = Size4KiB::SIZE as usize / Trb::SIZE.as_usize();
 
 pub struct Ring {
     raw: Raw,
