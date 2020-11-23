@@ -6,12 +6,15 @@ use alloc::rc::Rc;
 use bit_field::BitField;
 use core::cell::RefCell;
 use trb::Trb;
-use x86_64::PhysAddr;
+use x86_64::{
+    structures::paging::{PageSize, Size4KiB},
+    PhysAddr,
+};
 
 mod trb;
 
-// 4KB / 16 = 256
-const SIZE_OF_RING: usize = 256;
+#[allow(clippy::cast_possible_truncation)]
+const NUM_OF_TRBS: usize = Size4KiB::SIZE as usize / Trb::SIZE.as_usize();
 
 pub struct Ring {
     raw: Raw,
@@ -69,7 +72,7 @@ struct Raw {
 impl Raw {
     fn new() -> Self {
         Self {
-            raw: PageBox::new_slice([0; 4], SIZE_OF_RING),
+            raw: PageBox::new_slice([0; 4], NUM_OF_TRBS),
             enq_p: 0,
             c: CycleBit::new(true),
         }
@@ -113,7 +116,7 @@ impl Raw {
     }
 
     fn next_enq_p(&self) -> usize {
-        (self.enq_p + 1) % SIZE_OF_RING
+        (self.enq_p + 1) % NUM_OF_TRBS
     }
 
     fn enqueue(&mut self, mut trb: Trb) -> PhysAddr {
