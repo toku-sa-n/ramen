@@ -15,7 +15,10 @@ use core::{
 use futures_util::{stream::Stream, task::AtomicWaker, StreamExt};
 use segment_table::SegmentTable;
 use trb::Trb;
-use x86_64::PhysAddr;
+use x86_64::{
+    structures::paging::{PageSize, Size4KiB},
+    PhysAddr,
+};
 
 mod segment_table;
 pub mod trb;
@@ -46,7 +49,7 @@ pub struct Ring {
     registers: Rc<RefCell<Registers>>,
 }
 impl<'a> Ring {
-    const MAX_NUM_OF_TRB_IN_QUEUE: u16 = 4096;
+    const MAX_NUM_OF_TRB_IN_QUEUE: u16 = Size4KiB::SIZE as u16 / Trb::SIZE.as_usize() as u16;
 
     pub fn new(
         registers: Rc<RefCell<Registers>>,
