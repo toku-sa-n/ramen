@@ -3,7 +3,6 @@
 use super::super::{raw, CycleBit};
 use crate::add_trb;
 use bit_field::BitField;
-use bitfield::bitfield;
 use core::convert::{TryFrom, TryInto};
 use os_units::Bytes;
 use x86_64::PhysAddr;
