@@ -38,6 +38,16 @@ impl From<Trb> for raw::Trb {
         }
     }
 }
+impl From<Trb> for [u32; 4] {
+    fn from(t: Trb) -> Self {
+        match t {
+            Trb::Noop(n) => n.0,
+            Trb::Link(l) => l.0,
+            Trb::EnableSlot(e) => e.0,
+            Trb::AddressDevice(a) => a.0,
+        }
+    }
+}
 
 add_trb!(Link);
 impl Link {
