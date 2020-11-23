@@ -96,6 +96,11 @@ impl From<raw::Trb> for EnableSlot {
         Self(raw.0)
     }
 }
+impl Default for EnableSlot {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 add_trb!(AddressDevice);
 impl AddressDevice {
