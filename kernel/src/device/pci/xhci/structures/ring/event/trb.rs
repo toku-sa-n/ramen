@@ -3,6 +3,7 @@
 use super::super::raw;
 use crate::add_trb;
 use bit_field::BitField;
+use bitfield::bitfield;
 use core::convert::{TryFrom, TryInto};
 use os_units::Bytes;
 
@@ -68,6 +69,8 @@ impl TryFrom<raw::Trb> for PortStatusChange {
         }
     }
 }
+
+add_trb!(TransferEvent);
 
 #[derive(Debug)]
 pub enum Error {
