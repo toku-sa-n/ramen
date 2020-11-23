@@ -10,7 +10,7 @@ use x86_64::PhysAddr;
 mod control;
 
 pub enum Trb {
-    SetupStageStructure,
+    Control(Control),
 }
 impl Trb {
     pub const SIZE: Bytes = Bytes::new(16);
@@ -30,6 +30,12 @@ impl From<Trb> for raw::Trb {
     fn from(t: Trb) -> Self {
         unimplemented!()
     }
+}
+
+pub enum Control {
+    Setup(SetupStage),
+    Data(DataStage),
+    Status(StatusStage),
 }
 
 add_trb!(SetupStage);
