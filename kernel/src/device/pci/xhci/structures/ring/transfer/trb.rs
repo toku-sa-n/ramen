@@ -34,7 +34,7 @@ add_trb!(SetupStage);
 impl SetupStage {
     const ID: u8 = 2;
 
-    fn new_get_descriptor<T>(b: &PageBox<T>, dti: DescTyIndex, c: CycleBit) -> Self {
+    fn new_get_descriptor<T>(b: &PageBox<T>, dti: DescTyIdx, c: CycleBit) -> Self {
         let mut t = Self::null();
         t.set_request_type(0b1000_0000);
         t.set_request(Request::GetDescriptor);
@@ -80,11 +80,11 @@ impl SetupStage {
     }
 }
 
-struct DescTyIndex {
+struct DescTyIdx {
     ty: DescTy,
     i: u8,
 }
-impl DescTyIndex {
+impl DescTyIdx {
     fn new(ty: DescTy, i: u8) -> Self {
         Self { ty, i }
     }
