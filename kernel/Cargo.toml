@@ -27,7 +27,7 @@ bench = false
 
 [dependencies]
 common = { path = "../common" }
-conquer-once = { version = "0.2.1", default-features = false }
+conquer-once = { version = "0.3.0", default-features = false }
 spinning_top = { version = "0.2.2", features = ["nightly"] }
 qemu-exit = "1.0.0"
 x86_64 = "0.12.0"
