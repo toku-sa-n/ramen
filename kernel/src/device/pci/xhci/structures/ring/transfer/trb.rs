@@ -8,7 +8,9 @@ use os_units::Bytes;
 use x86_64::PhysAddr;
 
 pub enum Trb {
-    SetupStageStructure,
+    SetupStage(SetupStage),
+    DataStage(DataStage),
+    StatusStage(StatusStage),
 }
 impl Trb {
     pub const SIZE: Bytes = Bytes::new(16);
