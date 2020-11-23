@@ -137,6 +137,10 @@ impl<T: ?Sized> PageBox<T> {
         PML4.lock().translate_addr(self.virt).unwrap()
     }
 
+    pub fn bytes(&self) -> Bytes {
+        self.bytes
+    }
+
     fn new_zeroed_from_bytes(bytes: Bytes) -> Self {
         let virt = Self::allocate_pages(bytes.as_num_of_pages());
 
