@@ -123,8 +123,21 @@ impl DataStage {
         self.0[2].set_bits(17..=21, s.into());
     }
 
-    fn set_dir(&mut self, d: bool) {
-        self.0[3].set_bit(16, d);
+    fn set_dir(&mut self, d: Dir) {
+        self.0[3].set_bit(16, d.into());
+    }
+}
+
+enum Dir {
+    Out = 0,
+    In = 1,
+}
+impl From<Dir> for bool {
+    fn from(d: Dir) -> Self {
+        match d {
+            Dir::Out => false,
+            Dir::In => true,
+        }
     }
 }
 
