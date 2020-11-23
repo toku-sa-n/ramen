@@ -16,16 +16,25 @@ pub enum Trb {
 impl Trb {
     pub const SIZE: Bytes = Bytes::new(16);
 
-    pub fn new_enable_slot(c: CycleBit) -> Self {
-        Self::EnableSlot(EnableSlot::new(c))
+    pub fn new_enable_slot() -> Self {
+        Self::EnableSlot(EnableSlot::new())
     }
 
-    pub fn new_link(a: PhysAddr, c: CycleBit) -> Self {
-        Self::Link(Link::new(a, c))
+    pub fn new_link(a: PhysAddr) -> Self {
+        Self::Link(Link::new(a))
     }
 
-    pub fn new_address_device(c: CycleBit, input_context_addr: PhysAddr, slot_id: u8) -> Self {
-        Self::AddressDevice(AddressDevice::new(c, input_context_addr, slot_id))
+    pub fn new_address_device(input_context_addr: PhysAddr, slot_id: u8) -> Self {
+        Self::AddressDevice(AddressDevice::new(input_context_addr, slot_id))
+    }
+
+    pub fn set_c(&mut self, c: CycleBit) {
+        match self {
+            Self::Noop(n) => n.set_cycle_bit(c),
+            Self::Link(l) => l.set_cycle_bit(c),
+            Self::EnableSlot(e) => e.set_cycle_bit(c),
+            Self::AddressDevice(a) => a.set_cycle_bit(c),
+        }
     }
 }
 impl From<Trb> for raw::Trb {
@@ -38,14 +47,23 @@ impl From<Trb> for raw::Trb {
         }
     }
 }
+impl From<Trb> for [u32; 4] {
+    fn from(t: Trb) -> Self {
+        match t {
+            Trb::Noop(n) => n.0,
+            Trb::Link(l) => l.0,
+            Trb::EnableSlot(e) => e.0,
+            Trb::AddressDevice(a) => a.0,
+        }
+    }
+}
 
 add_trb!(Link);
 impl Link {
     const ID: u8 = 6;
-    fn new(addr_to_ring: PhysAddr, cycle_bit: CycleBit) -> Self {
+    fn new(addr_to_ring: PhysAddr) -> Self {
         assert!(addr_to_ring.is_aligned(u64::try_from(Trb::SIZE.as_usize()).unwrap()));
         let mut trb = Self([0; 4]);
-        trb.set_cycle_bit(cycle_bit);
         trb.set_trb_type(Self::ID);
         trb.set_addr(addr_to_ring.as_u64());
         trb
@@ -67,9 +85,8 @@ impl From<raw::Trb> for Link {
 add_trb!(EnableSlot);
 impl EnableSlot {
     const ID: u8 = 9;
-    pub fn new(cycle_bit: CycleBit) -> Self {
+    pub fn new() -> Self {
         let mut enable_slot = Self([0; 4]);
-        enable_slot.set_cycle_bit(cycle_bit);
         enable_slot.set_trb_type(Self::ID);
         enable_slot
     }
@@ -79,16 +96,20 @@ impl From<raw::Trb> for EnableSlot {
         Self(raw.0)
     }
 }
+impl Default for EnableSlot {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 add_trb!(AddressDevice);
 impl AddressDevice {
     const ID: u8 = 11;
-    pub fn new(cycle_bit: CycleBit, addr_to_input_context: PhysAddr, slot_id: u8) -> Self {
+    pub fn new(addr_to_input_context: PhysAddr, slot_id: u8) -> Self {
         let mut trb = Self([0; 4]);
 
         assert!(addr_to_input_context.is_aligned(16_u64));
         trb.set_input_context_ptr_as_u64(addr_to_input_context.as_u64());
-        trb.set_cycle_bit(cycle_bit);
         trb.set_trb_type(Self::ID);
         trb.set_slot_id(slot_id);
         trb
