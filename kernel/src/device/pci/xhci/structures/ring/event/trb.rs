@@ -70,12 +70,7 @@ impl TryFrom<raw::Trb> for PortStatusChange {
     }
 }
 
-pub type TransferEvent = TransferEventStructure<[u32; 4]>;
-bitfield! {
-    #[repr(transparent)]
-    pub struct TransferEventStructure([u32]);
-    impl Debug;
-}
+add_trb!(TransferEvent);
 
 #[derive(Debug)]
 pub enum Error {
