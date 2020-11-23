@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{super::registers::Registers, raw, CycleBit};
+use super::{super::registers::Registers, CycleBit};
 use crate::mem::allocator::page_box::PageBox;
 use alloc::rc::Rc;
 use bit_field::BitField;
@@ -14,17 +14,13 @@ mod trb;
 const SIZE_OF_RING: usize = 256;
 
 pub struct Ring {
-    raw: raw::Ring,
-    enqueue_ptr: usize,
-    cycle_bit: CycleBit,
+    raw: Raw,
     registers: Rc<RefCell<Registers>>,
 }
 impl<'a> Ring {
     pub fn new(registers: Rc<RefCell<Registers>>) -> Self {
         Self {
-            raw: raw::Ring::new(SIZE_OF_RING),
-            enqueue_ptr: 0,
-            cycle_bit: CycleBit::new(true),
+            raw: Raw::new(),
             registers,
         }
     }
@@ -35,7 +31,7 @@ impl<'a> Ring {
     }
 
     pub fn send_enable_slot(&mut self) -> Result<PhysAddr, Error> {
-        let enable_slot = Trb::new_enable_slot(self.cycle_bit);
+        let enable_slot = Trb::new_enable_slot();
         let phys_addr_to_trb = self.try_enqueue(enable_slot)?;
         self.notify_command_is_sent();
         Ok(phys_addr_to_trb)
@@ -46,15 +42,14 @@ impl<'a> Ring {
         addr_to_input_context: PhysAddr,
         slot_id: u8,
     ) -> Result<PhysAddr, Error> {
-        let address_device =
-            Trb::new_address_device(self.cycle_bit, addr_to_input_context, slot_id);
+        let address_device = Trb::new_address_device(addr_to_input_context, slot_id);
         let phys_addr_to_trb = self.try_enqueue(address_device)?;
         self.notify_command_is_sent();
         Ok(phys_addr_to_trb)
     }
 
     pub fn phys_addr(&self) -> PhysAddr {
-        self.raw.phys_addr()
+        self.raw.head_addr()
     }
 
     fn notify_command_is_sent(&mut self) {
@@ -73,56 +68,7 @@ impl<'a> Ring {
     }
 
     fn try_enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
-        if self.full() {
-            Err(Error::QueueIsFull)
-        } else {
-            Ok(self.enqueue(trb))
-        }
-    }
-
-    fn full(&self) -> bool {
-        let raw = self.raw[self.enqueue_ptr];
-        raw.cycle_bit() == self.cycle_bit
-    }
-
-    fn enqueue(&mut self, trb: Trb) -> PhysAddr {
-        self.write_trb_on_memory(trb);
-        let addr_to_trb = self.addr_to_enqueue_ptr();
-        self.increment_enqueue_ptr();
-        addr_to_trb
-    }
-
-    fn write_trb_on_memory(&mut self, trb: Trb) {
-        self.raw[self.enqueue_ptr] = trb.into();
-    }
-
-    fn addr_to_enqueue_ptr(&self) -> PhysAddr {
-        self.phys_addr() + Trb::SIZE.as_usize() * self.enqueue_ptr
-    }
-
-    fn increment_enqueue_ptr(&mut self) {
-        self.enqueue_ptr += 1;
-        if !self.enqueue_ptr_within_range() {
-            self.append_link_trb();
-            self.move_enqueue_ptr_to_the_beginning();
-        }
-    }
-
-    fn enqueue_ptr_within_range(&self) -> bool {
-        self.enqueue_ptr < self.len() - 1
-    }
-
-    fn len(&self) -> usize {
-        self.raw.len()
-    }
-
-    fn append_link_trb(&mut self) {
-        self.raw[self.enqueue_ptr] = Trb::new_link(self.phys_addr(), self.cycle_bit).into();
-    }
-
-    fn move_enqueue_ptr_to_the_beginning(&mut self) {
-        self.enqueue_ptr = 0;
-        self.cycle_bit.toggle();
+        self.raw.try_enqueue(trb)
     }
 }
 
@@ -153,7 +99,7 @@ impl Raw {
     }
 
     fn full(&self) -> bool {
-        self.writable(self.enq_p)
+        !self.writable(self.enq_p)
     }
 
     fn has_space_for_link_trb(&self) -> bool {
@@ -181,7 +127,8 @@ impl Raw {
         (self.enq_p + 1) % SIZE_OF_RING
     }
 
-    fn enqueue(&mut self, trb: Trb) -> PhysAddr {
+    fn enqueue(&mut self, mut trb: Trb) -> PhysAddr {
+        trb.set_c(self.c);
         self.write_trb(trb);
         let trb_a = self.enq_addr();
         self.increment();
@@ -206,7 +153,9 @@ impl Raw {
 
     fn enq_link(&mut self) {
         // Don't call `enqueue`. It will return an `Err` value as there is no space for link TRB.
-        self.raw[self.enq_p] = Trb::new_link(self.head_addr(), self.c).into();
+        let mut t = Trb::new_link(self.head_addr());
+        t.set_c(self.c);
+        self.raw[self.enq_p] = t.into();
     }
 
     fn move_enq_p_to_the_beginning(&mut self) {
