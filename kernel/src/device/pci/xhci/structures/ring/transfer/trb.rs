@@ -105,7 +105,7 @@ add_trb!(DataStage);
 impl DataStage {
     const ID: u8 = 3;
 
-    fn new<T>(b: &PageBox<T>, c: CycleBit, d: Dir) -> Self {
+    fn new<T>(b: &PageBox<T>, c: CycleBit, d: Direction) -> Self {
         let mut t = Self::null();
         t.set_data_buf(b.phys_addr());
         t.set_transfer_length(b.bytes().as_usize().try_into().unwrap());
@@ -135,20 +135,20 @@ impl DataStage {
         self.0[2].set_bits(17..=21, s.into());
     }
 
-    fn set_dir(&mut self, d: Dir) {
+    fn set_dir(&mut self, d: Direction) {
         self.0[3].set_bit(16, d.into());
     }
 }
 
-enum Dir {
+enum Direction {
     Out = 0,
     In = 1,
 }
-impl From<Dir> for bool {
-    fn from(d: Dir) -> Self {
+impl From<Direction> for bool {
+    fn from(d: Direction) -> Self {
         match d {
-            Dir::Out => false,
-            Dir::In => true,
+            Direction::Out => false,
+            Direction::In => true,
         }
     }
 }
