@@ -34,11 +34,11 @@ add_trb!(SetupStage);
 impl SetupStage {
     const ID: u8 = 2;
 
-    fn new_get_descriptor<T>(b: &PageBox<T>, dt: DescTy, desc_i: u8, c: CycleBit) -> Self {
+    fn new_get_descriptor<T>(b: &PageBox<T>, dti: DescTyIndex, c: CycleBit) -> Self {
         let mut t = Self::null();
         t.set_request_type(0b1000_0000);
         t.set_request(Request::GetDescriptor);
-        t.set_value((dt as u16) << 8 | desc_i as u16);
+        t.set_value(dti.bits());
         t.set_length(b.bytes().as_usize().try_into().unwrap());
         t.set_trb_transfer_length(8);
         t.set_cycle_bit(c);
@@ -77,6 +77,19 @@ impl SetupStage {
 
     fn set_trt(&mut self, t: u8) {
         self.0[3].set_bits(16..=17, t.into());
+    }
+}
+
+struct DescTyIndex {
+    ty: DescTy,
+    i: u8,
+}
+impl DescTyIndex {
+    fn new(ty: DescTy, i: u8) -> Self {
+        Self { ty, i }
+    }
+    fn bits(self) -> u16 {
+        (self.ty as u16) << 8 | u16::from(self.i)
     }
 }
 
