@@ -4,7 +4,7 @@ use super::{
     super::structures::ring::{command, event::trb::CommandCompletion},
     receiver::{ReceiveFuture, Receiver},
 };
-use alloc::{collections::BTreeMap, rc::Rc};
+use alloc::rc::Rc;
 use core::{
     cell::RefCell,
     future::Future,
