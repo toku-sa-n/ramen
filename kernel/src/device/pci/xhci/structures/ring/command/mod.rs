@@ -26,8 +26,7 @@ impl<'a> Ring {
     }
 
     pub fn init(&mut self) {
-        self.register_address_to_xhci_register();
-        self.set_initial_command_ring_cycle_state();
+        Initializer::new(self, self.registers.clone()).init();
     }
 
     pub fn send_enable_slot(&mut self) -> Result<PhysAddr, Error> {
@@ -48,6 +47,10 @@ impl<'a> Ring {
         Ok(phys_addr_to_trb)
     }
 
+    fn try_enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
+        self.raw.try_enqueue(trb)
+    }
+
     fn phys_addr(&self) -> PhysAddr {
         self.raw.head_addr()
     }
@@ -55,20 +58,6 @@ impl<'a> Ring {
     fn notify_command_is_sent(&mut self) {
         let doorbell_array = &mut self.registers.borrow_mut().doorbell_array;
         doorbell_array.update(0, |reg| *reg = 0)
-    }
-
-    fn register_address_to_xhci_register(&mut self) {
-        let crcr = &mut self.registers.borrow_mut().operational.crcr;
-        crcr.update(|crcr| crcr.set_ptr(self.phys_addr()));
-    }
-
-    fn set_initial_command_ring_cycle_state(&mut self) {
-        let crcr = &mut self.registers.borrow_mut().operational.crcr;
-        crcr.update(|crcr| crcr.set_ring_cycle_state(true));
-    }
-
-    fn try_enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
-        self.raw.try_enqueue(trb)
     }
 }
 
@@ -173,6 +162,31 @@ impl Raw {
 
     fn len(&self) -> usize {
         self.raw.len()
+    }
+}
+
+struct Initializer<'a> {
+    ring: &'a Ring,
+    registers: Rc<RefCell<Registers>>,
+}
+impl<'a> Initializer<'a> {
+    fn new(ring: &'a Ring, registers: Rc<RefCell<Registers>>) -> Self {
+        Self { ring, registers }
+    }
+
+    fn init(&mut self) {
+        self.register_address_with_xhci();
+        self.set_initial_command_ring_cycle_state();
+    }
+
+    fn register_address_with_xhci(&mut self) {
+        let crcr = &mut self.registers.borrow_mut().operational.crcr;
+        crcr.update(|crcr| crcr.set_ptr(self.ring.phys_addr()));
+    }
+
+    fn set_initial_command_ring_cycle_state(&mut self) {
+        let crcr = &mut self.registers.borrow_mut().operational.crcr;
+        crcr.update(|crcr| crcr.set_ring_cycle_state(true));
     }
 }
 
