@@ -17,7 +17,7 @@ pub struct Ring {
     raw: Raw,
     registers: Rc<RefCell<Registers>>,
 }
-impl<'a> Ring {
+impl Ring {
     pub fn new(registers: Rc<RefCell<Registers>>) -> Self {
         Self {
             raw: Raw::new(),
