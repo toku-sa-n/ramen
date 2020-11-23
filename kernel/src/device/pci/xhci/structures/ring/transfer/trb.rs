@@ -103,6 +103,10 @@ enum DescTy {
 
 add_trb!(DataStage);
 impl DataStage {
+    fn null() -> Self {
+        Self([0; 4])
+    }
+
     fn set_data_buf(&mut self, b: PhysAddr) {
         let l = b.as_u64() & 0xffff_ffff;
         let u = b.as_u64() >> 32;
