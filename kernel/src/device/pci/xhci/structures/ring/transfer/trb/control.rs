@@ -12,6 +12,15 @@ pub enum Control {
     Data(DataStage),
     Status(StatusStage),
 }
+impl Control {
+    fn new_get_descriptor<T>(b: &PageBox<T>, dti: DescTyIdx, c: CycleBit) -> (Self, Self, Self) {
+        let setup = SetupStage::new_get_descriptor(b, dti, c);
+        let data = DataStage::new(b, c, Direction::In);
+        let status = StatusStage::new(c);
+
+        (Self::Setup(setup), Self::Data(data), Self::Status(status))
+    }
+}
 
 add_trb!(SetupStage);
 impl SetupStage {
