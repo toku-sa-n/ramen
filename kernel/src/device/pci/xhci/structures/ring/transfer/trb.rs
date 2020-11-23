@@ -155,6 +155,10 @@ impl From<Direction> for bool {
 
 add_trb!(StatusStage);
 impl StatusStage {
+    fn null() -> Self {
+        Self([0; 4])
+    }
+
     fn set_ioc(&mut self, ioc: bool) {
         self.0[3].set_bit(5, ioc);
     }
