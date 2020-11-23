@@ -1,34 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::super::{raw, CycleBit};
-use crate::{add_trb, mem::allocator::page_box::PageBox};
+use crate::{
+    add_trb, device::pci::xhci::structures::ring::CycleBit, mem::allocator::page_box::PageBox,
+};
 use bit_field::BitField;
-use core::convert::{TryFrom, TryInto};
-use os_units::Bytes;
+use core::convert::TryInto;
 use x86_64::PhysAddr;
-
-pub enum Trb {
-    Control(Control),
-}
-impl Trb {
-    pub const SIZE: Bytes = Bytes::new(16);
-
-    pub fn new_link(a: PhysAddr, c: CycleBit) -> Self {
-        unimplemented!()
-    }
-}
-impl TryFrom<raw::Trb> for Trb {
-    type Error = Error;
-
-    fn try_from(r: raw::Trb) -> Result<Self, Self::Error> {
-        unimplemented!()
-    }
-}
-impl From<Trb> for raw::Trb {
-    fn from(t: Trb) -> Self {
-        unimplemented!()
-    }
-}
 
 pub enum Control {
     Setup(SetupStage),
@@ -178,9 +155,4 @@ impl StatusStage {
     fn set_ioc(&mut self, ioc: bool) {
         self.0[3].set_bit(5, ioc);
     }
-}
-
-#[derive(Debug)]
-pub enum Error {
-    UnrecognizedId,
 }

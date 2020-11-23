@@ -31,11 +31,13 @@ macro_rules! add_trb {
         impl $t {
             #[allow(dead_code)]
             fn set_cycle_bit(&mut self, c: crate::device::pci::xhci::structures::ring::CycleBit) {
+                use bit_field::BitField;
                 self.0[3].set_bit(0, c.into());
             }
 
             #[allow(dead_code)]
             fn set_trb_type(&mut self, t: u8) {
+                use bit_field::BitField;
                 self.0[3].set_bits(10..=15, t.into());
             }
         }
