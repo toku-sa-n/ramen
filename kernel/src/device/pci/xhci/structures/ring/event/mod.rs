@@ -217,7 +217,7 @@ impl Raw {
     }
 
     fn head_addrs(&self) -> Vec<PhysAddr> {
-        self.rings.iter().map(|r| r.phys_addr()).collect()
+        self.rings.iter().map(PageBox::phys_addr).collect()
     }
 }
 
