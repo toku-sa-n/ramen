@@ -20,6 +20,10 @@ impl SegmentTable {
     pub fn len(&self) -> usize {
         self.0.len()
     }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Entry> {
+        self.0.iter_mut()
+    }
 }
 impl Index<usize> for SegmentTable {
     type Output = Entry;
@@ -33,7 +37,6 @@ impl IndexMut<usize> for SegmentTable {
         &mut self.0[index]
     }
 }
-
 impl<'a> IntoIterator for &'a mut SegmentTable {
     type Item = &'a mut Entry;
     type IntoIter = slice::IterMut<'a, Entry>;
