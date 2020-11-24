@@ -184,9 +184,9 @@ impl Raw {
 
     fn get_next_trb(&self) -> Result<Trb, Error> {
         let t = self.rings[self.deq_p_seg][self.deq_p_trb];
-        t.try_into().or_else(|_| {
+        t.try_into().map_err(|_| {
             warn!("Unrecognized TRB ID {}", t[3].get_bits(10..=15));
-            Err(Error::UnrecognizedTrb)
+            Error::UnrecognizedTrb
         })
     }
 
