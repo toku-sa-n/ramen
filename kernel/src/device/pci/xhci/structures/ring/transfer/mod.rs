@@ -89,7 +89,9 @@ impl Raw {
     }
 
     fn append_link_trb(&mut self) {
-        self.ring[self.enq_p] = Trb::new_link(self.phys_addr()).into();
+        let mut t = Trb::new_link(self.phys_addr());
+        t.set_c(self.c);
+        self.ring[self.enq_p] = t.into();
     }
 
     fn move_enqueue_ptr_to_the_beginning(&mut self) {
