@@ -3,7 +3,6 @@
 use super::super::{CycleBit, Link};
 use crate::mem::allocator::page_box::PageBox;
 use control::{Control, DescTyIdx};
-use core::convert::TryFrom;
 use os_units::Bytes;
 use x86_64::PhysAddr;
 
