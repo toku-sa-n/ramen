@@ -221,7 +221,3 @@ impl Raw {
         self.rings.iter().map(PageBox::phys_addr).collect()
     }
 }
-
-enum Error {
-    UnrecognizedTrb,
-}
