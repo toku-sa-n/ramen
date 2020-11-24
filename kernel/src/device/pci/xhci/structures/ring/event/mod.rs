@@ -72,7 +72,7 @@ impl<'a> Ring {
 
     pub fn init(&mut self) {
         self.init_dequeue_ptr();
-        self.init_segment_table();
+        self.init_tbl();
     }
 
     fn init_dequeue_ptr(&mut self) {
@@ -83,27 +83,20 @@ impl<'a> Ring {
         self.segment_table.phys_addr()
     }
 
-    fn init_segment_table(&mut self) {
-        self.register_addresses_of_arrays_to_segment_table();
-        self.register_segment_table_to_xhci_registers();
-    }
-
-    fn register_addresses_of_arrays_to_segment_table(&mut self) {
-        for (tbl, addr) in &mut self.segment_table.iter_mut().zip(self.raw.head_addrs()) {
-            tbl.set(addr, MAX_NUM_OF_TRB_IN_QUEUE);
-        }
-    }
-
-    fn register_segment_table_to_xhci_registers(&mut self) {
-        let r = &mut self.registers.borrow_mut().runtime;
-        r.erst_sz
-            .update(|sz| sz.set(self.segment_table.len().try_into().unwrap()));
-        r.erst_ba
-            .update(|ba| ba.set(self.phys_addr_to_segment_table()));
+    fn init_tbl(&mut self) {
+        SegTblInitializer::new(self, self.registers.clone()).init();
     }
 
     fn try_dequeue(&mut self) -> Option<Trb> {
         self.raw.try_dequeue()
+    }
+
+    fn ring_addrs(&self) -> Vec<PhysAddr> {
+        self.raw.head_addrs()
+    }
+
+    fn iter_tbl_entries_mut(&mut self) -> impl Iterator<Item = &mut segment_table::Entry> {
+        self.segment_table.iter_mut()
     }
 }
 impl<'a> Stream for Ring {
@@ -219,5 +212,46 @@ impl Raw {
 
     fn head_addrs(&self) -> Vec<PhysAddr> {
         self.rings.iter().map(PageBox::phys_addr).collect()
+    }
+}
+
+struct SegTblInitializer<'a> {
+    ring: &'a mut Ring,
+    r: Rc<RefCell<Registers>>,
+}
+impl<'a> SegTblInitializer<'a> {
+    fn new(ring: &'a mut Ring, r: Rc<RefCell<Registers>>) -> Self {
+        Self { ring, r }
+    }
+
+    fn init(&mut self) {
+        self.write_addrs();
+        self.register_tbl_sz();
+        self.enable_event_ring();
+    }
+
+    fn write_addrs(&mut self) {
+        let addrs = self.ring.ring_addrs();
+        for (entry, addr) in self.ring.iter_tbl_entries_mut().zip(addrs) {
+            entry.set(addr, MAX_NUM_OF_TRB_IN_QUEUE);
+        }
+    }
+
+    fn register_tbl_sz(&mut self) {
+        let sz = &mut self.r.borrow_mut().runtime.erst_sz;
+        sz.update(|sz| sz.set(self.tbl_len().try_into().unwrap()));
+    }
+
+    fn enable_event_ring(&mut self) {
+        let ba = &mut self.r.borrow_mut().runtime.erst_ba;
+        ba.update(|ba| ba.set(self.tbl_addr()));
+    }
+
+    fn tbl_addr(&self) -> PhysAddr {
+        self.ring.phys_addr_to_segment_table()
+    }
+
+    fn tbl_len(&self) -> usize {
+        self.ring.segment_table.len()
     }
 }
