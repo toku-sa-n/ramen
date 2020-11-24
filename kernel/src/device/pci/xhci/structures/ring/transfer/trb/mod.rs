@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::super::CycleBit;
+use super::super::{CycleBit, Link};
 use crate::mem::allocator::page_box::PageBox;
 use control::{Control, DescTyIdx};
 use core::convert::TryFrom;
@@ -11,6 +11,7 @@ mod control;
 
 pub enum Trb {
     Control(Control),
+    Link(Link),
 }
 impl Trb {
     pub const SIZE: Bytes = Bytes::new(16);
@@ -28,8 +29,8 @@ impl Trb {
         )
     }
 
-    pub fn new_link(a: PhysAddr, c: CycleBit) -> Self {
-        unimplemented!()
+    pub fn new_link(a: PhysAddr) -> Self {
+        Self::Link(Link::new(a))
     }
 }
 impl From<Trb> for [u32; 4] {
