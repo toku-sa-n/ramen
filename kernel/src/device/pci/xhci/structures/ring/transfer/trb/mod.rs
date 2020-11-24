@@ -31,6 +31,13 @@ impl Trb {
     pub fn new_link(a: PhysAddr) -> Self {
         Self::Link(Link::new(a))
     }
+
+    pub fn set_c(&mut self, c: CycleBit) {
+        match self {
+            Self::Control(_) => unimplemented!(),
+            Self::Link(l) => l.set_cycle_bit(c),
+        }
+    }
 }
 impl From<Trb> for [u32; 4] {
     fn from(t: Trb) -> Self {
