@@ -75,7 +75,7 @@ impl Port {
             input_context: context::Input::null(&registers),
             output_device_context: PageBox::new(context::Device::null()),
             dcbaa,
-            transfer_ring: transfer::Ring::new(registers),
+            transfer_ring: transfer::Ring::new(),
         }
     }
 

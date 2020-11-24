@@ -44,6 +44,11 @@ impl From<Trb> for raw::Trb {
         unimplemented!()
     }
 }
+impl From<Trb> for [u32; 4] {
+    fn from(t: Trb) -> Self {
+        unimplemented!()
+    }
+}
 
 #[derive(Debug)]
 pub enum Error {
