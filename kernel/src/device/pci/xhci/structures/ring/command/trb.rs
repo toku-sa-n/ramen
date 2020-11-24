@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::super::{raw, CycleBit};
+use super::super::CycleBit;
 use crate::add_trb;
 use bit_field::BitField;
 use core::convert::{TryFrom, TryInto};
@@ -37,16 +37,6 @@ impl Trb {
         }
     }
 }
-impl From<Trb> for raw::Trb {
-    fn from(t: Trb) -> Self {
-        match t {
-            Trb::Noop(n) => raw::Trb(n.0),
-            Trb::Link(l) => raw::Trb(l.0),
-            Trb::EnableSlot(e) => raw::Trb(e.0),
-            Trb::AddressDevice(a) => raw::Trb(a.0),
-        }
-    }
-}
 impl From<Trb> for [u32; 4] {
     fn from(t: Trb) -> Self {
         match t {
@@ -76,11 +66,6 @@ impl Link {
         self.0[1] = u.try_into().unwrap();
     }
 }
-impl From<raw::Trb> for Link {
-    fn from(raw: raw::Trb) -> Self {
-        Self(raw.0)
-    }
-}
 
 add_trb!(EnableSlot);
 impl EnableSlot {
@@ -89,11 +74,6 @@ impl EnableSlot {
         let mut enable_slot = Self([0; 4]);
         enable_slot.set_trb_type(Self::ID);
         enable_slot
-    }
-}
-impl From<raw::Trb> for EnableSlot {
-    fn from(raw: raw::Trb) -> Self {
-        Self(raw.0)
     }
 }
 impl Default for EnableSlot {
@@ -124,11 +104,6 @@ impl AddressDevice {
 
     fn set_slot_id(&mut self, id: u8) {
         self.0[3].set_bits(24..=31, id.into());
-    }
-}
-impl From<raw::Trb> for AddressDevice {
-    fn from(raw: raw::Trb) -> Self {
-        Self(raw.0)
     }
 }
 
