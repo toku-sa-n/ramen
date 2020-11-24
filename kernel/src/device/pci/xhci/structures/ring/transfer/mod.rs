@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{super::registers::Registers, raw, CycleBit};
+use super::CycleBit;
 use crate::mem::allocator::page_box::PageBox;
-use alloc::rc::Rc;
 use bit_field::BitField;
-use core::cell::RefCell;
 use trb::Trb;
 use x86_64::PhysAddr;
 
