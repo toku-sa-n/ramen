@@ -25,6 +25,18 @@ impl TryFrom<raw::Trb> for Trb {
         }
     }
 }
+impl TryFrom<[u32; 4]> for Trb {
+    type Error = Error;
+
+    fn try_from(r: [u32; 4]) -> Result<Self, Self::Error> {
+        let id = r[3].get_bits(10..=15).try_into().unwrap();
+        match id {
+            CommandCompletion::ID => Ok(Self::CommandCompletion(CommandCompletion(r))),
+            PortStatusChange::ID => Ok(Self::PortStatusChange(PortStatusChange(r))),
+            _ => Err(Error::UnrecognizedId),
+        }
+    }
+}
 
 add_trb!(CommandCompletion);
 impl CommandCompletion {

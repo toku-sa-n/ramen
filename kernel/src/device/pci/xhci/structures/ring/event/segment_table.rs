@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::mem::allocator::page_box::PageBox;
-use core::ops::{Index, IndexMut};
+use core::{
+    ops::{Index, IndexMut},
+    slice,
+};
 use x86_64::PhysAddr;
 
 pub struct SegmentTable(PageBox<[Entry]>);
@@ -17,6 +20,10 @@ impl SegmentTable {
     pub fn len(&self) -> usize {
         self.0.len()
     }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Entry> {
+        self.0.iter_mut()
+    }
 }
 impl Index<usize> for SegmentTable {
     type Output = Entry;
@@ -28,6 +35,14 @@ impl Index<usize> for SegmentTable {
 impl IndexMut<usize> for SegmentTable {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.0[index]
+    }
+}
+impl<'a> IntoIterator for &'a mut SegmentTable {
+    type Item = &'a mut Entry;
+    type IntoIter = slice::IterMut<'a, Entry>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter_mut()
     }
 }
 
