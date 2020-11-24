@@ -182,12 +182,13 @@ impl Raw {
         t
     }
 
-    fn get_next_trb(&self) -> Result<Trb, Error> {
-        let t = self.rings[self.deq_p_seg][self.deq_p_trb];
-        t.try_into().map_err(|_| {
-            warn!("Unrecognized TRB ID {}", t[3].get_bits(10..=15));
-            Error::UnrecognizedTrb
-        })
+    fn get_next_trb(&self) -> Result<Trb, trb::Error> {
+        let r = self.rings[self.deq_p_seg][self.deq_p_trb];
+        let t = r.try_into();
+        if t.is_err() {
+            warn!("Unrecognized ID: {}", r[3].get_bits(10..=15));
+        }
+        t
     }
 
     fn increment(&mut self) {
