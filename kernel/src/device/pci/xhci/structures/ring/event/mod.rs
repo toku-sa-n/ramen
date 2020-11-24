@@ -94,6 +94,10 @@ impl<'a> Ring {
     fn ring_addrs(&self) -> Vec<PhysAddr> {
         self.raw.head_addrs()
     }
+
+    fn iter_tbl_entries_mut(&mut self) -> impl Iterator<Item = &mut segment_table::Entry> {
+        self.segment_table.iter_mut()
+    }
 }
 impl<'a> Stream for Ring {
     type Item = Trb;
@@ -228,7 +232,7 @@ impl<'a> SegTblInitializer<'a> {
 
     fn write_addrs(&mut self) {
         let addrs = self.ring.ring_addrs();
-        for (entry, addr) in self.ring.segment_table.iter_mut().zip(addrs) {
+        for (entry, addr) in self.ring.iter_tbl_entries_mut().zip(addrs) {
             entry.set(addr, MAX_NUM_OF_TRB_IN_QUEUE);
         }
     }
