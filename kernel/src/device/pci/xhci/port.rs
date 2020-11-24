@@ -35,7 +35,7 @@ pub fn spawn_tasks(
     task_collection: &Rc<RefCell<task::Collection>>,
 ) {
     for i in 0..num_of_ports(&registers) {
-        let port = Port::new(registers.clone(), dcbaa.clone(), i + 1);
+        let port = Port::new(&registers, dcbaa.clone(), i + 1);
         if port.connected() {
             task_collection
                 .borrow_mut()
@@ -65,14 +65,14 @@ impl Port {
     }
 
     fn new(
-        registers: Rc<RefCell<Registers>>,
+        registers: &Rc<RefCell<Registers>>,
         dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
         index: usize,
     ) -> Self {
         Self {
             registers: registers.clone(),
             index,
-            input_context: context::Input::null(&registers),
+            input_context: context::Input::null(registers),
             output_device_context: PageBox::new(context::Device::null()),
             dcbaa,
             transfer_ring: transfer::Ring::new(),
