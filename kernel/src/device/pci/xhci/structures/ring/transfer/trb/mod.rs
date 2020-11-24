@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::super::{raw, CycleBit};
+use super::super::CycleBit;
 use crate::mem::allocator::page_box::PageBox;
 use control::{Control, DescTyIdx};
 use core::convert::TryFrom;
@@ -29,18 +29,6 @@ impl Trb {
     }
 
     pub fn new_link(a: PhysAddr, c: CycleBit) -> Self {
-        unimplemented!()
-    }
-}
-impl TryFrom<raw::Trb> for Trb {
-    type Error = Error;
-
-    fn try_from(r: raw::Trb) -> Result<Self, Self::Error> {
-        unimplemented!()
-    }
-}
-impl From<Trb> for raw::Trb {
-    fn from(t: Trb) -> Self {
         unimplemented!()
     }
 }

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::super::raw;
 use crate::add_trb;
 use bit_field::BitField;
 use core::convert::{TryFrom, TryInto};
@@ -13,17 +12,6 @@ pub enum Trb {
 }
 impl Trb {
     pub const SIZE: Bytes = Bytes::new(16);
-}
-impl TryFrom<raw::Trb> for Trb {
-    type Error = Error;
-
-    fn try_from(raw: raw::Trb) -> Result<Self, Self::Error> {
-        if let Ok(c) = CommandCompletion::try_from(raw) {
-            Ok(Self::CommandCompletion(c))
-        } else {
-            Ok(Self::PortStatusChange(PortStatusChange::try_from(raw)?))
-        }
-    }
 }
 impl TryFrom<[u32; 4]> for Trb {
     type Error = Error;
@@ -53,32 +41,10 @@ impl CommandCompletion {
         u << 32 | l
     }
 }
-impl TryFrom<raw::Trb> for CommandCompletion {
-    type Error = Error;
-
-    fn try_from(raw: raw::Trb) -> Result<Self, Self::Error> {
-        if raw.id() == Self::ID {
-            Ok(Self(raw.0))
-        } else {
-            Err(Error::UnrecognizedId)
-        }
-    }
-}
 
 add_trb!(PortStatusChange);
 impl PortStatusChange {
     const ID: u8 = 34;
-}
-impl TryFrom<raw::Trb> for PortStatusChange {
-    type Error = Error;
-
-    fn try_from(raw: raw::Trb) -> Result<Self, Self::Error> {
-        if raw.id() == Self::ID {
-            Ok(Self(raw.0))
-        } else {
-            Err(Error::UnrecognizedId)
-        }
-    }
 }
 
 add_trb!(TransferEvent);
