@@ -55,12 +55,8 @@ impl<'a> Ring {
         registers: Rc<RefCell<Registers>>,
         task_collection: Rc<RefCell<task::Collection>>,
     ) -> Self {
-        let max_num_of_erst = registers
-            .borrow()
-            .capability
-            .hcs_params_2
-            .read()
-            .powered_erst_max();
+        let p2 = registers.borrow().capability.hcs_params_2.read();
+        let max_num_of_erst = p2.powered_erst_max();
 
         Self {
             segment_table: SegmentTable::new(max_num_of_erst.into()),
