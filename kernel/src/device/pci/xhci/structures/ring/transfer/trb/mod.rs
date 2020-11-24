@@ -8,6 +8,7 @@ use x86_64::PhysAddr;
 
 mod control;
 
+#[derive(Copy, Clone)]
 pub enum Trb {
     Control(Control),
     Link(Link),
