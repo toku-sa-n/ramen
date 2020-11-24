@@ -49,6 +49,7 @@ pub struct Ring {
     registers: Rc<RefCell<Registers>>,
 }
 impl<'a> Ring {
+    #[allow(clippy::cast_possible_truncation)]
     const MAX_NUM_OF_TRB_IN_QUEUE: u16 = Size4KiB::SIZE as u16 / Trb::SIZE.as_usize() as u16;
 
     pub fn new(
