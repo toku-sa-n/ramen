@@ -29,7 +29,7 @@ impl From<CycleBit> for bool {
 macro_rules! add_trb {
     ($t:ident) => {
         #[repr(transparent)]
-        #[derive(Debug)]
+        #[derive(Copy, Clone, Debug)]
         pub struct $t([u32; 4]);
         impl $t {
             #[allow(dead_code)]

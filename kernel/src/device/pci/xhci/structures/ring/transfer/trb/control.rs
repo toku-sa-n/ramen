@@ -7,6 +7,7 @@ use bit_field::BitField;
 use core::convert::TryInto;
 use x86_64::PhysAddr;
 
+#[derive(Copy, Clone)]
 pub enum Control {
     Setup(SetupStage),
     Data(DataStage),
