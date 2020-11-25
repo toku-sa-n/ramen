@@ -43,11 +43,11 @@ impl Sender {
 
     async fn issue_trb(&mut self, t: Trb) -> Result<CommandCompletion, command::Error> {
         let a = self.ring.borrow_mut().try_enqueue(t)?;
-        self.register_to_receiver(a);
+        self.register_with_receiver(a);
         Ok(self.get_trb(a).await)
     }
 
-    fn register_to_receiver(&mut self, addr_to_trb: PhysAddr) {
+    fn register_with_receiver(&mut self, addr_to_trb: PhysAddr) {
         self.receiver
             .borrow_mut()
             .add_entry(addr_to_trb, self.waker.clone())
