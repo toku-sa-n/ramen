@@ -19,7 +19,7 @@ use futures_intrusive::sync::LocalMutex;
 use x86_64::PhysAddr;
 
 async fn task(mut port: Port, runner: Rc<LocalMutex<Sender>>) {
-    port.reset_if_connected();
+    port.reset();
 
     let slot_id = runner.lock().await.enable_device_slot().await;
 
@@ -58,12 +58,6 @@ pub struct Port {
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
 }
 impl Port {
-    fn reset_if_connected(&mut self) {
-        if self.connected() {
-            self.reset();
-        }
-    }
-
     fn new(
         registers: &Rc<RefCell<Registers>>,
         dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
@@ -84,20 +78,7 @@ impl Port {
     }
 
     fn reset(&mut self) {
-        self.start_resetting();
-        self.wait_until_reset_completed();
-    }
-
-    fn start_resetting(&mut self) {
-        let port_rg = &mut self.registers.borrow_mut().operational.port_registers;
-        port_rg.update(self.index - 1, |rg| rg.port_sc.set_port_reset(true))
-    }
-
-    fn wait_until_reset_completed(&self) {
-        while {
-            let port_rg = self.read_port_rg();
-            !port_rg.port_sc.port_reset_changed()
-        } {}
+        Resetter::new(self.registers.clone(), self.index).reset();
     }
 
     async fn init_device_slot(&mut self, slot_id: u8, runner: Rc<LocalMutex<Sender>>) {
@@ -146,5 +127,30 @@ impl Port {
     fn read_port_rg(&self) -> PortRegisters {
         let port_rg = &self.registers.borrow().operational.port_registers;
         port_rg.read(self.index - 1)
+    }
+}
+
+struct Resetter {
+    registers: Rc<RefCell<Registers>>,
+    slot: usize,
+}
+impl Resetter {
+    fn new(registers: Rc<RefCell<Registers>>, slot: usize) -> Self {
+        Self { registers, slot }
+    }
+
+    fn reset(&mut self) {
+        self.start_resetting();
+        self.wait_until_reset_is_completed();
+    }
+
+    fn start_resetting(&mut self) {
+        let r = &mut self.registers.borrow_mut().operational.port_registers;
+        r.update(self.slot - 1, |r| r.port_sc.set_port_reset(true))
+    }
+
+    fn wait_until_reset_is_completed(&self) {
+        let r = &self.registers.borrow().operational.port_registers;
+        while !r.read(self.slot - 1).port_sc.port_reset_changed() {}
     }
 }
