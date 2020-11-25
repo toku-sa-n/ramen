@@ -3,7 +3,7 @@
 use super::{
     exchanger::command::Sender,
     structures::{
-        context::{self, EndpointType},
+        context::{Context, EndpointType},
         dcbaa::DeviceContextBaseAddressArray,
         registers::{operational::PortRegisters, Registers},
         ring::transfer,
@@ -11,12 +11,12 @@ use super::{
 };
 use crate::multitask::task::{self, Task};
 use alloc::rc::Rc;
-use context::Context;
 use core::{cell::RefCell, convert::TryInto};
 use futures_intrusive::sync::LocalMutex;
 use resetter::Resetter;
 use x86_64::PhysAddr;
 
+mod context;
 mod resetter;
 
 async fn task(mut port: Port, runner: Rc<LocalMutex<Sender>>) {
