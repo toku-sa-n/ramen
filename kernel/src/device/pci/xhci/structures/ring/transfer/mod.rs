@@ -86,8 +86,3 @@ impl Raw {
         self.c.toggle();
     }
 }
-
-#[derive(Debug)]
-enum Error {
-    QueueIsFull,
-}
