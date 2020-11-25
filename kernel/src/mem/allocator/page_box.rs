@@ -61,7 +61,7 @@ impl<T: fmt::Display> fmt::Display for PageBox<T> {
 }
 impl<T> fmt::Debug for PageBox<T>
 where
-    T: Copy + Clone + fmt::Debug,
+    T: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(&**self, f)
