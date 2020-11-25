@@ -7,13 +7,13 @@ use x86_64::PhysAddr;
 
 pub struct Context {
     pub input: Input,
-    pub output_device: Device,
+    pub output_device: PageBox<Device>,
 }
 impl Context {
     pub fn new(r: &Registers) -> Self {
         Self {
             input: Input::null(r),
-            output_device: Device::null(),
+            output_device: PageBox::new(Device::null()),
         }
     }
 }
