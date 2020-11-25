@@ -35,6 +35,13 @@ impl Trb {
             Self::Link(l) => l.set_cycle_bit(c),
         }
     }
+
+    pub fn ioc(&self) -> bool {
+        match self {
+            Self::Control(c) => c.ioc(),
+            Self::Link(l) => false,
+        }
+    }
 }
 impl From<Trb> for [u32; 4] {
     fn from(t: Trb) -> Self {
