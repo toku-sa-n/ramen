@@ -5,6 +5,8 @@ use bit_field::BitField;
 use core::convert::{TryFrom, TryInto};
 use os_units::Bytes;
 
+mod completion;
+
 #[derive(Debug)]
 pub enum Trb {
     CommandCompletion(CommandCompletion),
