@@ -14,14 +14,10 @@ pub enum Control {
     Status(StatusStage),
 }
 impl Control {
-    pub fn new_get_descriptor<T>(
-        b: &PageBox<T>,
-        dti: DescTyIdx,
-        c: CycleBit,
-    ) -> (Self, Self, Self) {
-        let setup = SetupStage::new_get_descriptor(b, dti, c);
-        let data = DataStage::new(b, c, Direction::In);
-        let status = StatusStage::new(c);
+    pub fn new_get_descriptor<T>(b: &PageBox<T>, dti: DescTyIdx) -> (Self, Self, Self) {
+        let setup = SetupStage::new_get_descriptor(b, dti);
+        let data = DataStage::new(b, Direction::In);
+        let status = StatusStage::new();
 
         (Self::Setup(setup), Self::Data(data), Self::Status(status))
     }
@@ -31,14 +27,13 @@ add_trb!(SetupStage);
 impl SetupStage {
     const ID: u8 = 2;
 
-    fn new_get_descriptor<T>(b: &PageBox<T>, dti: DescTyIdx, c: CycleBit) -> Self {
+    fn new_get_descriptor<T>(b: &PageBox<T>, dti: DescTyIdx) -> Self {
         let mut t = Self::null();
         t.set_request_type(0b1000_0000);
         t.set_request(Request::GetDescriptor);
         t.set_value(dti.bits());
         t.set_length(b.bytes().as_usize().try_into().unwrap());
         t.set_trb_transfer_length(8);
-        t.set_cycle_bit(c);
         t.set_trb_type(Self::ID);
         t.set_trt(3);
         t
@@ -98,11 +93,10 @@ add_trb!(DataStage);
 impl DataStage {
     const ID: u8 = 3;
 
-    fn new<T>(b: &PageBox<T>, c: CycleBit, d: Direction) -> Self {
+    fn new<T>(b: &PageBox<T>, d: Direction) -> Self {
         let mut t = Self::null();
         t.set_data_buf(b.phys_addr());
         t.set_transfer_length(b.bytes().as_usize().try_into().unwrap());
-        t.set_cycle_bit(c);
         t.set_trb_type(Self::ID);
         t.set_dir(d);
         t
@@ -150,9 +144,8 @@ add_trb!(StatusStage);
 impl StatusStage {
     const ID: u8 = 4;
 
-    fn new(c: CycleBit) -> Self {
+    fn new() -> Self {
         let mut t = Self::null();
-        t.set_cycle_bit(c);
         t.set_ioc(true);
         t.set_trb_type(Self::ID);
         t
