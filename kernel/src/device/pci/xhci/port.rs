@@ -21,7 +21,7 @@ use x86_64::PhysAddr;
 async fn task(mut port: Port, runner: Rc<LocalMutex<Sender>>) {
     port.reset_if_connected();
 
-    let slot_id = runner.lock().await.enable_device_slot().await.unwrap();
+    let slot_id = runner.lock().await.enable_device_slot().await;
 
     port.init_device_slot(slot_id, runner).await;
 }
@@ -110,8 +110,7 @@ impl Port {
             .lock()
             .await
             .address_device(self.addr_to_input_context(), slot_id)
-            .await
-            .unwrap();
+            .await;
     }
 
     fn init_input_context(&mut self) {
