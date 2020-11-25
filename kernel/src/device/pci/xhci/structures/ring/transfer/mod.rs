@@ -3,7 +3,6 @@
 use super::CycleBit;
 use crate::mem::allocator::page_box::PageBox;
 use alloc::vec::Vec;
-use bit_field::BitField;
 use trb::Trb;
 use x86_64::PhysAddr;
 
@@ -86,9 +85,4 @@ impl Raw {
         self.enq_p = 0;
         self.c.toggle();
     }
-}
-
-#[derive(Debug)]
-enum Error {
-    QueueIsFull,
 }
