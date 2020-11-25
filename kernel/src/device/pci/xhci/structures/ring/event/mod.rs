@@ -34,7 +34,7 @@ pub async fn task(mut ring: Ring, command_completion_receiver: Rc<RefCell<Receiv
     info!("This is the Event ring task.");
     while let Some(trb) = ring.next().await {
         info!("TRB: {:?}", trb);
-        if let Trb::CommandCompletion(trb) = trb {
+        if let Trb::Completion(trb) = trb {
             info!("Command completion TRB arrived.");
             command_completion_receiver.borrow_mut().receive(trb);
         }
