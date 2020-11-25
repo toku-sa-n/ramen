@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::device::pci::xhci::structures::ring::event::trb::CommandCompletion;
+use crate::device::pci::xhci::structures::ring::event::trb::completion::Completion;
 use alloc::{collections::BTreeMap, rc::Rc};
 use core::{
     cell::RefCell,
@@ -12,7 +12,7 @@ use futures_util::task::AtomicWaker;
 use x86_64::PhysAddr;
 
 pub struct Receiver {
-    trbs: BTreeMap<PhysAddr, Option<CommandCompletion>>,
+    trbs: BTreeMap<PhysAddr, Option<Completion>>,
     wakers: BTreeMap<PhysAddr, Rc<RefCell<AtomicWaker>>>,
 }
 impl Receiver {
@@ -38,21 +38,21 @@ impl Receiver {
         Ok(())
     }
 
-    pub fn receive(&mut self, trb: CommandCompletion) {
+    pub fn receive(&mut self, trb: Completion) {
         if let Err(e) = self.insert_trb_and_wake_runner(trb) {
             panic!("Failed to receive a command completion trb: {:?}", e);
         }
     }
 
-    fn insert_trb_and_wake_runner(&mut self, trb: CommandCompletion) -> Result<(), Error> {
-        let addr_to_trb = PhysAddr::new(trb.trb_addr());
+    fn insert_trb_and_wake_runner(&mut self, trb: Completion) -> Result<(), Error> {
+        let addr_to_trb = trb.addr();
         self.insert_trb(trb)?;
         self.wake_runner(addr_to_trb)?;
         Ok(())
     }
 
-    fn insert_trb(&mut self, trb: CommandCompletion) -> Result<(), Error> {
-        let addr_to_trb = PhysAddr::new(trb.trb_addr());
+    fn insert_trb(&mut self, trb: Completion) -> Result<(), Error> {
+        let addr_to_trb = trb.addr();
         *self
             .trbs
             .get_mut(&addr_to_trb)
@@ -76,7 +76,7 @@ impl Receiver {
         }
     }
 
-    fn remove_entry(&mut self, addr_to_trb: PhysAddr) -> Option<CommandCompletion> {
+    fn remove_entry(&mut self, addr_to_trb: PhysAddr) -> Option<Completion> {
         match self.trbs.remove(&addr_to_trb) {
             Some(trb) => trb,
             None => panic!("No such receiver with TRB address: {:?}", addr_to_trb),
@@ -109,7 +109,7 @@ impl ReceiveFuture {
     }
 }
 impl Future for ReceiveFuture {
-    type Output = CommandCompletion;
+    type Output = Completion;
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let waker = self.waker.clone();

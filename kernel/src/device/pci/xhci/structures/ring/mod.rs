@@ -30,7 +30,7 @@ macro_rules! add_trb {
     ($t:ident) => {
         #[repr(transparent)]
         #[derive(Copy, Clone, Debug)]
-        pub struct $t([u32; 4]);
+        pub struct $t(pub [u32; 4]);
         impl $t {
             #[allow(dead_code)]
             fn set_cycle_bit(&mut self, c: crate::device::pci::xhci::structures::ring::CycleBit) {
