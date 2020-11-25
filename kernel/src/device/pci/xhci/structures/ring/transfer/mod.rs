@@ -38,23 +38,6 @@ impl Raw {
         }
     }
 
-    fn try_enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
-        if self.full() {
-            Err(Error::QueueIsFull)
-        } else {
-            Ok(self.enqueue(trb))
-        }
-    }
-
-    fn full(&self) -> bool {
-        self.c_bit_of_next_trb() == self.c
-    }
-
-    fn c_bit_of_next_trb(&self) -> CycleBit {
-        let raw = self.ring[self.enq_p];
-        CycleBit::new(raw[3].get_bit(0))
-    }
-
     fn enqueue_trbs(&mut self, trbs: &[Trb]) -> Vec<PhysAddr> {
         trbs.iter().map(|t| self.enqueue(*t)).collect()
     }
