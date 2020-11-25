@@ -9,10 +9,7 @@ use super::{
         ring::transfer,
     },
 };
-use crate::{
-    mem::allocator::page_box::PageBox,
-    multitask::task::{self, Task},
-};
+use crate::multitask::task::{self, Task};
 use alloc::rc::Rc;
 use context::Context;
 use core::{cell::RefCell, convert::TryInto};
