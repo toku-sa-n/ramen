@@ -16,12 +16,8 @@ pub enum Trb {
 impl Trb {
     pub const SIZE: Bytes = Bytes::new(16);
 
-    pub fn new_get_descriptor<T>(
-        b: &PageBox<T>,
-        dti: DescTyIdx,
-        c: CycleBit,
-    ) -> (Self, Self, Self) {
-        let (setup, data, status) = Control::new_get_descriptor(b, dti, c);
+    pub fn new_get_descriptor<T>(b: &PageBox<T>, dti: DescTyIdx) -> (Self, Self, Self) {
+        let (setup, data, status) = Control::new_get_descriptor(b, dti);
         (
             Self::Control(setup),
             Self::Control(data),
