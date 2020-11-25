@@ -25,10 +25,10 @@ impl Control {
     pub fn ioc(&self) -> bool {
         // For the control TRBs, only the Status Stage TRB should handle IOC bit. Refer to the note
         // of xHCI dev manual 6.4.1.2
-        match self {
-            Self::Setup(_) => false,
-            Self::Data(_) => false,
-            Self::Status(s) => s.ioc(),
+        if let Self::Status(s) = self {
+            s.ioc()
+        } else {
+            false
         }
     }
 }
