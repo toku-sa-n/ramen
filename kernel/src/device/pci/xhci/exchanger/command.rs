@@ -1,16 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{
-    super::structures::ring::{command, event::trb::CommandCompletion},
+    super::structures::ring::{
+        command::{self, trb::Trb},
+        event::trb::CommandCompletion,
+    },
     receiver::{ReceiveFuture, Receiver},
 };
 use alloc::rc::Rc;
-use core::{
-    cell::RefCell,
-    future::Future,
-    pin::Pin,
-    task::{Context, Poll},
-};
+use core::cell::RefCell;
 use futures_util::task::AtomicWaker;
 use x86_64::PhysAddr;
 
@@ -29,27 +27,27 @@ impl Sender {
     }
 
     pub async fn enable_device_slot(&mut self) -> Result<u8, command::Error> {
-        let addr_to_trb = self.ring.borrow_mut().send_enable_slot()?;
-        self.register_to_receiver(addr_to_trb);
-        let completion_trb = self.get_trb(addr_to_trb).await;
-        Ok(completion_trb.slot_id())
+        let t = Trb::new_enable_slot();
+        Ok(self.issue_trb(t).await?.slot_id())
     }
 
     pub async fn address_device(
         &mut self,
-        addr_to_input_context: PhysAddr,
+        input_context_addr: PhysAddr,
         slot_id: u8,
     ) -> Result<(), command::Error> {
-        let addr_to_trb = self
-            .ring
-            .borrow_mut()
-            .send_address_device(addr_to_input_context, slot_id)?;
-        self.register_to_receiver(addr_to_trb);
-        self.get_trb(addr_to_trb).await;
+        let t = Trb::new_address_device(input_context_addr, slot_id);
+        self.issue_trb(t).await?;
         Ok(())
     }
 
-    fn register_to_receiver(&mut self, addr_to_trb: PhysAddr) {
+    async fn issue_trb(&mut self, t: Trb) -> Result<CommandCompletion, command::Error> {
+        let a = self.ring.borrow_mut().try_enqueue(t)?;
+        self.register_with_receiver(a);
+        Ok(self.get_trb(a).await)
+    }
+
+    fn register_with_receiver(&mut self, addr_to_trb: PhysAddr) {
         self.receiver
             .borrow_mut()
             .add_entry(addr_to_trb, self.waker.clone())

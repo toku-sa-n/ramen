@@ -11,7 +11,7 @@ use x86_64::{
     PhysAddr,
 };
 
-mod trb;
+pub mod trb;
 
 #[allow(clippy::cast_possible_truncation)]
 const NUM_OF_TRBS: usize = Size4KiB::SIZE as usize / Trb::SIZE.as_usize();
@@ -32,26 +32,10 @@ impl Ring {
         Initializer::new(self, self.registers.clone()).init();
     }
 
-    pub fn send_enable_slot(&mut self) -> Result<PhysAddr, Error> {
-        let enable_slot = Trb::new_enable_slot();
-        let phys_addr_to_trb = self.try_enqueue(enable_slot)?;
+    pub fn try_enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
+        let a = self.raw.try_enqueue(trb)?;
         self.notify_command_is_sent();
-        Ok(phys_addr_to_trb)
-    }
-
-    pub fn send_address_device(
-        &mut self,
-        addr_to_input_context: PhysAddr,
-        slot_id: u8,
-    ) -> Result<PhysAddr, Error> {
-        let address_device = Trb::new_address_device(addr_to_input_context, slot_id);
-        let phys_addr_to_trb = self.try_enqueue(address_device)?;
-        self.notify_command_is_sent();
-        Ok(phys_addr_to_trb)
-    }
-
-    fn try_enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
-        self.raw.try_enqueue(trb)
+        Ok(a)
     }
 
     fn phys_addr(&self) -> PhysAddr {
