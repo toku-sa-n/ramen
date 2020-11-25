@@ -21,6 +21,16 @@ impl Control {
 
         (Self::Setup(setup), Self::Data(data), Self::Status(status))
     }
+
+    pub fn ioc(&self) -> bool {
+        // For the control TRBs, only the Status Stage TRB should handle IOC bit. Refer to the note
+        // of xHCI dev manual 6.4.1.2
+        if let Self::Status(s) = self {
+            s.ioc()
+        } else {
+            false
+        }
+    }
 }
 
 add_trb!(SetupStage);
@@ -157,5 +167,9 @@ impl StatusStage {
 
     fn set_ioc(&mut self, ioc: bool) {
         self.0[3].set_bit(5, ioc);
+    }
+
+    fn ioc(&self) -> bool {
+        self.0[3].get_bit(5)
     }
 }
