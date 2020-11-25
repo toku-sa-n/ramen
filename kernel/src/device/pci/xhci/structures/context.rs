@@ -5,6 +5,19 @@ use crate::mem::allocator::page_box::PageBox;
 use bitfield::bitfield;
 use x86_64::PhysAddr;
 
+pub struct Context {
+    pub input: Input,
+    pub output_device: PageBox<Device>,
+}
+impl Context {
+    pub fn new(r: &Registers) -> Self {
+        Self {
+            input: Input::null(r),
+            output_device: PageBox::new(Device::null()),
+        }
+    }
+}
+
 pub enum Input {
     Bit32(PageBox<InputWithControl32Bit>),
     Bit64(PageBox<InputWithControl64Bit>),

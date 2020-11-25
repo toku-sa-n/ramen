@@ -14,6 +14,7 @@ use crate::{
     multitask::task::{self, Task},
 };
 use alloc::rc::Rc;
+use context::Context;
 use core::{cell::RefCell, convert::TryInto};
 use futures_intrusive::sync::LocalMutex;
 use x86_64::PhysAddr;
@@ -52,8 +53,7 @@ fn num_of_ports(registers: &Rc<RefCell<Registers>>) -> usize {
 pub struct Port {
     registers: Rc<RefCell<Registers>>,
     index: usize,
-    input_context: context::Input,
-    output_device_context: PageBox<context::Device>,
+    context: Context,
     transfer_ring: transfer::Ring,
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
 }
@@ -66,8 +66,7 @@ impl Port {
         Self {
             registers: registers.clone(),
             index,
-            input_context: context::Input::null(&registers.borrow()),
-            output_device_context: PageBox::new(context::Device::null()),
+            context: Context::new(&registers.borrow()),
             dcbaa,
             transfer_ring: transfer::Ring::new(),
         }
@@ -95,19 +94,19 @@ impl Port {
     }
 
     fn init_input_context(&mut self) {
-        let input_control = self.input_context.control_mut();
+        let input_control = self.context.input.control_mut();
         input_control.set_aflag(0);
         input_control.set_aflag(1);
     }
 
     fn init_input_slot_context(&mut self) {
-        let slot = &mut self.input_context.device_mut().slot;
+        let slot = &mut self.context.input.device_mut().slot;
         slot.set_context_entries(1);
         slot.set_root_hub_port_number(self.index.try_into().unwrap());
     }
 
     fn init_input_default_control_endpoint0_context(&mut self) {
-        let ep_0 = &mut self.input_context.device_mut().ep_0;
+        let ep_0 = &mut self.context.input.device_mut().ep_0;
         ep_0.set_endpoint_type(EndpointType::Control);
         // FIXME
         ep_0.set_max_packet_size(64);
@@ -117,11 +116,11 @@ impl Port {
     }
 
     fn addr_to_input_context(&self) -> PhysAddr {
-        self.input_context.phys_addr()
+        self.context.input.phys_addr()
     }
 
     fn register_to_dcbaa(&mut self, slot_id: usize) {
-        self.dcbaa.borrow_mut()[slot_id] = self.output_device_context.phys_addr();
+        self.dcbaa.borrow_mut()[slot_id] = self.context.output_device.phys_addr();
     }
 
     fn read_port_rg(&self) -> PortRegisters {
