@@ -21,6 +21,14 @@ impl Control {
 
         (Self::Setup(setup), Self::Data(data), Self::Status(status))
     }
+
+    fn ioc(&self) -> bool {
+        match self {
+            Self::Setup(s) => false,
+            Self::Data(d) => false,
+            Self::Status(s) => s.ioc(),
+        }
+    }
 }
 
 add_trb!(SetupStage);
@@ -157,5 +165,9 @@ impl StatusStage {
 
     fn set_ioc(&mut self, ioc: bool) {
         self.0[3].set_bit(5, ioc);
+    }
+
+    fn ioc(&self) -> bool {
+        self.0[3].get_bit(5)
     }
 }
