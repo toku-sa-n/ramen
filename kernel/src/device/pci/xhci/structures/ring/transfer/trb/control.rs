@@ -83,7 +83,7 @@ pub struct DescTyIdx {
     i: u8,
 }
 impl DescTyIdx {
-    fn new(ty: DescTy, i: u8) -> Self {
+    pub fn new(ty: DescTy, i: u8) -> Self {
         Self { ty, i }
     }
     fn bits(self) -> u16 {
@@ -95,7 +95,7 @@ enum Request {
     GetDescriptor = 6,
 }
 
-enum DescTy {
+pub enum DescTy {
     Device = 1,
 }
 
