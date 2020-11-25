@@ -16,6 +16,8 @@ use core::{cell::RefCell, convert::TryInto};
 use futures_intrusive::sync::LocalMutex;
 use x86_64::PhysAddr;
 
+mod resetter;
+
 async fn task(mut port: Port, runner: Rc<LocalMutex<Sender>>) {
     port.reset();
 
