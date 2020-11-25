@@ -6,7 +6,7 @@ use alloc::vec::Vec;
 use trb::Trb;
 use x86_64::PhysAddr;
 
-mod trb;
+pub mod trb;
 
 const SIZE_OF_RING: usize = 256;
 

@@ -6,7 +6,7 @@ use control::{Control, DescTyIdx};
 use os_units::Bytes;
 use x86_64::PhysAddr;
 
-mod control;
+pub mod control;
 
 #[derive(Copy, Clone)]
 pub enum Trb {
@@ -39,7 +39,7 @@ impl Trb {
     pub fn ioc(&self) -> bool {
         match self {
             Self::Control(c) => c.ioc(),
-            Self::Link(l) => false,
+            Self::Link(_) => false,
         }
     }
 }
