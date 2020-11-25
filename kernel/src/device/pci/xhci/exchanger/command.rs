@@ -8,12 +8,7 @@ use super::{
     receiver::{ReceiveFuture, Receiver},
 };
 use alloc::rc::Rc;
-use core::{
-    cell::RefCell,
-    future::Future,
-    pin::Pin,
-    task::{Context, Poll},
-};
+use core::cell::RefCell;
 use futures_util::task::AtomicWaker;
 use x86_64::PhysAddr;
 
