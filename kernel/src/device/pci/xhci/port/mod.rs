@@ -81,7 +81,7 @@ impl Port {
     }
 
     async fn init_device_slot(&mut self, slot_id: u8, runner: Rc<LocalMutex<Sender>>) {
-        ContextInitializer::new(
+        context::Initializer::new(
             &mut self.context,
             &self.transfer_ring,
             self.index.try_into().unwrap(),
@@ -107,49 +107,5 @@ impl Port {
     fn read_port_rg(&self) -> PortRegisters {
         let port_rg = &self.registers.borrow().operational.port_registers;
         port_rg.read(self.index - 1)
-    }
-}
-
-struct ContextInitializer<'a> {
-    context: &'a mut Context,
-    ring: &'a transfer::Ring,
-    port_id: u8,
-}
-impl<'a> ContextInitializer<'a> {
-    fn new(context: &'a mut Context, ring: &'a transfer::Ring, port_id: u8) -> Self {
-        Self {
-            context,
-            ring,
-            port_id,
-        }
-    }
-
-    fn init(&mut self) {
-        self.init_input_control();
-        self.init_input_slot();
-        self.init_input_default_control_endpoint0();
-    }
-
-    fn init_input_control(&mut self) {
-        let input_control = self.context.input.control_mut();
-        input_control.set_aflag(0);
-        input_control.set_aflag(1);
-    }
-
-    fn init_input_slot(&mut self) {
-        let slot = &mut self.context.input.device_mut().slot;
-        slot.set_context_entries(1);
-        slot.set_root_hub_port_number(self.port_id);
-    }
-
-    fn init_input_default_control_endpoint0(&mut self) {
-        let ep_0 = &mut self.context.input.device_mut().ep_0;
-        ep_0.set_endpoint_type(EndpointType::Control);
-
-        // FIXME: Support other sppeds.
-        ep_0.set_max_packet_size(64);
-        ep_0.set_dequeue_ptr(self.ring.phys_addr());
-        ep_0.set_dequeue_cycle_state(true);
-        ep_0.set_error_count(3);
     }
 }
