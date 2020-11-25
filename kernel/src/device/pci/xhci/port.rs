@@ -83,9 +83,7 @@ impl Port {
     async fn init_device_slot(&mut self, slot_id: u8, runner: Rc<LocalMutex<Sender>>) {
         ContextInitializer::new(
             &mut self.context,
-            &mut *runner.lock().await,
             &self.transfer_ring,
-            slot_id,
             self.index.try_into().unwrap(),
         )
         .init();
