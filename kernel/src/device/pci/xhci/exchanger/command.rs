@@ -28,10 +28,7 @@ impl Sender {
 
     pub async fn enable_device_slot(&mut self) -> Result<u8, command::Error> {
         let t = Trb::new_enable_slot();
-        let addr_to_trb = self.ring.borrow_mut().try_enqueue(t)?;
-        self.register_to_receiver(addr_to_trb);
-        let completion_trb = self.get_trb(addr_to_trb).await;
-        Ok(completion_trb.slot_id())
+        Ok(self.issue_trb(t).await?.slot_id())
     }
 
     pub async fn address_device(
@@ -40,10 +37,14 @@ impl Sender {
         slot_id: u8,
     ) -> Result<(), command::Error> {
         let t = Trb::new_address_device(input_context_addr, slot_id);
+        self.issue_trb(t).await?;
+        Ok(())
+    }
+
+    async fn issue_trb(&mut self, t: Trb) -> Result<CommandCompletion, command::Error> {
         let a = self.ring.borrow_mut().try_enqueue(t)?;
         self.register_to_receiver(a);
-        self.get_trb(a).await;
-        Ok(())
+        Ok(self.get_trb(a).await)
     }
 
     fn register_to_receiver(&mut self, addr_to_trb: PhysAddr) {
