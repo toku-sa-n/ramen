@@ -32,10 +32,10 @@ impl Ring {
         Initializer::new(self, self.registers.clone()).init();
     }
 
-    pub fn try_enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
-        let a = self.raw.try_enqueue(trb)?;
+    pub fn enqueue(&mut self, trb: Trb) -> PhysAddr {
+        let a = self.raw.enqueue(trb);
         self.notify_command_is_sent();
-        Ok(a)
+        a
     }
 
     fn phys_addr(&self) -> PhysAddr {
@@ -60,47 +60,6 @@ impl Raw {
             enq_p: 0,
             c: CycleBit::new(true),
         }
-    }
-
-    fn try_enqueue(&mut self, trb: Trb) -> Result<PhysAddr, Error> {
-        if self.enqueueable() {
-            Ok(self.enqueue(trb))
-        } else {
-            Err(Error::QueueIsFull)
-        }
-    }
-
-    fn enqueueable(&self) -> bool {
-        !self.full() && self.has_space_for_link_trb()
-    }
-
-    fn full(&self) -> bool {
-        !self.writable(self.enq_p)
-    }
-
-    fn has_space_for_link_trb(&self) -> bool {
-        if self.wrapping_back_happens() {
-            self.writable(self.next_enq_p())
-        } else {
-            true
-        }
-    }
-
-    fn wrapping_back_happens(&self) -> bool {
-        self.next_enq_p() == 0
-    }
-
-    fn writable(&self, i: usize) -> bool {
-        self.c_bit(i) != self.c
-    }
-
-    fn c_bit(&self, i: usize) -> CycleBit {
-        let t = self.raw[i];
-        CycleBit::new(t[3].get_bit(0))
-    }
-
-    fn next_enq_p(&self) -> usize {
-        (self.enq_p + 1) % NUM_OF_TRBS
     }
 
     fn enqueue(&mut self, mut trb: Trb) -> PhysAddr {
