@@ -21,6 +21,10 @@ impl Ring {
     pub fn phys_addr(&self) -> PhysAddr {
         self.raw.phys_addr()
     }
+
+    pub fn enqueue(&mut self, trbs: &[Trb]) -> Vec<PhysAddr> {
+        self.raw.enqueue_trbs(trbs)
+    }
 }
 
 struct Raw {
