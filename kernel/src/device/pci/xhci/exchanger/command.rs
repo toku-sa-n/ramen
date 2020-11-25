@@ -3,7 +3,7 @@
 use super::{
     super::structures::ring::{
         command::{self, trb::Trb},
-        event::trb::CommandCompletion,
+        event::trb::completion::Completion,
     },
     receiver::{ReceiveFuture, Receiver},
 };
@@ -36,7 +36,7 @@ impl Sender {
         self.issue_trb(t).await;
     }
 
-    async fn issue_trb(&mut self, t: Trb) -> CommandCompletion {
+    async fn issue_trb(&mut self, t: Trb) -> Completion {
         let a = self.ring.borrow_mut().enqueue(t);
         self.register_with_receiver(a);
         self.get_trb(a).await
@@ -49,7 +49,7 @@ impl Sender {
             .expect("Sender is already registered.");
     }
 
-    async fn get_trb(&mut self, addr_to_trb: PhysAddr) -> CommandCompletion {
+    async fn get_trb(&mut self, addr_to_trb: PhysAddr) -> Completion {
         ReceiveFuture::new(addr_to_trb, self.receiver.clone(), self.waker.clone()).await
     }
 }
