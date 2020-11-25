@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{
-    super::structures::ring::{command, event::trb::CommandCompletion},
+    super::structures::ring::{
+        command::{self, trb::Trb},
+        event::trb::CommandCompletion,
+    },
     receiver::{ReceiveFuture, Receiver},
 };
 use alloc::rc::Rc;
@@ -29,7 +32,8 @@ impl Sender {
     }
 
     pub async fn enable_device_slot(&mut self) -> Result<u8, command::Error> {
-        let addr_to_trb = self.ring.borrow_mut().send_enable_slot()?;
+        let t = Trb::new_enable_slot();
+        let addr_to_trb = self.ring.borrow_mut().try_enqueue(t)?;
         self.register_to_receiver(addr_to_trb);
         let completion_trb = self.get_trb(addr_to_trb).await;
         Ok(completion_trb.slot_id())
@@ -37,15 +41,13 @@ impl Sender {
 
     pub async fn address_device(
         &mut self,
-        addr_to_input_context: PhysAddr,
+        input_context_addr: PhysAddr,
         slot_id: u8,
     ) -> Result<(), command::Error> {
-        let addr_to_trb = self
-            .ring
-            .borrow_mut()
-            .send_address_device(addr_to_input_context, slot_id)?;
-        self.register_to_receiver(addr_to_trb);
-        self.get_trb(addr_to_trb).await;
+        let t = Trb::new_address_device(input_context_addr, slot_id);
+        let a = self.ring.borrow_mut().try_enqueue(t)?;
+        self.register_to_receiver(a);
+        self.get_trb(a).await;
         Ok(())
     }
 
