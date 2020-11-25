@@ -66,7 +66,7 @@ impl Port {
         Self {
             registers: registers.clone(),
             index,
-            input_context: context::Input::null(registers),
+            input_context: context::Input::null(&registers.borrow()),
             output_device_context: PageBox::new(context::Device::null()),
             dcbaa,
             transfer_ring: transfer::Ring::new(),

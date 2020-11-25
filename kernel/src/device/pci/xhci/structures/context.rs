@@ -2,9 +2,7 @@
 
 use super::registers::Registers;
 use crate::mem::allocator::page_box::PageBox;
-use alloc::rc::Rc;
 use bitfield::bitfield;
-use core::cell::RefCell;
 use x86_64::PhysAddr;
 
 pub enum Input {
@@ -12,8 +10,8 @@ pub enum Input {
     Bit64(PageBox<InputWithControl64Bit>),
 }
 impl Input {
-    pub fn null(registers: &Rc<RefCell<Registers>>) -> Self {
-        if Self::csz(&registers.borrow()) {
+    pub fn null(registers: &Registers) -> Self {
+        if Self::csz(registers) {
             Self::Bit64(PageBox::new(InputWithControl64Bit::null()))
         } else {
             Self::Bit32(PageBox::new(InputWithControl32Bit::null()))
