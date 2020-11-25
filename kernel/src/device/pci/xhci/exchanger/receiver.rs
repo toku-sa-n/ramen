@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use crate::device::pci::xhci::structures::ring::event::trb::CommandCompletion;
 use alloc::{collections::BTreeMap, rc::Rc};
 use core::{
@@ -8,8 +10,6 @@ use core::{
 };
 use futures_util::task::AtomicWaker;
 use x86_64::PhysAddr;
-
-// SPDX-License-Identifier: GPL-3.0-or-later
 
 pub struct Receiver {
     trbs: BTreeMap<PhysAddr, Option<CommandCompletion>>,
