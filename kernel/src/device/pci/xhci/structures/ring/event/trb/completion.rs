@@ -24,6 +24,13 @@ impl Completion {
             Self::Transfer(t) => t.trb_addr(),
         }
     }
+
+    pub fn transfer_length(&self) -> Option<u32> {
+        match self {
+            Self::Command(_) => None,
+            Self::Transfer(t) => Some(t.transfer_length()),
+        }
+    }
 }
 impl TryFrom<[u32; 4]> for Completion {
     type Error = super::Error;
@@ -63,5 +70,9 @@ impl TransferEvent {
         let u: u64 = self.0[1].into();
 
         PhysAddr::new(u << 32 | l)
+    }
+
+    fn transfer_length(&self) -> u32 {
+        self.0[2].get_bits(0..=23)
     }
 }
