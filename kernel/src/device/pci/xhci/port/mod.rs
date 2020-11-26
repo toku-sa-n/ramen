@@ -38,7 +38,7 @@ async fn task(
     let device_descriptor = slot.get_device_descriptor().await;
     info!("{:?}", device_descriptor);
 
-    let configuration_descriptor = slot.get_configuration_descriptor().await;
+    let configuration_descriptor = slot.get_raw_configuration_descriptors().await;
     info!("{:?}", configuration_descriptor);
 }
 
@@ -151,7 +151,7 @@ impl Slot {
         self.sender.get_device_descriptor().await
     }
 
-    async fn get_configuration_descriptor(&mut self) -> PageBox<[u8]> {
+    async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
         self.sender.get_configuration_descriptor().await
     }
 }
