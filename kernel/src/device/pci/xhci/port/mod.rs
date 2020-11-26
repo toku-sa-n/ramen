@@ -45,7 +45,7 @@ pub fn spawn_tasks(
     command_runner: &Rc<LocalMutex<command::Sender>>,
     dcbaa: &Rc<RefCell<DeviceContextBaseAddressArray>>,
     registers: &Rc<RefCell<Registers>>,
-    receiver: Rc<RefCell<Receiver>>,
+    receiver: &Rc<RefCell<Receiver>>,
     task_collection: &Rc<RefCell<task::Collection>>,
 ) {
     for i in 0..num_of_ports(&registers) {

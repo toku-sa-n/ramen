@@ -27,7 +27,7 @@ pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
         &runner,
         &dcbaa,
         &registers,
-        command_completion_receiver.clone(),
+        &command_completion_receiver.clone(),
         &task_collection,
     );
 
