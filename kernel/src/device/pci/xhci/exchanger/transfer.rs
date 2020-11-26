@@ -45,6 +45,14 @@ impl Sender {
         b
     }
 
+    pub async fn get_configuration_descriptor(&mut self) -> PageBox<[u8]> {
+        let b = PageBox::new_slice(0, 256);
+        let (setup, data, status) =
+            Trb::new_get_descriptor(&b, DescTyIdx::new(DescTy::Configuration, 0));
+        self.issue_trbs(&[setup, data, status]).await;
+        b
+    }
+
     async fn issue_trbs(&mut self, ts: &[Trb]) -> Vec<Option<Completion>> {
         let addrs = self.ring.enqueue(ts);
         self.register_with_receiver(ts, &addrs);

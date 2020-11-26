@@ -14,7 +14,7 @@ pub enum Control {
     Status(StatusStage),
 }
 impl Control {
-    pub fn new_get_descriptor<T>(b: &PageBox<T>, dti: DescTyIdx) -> (Self, Self, Self) {
+    pub fn new_get_descriptor<T: ?Sized>(b: &PageBox<T>, dti: DescTyIdx) -> (Self, Self, Self) {
         let setup = SetupStage::new_get_descriptor(b, dti);
         let data = DataStage::new(b, Direction::In);
         let status = StatusStage::new();
@@ -54,7 +54,7 @@ add_trb!(SetupStage);
 impl SetupStage {
     const ID: u8 = 2;
 
-    fn new_get_descriptor<T>(b: &PageBox<T>, dti: DescTyIdx) -> Self {
+    fn new_get_descriptor<T: ?Sized>(b: &PageBox<T>, dti: DescTyIdx) -> Self {
         let mut t = Self::null();
         t.set_request_type(0b1000_0000);
         t.set_request(Request::GetDescriptor);
@@ -120,13 +120,14 @@ enum Request {
 
 pub enum DescTy {
     Device = 1,
+    Configuration = 2,
 }
 
 add_trb!(DataStage);
 impl DataStage {
     const ID: u8 = 3;
 
-    fn new<T>(b: &PageBox<T>, d: Direction) -> Self {
+    fn new<T: ?Sized>(b: &PageBox<T>, d: Direction) -> Self {
         let mut t = Self::null();
         t.set_data_buf(b.phys_addr());
         t.set_transfer_length(b.bytes().as_usize().try_into().unwrap());

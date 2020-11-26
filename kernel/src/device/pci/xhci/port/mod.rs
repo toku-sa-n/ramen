@@ -37,6 +37,9 @@ async fn task(
     slot.init_device_slot(runner).await;
     let device_descriptor = slot.get_device_descriptor().await;
     info!("{:?}", device_descriptor);
+
+    let configuration_descriptor = slot.get_configuration_descriptor().await;
+    info!("{:?}", configuration_descriptor);
 }
 
 // FIXME: Resolve this.
@@ -146,5 +149,9 @@ impl Slot {
 
     async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
         self.sender.get_device_descriptor().await
+    }
+
+    async fn get_configuration_descriptor(&mut self) -> PageBox<[u8]> {
+        self.sender.get_configuration_descriptor().await
     }
 }
