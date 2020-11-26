@@ -81,12 +81,7 @@ impl Port {
     }
 
     async fn init_device_slot(&mut self, slot_id: u8, runner: Rc<LocalMutex<Sender>>) {
-        context::Initializer::new(
-            &mut self.context,
-            &self.transfer_ring,
-            self.index.try_into().unwrap(),
-        )
-        .init();
+        self.init_context();
         self.register_to_dcbaa(slot_id.into());
 
         runner
@@ -94,6 +89,15 @@ impl Port {
             .await
             .address_device(self.addr_to_input_context(), slot_id)
             .await;
+    }
+
+    fn init_context(&mut self) {
+        context::Initializer::new(
+            &mut self.context,
+            &self.transfer_ring,
+            self.index.try_into().unwrap(),
+        )
+        .init();
     }
 
     fn addr_to_input_context(&self) -> PhysAddr {
