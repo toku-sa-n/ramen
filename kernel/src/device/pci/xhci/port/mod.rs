@@ -11,7 +11,7 @@ use super::{
 };
 use crate::multitask::task::{self, Task};
 use alloc::rc::Rc;
-use core::{cell::RefCell, convert::TryInto};
+use core::cell::RefCell;
 use futures_intrusive::sync::LocalMutex;
 use resetter::Resetter;
 use x86_64::PhysAddr;
