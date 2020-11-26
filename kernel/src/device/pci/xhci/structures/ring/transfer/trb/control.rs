@@ -151,23 +151,19 @@ impl DataStage {
         self.0[2].set_bits(0..=16, l);
     }
 
-    fn set_td_size(&mut self, s: u8) {
-        self.0[2].set_bits(17..=21, s.into());
-    }
-
     fn set_dir(&mut self, d: Direction) {
         self.0[3].set_bit(16, d.into());
     }
 }
 
 enum Direction {
-    Out = 0,
+    _Out = 0,
     In = 1,
 }
 impl From<Direction> for bool {
     fn from(d: Direction) -> Self {
         match d {
-            Direction::Out => false,
+            Direction::_Out => false,
             Direction::In => true,
         }
     }

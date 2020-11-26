@@ -10,7 +10,7 @@ use alloc::{rc::Rc, vec::Vec};
 use bit_field::BitField;
 use core::{
     cell::RefCell,
-    convert::{TryFrom, TryInto},
+    convert::TryInto,
     pin::Pin,
     task::{Context, Poll},
 };

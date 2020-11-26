@@ -74,14 +74,14 @@ impl CommandHeaderStructure<[u32; 8]> {
 }
 
 pub struct Table {
-    rsvd: [u8; 0x80],
-    prdt: [PhysicalRegionDescriptorTable; NUM_OF_PRDT],
+    _rsvd: [u8; 0x80],
+    _prdt: [PhysicalRegionDescriptorTable; NUM_OF_PRDT],
 }
 impl Table {
     fn null() -> Self {
         Self {
-            rsvd: [0; 0x80],
-            prdt: [PhysicalRegionDescriptorTable::null(); NUM_OF_PRDT],
+            _rsvd: [0; 0x80],
+            _prdt: [PhysicalRegionDescriptorTable::null(); NUM_OF_PRDT],
         }
     }
 }

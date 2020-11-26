@@ -51,8 +51,3 @@ impl From<Trb> for [u32; 4] {
         }
     }
 }
-
-#[derive(Debug)]
-pub enum Error {
-    UnrecognizedId,
-}

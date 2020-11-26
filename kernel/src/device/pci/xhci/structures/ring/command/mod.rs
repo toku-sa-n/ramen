@@ -3,7 +3,6 @@
 use super::{super::registers::Registers, CycleBit};
 use crate::mem::allocator::page_box::PageBox;
 use alloc::rc::Rc;
-use bit_field::BitField;
 use core::cell::RefCell;
 use trb::Trb;
 use x86_64::{
@@ -134,9 +133,4 @@ impl<'a> Initializer<'a> {
         let crcr = &mut self.registers.borrow_mut().operational.crcr;
         crcr.update(|crcr| crcr.set_ring_cycle_state(true));
     }
-}
-
-#[derive(Debug)]
-pub enum Error {
-    QueueIsFull,
 }
