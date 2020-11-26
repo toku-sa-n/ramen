@@ -5,11 +5,15 @@ use super::{
     structures::{
         context::Context,
         dcbaa::DeviceContextBaseAddressArray,
+        descriptor,
         registers::{operational::PortRegisters, Registers},
         ring::transfer::Ring as TransferRing,
     },
 };
-use crate::multitask::task::{self, Task};
+use crate::{
+    mem::allocator::page_box::PageBox,
+    multitask::task::{self, Task},
+};
 use alloc::rc::Rc;
 use core::cell::RefCell;
 use futures_intrusive::sync::LocalMutex;
@@ -31,6 +35,8 @@ async fn task(
 
     let mut slot = Slot::new(port, slot_id, receiver);
     slot.init_device_slot(runner).await;
+    let device_descriptor = slot.get_device_descriptor().await;
+    info!("{:?}", device_descriptor);
 }
 
 // FIXME: Resolve this.
@@ -138,5 +144,9 @@ impl Slot {
             .await
             .address_device(self.context.input.phys_addr(), self.id)
             .await;
+    }
+
+    async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
+        self.sender.get_device_descriptor().await
     }
 }
