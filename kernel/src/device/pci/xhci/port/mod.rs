@@ -1,27 +1,24 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{
-    exchanger::{command, receiver::Receiver, transfer},
+    exchanger::{command, receiver::Receiver},
     structures::{
         context::Context,
         dcbaa::DeviceContextBaseAddressArray,
-        descriptor,
         registers::{operational::PortRegisters, Registers},
         ring::transfer::Ring as TransferRing,
     },
 };
-use crate::{
-    mem::allocator::page_box::PageBox,
-    multitask::task::{self, Task},
-};
+use crate::multitask::task::{self, Task};
 use alloc::rc::Rc;
 use core::cell::RefCell;
 use futures_intrusive::sync::LocalMutex;
 use resetter::Resetter;
-use transfer::DoorbellWriter;
+use slot::Slot;
 
 mod context;
 mod resetter;
+mod slot;
 
 async fn task(
     mut port: Port,
@@ -107,51 +104,5 @@ impl Port {
     fn read_port_rg(&self) -> PortRegisters {
         let port_rg = &self.registers.borrow().operational.port_registers;
         port_rg.read((self.index - 1).into())
-    }
-}
-
-struct Slot {
-    id: u8,
-    sender: transfer::Sender,
-    dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
-    context: Context,
-}
-impl Slot {
-    fn new(port: Port, id: u8, receiver: Rc<RefCell<Receiver>>) -> Self {
-        Self {
-            id,
-            sender: transfer::Sender::new(
-                port.transfer_ring,
-                receiver,
-                DoorbellWriter::new(port.registers, id),
-            ),
-            dcbaa: port.dcbaa,
-            context: port.context,
-        }
-    }
-
-    async fn init_device_slot(&mut self, runner: Rc<LocalMutex<command::Sender>>) {
-        self.register_with_dcbaa();
-        self.issue_address_device(runner).await;
-    }
-
-    fn register_with_dcbaa(&mut self) {
-        self.dcbaa.borrow_mut()[self.id.into()] = self.context.output_device.phys_addr();
-    }
-
-    async fn issue_address_device(&mut self, runner: Rc<LocalMutex<command::Sender>>) {
-        runner
-            .lock()
-            .await
-            .address_device(self.context.input.phys_addr(), self.id)
-            .await;
-    }
-
-    async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
-        self.sender.get_device_descriptor().await
-    }
-
-    async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
-        self.sender.get_configuration_descriptor().await
     }
 }
