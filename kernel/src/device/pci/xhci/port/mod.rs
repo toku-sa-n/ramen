@@ -45,14 +45,14 @@ pub fn spawn_tasks(
     }
 }
 
-fn num_of_ports(registers: &Rc<RefCell<Registers>>) -> usize {
+fn num_of_ports(registers: &Rc<RefCell<Registers>>) -> u8 {
     let params1 = registers.borrow().capability.hcs_params_1.read();
-    params1.max_ports().into()
+    params1.max_ports()
 }
 
 pub struct Port {
     registers: Rc<RefCell<Registers>>,
-    index: usize,
+    index: u8,
     context: Context,
     transfer_ring: transfer::Ring,
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
@@ -61,7 +61,7 @@ impl Port {
     fn new(
         registers: &Rc<RefCell<Registers>>,
         dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
-        index: usize,
+        index: u8,
     ) -> Self {
         Self {
             registers: registers.clone(),
@@ -113,6 +113,6 @@ impl Port {
 
     fn read_port_rg(&self) -> PortRegisters {
         let port_rg = &self.registers.borrow().operational.port_registers;
-        port_rg.read(self.index - 1)
+        port_rg.read((self.index - 1).into())
     }
 }
