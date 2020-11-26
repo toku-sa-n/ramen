@@ -87,12 +87,7 @@ impl Port {
     }
 
     fn init_context(&mut self) {
-        context::Initializer::new(
-            &mut self.context,
-            &self.transfer_ring,
-            self.index.try_into().unwrap(),
-        )
-        .init();
+        context::Initializer::new(&mut self.context, &self.transfer_ring, self.index).init();
     }
 
     fn register_to_dcbaa(&mut self, slot_id: usize) {
