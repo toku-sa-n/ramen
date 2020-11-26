@@ -32,6 +32,15 @@ impl Control {
         }
     }
 }
+impl From<Control> for [u32; 4] {
+    fn from(c: Control) -> Self {
+        match c {
+            Control::Setup(s) => s.0,
+            Control::Data(d) => d.0,
+            Control::Status(s) => s.0,
+        }
+    }
+}
 
 add_trb!(SetupStage);
 impl SetupStage {
