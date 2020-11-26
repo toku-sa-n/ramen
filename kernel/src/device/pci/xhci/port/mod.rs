@@ -22,6 +22,7 @@ use transfer::DoorbellWriter;
 
 mod context;
 mod resetter;
+mod slot;
 
 async fn task(
     mut port: Port,
