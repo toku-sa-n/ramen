@@ -67,7 +67,13 @@ impl SetupStage {
     }
 
     fn null() -> Self {
-        Self([0; 4])
+        let mut t = Self([0; 4]);
+        t.set_idt();
+        t
+    }
+
+    fn set_idt(&mut self) {
+        self.0[3].set_bit(6, true);
     }
 
     fn set_request_type(&mut self, t: u8) {
