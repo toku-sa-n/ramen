@@ -83,12 +83,7 @@ impl Port {
     async fn init_device_slot(&mut self, slot_id: u8, runner: Rc<LocalMutex<Sender>>) {
         self.init_context();
         self.register_to_dcbaa(slot_id.into());
-
-        runner
-            .lock()
-            .await
-            .address_device(self.addr_to_input_context(), slot_id)
-            .await;
+        self.issue_address_device(runner, slot_id).await;
     }
 
     fn init_context(&mut self) {
@@ -102,6 +97,14 @@ impl Port {
 
     fn register_to_dcbaa(&mut self, slot_id: usize) {
         self.dcbaa.borrow_mut()[slot_id] = self.context.output_device.phys_addr();
+    }
+
+    async fn issue_address_device(&mut self, runner: Rc<LocalMutex<Sender>>, slot_id: u8) {
+        runner
+            .lock()
+            .await
+            .address_device(self.addr_to_input_context(), slot_id)
+            .await;
     }
 
     fn addr_to_input_context(&self) -> PhysAddr {
