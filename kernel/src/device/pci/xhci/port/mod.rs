@@ -45,14 +45,14 @@ pub fn spawn_tasks(
     }
 }
 
-fn num_of_ports(registers: &Rc<RefCell<Registers>>) -> usize {
+fn num_of_ports(registers: &Rc<RefCell<Registers>>) -> u8 {
     let params1 = registers.borrow().capability.hcs_params_1.read();
-    params1.max_ports().into()
+    params1.max_ports()
 }
 
 pub struct Port {
     registers: Rc<RefCell<Registers>>,
-    index: usize,
+    index: u8,
     context: Context,
     transfer_ring: transfer::Ring,
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
@@ -61,7 +61,7 @@ impl Port {
     fn new(
         registers: &Rc<RefCell<Registers>>,
         dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
-        index: usize,
+        index: u8,
     ) -> Self {
         Self {
             registers: registers.clone(),
@@ -81,31 +81,33 @@ impl Port {
     }
 
     async fn init_device_slot(&mut self, slot_id: u8, runner: Rc<LocalMutex<Sender>>) {
-        context::Initializer::new(
-            &mut self.context,
-            &self.transfer_ring,
-            self.index.try_into().unwrap(),
-        )
-        .init();
+        self.init_context();
         self.register_to_dcbaa(slot_id.into());
-
-        runner
-            .lock()
-            .await
-            .address_device(self.addr_to_input_context(), slot_id)
-            .await;
+        self.issue_address_device(runner, slot_id).await;
     }
 
-    fn addr_to_input_context(&self) -> PhysAddr {
-        self.context.input.phys_addr()
+    fn init_context(&mut self) {
+        context::Initializer::new(&mut self.context, &self.transfer_ring, self.index).init();
     }
 
     fn register_to_dcbaa(&mut self, slot_id: usize) {
         self.dcbaa.borrow_mut()[slot_id] = self.context.output_device.phys_addr();
     }
 
+    async fn issue_address_device(&mut self, runner: Rc<LocalMutex<Sender>>, slot_id: u8) {
+        runner
+            .lock()
+            .await
+            .address_device(self.input_context_addr(), slot_id)
+            .await;
+    }
+
+    fn input_context_addr(&self) -> PhysAddr {
+        self.context.input.phys_addr()
+    }
+
     fn read_port_rg(&self) -> PortRegisters {
         let port_rg = &self.registers.borrow().operational.port_registers;
-        port_rg.read(self.index - 1)
+        port_rg.read((self.index - 1).into())
     }
 }
