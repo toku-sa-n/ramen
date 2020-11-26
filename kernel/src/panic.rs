@@ -3,9 +3,7 @@
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
     x86_64::instructions::interrupts::disable();
-    error!("*************");
-    error!("*   PANIC   *");
-    error!("*************");
+    print_banner();
     if let Some(location) = info.location() {
         error!(
             "Panic in {} at ({}, {}):{}",
@@ -19,4 +17,10 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
     loop {
         x86_64::instructions::hlt();
     }
+}
+
+fn print_banner() {
+    error!("*************");
+    error!("*   PANIC   *");
+    error!("*************");
 }
