@@ -1,5 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use num_derive::FromPrimitive;
+use num_traits::FromPrimitive;
+
+pub enum Descriptor {
+    Device(Device),
+    Configuration,
+    Str,
+    Interface,
+    Endpoint,
+    Hid,
+}
+
 // Temporary implementation.
 #[derive(Copy, Clone, Default, Debug)]
 #[repr(C, packed)]
@@ -33,6 +45,7 @@ impl Device {
     }
 }
 
+#[derive(FromPrimitive)]
 pub enum Ty {
     Device = 1,
     Configuration = 2,
