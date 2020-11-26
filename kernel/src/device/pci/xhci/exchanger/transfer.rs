@@ -21,27 +21,21 @@ use x86_64::PhysAddr;
 pub struct Sender {
     ring: transfer::Ring,
     receiver: Rc<RefCell<Receiver>>,
-    registers: Rc<RefCell<Registers>>,
-    slot_id: u8,
+    doorbell_writer: DoorbellWriter,
     waker: Rc<RefCell<AtomicWaker>>,
 }
 impl Sender {
     pub fn new(
+        ring: transfer::Ring,
         receiver: Rc<RefCell<Receiver>>,
-        registers: Rc<RefCell<Registers>>,
-        slot_id: u8,
+        doorbell_writer: DoorbellWriter,
     ) -> Self {
         Self {
-            ring: transfer::Ring::new(),
+            ring,
             receiver,
-            registers,
-            slot_id,
+            doorbell_writer,
             waker: Rc::new(RefCell::new(AtomicWaker::new())),
         }
-    }
-
-    pub fn ring_addr(&self) -> PhysAddr {
-        self.ring.phys_addr()
     }
 
     pub async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
@@ -74,8 +68,7 @@ impl Sender {
     }
 
     fn write_to_doorbell(&mut self) {
-        let d = &mut self.registers.borrow_mut().doorbell_array;
-        d.update(self.slot_id.into(), |d| *d = 1);
+        self.doorbell_writer.write(1);
     }
 
     async fn get_trb(&mut self, ts: &[Trb], addrs: &[PhysAddr]) -> Vec<Option<Completion>> {
@@ -92,5 +85,20 @@ impl Sender {
         } else {
             None
         }
+    }
+}
+
+pub struct DoorbellWriter {
+    registers: Rc<RefCell<Registers>>,
+    slot_id: u8,
+}
+impl DoorbellWriter {
+    pub fn new(registers: Rc<RefCell<Registers>>, slot_id: u8) -> Self {
+        Self { registers, slot_id }
+    }
+
+    pub fn write(&mut self, x: u32) {
+        let d = &mut self.registers.borrow_mut().doorbell_array;
+        d.update(self.slot_id.into(), |d| *d = x);
     }
 }
