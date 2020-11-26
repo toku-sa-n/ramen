@@ -54,6 +54,7 @@ impl Sender {
     async fn issue_trbs(&mut self, ts: &[Trb]) -> Vec<Option<Completion>> {
         let addrs = self.ring.enqueue(ts);
         self.register_with_receiver(ts, &addrs);
+        self.write_to_doorbell();
         self.get_trb(ts, &addrs).await
     }
 
@@ -70,6 +71,11 @@ impl Sender {
                 .add_entry(a, self.waker.clone())
                 .expect("Sender is already registered.");
         }
+    }
+
+    fn write_to_doorbell(&mut self) {
+        let d = &mut self.registers.borrow_mut().doorbell_array;
+        d.update(self.slot_id.into(), |d| *d = 1);
     }
 
     async fn get_trb(&mut self, ts: &[Trb], addrs: &[PhysAddr]) -> Vec<Option<Completion>> {
