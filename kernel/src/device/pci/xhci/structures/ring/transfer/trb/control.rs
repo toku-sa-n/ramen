@@ -31,6 +31,14 @@ impl Control {
             false
         }
     }
+
+    pub fn set_cycle_bit(&mut self, c: CycleBit) {
+        match self {
+            Self::Setup(s) => s.set_cycle_bit(c),
+            Self::Data(d) => d.set_cycle_bit(c),
+            Self::Status(s) => s.set_cycle_bit(c),
+        }
+    }
 }
 impl From<Control> for [u32; 4] {
     fn from(c: Control) -> Self {
@@ -59,7 +67,13 @@ impl SetupStage {
     }
 
     fn null() -> Self {
-        Self([0; 4])
+        let mut t = Self([0; 4]);
+        t.set_idt();
+        t
+    }
+
+    fn set_idt(&mut self) {
+        self.0[3].set_bit(6, true);
     }
 
     fn set_request_type(&mut self, t: u8) {

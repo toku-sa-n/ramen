@@ -45,7 +45,8 @@ impl Raw {
         trbs.iter().map(|t| self.enqueue(*t)).collect()
     }
 
-    fn enqueue(&mut self, trb: Trb) -> PhysAddr {
+    fn enqueue(&mut self, mut trb: Trb) -> PhysAddr {
+        trb.set_c(self.c);
         self.write_trb_on_memory(trb);
         let addr_to_trb = self.addr_to_enqueue_ptr();
         self.increment_enqueue_ptr();

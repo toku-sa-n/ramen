@@ -31,7 +31,7 @@ impl Trb {
 
     pub fn set_c(&mut self, c: CycleBit) {
         match self {
-            Self::Control(_) => unimplemented!(),
+            Self::Control(co) => co.set_cycle_bit(c),
             Self::Link(l) => l.set_cycle_bit(c),
         }
     }
