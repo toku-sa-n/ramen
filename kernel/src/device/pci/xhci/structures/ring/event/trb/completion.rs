@@ -21,7 +21,7 @@ impl Completion {
     pub fn addr(&self) -> PhysAddr {
         match self {
             Self::Command(c) => c.trb_addr(),
-            Self::Transfer(t) => unimplemented!(),
+            Self::Transfer(t) => t.trb_addr(),
         }
     }
 }
@@ -57,4 +57,11 @@ impl CommandCompletion {
 add_trb!(TransferEvent);
 impl TransferEvent {
     const ID: u8 = 32;
+
+    fn trb_addr(&self) -> PhysAddr {
+        let l: u64 = self.0[0].into();
+        let u: u64 = self.0[1].into();
+
+        PhysAddr::new(u << 32 | l)
+    }
 }
