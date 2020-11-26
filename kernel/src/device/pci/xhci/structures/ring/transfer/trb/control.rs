@@ -120,6 +120,7 @@ enum Request {
 
 pub enum DescTy {
     Device = 1,
+    Configuration = 2,
 }
 
 add_trb!(DataStage);
