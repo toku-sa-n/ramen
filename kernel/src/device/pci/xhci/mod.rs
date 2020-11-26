@@ -23,7 +23,13 @@ pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
     let (event_ring, dcbaa, runner, command_completion_receiver) =
         init(&registers, &task_collection);
 
-    port::spawn_tasks(&runner, &dcbaa, &registers, &task_collection);
+    port::spawn_tasks(
+        &runner,
+        &dcbaa,
+        &registers,
+        command_completion_receiver.clone(),
+        &task_collection,
+    );
 
     task_collection
         .borrow_mut()

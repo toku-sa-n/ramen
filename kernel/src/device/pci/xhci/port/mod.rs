@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{
-    exchanger::command,
+    exchanger::{command, receiver::Receiver, transfer},
     structures::{
         context::Context,
         dcbaa::DeviceContextBaseAddressArray,
         registers::{operational::PortRegisters, Registers},
-        ring::transfer,
+        ring::transfer::Ring as TransferRing,
     },
 };
 use crate::multitask::task::{self, Task};
@@ -14,17 +14,22 @@ use alloc::rc::Rc;
 use core::cell::RefCell;
 use futures_intrusive::sync::LocalMutex;
 use resetter::Resetter;
+use transfer::DoorbellWriter;
 
 mod context;
 mod resetter;
 
-async fn task(mut port: Port, runner: Rc<LocalMutex<command::Sender>>) {
+async fn task(
+    mut port: Port,
+    runner: Rc<LocalMutex<command::Sender>>,
+    receiver: Rc<RefCell<Receiver>>,
+) {
     port.reset();
     port.init_context();
 
     let slot_id = runner.lock().await.enable_device_slot().await;
 
-    let mut slot = Slot::new(port, slot_id);
+    let mut slot = Slot::new(port, slot_id, receiver);
     slot.init_device_slot(runner).await;
 }
 
@@ -34,6 +39,7 @@ pub fn spawn_tasks(
     command_runner: &Rc<LocalMutex<command::Sender>>,
     dcbaa: &Rc<RefCell<DeviceContextBaseAddressArray>>,
     registers: &Rc<RefCell<Registers>>,
+    receiver: Rc<RefCell<Receiver>>,
     task_collection: &Rc<RefCell<task::Collection>>,
 ) {
     for i in 0..num_of_ports(&registers) {
@@ -41,7 +47,11 @@ pub fn spawn_tasks(
         if port.connected() {
             task_collection
                 .borrow_mut()
-                .add_task_as_woken(Task::new(task(port, command_runner.clone())));
+                .add_task_as_woken(Task::new(task(
+                    port,
+                    command_runner.clone(),
+                    receiver.clone(),
+                )));
         }
     }
 }
@@ -55,7 +65,7 @@ pub struct Port {
     registers: Rc<RefCell<Registers>>,
     index: u8,
     context: Context,
-    transfer_ring: transfer::Ring,
+    transfer_ring: TransferRing,
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
 }
 impl Port {
@@ -69,7 +79,7 @@ impl Port {
             index,
             context: Context::new(&registers.borrow()),
             dcbaa,
-            transfer_ring: transfer::Ring::new(),
+            transfer_ring: TransferRing::new(),
         }
     }
 
@@ -94,16 +104,20 @@ impl Port {
 struct Slot {
     id: u8,
     registers: Rc<RefCell<Registers>>,
-    ring: transfer::Ring,
+    sender: transfer::Sender,
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
     context: Context,
 }
 impl Slot {
-    fn new(port: Port, id: u8) -> Self {
+    fn new(port: Port, id: u8, receiver: Rc<RefCell<Receiver>>) -> Self {
         Self {
             id,
-            registers: port.registers,
-            ring: transfer::Ring::new(),
+            registers: port.registers.clone(),
+            sender: transfer::Sender::new(
+                port.transfer_ring,
+                receiver,
+                DoorbellWriter::new(port.registers, id),
+            ),
             dcbaa: port.dcbaa,
             context: port.context,
         }
