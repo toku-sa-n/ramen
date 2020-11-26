@@ -14,7 +14,6 @@ use alloc::rc::Rc;
 use core::cell::RefCell;
 use futures_intrusive::sync::LocalMutex;
 use resetter::Resetter;
-use x86_64::PhysAddr;
 
 mod context;
 mod resetter;
@@ -25,7 +24,8 @@ async fn task(mut port: Port, runner: Rc<LocalMutex<Sender>>) {
 
     let slot_id = runner.lock().await.enable_device_slot().await;
 
-    port.init_device_slot(slot_id, runner).await;
+    let mut slot = Slot::new(port, slot_id);
+    slot.init_device_slot(runner).await;
 }
 
 // FIXME: Resolve this.
@@ -85,29 +85,44 @@ impl Port {
         context::Initializer::new(&mut self.context, &self.transfer_ring, self.index).init();
     }
 
-    async fn init_device_slot(&mut self, slot_id: u8, runner: Rc<LocalMutex<Sender>>) {
-        self.register_to_dcbaa(slot_id.into());
-        self.issue_address_device(runner, slot_id).await;
-    }
-
-    fn register_to_dcbaa(&mut self, slot_id: usize) {
-        self.dcbaa.borrow_mut()[slot_id] = self.context.output_device.phys_addr();
-    }
-
-    async fn issue_address_device(&mut self, runner: Rc<LocalMutex<Sender>>, slot_id: u8) {
-        runner
-            .lock()
-            .await
-            .address_device(self.input_context_addr(), slot_id)
-            .await;
-    }
-
-    fn input_context_addr(&self) -> PhysAddr {
-        self.context.input.phys_addr()
-    }
-
     fn read_port_rg(&self) -> PortRegisters {
         let port_rg = &self.registers.borrow().operational.port_registers;
         port_rg.read((self.index - 1).into())
+    }
+}
+
+struct Slot {
+    id: u8,
+    registers: Rc<RefCell<Registers>>,
+    ring: transfer::Ring,
+    dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
+    context: Context,
+}
+impl Slot {
+    fn new(port: Port, id: u8) -> Self {
+        Self {
+            id,
+            registers: port.registers,
+            ring: transfer::Ring::new(),
+            dcbaa: port.dcbaa,
+            context: port.context,
+        }
+    }
+
+    async fn init_device_slot(&mut self, runner: Rc<LocalMutex<Sender>>) {
+        self.register_with_dcbaa();
+        self.issue_address_device(runner).await;
+    }
+
+    fn register_with_dcbaa(&mut self) {
+        self.dcbaa.borrow_mut()[self.id.into()] = self.context.output_device.phys_addr();
+    }
+
+    async fn issue_address_device(&mut self, runner: Rc<LocalMutex<Sender>>) {
+        runner
+            .lock()
+            .await
+            .address_device(self.context.input.phys_addr(), self.id)
+            .await;
     }
 }
