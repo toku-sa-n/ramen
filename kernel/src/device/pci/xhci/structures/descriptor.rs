@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // Temporary implementation.
-#[derive(Default, Debug)]
+#[derive(Copy, Clone, Default, Debug)]
+#[repr(C, packed)]
 pub struct Device {
     len: u8,
     descriptor_type: u8,
