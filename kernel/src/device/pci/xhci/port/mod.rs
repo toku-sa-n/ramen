@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{
-    exchanger::command::Sender,
+    exchanger::command,
     structures::{
         context::Context,
         dcbaa::DeviceContextBaseAddressArray,
@@ -18,7 +18,7 @@ use resetter::Resetter;
 mod context;
 mod resetter;
 
-async fn task(mut port: Port, runner: Rc<LocalMutex<Sender>>) {
+async fn task(mut port: Port, runner: Rc<LocalMutex<command::Sender>>) {
     port.reset();
     port.init_context();
 
@@ -31,7 +31,7 @@ async fn task(mut port: Port, runner: Rc<LocalMutex<Sender>>) {
 // FIXME: Resolve this.
 #[allow(clippy::too_many_arguments)]
 pub fn spawn_tasks(
-    command_runner: &Rc<LocalMutex<Sender>>,
+    command_runner: &Rc<LocalMutex<command::Sender>>,
     dcbaa: &Rc<RefCell<DeviceContextBaseAddressArray>>,
     registers: &Rc<RefCell<Registers>>,
     task_collection: &Rc<RefCell<task::Collection>>,
@@ -109,7 +109,7 @@ impl Slot {
         }
     }
 
-    async fn init_device_slot(&mut self, runner: Rc<LocalMutex<Sender>>) {
+    async fn init_device_slot(&mut self, runner: Rc<LocalMutex<command::Sender>>) {
         self.register_with_dcbaa();
         self.issue_address_device(runner).await;
     }
@@ -118,7 +118,7 @@ impl Slot {
         self.dcbaa.borrow_mut()[self.id.into()] = self.context.output_device.phys_addr();
     }
 
-    async fn issue_address_device(&mut self, runner: Rc<LocalMutex<Sender>>) {
+    async fn issue_address_device(&mut self, runner: Rc<LocalMutex<command::Sender>>) {
         runner
             .lock()
             .await
