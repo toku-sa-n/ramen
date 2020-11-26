@@ -45,7 +45,10 @@ impl Trb {
 }
 impl From<Trb> for [u32; 4] {
     fn from(t: Trb) -> Self {
-        unimplemented!()
+        match t {
+            Trb::Control(c) => c.into(),
+            Trb::Link(l) => l.0,
+        }
     }
 }
 
