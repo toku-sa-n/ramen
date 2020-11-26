@@ -4,6 +4,7 @@ use super::receiver::{ReceiveFuture, Receiver};
 use crate::{
     device::pci::xhci::structures::{
         descriptor,
+        registers::Registers,
         ring::{event::trb::completion::Completion, transfer},
     },
     mem::allocator::page_box::PageBox,
@@ -20,13 +21,15 @@ use x86_64::PhysAddr;
 pub struct Sender {
     ring: transfer::Ring,
     receiver: Rc<RefCell<Receiver>>,
+    registers: Rc<RefCell<Registers>>,
     waker: Rc<RefCell<AtomicWaker>>,
 }
 impl Sender {
-    pub fn new(receiver: Rc<RefCell<Receiver>>) -> Self {
+    pub fn new(receiver: Rc<RefCell<Receiver>>, registers: Rc<RefCell<Registers>>) -> Self {
         Self {
             ring: transfer::Ring::new(),
             receiver,
+            registers,
             waker: Rc::new(RefCell::new(AtomicWaker::new())),
         }
     }
