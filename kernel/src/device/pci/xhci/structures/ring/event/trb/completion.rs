@@ -14,7 +14,7 @@ impl Completion {
     pub fn slot_id(&self) -> u8 {
         match self {
             Self::Command(c) => c.slot_id(),
-            Self::Transfer(t) => unimplemented!(),
+            Self::Transfer(_) => unimplemented!(),
         }
     }
 

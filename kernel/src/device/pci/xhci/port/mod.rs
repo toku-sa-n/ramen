@@ -109,7 +109,6 @@ impl Port {
 
 struct Slot {
     id: u8,
-    registers: Rc<RefCell<Registers>>,
     sender: transfer::Sender,
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
     context: Context,
@@ -118,7 +117,6 @@ impl Slot {
     fn new(port: Port, id: u8, receiver: Rc<RefCell<Receiver>>) -> Self {
         Self {
             id,
-            registers: port.registers.clone(),
             sender: transfer::Sender::new(
                 port.transfer_ring,
                 receiver,
