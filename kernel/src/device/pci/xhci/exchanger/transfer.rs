@@ -12,10 +12,7 @@ use crate::{
 use alloc::{rc::Rc, vec::Vec};
 use core::cell::RefCell;
 use futures_util::task::AtomicWaker;
-use transfer::trb::{
-    control::{DescTy, DescTyIdx},
-    Trb,
-};
+use transfer::trb::{control::DescTyIdx, Trb};
 use x86_64::PhysAddr;
 
 pub struct Sender {
@@ -40,7 +37,8 @@ impl Sender {
 
     pub async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
         let b = PageBox::new(descriptor::Device::default());
-        let (setup, data, status) = Trb::new_get_descriptor(&b, DescTyIdx::new(DescTy::Device, 0));
+        let (setup, data, status) =
+            Trb::new_get_descriptor(&b, DescTyIdx::new(descriptor::Ty::Device, 0));
         self.issue_trbs(&[setup, data, status]).await;
         b
     }
@@ -48,7 +46,7 @@ impl Sender {
     pub async fn get_configuration_descriptor(&mut self) -> PageBox<[u8]> {
         let b = PageBox::new_slice(0, 256);
         let (setup, data, status) =
-            Trb::new_get_descriptor(&b, DescTyIdx::new(DescTy::Configuration, 0));
+            Trb::new_get_descriptor(&b, DescTyIdx::new(descriptor::Ty::Configuration, 0));
         self.issue_trbs(&[setup, data, status]).await;
         b
     }
