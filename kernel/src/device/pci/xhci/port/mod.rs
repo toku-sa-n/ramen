@@ -100,12 +100,12 @@ impl Port {
         .init();
     }
 
-    fn addr_to_input_context(&self) -> PhysAddr {
-        self.context.input.phys_addr()
-    }
-
     fn register_to_dcbaa(&mut self, slot_id: usize) {
         self.dcbaa.borrow_mut()[slot_id] = self.context.output_device.phys_addr();
+    }
+
+    fn addr_to_input_context(&self) -> PhysAddr {
+        self.context.input.phys_addr()
     }
 
     fn read_port_rg(&self) -> PortRegisters {
