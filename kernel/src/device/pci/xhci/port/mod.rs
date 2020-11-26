@@ -21,6 +21,7 @@ mod resetter;
 
 async fn task(mut port: Port, runner: Rc<LocalMutex<Sender>>) {
     port.reset();
+    port.init_context();
 
     let slot_id = runner.lock().await.enable_device_slot().await;
 
@@ -80,14 +81,13 @@ impl Port {
         Resetter::new(self.registers.clone(), self.index).reset();
     }
 
-    async fn init_device_slot(&mut self, slot_id: u8, runner: Rc<LocalMutex<Sender>>) {
-        self.init_context();
-        self.register_to_dcbaa(slot_id.into());
-        self.issue_address_device(runner, slot_id).await;
-    }
-
     fn init_context(&mut self) {
         context::Initializer::new(&mut self.context, &self.transfer_ring, self.index).init();
+    }
+
+    async fn init_device_slot(&mut self, slot_id: u8, runner: Rc<LocalMutex<Sender>>) {
+        self.register_to_dcbaa(slot_id.into());
+        self.issue_address_device(runner, slot_id).await;
     }
 
     fn register_to_dcbaa(&mut self, slot_id: usize) {
