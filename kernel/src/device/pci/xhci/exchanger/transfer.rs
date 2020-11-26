@@ -27,21 +27,18 @@ pub struct Sender {
 }
 impl Sender {
     pub fn new(
+        ring: transfer::Ring,
         receiver: Rc<RefCell<Receiver>>,
         registers: Rc<RefCell<Registers>>,
         slot_id: u8,
     ) -> Self {
         Self {
-            ring: transfer::Ring::new(),
+            ring,
             receiver,
             registers,
             slot_id,
             waker: Rc::new(RefCell::new(AtomicWaker::new())),
         }
-    }
-
-    pub fn ring_addr(&self) -> PhysAddr {
-        self.ring.phys_addr()
     }
 
     pub async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
