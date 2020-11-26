@@ -103,11 +103,11 @@ impl Port {
         runner
             .lock()
             .await
-            .address_device(self.addr_to_input_context(), slot_id)
+            .address_device(self.input_context_addr(), slot_id)
             .await;
     }
 
-    fn addr_to_input_context(&self) -> PhysAddr {
+    fn input_context_addr(&self) -> PhysAddr {
         self.context.input.phys_addr()
     }
 
