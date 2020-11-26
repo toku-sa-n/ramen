@@ -22,14 +22,20 @@ pub struct Sender {
     ring: transfer::Ring,
     receiver: Rc<RefCell<Receiver>>,
     registers: Rc<RefCell<Registers>>,
+    slot_id: u8,
     waker: Rc<RefCell<AtomicWaker>>,
 }
 impl Sender {
-    pub fn new(receiver: Rc<RefCell<Receiver>>, registers: Rc<RefCell<Registers>>) -> Self {
+    pub fn new(
+        receiver: Rc<RefCell<Receiver>>,
+        registers: Rc<RefCell<Registers>>,
+        slot_id: u8,
+    ) -> Self {
         Self {
             ring: transfer::Ring::new(),
             receiver,
             registers,
+            slot_id,
             waker: Rc::new(RefCell::new(AtomicWaker::new())),
         }
     }
