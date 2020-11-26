@@ -32,3 +32,12 @@ impl Device {
         self.protocol
     }
 }
+
+pub enum Ty {
+    Device = 1,
+    Configuration = 2,
+    Str = 3,
+    Interface = 4,
+    Endpoint = 5,
+    Hid = 33,
+}

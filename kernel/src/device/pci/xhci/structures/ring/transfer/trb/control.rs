@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::{
-    add_trb, device::pci::xhci::structures::ring::CycleBit, mem::allocator::page_box::PageBox,
+    add_trb,
+    device::pci::xhci::structures::{descriptor, ring::CycleBit},
+    mem::allocator::page_box::PageBox,
 };
 use bit_field::BitField;
 use core::convert::TryInto;
@@ -102,11 +104,11 @@ impl SetupStage {
 }
 
 pub struct DescTyIdx {
-    ty: DescTy,
+    ty: descriptor::Ty,
     i: u8,
 }
 impl DescTyIdx {
-    pub fn new(ty: DescTy, i: u8) -> Self {
+    pub fn new(ty: descriptor::Ty, i: u8) -> Self {
         Self { ty, i }
     }
     fn bits(self) -> u16 {
@@ -116,11 +118,6 @@ impl DescTyIdx {
 
 enum Request {
     GetDescriptor = 6,
-}
-
-pub enum DescTy {
-    Device = 1,
-    Configuration = 2,
 }
 
 add_trb!(DataStage);
