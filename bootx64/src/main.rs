@@ -100,20 +100,25 @@ fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> co
         )
     };
 
-    let (_, descriptors_iter) = system_table
+    let (_, mut descriptors_iter) = system_table
         .exit_boot_services(image, buf_for_exiting)
         .expect("Failed to exit boot services")
         .unwrap();
 
     let num_descriptors = descriptors_iter.len();
-    for (index, descriptor) in descriptors_iter.enumerate() {
+    let memory_map_buf = write_descriptors_on_buf(memory_map_buf, &mut descriptors_iter);
+    common::mem::Map::new(memory_map_buf, num_descriptors)
+}
+
+fn write_descriptors_on_buf(
+    buf: NonNull<boot::MemoryDescriptor>,
+    iter: &mut dyn ExactSizeIterator<Item = &boot::MemoryDescriptor>,
+) -> NonNull<boot::MemoryDescriptor> {
+    for (index, descriptor) in iter.enumerate() {
         unsafe {
-            ptr::write(
-                memory_map_buf.as_ptr().offset(index.try_into().unwrap()),
-                *descriptor,
-            );
+            ptr::write(buf.as_ptr().offset(index.try_into().unwrap()), *descriptor);
         }
     }
 
-    common::mem::Map::new(memory_map_buf, num_descriptors)
+    buf
 }
