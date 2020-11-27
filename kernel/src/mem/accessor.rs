@@ -105,15 +105,11 @@ impl<T: ?Sized> Accessor<T> {
         for i in 0..num_pages.as_usize() {
             let page = Page::<Size4KiB>::containing_address(virt + Size4KiB::SIZE * i as u64);
             let frame = PhysFrame::containing_address(start_frame_addr + Size4KiB::SIZE * i as u64);
+            let flag = PageTableFlags::PRESENT;
 
             unsafe {
                 PML4.lock()
-                    .map_to(
-                        page,
-                        frame,
-                        PageTableFlags::PRESENT,
-                        &mut *FRAME_MANAGER.lock(),
-                    )
+                    .map_to(page, frame, flag, &mut *FRAME_MANAGER.lock())
                     .unwrap()
                     .flush()
             }
