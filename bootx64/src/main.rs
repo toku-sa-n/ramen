@@ -21,7 +21,12 @@ mod gop;
 mod mem;
 
 use common::{kernelboot, mem::reserved};
-use core::{convert::TryFrom, ptr, ptr::NonNull, slice};
+use core::{
+    convert::{TryFrom, TryInto},
+    ptr,
+    ptr::NonNull,
+    slice,
+};
 use fs::kernel;
 use mem::{paging, stack};
 use uefi::{
@@ -109,9 +114,7 @@ fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> co
     for (index, descriptor) in descriptors_iter.enumerate() {
         unsafe {
             ptr::write(
-                memory_map_buf
-                    .as_ptr()
-                    .offset(isize::try_from(index).unwrap()),
+                memory_map_buf.as_ptr().offset(index.try_into().unwrap()),
                 *descriptor,
             );
         }
