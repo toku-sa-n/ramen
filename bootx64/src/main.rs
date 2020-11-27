@@ -21,12 +21,7 @@ mod gop;
 mod mem;
 
 use common::{kernelboot, mem::reserved};
-use core::{
-    convert::{TryFrom, TryInto},
-    ptr,
-    ptr::NonNull,
-    slice,
-};
+use core::{convert::TryInto, ptr, ptr::NonNull, slice};
 use fs::kernel;
 use mem::{paging, stack};
 use uefi::{

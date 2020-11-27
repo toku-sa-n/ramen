@@ -3,7 +3,6 @@
 use super::root_dir;
 use common::constant::{KERNEL_ADDR, KERNEL_NAME};
 use core::{
-    cmp,
     convert::{TryFrom, TryInto},
     slice,
 };
