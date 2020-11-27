@@ -105,7 +105,7 @@ fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> co
         .expect("Failed to exit boot services")
         .unwrap();
 
-    let mut num_descriptors = 0;
+    let num_descriptors = descriptors_iter.len();
     for (index, descriptor) in descriptors_iter.enumerate() {
         unsafe {
             ptr::write(
@@ -113,8 +113,6 @@ fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> co
                 *descriptor,
             );
         }
-
-        num_descriptors += 1;
     }
 
     common::mem::Map::new(memory_map_buf, num_descriptors)
