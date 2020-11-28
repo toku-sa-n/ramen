@@ -9,7 +9,7 @@ pub enum Descriptor {
     Device(Device),
     Configuration,
     Str,
-    Interface,
+    Interface(Interface),
     Endpoint,
     Hid,
 }
@@ -25,7 +25,9 @@ impl Descriptor {
                 })),
                 Ty::Configuration => Ok(Self::Configuration),
                 Ty::Str => Ok(Self::Str),
-                Ty::Interface => Ok(Self::Interface),
+                Ty::Interface => Ok(Self::Interface(unsafe {
+                    ptr::read(raw as *const [u8] as *const _)
+                })),
                 Ty::Endpoint => Ok(Self::Endpoint),
                 Ty::Hid => Ok(Self::Hid),
             },
@@ -51,6 +53,20 @@ pub struct Device {
     product: u8,
     serial_number: u8,
     num_configurations: u8,
+}
+
+#[derive(Copy, Clone, Default, Debug)]
+#[repr(C, packed)]
+pub struct Interface {
+    len: u8,
+    descriptor_type: u8,
+    interface_number: u8,
+    alternate_setting: u8,
+    num_endpoints: u8,
+    interface_class: u8,
+    interface_subclass: u8,
+    interface_protocol: u8,
+    interface: u8,
 }
 
 #[derive(FromPrimitive)]
