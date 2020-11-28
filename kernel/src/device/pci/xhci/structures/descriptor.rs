@@ -61,12 +61,13 @@ pub struct Device {
 pub struct Interface {
     len: u8,
     descriptor_type: u8,
-    first_interface: u8,
-    interface_count: u8,
-    function_class: u8,
-    function_subclass: u8,
-    function_protocol: u8,
-    function: u8,
+    interface_number: u8,
+    alternate_setting: u8,
+    num_endpoints: u8,
+    interface_class: u8,
+    interface_subclass: u8,
+    interface_protocol: u8,
+    interface: u8,
 }
 
 #[derive(FromPrimitive)]
