@@ -78,7 +78,7 @@ impl RawDescriptorParser {
 
     fn parse(&mut self) -> Vec<Descriptor> {
         let mut v = Vec::new();
-        while self.current < self.len {
+        while self.current < self.len && self.raw[self.current + 1] > 0 {
             match self.parse_first_descriptor() {
                 Ok(t) => v.push(t),
                 Err(e) => warn!("Error: {:?}", e),
