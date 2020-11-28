@@ -4,7 +4,12 @@ use super::super::structures::descriptor::Descriptor;
 use crate::{
     device::pci::xhci::{
         exchanger::{command, receiver::Receiver, transfer},
-        structures::{context::Context, dcbaa::DeviceContextBaseAddressArray, descriptor},
+        structures::{
+            context::{self, Context},
+            dcbaa::DeviceContextBaseAddressArray,
+            descriptor,
+            ring::CycleBit,
+        },
     },
     mem::allocator::page_box::PageBox,
 };
@@ -12,6 +17,7 @@ use alloc::{rc::Rc, vec::Vec};
 use bit_field::BitField;
 use core::cell::RefCell;
 use futures_intrusive::sync::LocalMutex;
+use num_traits::FromPrimitive;
 use transfer::DoorbellWriter;
 
 use super::Port;
@@ -61,12 +67,44 @@ impl Slot {
         if let Descriptor::Endpoint(ep) = d {
             let dci = Self::calculate_dci(ep);
             self.context.input.control_mut().set_aflag(dci.into());
+            self.init_context(ep);
         }
     }
 
     fn calculate_dci(ep: &descriptor::Endpoint) -> u8 {
         let a = ep.endpoint_address;
         2 * a.get_bits(0..=3) + a.get_bit(7) as u8
+    }
+
+    fn init_context(&mut self, ep: &descriptor::Endpoint) {
+        let c = self.get_context(ep);
+        c.set_endpoint_type(Self::endpoint_ty(ep));
+        c.set_max_packet_size(ep.max_packet_size);
+        c.set_max_burst_size(0);
+        c.set_dequeue_cycle_state(CycleBit::new(true));
+        c.set_max_primary_streams(0);
+        c.set_mult(0);
+        c.set_error_count(3);
+    }
+
+    fn get_context(&mut self, ep: &descriptor::Endpoint) -> &mut context::Endpoint {
+        let ep_idx: usize = ep.endpoint_address.get_bits(0..=3).into();
+        let out_input = ep.endpoint_address.get_bit(7);
+        let context_inout = &mut self.context.output_device.ep_inout[ep_idx];
+        if out_input {
+            &mut context_inout.input
+        } else {
+            &mut context_inout.out
+        }
+    }
+
+    fn endpoint_ty(ep: &descriptor::Endpoint) -> context::EndpointType {
+        context::EndpointType::from_u8(if ep.attributes == 0 {
+            0
+        } else {
+            ep.attributes + if ep.endpoint_address == 0 { 0 } else { 4 }
+        })
+        .unwrap()
     }
 
     async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
