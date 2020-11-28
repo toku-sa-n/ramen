@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::registers::Registers;
+use super::{registers::Registers, ring::CycleBit};
 use crate::mem::allocator::page_box::PageBox;
+use bit_field::BitField;
 use bitfield::bitfield;
+use core::convert::{TryFrom, TryInto};
 use x86_64::PhysAddr;
 
 pub struct Context {
@@ -163,26 +165,45 @@ impl EndpointOutIn {
     }
 }
 
-pub type Endpoint = EndpointStructure<[u32; 8]>;
-bitfield! {
-    #[repr(transparent)]
-    #[derive(Copy,Clone)]
-    pub struct EndpointStructure([u32]);
-    impl Debug;
-    pub u32, _, set_endpoint_type_as_u32: 32+5, 32+3;
-    pub u32, _, set_max_packet_size: 32+31, 32+16;
-    u64, _, set_dequeue_ptr_as_u64: 96+31, 64;
-    pub _, set_dequeue_cycle_state: 64;
-    pub u32, _, set_error_count: 32+2, 32+1;
-}
+// pub type Endpoint = EndpointStructure<[u32; 8]>;
+// bitfield! {
+//     #[repr(transparent)]
+//     #[derive(Copy,Clone)]
+//     pub struct EndpointStructure([u32]);
+//     impl Debug;
+//     pub u32, _, set_endpoint_type_as_u32: 32+5, 32+3;
+//     pub u32, _, set_max_packet_size: 32+31, 32+16;
+//     u64, _, set_dequeue_ptr_as_u64: 96+31, 64;
+//     pub _, set_dequeue_cycle_state: 64;
+//     pub u32, _, set_error_count: 32+2, 32+1;
+// }
+#[repr(transparent)]
+#[derive(Copy, Clone)]
+pub struct Endpoint([u32; 8]);
 impl Endpoint {
     pub fn set_endpoint_type(&mut self, ty: EndpointType) {
-        self.set_endpoint_type_as_u32(ty as u32);
+        self.0[1].set_bits(3..=5, ty as _);
     }
 
-    pub fn set_dequeue_ptr(&mut self, addr: PhysAddr) {
-        assert!(addr.is_aligned(16_u64));
-        self.set_dequeue_ptr_as_u64(addr.as_u64());
+    pub fn set_dequeue_ptr(&mut self, a: PhysAddr) {
+        assert!(a.is_aligned(16_u64));
+        let l = a.as_u64() & 0xffff_ffff;
+        let u = a.as_u64() >> 32;
+
+        self.0[2] = u32::try_from(l).unwrap() | self.0[2].get_bit(0) as u32;
+        self.0[3] = u.try_into().unwrap();
+    }
+
+    pub fn set_max_packet_size(&mut self, sz: u16) {
+        self.0[1].set_bits(16..=31, sz.into());
+    }
+
+    pub fn set_dequeue_cycle_state(&mut self, c: CycleBit) {
+        self.0[2].set_bit(0, c.into());
+    }
+
+    pub fn set_error_count(&mut self, c: u8) {
+        self.0[1].set_bits(1..=2, c.into());
     }
 
     fn null() -> Self {

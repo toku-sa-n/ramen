@@ -2,7 +2,7 @@
 
 use crate::device::pci::xhci::structures::{
     context::{Context, EndpointType},
-    ring::transfer,
+    ring::{transfer, CycleBit},
 };
 
 pub struct Initializer<'a> {
@@ -44,7 +44,7 @@ impl<'a> Initializer<'a> {
         // FIXME: Support other sppeds.
         ep_0.set_max_packet_size(64);
         ep_0.set_dequeue_ptr(self.ring.phys_addr());
-        ep_0.set_dequeue_cycle_state(true);
+        ep_0.set_dequeue_cycle_state(CycleBit::new(true));
         ep_0.set_error_count(3);
     }
 }
