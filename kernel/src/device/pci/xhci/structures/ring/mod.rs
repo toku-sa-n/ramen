@@ -11,7 +11,7 @@ pub mod transfer;
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq)]
 pub struct CycleBit(bool);
 impl CycleBit {
-    fn new(val: bool) -> Self {
+    pub fn new(val: bool) -> Self {
         Self(val)
     }
 
