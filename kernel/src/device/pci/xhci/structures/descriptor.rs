@@ -10,7 +10,7 @@ pub enum Descriptor {
     Configuration,
     Str,
     Interface(Interface),
-    Endpoint,
+    Endpoint(Endpoint),
     Hid,
 }
 impl Descriptor {
@@ -28,7 +28,9 @@ impl Descriptor {
                 Ty::Interface => Ok(Self::Interface(unsafe {
                     ptr::read(raw as *const [u8] as *const _)
                 })),
-                Ty::Endpoint => Ok(Self::Endpoint),
+                Ty::Endpoint => Ok(Self::Endpoint(unsafe {
+                    ptr::read(raw as *const [u8] as *const _)
+                })),
                 Ty::Hid => Ok(Self::Hid),
             },
             None => Err(Error::UnrecognizedType(raw[1])),
@@ -67,6 +69,17 @@ pub struct Interface {
     interface_subclass: u8,
     interface_protocol: u8,
     interface: u8,
+}
+
+#[derive(Copy, Clone, Default, Debug)]
+#[repr(C, packed)]
+pub struct Endpoint {
+    len: u8,
+    descriptor_type: u8,
+    endpoint_address: u8,
+    attributes: u8,
+    max_packet_size: u16,
+    interval: u8,
 }
 
 #[derive(FromPrimitive)]
