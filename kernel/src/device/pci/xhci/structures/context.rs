@@ -124,7 +124,7 @@ impl InputControl for InputControl64Bit {
 pub struct Device {
     pub slot: Slot,
     pub ep_0: Endpoint,
-    ep_inout: [EndpointOutIn; 15],
+    pub ep_inout: [EndpointOutIn; 15],
 }
 impl Device {
     pub fn null() -> Self {
@@ -153,8 +153,8 @@ impl Slot {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct EndpointOutIn {
-    out: Endpoint,
-    input: Endpoint,
+    pub out: Endpoint,
+    pub input: Endpoint,
 }
 impl EndpointOutIn {
     fn null() -> Self {
