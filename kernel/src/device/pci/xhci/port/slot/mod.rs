@@ -11,7 +11,6 @@ use crate::{
 use alloc::{rc::Rc, vec::Vec};
 use core::cell::RefCell;
 use futures_intrusive::sync::LocalMutex;
-use num_traits::FromPrimitive;
 use transfer::DoorbellWriter;
 
 use super::Port;

@@ -53,19 +53,6 @@ pub struct Device {
     serial_number: u8,
     num_configurations: u8,
 }
-impl Device {
-    pub fn class(&self) -> u8 {
-        self.class
-    }
-
-    pub fn subclass(&self) -> u8 {
-        self.subclass
-    }
-
-    pub fn protocol(&self) -> u8 {
-        self.protocol
-    }
-}
 
 #[derive(FromPrimitive)]
 pub enum Ty {
