@@ -101,7 +101,7 @@ impl RawDescriptorParser {
     fn cut_raw_descriptor(&mut self) -> Vec<u8> {
         let len: usize = self.raw[self.current].into();
         let v = self.raw[self.current..(self.current + len)].to_vec();
-        self.len += len;
+        self.current += len;
         v
     }
 }
