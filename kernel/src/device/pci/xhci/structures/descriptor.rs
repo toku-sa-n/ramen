@@ -34,7 +34,6 @@ impl Descriptor {
     }
 }
 
-// Temporary implementation.
 #[derive(Copy, Clone, Default, Debug)]
 #[repr(C, packed)]
 pub struct Device {
