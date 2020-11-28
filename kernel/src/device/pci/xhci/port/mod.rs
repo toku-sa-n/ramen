@@ -35,7 +35,7 @@ async fn task(
     let device_descriptor = slot.get_device_descriptor().await;
     info!("{:?}", device_descriptor);
 
-    let configuration_descriptor = slot.get_configuration_descriptor().await;
+    let configuration_descriptor = slot.get_configuration_descriptors().await;
     info!("{:?}", configuration_descriptor);
 }
 

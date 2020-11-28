@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::cell::RefCell;
-
-use alloc::rc::Rc;
-use futures_intrusive::sync::LocalMutex;
-use transfer::DoorbellWriter;
-
+use super::super::structures::descriptor::Descriptor;
 use crate::{
     device::pci::xhci::{
         exchanger::{command, receiver::Receiver, transfer},
@@ -13,6 +8,10 @@ use crate::{
     },
     mem::allocator::page_box::PageBox,
 };
+use alloc::{rc::Rc, vec::Vec};
+use core::cell::RefCell;
+use futures_intrusive::sync::LocalMutex;
+use transfer::DoorbellWriter;
 
 use super::Port;
 
@@ -45,7 +44,12 @@ impl Slot {
         self.sender.get_device_descriptor().await
     }
 
-    pub async fn get_configuration_descriptor(&mut self) -> PageBox<[u8]> {
+    pub async fn get_configuration_descriptors(&mut self) -> Vec<Descriptor> {
+        let r = self.get_raw_configuration_descriptors().await;
+        RawDescriptorParser::new(r).parse()
+    }
+
+    async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
         self.sender.get_configuration_descriptor().await
     }
 
@@ -59,5 +63,44 @@ impl Slot {
             .await
             .address_device(self.context.input.phys_addr(), self.id)
             .await;
+    }
+}
+
+struct RawDescriptorParser {
+    raw: PageBox<[u8]>,
+    current: usize,
+    len: usize,
+}
+impl RawDescriptorParser {
+    fn new(raw: PageBox<[u8]>) -> Self {
+        let len = raw.len();
+        Self {
+            raw,
+            current: 0,
+            len,
+        }
+    }
+
+    fn parse(&mut self) -> Vec<Descriptor> {
+        let mut v = Vec::new();
+        while self.current < self.len && self.raw[self.current] > 0 {
+            match self.parse_first_descriptor() {
+                Ok(t) => v.push(t),
+                Err(e) => warn!("Error: {:?}", e),
+            }
+        }
+        v
+    }
+
+    fn parse_first_descriptor(&mut self) -> Result<Descriptor, descriptor::Error> {
+        let raw = self.cut_raw_descriptor();
+        Descriptor::from_slice(&raw)
+    }
+
+    fn cut_raw_descriptor(&mut self) -> Vec<u8> {
+        let len: usize = self.raw[self.current].into();
+        let v = self.raw[self.current..(self.current + len)].to_vec();
+        self.current += len;
+        v
     }
 }
