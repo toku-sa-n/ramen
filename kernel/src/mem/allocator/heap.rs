@@ -21,9 +21,14 @@ pub static ALLOCATOR: LockedHeap = LockedHeap::empty();
 // Using UEFI's `allocate_pages` doesn't work for allocating larger memory. It returns out of
 // resrouces.
 pub fn init(mem_map: &mut [boot::MemoryDescriptor]) {
-    let mut temp_phys_allocator = TemporaryFrameAllocator(mem_map);
+    alloc_for_heap(mem_map);
+    init_allocator();
+}
+
+fn alloc_for_heap(mem_map: &mut [boot::MemoryDescriptor]) {
+    let mut temp_allocator = TemporaryFrameAllocator(mem_map);
     for i in 0..BYTES_KERNEL_HEAP.as_num_of_pages::<Size4KiB>().as_usize() {
-        let frame = temp_phys_allocator
+        let frame = temp_allocator
             .allocate_frame()
             .expect("OOM during initializing heap area!");
 
@@ -31,17 +36,14 @@ pub fn init(mem_map: &mut [boot::MemoryDescriptor]) {
             Page::<Size4KiB>::containing_address(KERNEL_HEAP_ADDR + Size4KiB::SIZE * i as u64);
         unsafe {
             PML4.lock()
-                .map_to(
-                    page,
-                    frame,
-                    PageTableFlags::PRESENT,
-                    &mut temp_phys_allocator,
-                )
+                .map_to(page, frame, PageTableFlags::PRESENT, &mut temp_allocator)
                 .unwrap()
                 .flush();
         };
     }
+}
 
+fn init_allocator() {
     unsafe {
         ALLOCATOR.lock().init(
             usize::try_from(KERNEL_HEAP_ADDR.as_u64()).unwrap(),

@@ -21,7 +21,7 @@ mod gop;
 mod mem;
 
 use common::{kernelboot, mem::reserved};
-use core::{convert::TryFrom, ptr, ptr::NonNull, slice};
+use core::{convert::TryInto, ptr, ptr::NonNull, slice};
 use fs::kernel;
 use mem::{paging, stack};
 use uefi::{
@@ -86,38 +86,35 @@ fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> co
     .unwrap()
     .cast::<boot::MemoryDescriptor>();
 
-    let buf_for_exiting = system_table
-        .boot_services()
-        .allocate_pool(
-            MemoryType::LOADER_DATA,
-            system_table.boot_services().memory_map_size() * 2,
-        )
-        .expect_success("Failed to allocate memory to exit boot services");
-    let buf_for_exiting = unsafe {
-        slice::from_raw_parts_mut(
-            buf_for_exiting,
-            system_table.boot_services().memory_map_size() * 2,
-        )
-    };
-
-    let (_, descriptors_iter) = system_table
-        .exit_boot_services(image, buf_for_exiting)
+    let buf = allocate_buf_for_exiting(system_table.boot_services());
+    let (_, mut descriptors_iter) = system_table
+        .exit_boot_services(image, buf)
         .expect("Failed to exit boot services")
         .unwrap();
 
-    let mut num_descriptors = 0;
-    for (index, descriptor) in descriptors_iter.enumerate() {
-        unsafe {
-            ptr::write(
-                memory_map_buf
-                    .as_ptr()
-                    .offset(isize::try_from(index).unwrap()),
-                *descriptor,
-            );
-        }
+    let num_descriptors = descriptors_iter.len();
+    let memory_map_buf = write_descriptors_on_buf(memory_map_buf, &mut descriptors_iter);
+    common::mem::Map::new(memory_map_buf, num_descriptors)
+}
 
-        num_descriptors += 1;
+fn allocate_buf_for_exiting(bs: &boot::BootServices) -> &'static mut [u8] {
+    // Allocate extra spaces because of paddings.
+    let sz = bs.memory_map_size() * 2;
+    let buf_for_exiting = bs
+        .allocate_pool(MemoryType::LOADER_DATA, sz)
+        .expect_success("Failed to allocate memory to exit boot services");
+    unsafe { slice::from_raw_parts_mut(buf_for_exiting, sz) }
+}
+
+fn write_descriptors_on_buf(
+    buf: NonNull<boot::MemoryDescriptor>,
+    iter: &mut dyn ExactSizeIterator<Item = &boot::MemoryDescriptor>,
+) -> NonNull<boot::MemoryDescriptor> {
+    for (index, descriptor) in iter.enumerate() {
+        unsafe {
+            ptr::write(buf.as_ptr().offset(index.try_into().unwrap()), *descriptor);
+        }
     }
 
-    common::mem::Map::new(memory_map_buf, num_descriptors)
+    buf
 }

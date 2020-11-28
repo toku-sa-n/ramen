@@ -22,17 +22,7 @@ impl Cursor {
 
         layer::get_controller()
             .lock()
-            .edit_layer(id, |layer: &mut Layer| {
-                for y in 0..MOUSE_CURSOR_HEIGHT {
-                    for x in 0..MOUSE_CURSOR_WIDTH {
-                        layer[y][x] = match MOUSE_GRAPHIC[y][x] {
-                            '*' => Some(RGB8::new(0, 0, 0)),
-                            '0' => Some(RGB8::new(0xff, 0xff, 0xff)),
-                            _ => None,
-                        }
-                    }
-                }
-            })
+            .edit_layer(id, Self::init_layer)
             .expect("Layer of mouse cursor should be added.");
 
         Self {
@@ -49,6 +39,18 @@ impl Cursor {
             .lock()
             .slide_layer(self.id, self.coord.as_())
             .expect("Layer of mouse cursor should be added.");
+    }
+
+    fn init_layer(layer: &mut Layer) {
+        for y in 0..MOUSE_CURSOR_HEIGHT {
+            for x in 0..MOUSE_CURSOR_WIDTH {
+                layer[y][x] = match MOUSE_GRAPHIC[y][x] {
+                    '*' => Some(RGB8::new(0, 0, 0)),
+                    '0' => Some(RGB8::new(0xff, 0xff, 0xff)),
+                    _ => None,
+                }
+            }
+        }
     }
 
     fn fit_in_screen(&mut self) {

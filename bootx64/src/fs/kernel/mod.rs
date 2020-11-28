@@ -2,7 +2,10 @@
 
 use super::root_dir;
 use common::constant::{KERNEL_ADDR, KERNEL_NAME};
-use core::{cmp, convert::TryFrom, slice};
+use core::{
+    convert::{TryFrom, TryInto},
+    slice,
+};
 use elf_rs::Elf;
 use os_units::Bytes;
 use uefi::{
@@ -50,10 +53,9 @@ pub fn fetch_entry_address_and_memory_size(addr: PhysAddr, bytes: Bytes) -> (Vir
         Elf::Elf64(elf) => {
             let entry_addr = VirtAddr::new(elf.header().entry_point());
             let mem_size = elf.program_header_iter().fold(Bytes::new(0), |acc, x| {
-                cmp::max(
-                    acc,
-                    Bytes::new(usize::try_from(x.ph.vaddr() + x.ph.memsz()).unwrap()),
-                )
+                acc.max(Bytes::new(
+                    (x.ph.vaddr() + x.ph.memsz()).try_into().unwrap(),
+                ))
             }) - Bytes::new(usize::try_from(KERNEL_ADDR.as_u64()).unwrap());
 
             info!("Entry point: {:?}", entry_addr);
