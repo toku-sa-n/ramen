@@ -10,7 +10,7 @@ pub enum Descriptor {
     Configuration,
     Str,
     Interface(Interface),
-    Endpoint,
+    Endpoint(Endpoint),
     Hid,
 }
 impl Descriptor {
@@ -28,7 +28,9 @@ impl Descriptor {
                 Ty::Interface => Ok(Self::Interface(unsafe {
                     ptr::read(raw as *const [u8] as *const _)
                 })),
-                Ty::Endpoint => Ok(Self::Endpoint),
+                Ty::Endpoint => Ok(Self::Endpoint(unsafe {
+                    ptr::read(raw as *const [u8] as *const _)
+                })),
                 Ty::Hid => Ok(Self::Hid),
             },
             None => Err(Error::UnrecognizedType(raw[1])),
