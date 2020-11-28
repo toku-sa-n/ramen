@@ -165,18 +165,6 @@ impl EndpointOutIn {
     }
 }
 
-// pub type Endpoint = EndpointStructure<[u32; 8]>;
-// bitfield! {
-//     #[repr(transparent)]
-//     #[derive(Copy,Clone)]
-//     pub struct EndpointStructure([u32]);
-//     impl Debug;
-//     pub u32, _, set_endpoint_type_as_u32: 32+5, 32+3;
-//     pub u32, _, set_max_packet_size: 32+31, 32+16;
-//     u64, _, set_dequeue_ptr_as_u64: 96+31, 64;
-//     pub _, set_dequeue_cycle_state: 64;
-//     pub u32, _, set_error_count: 32+2, 32+1;
-// }
 #[repr(transparent)]
 #[derive(Copy, Clone)]
 pub struct Endpoint([u32; 8]);
