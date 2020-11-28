@@ -5,6 +5,7 @@ use crate::mem::allocator::page_box::PageBox;
 use bit_field::BitField;
 use bitfield::bitfield;
 use core::convert::{TryFrom, TryInto};
+use num_derive::FromPrimitive;
 use x86_64::PhysAddr;
 
 pub struct Context {
@@ -215,6 +216,13 @@ impl Endpoint {
     }
 }
 
+#[derive(FromPrimitive)]
 pub enum EndpointType {
+    IsochronousOut = 1,
+    BulkOut = 2,
+    InterruptOut = 3,
     Control = 4,
+    IsochronousIn = 5,
+    BulkIn = 6,
+    InterruptIn = 7,
 }
