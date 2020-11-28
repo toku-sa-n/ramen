@@ -76,7 +76,7 @@ pub struct Interface {
 pub struct Endpoint {
     len: u8,
     descriptor_type: u8,
-    endpoint_address: u8,
+    pub endpoint_address: u8,
     attributes: u8,
     max_packet_size: u16,
     interval: u8,

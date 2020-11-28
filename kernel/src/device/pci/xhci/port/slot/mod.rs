@@ -9,6 +9,7 @@ use crate::{
     mem::allocator::page_box::PageBox,
 };
 use alloc::{rc::Rc, vec::Vec};
+use bit_field::BitField;
 use core::cell::RefCell;
 use futures_intrusive::sync::LocalMutex;
 use transfer::DoorbellWriter;
@@ -44,9 +45,28 @@ impl Slot {
         self.sender.get_device_descriptor().await
     }
 
+    pub async fn enable_endpoint(&mut self) {
+        let descs = self.get_configuration_descriptors().await;
+        for d in descs {
+            self.init_context_with_descriptor(&d);
+        }
+    }
+
     pub async fn get_configuration_descriptors(&mut self) -> Vec<Descriptor> {
         let r = self.get_raw_configuration_descriptors().await;
         RawDescriptorParser::new(r).parse()
+    }
+
+    fn init_context_with_descriptor(&mut self, d: &Descriptor) {
+        if let Descriptor::Endpoint(ep) = d {
+            let dci = Self::calculate_dci(ep);
+            self.context.input.control_mut().set_aflag(dci.into());
+        }
+    }
+
+    fn calculate_dci(ep: &descriptor::Endpoint) -> u8 {
+        let a = ep.endpoint_address;
+        2 * a.get_bits(0..=3) + a.get_bit(7) as u8
     }
 
     async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
