@@ -54,6 +54,19 @@ pub struct Device {
     num_configurations: u8,
 }
 
+#[derive(Copy, Clone, Default, Debug)]
+#[repr(C, packed)]
+pub struct Interface {
+    len: u8,
+    descriptor_type: u8,
+    first_interface: u8,
+    interface_count: u8,
+    function_class: u8,
+    function_subclass: u8,
+    function_protocol: u8,
+    function: u8,
+}
+
 #[derive(FromPrimitive)]
 pub enum Ty {
     Device = 1,
