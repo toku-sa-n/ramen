@@ -45,7 +45,12 @@ impl Slot {
         self.sender.get_device_descriptor().await
     }
 
-    pub async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
+    pub async fn get_configuration_descriptors(&mut self) -> Vec<Descriptor> {
+        let r = self.get_raw_configuration_descriptors().await;
+        RawDescriptorParser::new(r).parse()
+    }
+
+    async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
         self.sender.get_configuration_descriptor().await
     }
 
@@ -68,7 +73,8 @@ struct RawDescriptorParser {
     len: usize,
 }
 impl RawDescriptorParser {
-    fn new(raw: PageBox<[u8]>, len: usize) -> Self {
+    fn new(raw: PageBox<[u8]>) -> Self {
+        let len = raw.len();
         Self {
             raw,
             current: 0,
@@ -78,7 +84,7 @@ impl RawDescriptorParser {
 
     fn parse(&mut self) -> Vec<Descriptor> {
         let mut v = Vec::new();
-        while self.current < self.len && self.raw[self.current + 1] > 0 {
+        while self.current < self.len && self.raw[self.current] > 0 {
             match self.parse_first_descriptor() {
                 Ok(t) => v.push(t),
                 Err(e) => warn!("Error: {:?}", e),
@@ -97,10 +103,5 @@ impl RawDescriptorParser {
         let v = self.raw[self.current..(self.current + len)].to_vec();
         self.len += len;
         v
-    }
-
-    fn descriptor_ty(&self) -> Option<descriptor::Ty> {
-        let t = self.raw[self.current + 1];
-        FromPrimitive::from_u8(t)
     }
 }
