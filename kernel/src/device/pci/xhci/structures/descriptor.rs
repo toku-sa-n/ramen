@@ -9,7 +9,7 @@ pub enum Descriptor {
     Device(Device),
     Configuration,
     Str,
-    Interface,
+    Interface(Interface),
     Endpoint,
     Hid,
 }
@@ -25,7 +25,9 @@ impl Descriptor {
                 })),
                 Ty::Configuration => Ok(Self::Configuration),
                 Ty::Str => Ok(Self::Str),
-                Ty::Interface => Ok(Self::Interface),
+                Ty::Interface => Ok(Self::Interface(unsafe {
+                    ptr::read(raw as *const [u8] as *const _)
+                })),
                 Ty::Endpoint => Ok(Self::Endpoint),
                 Ty::Hid => Ok(Self::Hid),
             },
