@@ -185,6 +185,22 @@ impl Endpoint {
         self.0[1].set_bits(3..=5, ty as _);
     }
 
+    pub fn set_max_burst_size(&mut self, sz: u8) {
+        self.0[1].set_bits(8..=15, sz.into());
+    }
+
+    pub fn set_interval(&mut self, int: u8) {
+        self.0[0].set_bits(16..=23, int.into());
+    }
+
+    pub fn set_max_primary_streams(&mut self, s: u8) {
+        self.0[0].set_bits(10..=14, s.into());
+    }
+
+    pub fn set_mult(&mut self, m: u8) {
+        self.0[0].set_bits(8..=9, m.into());
+    }
+
     pub fn set_dequeue_ptr(&mut self, a: PhysAddr) {
         assert!(a.is_aligned(16_u64));
         let l = a.as_u64() & 0xffff_ffff;
