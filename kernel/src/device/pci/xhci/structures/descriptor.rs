@@ -4,6 +4,7 @@ use core::ptr;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 
+#[derive(Debug)]
 pub enum Descriptor {
     Device(Device),
     Configuration,
