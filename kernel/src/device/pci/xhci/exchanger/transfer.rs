@@ -35,6 +35,10 @@ impl Sender {
         }
     }
 
+    pub fn ring_addr(&self) -> PhysAddr {
+        self.ring.phys_addr()
+    }
+
     pub async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
         let b = PageBox::new(descriptor::Device::default());
         let (setup, data, status) =

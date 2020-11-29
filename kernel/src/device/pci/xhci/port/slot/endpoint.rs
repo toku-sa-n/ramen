@@ -11,6 +11,7 @@ use crate::device::pci::xhci::{
 };
 use alloc::{rc::Rc, vec::Vec};
 use bit_field::BitField;
+use context::EndpointType;
 use core::cell::RefCell;
 use futures_intrusive::sync::LocalMutex;
 use num_traits::FromPrimitive;
@@ -82,6 +83,18 @@ impl Default {
             ),
             cx: slot.context.clone(),
         }
+    }
+
+    fn init_context(&mut self) {
+        let mut cx = self.cx.borrow_mut();
+        let ep_0 = &mut cx.input.device_mut().ep_0;
+        ep_0.set_endpoint_type(EndpointType::Control);
+
+        // TODO: Support other speeds.
+        ep_0.set_max_packet_size(64);
+        ep_0.set_dequeue_ptr(self.sender.ring_addr());
+        ep_0.set_dequeue_cycle_state(CycleBit::new(true));
+        ep_0.set_error_count(3);
     }
 }
 
