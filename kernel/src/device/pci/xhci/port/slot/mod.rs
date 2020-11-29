@@ -72,11 +72,8 @@ impl Slot {
     }
 
     async fn issue_address_device(&mut self, runner: Rc<LocalMutex<command::Sender>>) {
-        runner
-            .lock()
-            .await
-            .address_device(self.context.borrow().input.phys_addr(), self.id)
-            .await;
+        let cx_addr = self.context.borrow().input.phys_addr();
+        runner.lock().await.address_device(cx_addr, self.id).await;
     }
 }
 
