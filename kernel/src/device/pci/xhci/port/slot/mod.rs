@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::super::structures::descriptor::Descriptor;
+use super::{super::structures::descriptor::Descriptor, Port};
 use crate::{
     device::pci::xhci::{
         exchanger::{command, receiver::Receiver, transfer},
@@ -20,7 +20,7 @@ use futures_intrusive::sync::LocalMutex;
 use num_traits::FromPrimitive;
 use transfer::DoorbellWriter;
 
-use super::Port;
+mod endpoint;
 
 pub struct Slot {
     id: u8,
