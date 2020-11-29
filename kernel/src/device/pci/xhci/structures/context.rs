@@ -5,6 +5,7 @@ use crate::mem::allocator::page_box::PageBox;
 use bit_field::BitField;
 use bitfield::bitfield;
 use core::convert::{TryFrom, TryInto};
+use num_derive::FromPrimitive;
 use x86_64::PhysAddr;
 
 pub struct Context {
@@ -89,7 +90,8 @@ impl InputWithControl64Bit {
 }
 
 pub trait InputControl {
-    fn set_aflag(&mut self, inde: usize);
+    fn set_aflag(&mut self, i: usize);
+    fn clear_aflag(&mut self, i: usize);
 }
 
 #[repr(transparent)]
@@ -103,6 +105,11 @@ impl InputControl for InputControl32Bit {
     fn set_aflag(&mut self, index: usize) {
         assert!(index < 32);
         self.0[1] |= 1 << index;
+    }
+
+    fn clear_aflag(&mut self, i: usize) {
+        assert!(i < 32);
+        self.0[1].set_bit(i, false);
     }
 }
 
@@ -118,13 +125,18 @@ impl InputControl for InputControl64Bit {
         assert!(index < 64);
         self.0[1] |= 1 << index;
     }
+
+    fn clear_aflag(&mut self, i: usize) {
+        assert!(i < 64);
+        self.0[1].set_bit(i, false);
+    }
 }
 
 #[repr(C)]
 pub struct Device {
     pub slot: Slot,
     pub ep_0: Endpoint,
-    ep_inout: [EndpointOutIn; 15],
+    pub ep_inout: [EndpointOutIn; 15],
 }
 impl Device {
     pub fn null() -> Self {
@@ -153,8 +165,8 @@ impl Slot {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct EndpointOutIn {
-    out: Endpoint,
-    input: Endpoint,
+    pub out: Endpoint,
+    pub input: Endpoint,
 }
 impl EndpointOutIn {
     fn null() -> Self {
@@ -215,6 +227,13 @@ impl Endpoint {
     }
 }
 
+#[derive(FromPrimitive)]
 pub enum EndpointType {
+    IsochronousOut = 1,
+    BulkOut = 2,
+    InterruptOut = 3,
     Control = 4,
+    IsochronousIn = 5,
+    BulkIn = 6,
+    InterruptIn = 7,
 }
