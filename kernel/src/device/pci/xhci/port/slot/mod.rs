@@ -26,7 +26,7 @@ pub struct Slot {
     id: u8,
     sender: transfer::Sender,
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
-    context: Context,
+    context: Rc<RefCell<Context>>,
 }
 impl Slot {
     pub fn new(port: Port, id: u8, receiver: Rc<RefCell<Receiver>>) -> Self {
@@ -38,7 +38,7 @@ impl Slot {
                 DoorbellWriter::new(port.registers, id),
             ),
             dcbaa: port.dcbaa,
-            context: port.context,
+            context: Rc::new(RefCell::new(port.context)),
         }
     }
 
@@ -59,7 +59,7 @@ impl Slot {
         runner
             .lock()
             .await
-            .configure_endpoint(self.context.input.phys_addr(), self.id)
+            .configure_endpoint(self.context.borrow().input.phys_addr(), self.id)
             .await;
     }
 
@@ -70,7 +70,7 @@ impl Slot {
 
     fn init_context_with_descriptor(&mut self, d: &Descriptor) {
         if let Descriptor::Endpoint(ep) = d {
-            EndpointContextInitializer::new(ep, &mut self.context).init();
+            EndpointContextInitializer::new(ep, &mut self.context.borrow_mut()).init();
         }
     }
 
@@ -79,14 +79,14 @@ impl Slot {
     }
 
     fn register_with_dcbaa(&mut self) {
-        self.dcbaa.borrow_mut()[self.id.into()] = self.context.output_device.phys_addr();
+        self.dcbaa.borrow_mut()[self.id.into()] = self.context.borrow().output_device.phys_addr();
     }
 
     async fn issue_address_device(&mut self, runner: Rc<LocalMutex<command::Sender>>) {
         runner
             .lock()
             .await
-            .address_device(self.context.input.phys_addr(), self.id)
+            .address_device(self.context.borrow().input.phys_addr(), self.id)
             .await;
     }
 }
