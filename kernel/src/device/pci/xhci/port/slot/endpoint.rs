@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::device::pci::xhci::{
-    exchanger::command,
+    exchanger::{command, receiver::Receiver, transfer},
     structures::{
         context::{self, Context},
         descriptor,
-        ring::CycleBit,
+        registers::Registers,
+        ring::{transfer::Ring as TransferRing, CycleBit},
     },
 };
 use alloc::{rc::Rc, vec::Vec};
@@ -13,6 +14,7 @@ use bit_field::BitField;
 use core::cell::RefCell;
 use futures_intrusive::sync::LocalMutex;
 use num_traits::FromPrimitive;
+use transfer::DoorbellWriter;
 
 use super::Slot;
 
@@ -63,6 +65,23 @@ impl Endpoint {
 
     pub fn init_context(&mut self) {
         ContextInitializer::new(&self.desc, &mut self.cx.borrow_mut()).init();
+    }
+}
+
+pub struct Default {
+    sender: transfer::Sender,
+    cx: Rc<RefCell<Context>>,
+}
+impl Default {
+    fn new(rcv: Rc<RefCell<Receiver>>, reg: Rc<RefCell<Registers>>, slot: &Slot) -> Self {
+        Self {
+            sender: transfer::Sender::new(
+                TransferRing::new(),
+                rcv,
+                DoorbellWriter::new(reg, slot.id),
+            ),
+            cx: slot.context.clone(),
+        }
     }
 }
 
