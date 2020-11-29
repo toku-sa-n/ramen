@@ -31,7 +31,7 @@ async fn task(
     let slot_id = runner.lock().await.enable_device_slot().await;
 
     let mut slot = Slot::new(port, slot_id, receiver);
-    slot.init_device_slot(runner.clone()).await;
+    slot.init(runner.clone()).await;
     let mut eps = endpoint::Collection::new(slot, runner).await;
     eps.init().await;
     info!("Yahoo");
