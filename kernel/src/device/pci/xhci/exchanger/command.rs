@@ -36,6 +36,11 @@ impl Sender {
         self.issue_trb(t).await;
     }
 
+    pub async fn configure_endpoint(&mut self, context_addr: PhysAddr, slot_id: u8) {
+        let t = Trb::new_configure_endpoint(context_addr, slot_id);
+        self.issue_trb(t).await;
+    }
+
     async fn issue_trb(&mut self, t: Trb) -> Completion {
         let a = self.ring.borrow_mut().enqueue(t);
         self.register_with_receiver(a);
