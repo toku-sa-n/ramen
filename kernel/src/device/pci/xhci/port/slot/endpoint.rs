@@ -40,7 +40,7 @@ impl Collection {
     }
 
     fn enable_eps(&mut self) {
-        for ep in self.eps.iter_mut() {
+        for ep in &mut self.eps {
             ep.init_context();
         }
     }
