@@ -36,7 +36,7 @@ impl Slot {
         }
     }
 
-    pub async fn init_device_slot(&mut self, runner: Rc<LocalMutex<command::Sender>>) {
+    pub async fn init(&mut self, runner: Rc<LocalMutex<command::Sender>>) {
         self.register_with_dcbaa();
         self.issue_address_device(runner).await;
     }
