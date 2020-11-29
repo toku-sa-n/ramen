@@ -11,6 +11,7 @@ pub enum Trb {
     Link(Link),
     EnableSlot(EnableSlot),
     AddressDevice(AddressDevice),
+    ConfigureEndpoint(ConfigureEndpoint),
 }
 impl Trb {
     pub const SIZE: Bytes = Bytes::new(16);
@@ -32,6 +33,7 @@ impl Trb {
             Self::Link(l) => l.set_cycle_bit(c),
             Self::EnableSlot(e) => e.set_cycle_bit(c),
             Self::AddressDevice(a) => a.set_cycle_bit(c),
+            Self::ConfigureEndpoint(e) => e.set_cycle_bit(c),
         }
     }
 }
@@ -41,6 +43,7 @@ impl From<Trb> for [u32; 4] {
             Trb::Link(l) => l.0,
             Trb::EnableSlot(e) => e.0,
             Trb::AddressDevice(a) => a.0,
+            Trb::ConfigureEndpoint(c) => c.0,
         }
     }
 }
