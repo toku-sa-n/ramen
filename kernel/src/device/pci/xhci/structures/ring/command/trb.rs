@@ -84,3 +84,29 @@ impl AddressDevice {
         self.0[3].set_bits(24..=31, id.into());
     }
 }
+
+add_trb!(ConfigureEndpoint);
+impl ConfigureEndpoint {
+    const ID: u8 = 12;
+    pub fn new(context_addr: PhysAddr, slot_id: u8) -> Self {
+        let mut t = Self([0; 4]);
+        t.set_context_addr(context_addr);
+        t.set_slot_id(slot_id);
+        t.set_trb_type(Self::ID);
+        t
+    }
+
+    fn set_context_addr(&mut self, a: PhysAddr) {
+        assert!(a.is_aligned(16_u64));
+
+        let l = a.as_u64() & 0xffff_ffff;
+        let u = a.as_u64() >> 32;
+
+        self.0[0] = l.try_into().unwrap();
+        self.0[1] = u.try_into().unwrap();
+    }
+
+    fn set_slot_id(&mut self, id: u8) {
+        self.0[3].set_bits(24..=31, id.into());
+    }
+}
