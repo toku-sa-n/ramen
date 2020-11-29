@@ -16,11 +16,12 @@ use crate::{
 use alloc::{rc::Rc, vec::Vec};
 use bit_field::BitField;
 use core::cell::RefCell;
+use endpoint::Endpoint;
 use futures_intrusive::sync::LocalMutex;
 use num_traits::FromPrimitive;
 use transfer::DoorbellWriter;
 
-mod endpoint;
+pub mod endpoint;
 
 pub struct Slot {
     id: u8,
@@ -51,27 +52,22 @@ impl Slot {
         self.sender.get_device_descriptor().await
     }
 
-    pub async fn enable_endpoint(&mut self, runner: Rc<LocalMutex<command::Sender>>) {
-        let descs = self.get_configuration_descriptors().await;
-        for d in descs {
-            self.init_context_with_descriptor(&d);
+    pub async fn endpoints(&mut self) -> Vec<Endpoint> {
+        let ds = self.get_configuration_descriptors().await;
+        let mut eps = Vec::new();
+
+        for d in ds {
+            if let Descriptor::Endpoint(ep) = d {
+                eps.push(Endpoint::new(ep, self.context.clone()));
+            }
         }
-        runner
-            .lock()
-            .await
-            .configure_endpoint(self.context.borrow().input.phys_addr(), self.id)
-            .await;
+
+        eps
     }
 
     pub async fn get_configuration_descriptors(&mut self) -> Vec<Descriptor> {
         let r = self.get_raw_configuration_descriptors().await;
         RawDescriptorParser::new(r).parse()
-    }
-
-    fn init_context_with_descriptor(&mut self, d: &Descriptor) {
-        if let Descriptor::Endpoint(ep) = d {
-            EndpointContextInitializer::new(ep, &mut self.context.borrow_mut()).init();
-        }
     }
 
     async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {

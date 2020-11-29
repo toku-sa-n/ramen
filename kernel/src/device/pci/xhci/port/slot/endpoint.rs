@@ -1,14 +1,56 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::device::pci::xhci::structures::{
-    context::{self, Context},
-    descriptor,
-    ring::CycleBit,
+use crate::device::pci::xhci::{
+    exchanger::command,
+    structures::{
+        context::{self, Context},
+        descriptor,
+        ring::CycleBit,
+    },
 };
-use alloc::rc::Rc;
+use alloc::{rc::Rc, vec::Vec};
 use bit_field::BitField;
 use core::cell::RefCell;
+use futures_intrusive::sync::LocalMutex;
 use num_traits::FromPrimitive;
+
+use super::Slot;
+
+pub struct Collection {
+    eps: Vec<Endpoint>,
+    cx: Rc<RefCell<Context>>,
+    cmd: Rc<LocalMutex<command::Sender>>,
+    slot_id: u8,
+}
+impl Collection {
+    pub async fn new(mut slot: Slot, cmd: Rc<LocalMutex<command::Sender>>) -> Self {
+        let eps = slot.endpoints().await;
+        Self {
+            eps,
+            cx: slot.context,
+            cmd,
+            slot_id: slot.id,
+        }
+    }
+
+    pub async fn init(&mut self) {
+        self.enable_eps();
+        self.issue_configure_eps().await;
+        info!("Endpoints initialized");
+    }
+
+    fn enable_eps(&mut self) {
+        for ep in self.eps.iter_mut() {
+            ep.init_context();
+        }
+    }
+
+    async fn issue_configure_eps(&mut self) {
+        let mut cmd = self.cmd.lock().await;
+        let cx_addr = self.cx.borrow().input.phys_addr();
+        cmd.configure_endpoint(cx_addr, self.slot_id).await;
+    }
+}
 
 pub struct Endpoint {
     desc: descriptor::Endpoint,

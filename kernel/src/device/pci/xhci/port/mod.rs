@@ -14,7 +14,7 @@ use alloc::rc::Rc;
 use core::cell::RefCell;
 use futures_intrusive::sync::LocalMutex;
 use resetter::Resetter;
-use slot::Slot;
+use slot::{endpoint, Slot};
 
 mod context;
 mod resetter;
@@ -32,13 +32,9 @@ async fn task(
 
     let mut slot = Slot::new(port, slot_id, receiver);
     slot.init_device_slot(runner.clone()).await;
-    let device_descriptor = slot.get_device_descriptor().await;
-    info!("{:?}", device_descriptor);
-
-    let configuration_descriptor = slot.get_configuration_descriptors().await;
-    info!("{:?}", configuration_descriptor);
-
-    slot.enable_endpoint(runner).await;
+    let mut eps = endpoint::Collection::new(slot, runner).await;
+    eps.init().await;
+    info!("Yahoo");
 }
 
 // FIXME: Resolve this.
