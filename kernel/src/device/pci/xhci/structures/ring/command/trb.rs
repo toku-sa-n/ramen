@@ -28,6 +28,10 @@ impl Trb {
         Self::AddressDevice(AddressDevice::new(input_context_addr, slot_id))
     }
 
+    pub fn new_configure_endpoint(context_addr: PhysAddr, slot_id: u8) -> Self {
+        Self::ConfigureEndpoint(ConfigureEndpoint::new(context_addr, slot_id))
+    }
+
     pub fn set_c(&mut self, c: CycleBit) {
         match self {
             Self::Link(l) => l.set_cycle_bit(c),
