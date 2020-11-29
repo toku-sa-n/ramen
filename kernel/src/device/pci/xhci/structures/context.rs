@@ -90,7 +90,8 @@ impl InputWithControl64Bit {
 }
 
 pub trait InputControl {
-    fn set_aflag(&mut self, inde: usize);
+    fn set_aflag(&mut self, i: usize);
+    fn clear_aflag(&mut self, i: usize);
 }
 
 #[repr(transparent)]
@@ -105,6 +106,11 @@ impl InputControl for InputControl32Bit {
         assert!(index < 32);
         self.0[1] |= 1 << index;
     }
+
+    fn clear_aflag(&mut self, i: usize) {
+        assert!(i < 32);
+        self.0[1].set_bit(i, false);
+    }
 }
 
 #[repr(transparent)]
@@ -118,6 +124,11 @@ impl InputControl for InputControl64Bit {
     fn set_aflag(&mut self, index: usize) {
         assert!(index < 64);
         self.0[1] |= 1 << index;
+    }
+
+    fn clear_aflag(&mut self, i: usize) {
+        assert!(i < 64);
+        self.0[1].set_bit(i, false);
     }
 }
 

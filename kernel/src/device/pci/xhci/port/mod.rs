@@ -31,12 +31,14 @@ async fn task(
     let slot_id = runner.lock().await.enable_device_slot().await;
 
     let mut slot = Slot::new(port, slot_id, receiver);
-    slot.init_device_slot(runner).await;
+    slot.init_device_slot(runner.clone()).await;
     let device_descriptor = slot.get_device_descriptor().await;
     info!("{:?}", device_descriptor);
 
     let configuration_descriptor = slot.get_configuration_descriptors().await;
     info!("{:?}", configuration_descriptor);
+
+    slot.enable_endpoint(runner).await;
 }
 
 // FIXME: Resolve this.

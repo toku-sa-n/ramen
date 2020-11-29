@@ -51,11 +51,16 @@ impl Slot {
         self.sender.get_device_descriptor().await
     }
 
-    pub async fn enable_endpoint(&mut self) {
+    pub async fn enable_endpoint(&mut self, runner: Rc<LocalMutex<command::Sender>>) {
         let descs = self.get_configuration_descriptors().await;
         for d in descs {
             self.init_context_with_descriptor(&d);
         }
+        runner
+            .lock()
+            .await
+            .configure_endpoint(self.context.input.phys_addr(), self.id)
+            .await;
     }
 
     pub async fn get_configuration_descriptors(&mut self) -> Vec<Descriptor> {
@@ -141,6 +146,8 @@ impl<'a> EndpointContextInitializer<'a> {
 
     fn set_aflag(&mut self) {
         let dci: usize = self.calculate_dci().into();
+
+        self.context.input.control_mut().clear_aflag(1); // See xHCI dev manual 4.6.6.
         self.context.input.control_mut().set_aflag(dci);
     }
 
@@ -152,6 +159,7 @@ impl<'a> EndpointContextInitializer<'a> {
     fn init_ep_context(&mut self) {
         let ep_ty = self.ep_ty();
         let max_packet_size = self.ep.max_packet_size;
+        let interval = self.ep.interval;
 
         let c = self.ep_context();
         c.set_endpoint_type(ep_ty);
@@ -161,6 +169,7 @@ impl<'a> EndpointContextInitializer<'a> {
         c.set_max_primary_streams(0);
         c.set_mult(0);
         c.set_error_count(3);
+        c.set_interval(interval);
     }
 
     fn ep_context(&mut self) -> &mut context::Endpoint {
