@@ -16,6 +16,7 @@ use crate::{
 use alloc::{rc::Rc, vec::Vec};
 use bit_field::BitField;
 use core::cell::RefCell;
+use endpoint::Endpoint;
 use futures_intrusive::sync::LocalMutex;
 use num_traits::FromPrimitive;
 use transfer::DoorbellWriter;
@@ -27,6 +28,7 @@ pub struct Slot {
     sender: transfer::Sender,
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
     context: Rc<RefCell<Context>>,
+    eps: Vec<Endpoint>,
 }
 impl Slot {
     pub fn new(port: Port, id: u8, receiver: Rc<RefCell<Receiver>>) -> Self {
@@ -39,6 +41,7 @@ impl Slot {
             ),
             dcbaa: port.dcbaa,
             context: Rc::new(RefCell::new(port.context)),
+            eps: Vec::new(),
         }
     }
 
