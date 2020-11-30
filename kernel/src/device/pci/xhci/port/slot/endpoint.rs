@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use super::Slot;
 use crate::{
     device::pci::xhci::{
-        exchanger::{command, receiver::Receiver, transfer},
+        exchanger::{command, transfer},
         structures::{
             context::{self, Context},
             descriptor,
-            registers::Registers,
             ring::CycleBit,
         },
     },
@@ -18,9 +18,6 @@ use context::EndpointType;
 use core::cell::RefCell;
 use futures_intrusive::sync::LocalMutex;
 use num_traits::FromPrimitive;
-use transfer::DoorbellWriter;
-
-use super::Slot;
 
 pub struct Collection {
     def: Default,
