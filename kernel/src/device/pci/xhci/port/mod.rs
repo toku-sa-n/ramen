@@ -6,7 +6,6 @@ use super::{
         context::Context,
         dcbaa::DeviceContextBaseAddressArray,
         registers::{operational::PortRegisters, Registers},
-        ring::transfer::Ring as TransferRing,
     },
 };
 use crate::multitask::task::{self, Task};
@@ -32,6 +31,7 @@ async fn task(
 
     let mut slot = Slot::new(port, slot_id, receiver);
     slot.init(runner.clone()).await;
+    info!("Slot initialized");
     let mut eps = endpoint::Collection::new(slot, runner).await;
     eps.init().await;
     info!("Yahoo");
@@ -69,7 +69,6 @@ pub struct Port {
     registers: Rc<RefCell<Registers>>,
     index: u8,
     context: Context,
-    transfer_ring: TransferRing,
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
 }
 impl Port {
@@ -83,7 +82,6 @@ impl Port {
             index,
             context: Context::new(&registers.borrow()),
             dcbaa,
-            transfer_ring: TransferRing::new(),
         }
     }
 
@@ -96,7 +94,7 @@ impl Port {
     }
 
     fn init_context(&mut self) {
-        context::Initializer::new(&mut self.context, &self.transfer_ring, self.index).init();
+        context::Initializer::new(&mut self.context, self.index).init();
     }
 
     fn read_port_rg(&self) -> PortRegisters {

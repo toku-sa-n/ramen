@@ -1,18 +1,24 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::device::pci::xhci::{
-    exchanger::command,
-    structures::{
-        context::{self, Context},
-        descriptor,
-        ring::CycleBit,
+use crate::{
+    device::pci::xhci::{
+        exchanger::{command, receiver::Receiver, transfer},
+        structures::{
+            context::{self, Context},
+            descriptor,
+            registers::Registers,
+            ring::CycleBit,
+        },
     },
+    mem::allocator::page_box::PageBox,
 };
 use alloc::{rc::Rc, vec::Vec};
 use bit_field::BitField;
+use context::EndpointType;
 use core::cell::RefCell;
 use futures_intrusive::sync::LocalMutex;
 use num_traits::FromPrimitive;
+use transfer::DoorbellWriter;
 
 use super::Slot;
 
@@ -25,9 +31,10 @@ pub struct Collection {
 impl Collection {
     pub async fn new(mut slot: Slot, cmd: Rc<LocalMutex<command::Sender>>) -> Self {
         let eps = slot.endpoints().await;
+        info!("Endpoints collected");
         Self {
             eps,
-            cx: slot.context,
+            cx: slot.cx,
             cmd,
             slot_id: slot.id,
         }
@@ -63,6 +70,36 @@ impl Endpoint {
 
     pub fn init_context(&mut self) {
         ContextInitializer::new(&self.desc, &mut self.cx.borrow_mut()).init();
+    }
+}
+
+pub struct Default {
+    sender: transfer::Sender,
+    cx: Rc<RefCell<Context>>,
+}
+impl Default {
+    pub fn new(sender: transfer::Sender, cx: Rc<RefCell<Context>>) -> Self {
+        Self { sender, cx }
+    }
+
+    pub async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
+        self.sender.get_device_descriptor().await
+    }
+
+    pub async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
+        self.sender.get_configuration_descriptor().await
+    }
+
+    pub fn init_context(&mut self) {
+        let mut cx = self.cx.borrow_mut();
+        let ep_0 = &mut cx.input.device_mut().ep_0;
+        ep_0.set_endpoint_type(EndpointType::Control);
+
+        // TODO: Support other speeds.
+        ep_0.set_max_packet_size(64);
+        ep_0.set_dequeue_ptr(self.sender.ring_addr());
+        ep_0.set_dequeue_cycle_state(CycleBit::new(true));
+        ep_0.set_error_count(3);
     }
 }
 

@@ -18,31 +18,32 @@ pub mod endpoint;
 
 pub struct Slot {
     id: u8,
-    sender: transfer::Sender,
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
-    context: Rc<RefCell<Context>>,
+    cx: Rc<RefCell<Context>>,
+    def_ep: endpoint::Default,
 }
 impl Slot {
     pub fn new(port: Port, id: u8, receiver: Rc<RefCell<Receiver>>) -> Self {
+        let cx = Rc::new(RefCell::new(port.context));
         Self {
             id,
-            sender: transfer::Sender::new(
-                port.transfer_ring,
-                receiver,
-                DoorbellWriter::new(port.registers, id),
-            ),
             dcbaa: port.dcbaa,
-            context: Rc::new(RefCell::new(port.context)),
+            cx: cx.clone(),
+            def_ep: endpoint::Default::new(
+                transfer::Sender::new(receiver, DoorbellWriter::new(port.registers, id)),
+                cx,
+            ),
         }
     }
 
     pub async fn init(&mut self, runner: Rc<LocalMutex<command::Sender>>) {
+        self.init_default_ep();
         self.register_with_dcbaa();
         self.issue_address_device(runner).await;
     }
 
     pub async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
-        self.sender.get_device_descriptor().await
+        self.def_ep.get_device_descriptor().await
     }
 
     pub async fn endpoints(&mut self) -> Vec<Endpoint> {
@@ -51,7 +52,7 @@ impl Slot {
 
         for d in ds {
             if let Descriptor::Endpoint(ep) = d {
-                eps.push(Endpoint::new(ep, self.context.clone()));
+                eps.push(Endpoint::new(ep, self.cx.clone()));
             }
         }
 
@@ -63,16 +64,20 @@ impl Slot {
         RawDescriptorParser::new(r).parse()
     }
 
+    fn init_default_ep(&mut self) {
+        self.def_ep.init_context();
+    }
+
     async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
-        self.sender.get_configuration_descriptor().await
+        self.def_ep.get_raw_configuration_descriptors().await
     }
 
     fn register_with_dcbaa(&mut self) {
-        self.dcbaa.borrow_mut()[self.id.into()] = self.context.borrow().output_device.phys_addr();
+        self.dcbaa.borrow_mut()[self.id.into()] = self.cx.borrow().output_device.phys_addr();
     }
 
     async fn issue_address_device(&mut self, runner: Rc<LocalMutex<command::Sender>>) {
-        let cx_addr = self.context.borrow().input.phys_addr();
+        let cx_addr = self.cx.borrow().input.phys_addr();
         runner.lock().await.address_device(cx_addr, self.id).await;
     }
 }

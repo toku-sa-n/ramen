@@ -22,17 +22,17 @@ pub struct Sender {
     waker: Rc<RefCell<AtomicWaker>>,
 }
 impl Sender {
-    pub fn new(
-        ring: transfer::Ring,
-        receiver: Rc<RefCell<Receiver>>,
-        doorbell_writer: DoorbellWriter,
-    ) -> Self {
+    pub fn new(receiver: Rc<RefCell<Receiver>>, doorbell_writer: DoorbellWriter) -> Self {
         Self {
-            ring,
+            ring: transfer::Ring::new(),
             receiver,
             doorbell_writer,
             waker: Rc::new(RefCell::new(AtomicWaker::new())),
         }
+    }
+
+    pub fn ring_addr(&self) -> PhysAddr {
+        self.ring.phys_addr()
     }
 
     pub async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
@@ -48,6 +48,7 @@ impl Sender {
         let (setup, data, status) =
             Trb::new_get_descriptor(&b, DescTyIdx::new(descriptor::Ty::Configuration, 0));
         self.issue_trbs(&[setup, data, status]).await;
+        info!("Got TRBs");
         b
     }
 
