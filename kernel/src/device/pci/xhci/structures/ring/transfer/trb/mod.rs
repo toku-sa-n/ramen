@@ -32,6 +32,10 @@ impl Trb {
         Self::Link(Link::new(a))
     }
 
+    pub fn new_normal<T: ?Sized>(b: PageBox<T>) -> Self {
+        Self::Normal(Normal::new(b))
+    }
+
     pub fn set_c(&mut self, c: CycleBit) {
         match self {
             Self::Control(co) => co.set_cycle_bit(c),
