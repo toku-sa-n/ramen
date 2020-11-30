@@ -27,7 +27,6 @@ pub struct Slot {
     def_ep: endpoint::Default,
     recv: Rc<RefCell<Receiver>>,
     regs: Rc<RefCell<Registers>>,
-    dbl_writer: DoorbellWriter,
 }
 impl Slot {
     pub fn new(port: Port, id: u8, recv: Rc<RefCell<Receiver>>) -> Self {
@@ -40,7 +39,6 @@ impl Slot {
             def_ep: endpoint::Default::new(transfer::Sender::new(recv.clone(), dbl_writer), cx),
             recv,
             regs: port.registers.clone(),
-            dbl_writer: DoorbellWriter::new(port.registers, id, 0),
         }
     }
 
