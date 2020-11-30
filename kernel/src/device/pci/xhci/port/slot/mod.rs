@@ -12,6 +12,7 @@ use crate::{
     mem::allocator::page_box::PageBox,
 };
 use alloc::{rc::Rc, vec::Vec};
+use bit_field::BitField;
 use core::cell::RefCell;
 use endpoint::Endpoint;
 use futures_intrusive::sync::LocalMutex;
@@ -25,22 +26,19 @@ pub struct Slot {
     cx: Rc<RefCell<Context>>,
     def_ep: endpoint::Default,
     recv: Rc<RefCell<Receiver>>,
-    dbl_writer: DoorbellWriter,
+    regs: Rc<RefCell<Registers>>,
 }
 impl Slot {
     pub fn new(port: Port, id: u8, recv: Rc<RefCell<Receiver>>) -> Self {
         let cx = Rc::new(RefCell::new(port.context));
-        let dbl_writer = DoorbellWriter::new(port.registers.clone(), id);
+        let dbl_writer = DoorbellWriter::new(port.registers.clone(), id, 1);
         Self {
             id,
             dcbaa: port.dcbaa,
             cx: cx.clone(),
-            def_ep: endpoint::Default::new(
-                transfer::Sender::new(recv.clone(), dbl_writer.clone()),
-                cx,
-            ),
+            def_ep: endpoint::Default::new(transfer::Sender::new(recv.clone(), dbl_writer), cx),
             recv,
-            dbl_writer,
+            regs: port.registers,
         }
     }
 
@@ -63,7 +61,15 @@ impl Slot {
                 eps.push(Endpoint::new(
                     ep,
                     self.cx.clone(),
-                    transfer::Sender::new(self.recv.clone(), self.dbl_writer.clone()),
+                    transfer::Sender::new(
+                        self.recv.clone(),
+                        DoorbellWriter::new(
+                            self.regs.clone(),
+                            self.id,
+                            u32::from(ep.endpoint_address.get_bits(0..=3))
+                                + ep.endpoint_address.get_bit(7) as u32,
+                        ),
+                    ),
                 ));
             }
         }
