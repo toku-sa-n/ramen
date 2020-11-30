@@ -14,6 +14,7 @@ pub mod control;
 pub enum Trb {
     Control(Control),
     Link(Link),
+    Normal(Normal),
 }
 impl Trb {
     pub const SIZE: Bytes = Bytes::new(16);
@@ -35,6 +36,7 @@ impl Trb {
         match self {
             Self::Control(co) => co.set_cycle_bit(c),
             Self::Link(l) => l.set_cycle_bit(c),
+            Self::Normal(n) => n.set_cycle_bit(c),
         }
     }
 
@@ -42,6 +44,7 @@ impl Trb {
         match self {
             Self::Control(c) => c.ioc(),
             Self::Link(_) => false,
+            Self::Normal(n) => n.ioc(),
         }
     }
 }
@@ -50,6 +53,7 @@ impl From<Trb> for [u32; 4] {
         match t {
             Trb::Control(c) => c.into(),
             Trb::Link(l) => l.0,
+            Trb::Normal(n) => n.0,
         }
     }
 }
@@ -81,5 +85,9 @@ impl Normal {
 
     fn set_ioc(&mut self, ioc: bool) {
         self.0[3].set_bit(5, ioc);
+    }
+
+    fn ioc(&self) -> bool {
+        self.0[3].get_bit(5)
     }
 }
