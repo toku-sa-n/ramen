@@ -95,7 +95,6 @@ impl Sender {
     }
 }
 
-#[derive(Clone)]
 pub struct DoorbellWriter {
     registers: Rc<RefCell<Registers>>,
     slot_id: u8,
