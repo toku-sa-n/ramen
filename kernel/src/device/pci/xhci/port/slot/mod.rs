@@ -3,7 +3,7 @@
 use super::{super::structures::descriptor::Descriptor, Port};
 use crate::{
     device::pci::xhci::{
-        exchanger::{command, receiver::Receiver},
+        exchanger::{command, receiver::Receiver, transfer},
         structures::{context::Context, dcbaa::DeviceContextBaseAddressArray, descriptor},
     },
     mem::allocator::page_box::PageBox,
@@ -12,6 +12,7 @@ use alloc::{rc::Rc, vec::Vec};
 use core::cell::RefCell;
 use endpoint::Endpoint;
 use futures_intrusive::sync::LocalMutex;
+use transfer::DoorbellWriter;
 
 pub mod endpoint;
 
@@ -28,7 +29,10 @@ impl Slot {
             id,
             dcbaa: port.dcbaa,
             cx: cx.clone(),
-            def_ep: endpoint::Default::new(receiver, port.registers, id, cx),
+            def_ep: endpoint::Default::new(
+                transfer::Sender::new(receiver, DoorbellWriter::new(port.registers, id)),
+                cx,
+            ),
         }
     }
 
