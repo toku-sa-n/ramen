@@ -90,7 +90,7 @@ impl Port {
     }
 
     fn reset(&mut self) {
-        Resetter::new(self.registers.clone(), self.index).reset();
+        Resetter::new(&mut self.registers.borrow_mut(), self.index).reset();
     }
 
     fn init_context(&mut self) {
