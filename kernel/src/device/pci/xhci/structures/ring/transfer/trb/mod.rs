@@ -32,7 +32,7 @@ impl Trb {
         Self::Link(Link::new(a))
     }
 
-    pub fn new_normal<T: ?Sized>(b: PageBox<T>) -> Self {
+    pub fn new_normal<T: ?Sized>(b: &PageBox<T>) -> Self {
         Self::Normal(Normal::new(b))
     }
 
@@ -66,7 +66,7 @@ add_trb!(Normal);
 impl Normal {
     const ID: u8 = 1;
 
-    pub fn new<T: ?Sized>(b: PageBox<T>) -> Self {
+    pub fn new<T: ?Sized>(b: &PageBox<T>) -> Self {
         let mut t = Self([0; 4]);
         t.set_buf_ptr(b.phys_addr());
         t.set_transfer_length(b.bytes());
