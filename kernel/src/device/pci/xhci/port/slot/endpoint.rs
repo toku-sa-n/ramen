@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use super::Slot;
 use crate::{
     device::pci::xhci::{
-        exchanger::{command, receiver::Receiver, transfer},
+        exchanger::{command, transfer},
         structures::{
             context::{self, Context},
             descriptor,
-            registers::Registers,
             ring::CycleBit,
         },
     },
@@ -18,11 +18,9 @@ use context::EndpointType;
 use core::cell::RefCell;
 use futures_intrusive::sync::LocalMutex;
 use num_traits::FromPrimitive;
-use transfer::DoorbellWriter;
-
-use super::Slot;
 
 pub struct Collection {
+    def: Default,
     eps: Vec<Endpoint>,
     cx: Rc<RefCell<Context>>,
     cmd: Rc<LocalMutex<command::Sender>>,
@@ -33,6 +31,7 @@ impl Collection {
         let eps = slot.endpoints().await;
         info!("Endpoints collected");
         Self {
+            def: slot.def_ep,
             eps,
             cx: slot.cx,
             cmd,
@@ -62,14 +61,19 @@ impl Collection {
 pub struct Endpoint {
     desc: descriptor::Endpoint,
     cx: Rc<RefCell<Context>>,
+    sender: transfer::Sender,
 }
 impl Endpoint {
-    pub fn new(desc: descriptor::Endpoint, cx: Rc<RefCell<Context>>) -> Self {
-        Self { desc, cx }
+    pub fn new(
+        desc: descriptor::Endpoint,
+        cx: Rc<RefCell<Context>>,
+        sender: transfer::Sender,
+    ) -> Self {
+        Self { desc, cx, sender }
     }
 
     pub fn init_context(&mut self) {
-        ContextInitializer::new(&self.desc, &mut self.cx.borrow_mut()).init();
+        ContextInitializer::new(&self.desc, &mut self.cx.borrow_mut(), &self.sender).init();
     }
 }
 
@@ -106,10 +110,19 @@ impl Default {
 struct ContextInitializer<'a> {
     ep: &'a descriptor::Endpoint,
     context: &'a mut Context,
+    sender: &'a transfer::Sender,
 }
 impl<'a> ContextInitializer<'a> {
-    fn new(ep: &'a descriptor::Endpoint, context: &'a mut Context) -> Self {
-        Self { ep, context }
+    fn new(
+        ep: &'a descriptor::Endpoint,
+        context: &'a mut Context,
+        sender: &'a transfer::Sender,
+    ) -> Self {
+        Self {
+            ep,
+            context,
+            sender,
+        }
     }
 
     fn init(&mut self) {
@@ -133,6 +146,7 @@ impl<'a> ContextInitializer<'a> {
         let ep_ty = self.ep_ty();
         let max_packet_size = self.ep.max_packet_size;
         let interval = self.ep.interval;
+        let ring_addr = self.sender.ring_addr();
 
         let c = self.ep_context();
         c.set_endpoint_type(ep_ty);
@@ -143,6 +157,7 @@ impl<'a> ContextInitializer<'a> {
         c.set_mult(0);
         c.set_error_count(3);
         c.set_interval(interval);
+        c.set_dequeue_ptr(ring_addr);
     }
 
     fn ep_context(&mut self) -> &mut context::Endpoint {
