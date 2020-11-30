@@ -25,24 +25,22 @@ pub struct Slot {
     cx: Rc<RefCell<Context>>,
     def_ep: endpoint::Default,
     recv: Rc<RefCell<Receiver>>,
-    regs: Rc<RefCell<Registers>>,
+    dbl_writer: DoorbellWriter,
 }
 impl Slot {
     pub fn new(port: Port, id: u8, recv: Rc<RefCell<Receiver>>) -> Self {
         let cx = Rc::new(RefCell::new(port.context));
+        let dbl_writer = DoorbellWriter::new(port.registers.clone(), id);
         Self {
             id,
             dcbaa: port.dcbaa,
             cx: cx.clone(),
             def_ep: endpoint::Default::new(
-                transfer::Sender::new(
-                    recv.clone(),
-                    DoorbellWriter::new(port.registers.clone(), id),
-                ),
+                transfer::Sender::new(recv.clone(), dbl_writer.clone()),
                 cx,
             ),
             recv,
-            regs: port.registers,
+            dbl_writer,
         }
     }
 
@@ -65,10 +63,7 @@ impl Slot {
                 eps.push(Endpoint::new(
                     ep,
                     self.cx.clone(),
-                    transfer::Sender::new(
-                        self.recv.clone(),
-                        DoorbellWriter::new(self.regs.clone(), self.id),
-                    ),
+                    transfer::Sender::new(self.recv.clone(), self.dbl_writer.clone()),
                 ));
             }
         }
