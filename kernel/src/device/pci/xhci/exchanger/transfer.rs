@@ -52,6 +52,11 @@ impl Sender {
         b
     }
 
+    pub async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
+        let t = Trb::new_normal(&b);
+        self.issue_trbs(&[t]).await;
+    }
+
     async fn issue_trbs(&mut self, ts: &[Trb]) -> Vec<Option<Completion>> {
         let addrs = self.ring.enqueue(ts);
         self.register_with_receiver(ts, &addrs);

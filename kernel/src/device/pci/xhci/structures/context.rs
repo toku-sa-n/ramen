@@ -227,7 +227,7 @@ impl Endpoint {
     }
 }
 
-#[derive(FromPrimitive)]
+#[derive(Debug, FromPrimitive)]
 pub enum EndpointType {
     IsochronousOut = 1,
     BulkOut = 2,
