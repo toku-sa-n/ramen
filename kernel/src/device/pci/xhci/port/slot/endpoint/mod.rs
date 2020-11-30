@@ -19,6 +19,8 @@ use core::cell::RefCell;
 use futures_intrusive::sync::LocalMutex;
 use num_traits::FromPrimitive;
 
+mod class_driver;
+
 pub struct Collection {
     def: Default,
     eps: Vec<Endpoint>,
