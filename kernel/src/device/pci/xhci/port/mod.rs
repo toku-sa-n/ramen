@@ -11,6 +11,7 @@ use super::{
 use crate::multitask::task::{self, Task};
 use alloc::rc::Rc;
 use core::cell::RefCell;
+use endpoint::class_driver;
 use futures_intrusive::sync::LocalMutex;
 use resetter::Resetter;
 use slot::{endpoint, Slot};
@@ -23,6 +24,7 @@ async fn task(
     mut port: Port,
     runner: Rc<LocalMutex<command::Sender>>,
     receiver: Rc<RefCell<Receiver>>,
+    task_collection: Rc<RefCell<task::Collection>>,
 ) {
     port.reset();
     port.init_context();
@@ -34,7 +36,11 @@ async fn task(
     info!("Slot initialized");
     let mut eps = endpoint::Collection::new(slot, runner).await;
     eps.init().await;
-    info!("Yahoo");
+
+    let kbd = class_driver::keyboard::Keyboard::new(eps, task_collection.clone());
+    task_collection
+        .borrow_mut()
+        .add_task_as_woken(Task::new(class_driver::keyboard::task(kbd)));
 }
 
 // FIXME: Resolve this.
@@ -55,6 +61,7 @@ pub fn spawn_tasks(
                     port,
                     command_runner.clone(),
                     receiver.clone(),
+                    task_collection.clone(),
                 )));
         }
     }

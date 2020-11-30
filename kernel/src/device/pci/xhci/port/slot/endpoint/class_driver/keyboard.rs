@@ -12,12 +12,16 @@ use futures_util::task::AtomicWaker;
 use task::Task;
 
 use crate::{
-    device::pci::xhci::exchanger::transfer, mem::allocator::page_box::PageBox, multitask::task,
+    device::pci::xhci::{
+        exchanger::transfer, port::slot::endpoint, structures::context::EndpointType,
+    },
+    mem::allocator::page_box::PageBox,
+    multitask::task,
 };
 
 static WAKER: AtomicWaker = AtomicWaker::new();
 
-async fn task(mut kbd: Keyboard) {
+pub async fn task(mut kbd: Keyboard) {
     loop {
         kbd.get_packet().await;
         kbd.print_buf();
@@ -29,15 +33,15 @@ async fn waker_task() {
     WAKER.wake();
 }
 
-struct Keyboard {
-    sender: transfer::Sender,
+pub struct Keyboard {
+    ep: endpoint::Collection,
     task_collection: Rc<RefCell<task::Collection>>,
     buf: PageBox<[u8; 8]>,
 }
 impl Keyboard {
-    fn new(sender: transfer::Sender, task_collection: Rc<RefCell<task::Collection>>) -> Self {
+    pub fn new(ep: endpoint::Collection, task_collection: Rc<RefCell<task::Collection>>) -> Self {
         Self {
-            sender,
+            ep,
             task_collection,
             buf: PageBox::new([0; 8]),
         }
@@ -45,10 +49,15 @@ impl Keyboard {
 
     async fn get_packet(&mut self) {
         self.issue_normal_trb().await;
+        self.wait_until_packet_is_sent().await;
     }
 
     async fn issue_normal_trb(&mut self) {
-        self.sender.issue_normal_trb(&self.buf).await;
+        for e in &mut self.ep {
+            if e.ty() == EndpointType::InterruptIn {
+                e.sender.issue_normal_trb(&self.buf).await;
+            }
+        }
     }
 
     async fn wait_until_packet_is_sent(&self) {

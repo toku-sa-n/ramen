@@ -54,6 +54,7 @@ impl Sender {
 
     pub async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
         let t = Trb::new_normal(&b);
+        info!("Normal TRB: {:X?}", t);
         self.issue_trbs(&[t]).await;
     }
 

@@ -10,7 +10,7 @@ use x86_64::PhysAddr;
 
 pub mod control;
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub enum Trb {
     Control(Control),
     Link(Link),

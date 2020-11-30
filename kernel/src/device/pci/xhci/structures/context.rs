@@ -178,7 +178,7 @@ impl EndpointOutIn {
 }
 
 #[repr(transparent)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Endpoint([u32; 8]);
 impl Endpoint {
     pub fn set_endpoint_type(&mut self, ty: EndpointType) {
@@ -227,7 +227,7 @@ impl Endpoint {
     }
 }
 
-#[derive(Debug, FromPrimitive)]
+#[derive(PartialEq, Eq, Debug, FromPrimitive)]
 pub enum EndpointType {
     IsochronousOut = 1,
     BulkOut = 2,
