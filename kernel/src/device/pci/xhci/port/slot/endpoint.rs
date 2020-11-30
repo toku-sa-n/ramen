@@ -73,7 +73,7 @@ impl Endpoint {
     }
 
     pub fn init_context(&mut self) {
-        ContextInitializer::new(&self.desc, &mut self.cx.borrow_mut()).init();
+        ContextInitializer::new(&self.desc, &mut self.cx.borrow_mut(), &self.sender).init();
     }
 }
 
@@ -110,10 +110,19 @@ impl Default {
 struct ContextInitializer<'a> {
     ep: &'a descriptor::Endpoint,
     context: &'a mut Context,
+    sender: &'a transfer::Sender,
 }
 impl<'a> ContextInitializer<'a> {
-    fn new(ep: &'a descriptor::Endpoint, context: &'a mut Context) -> Self {
-        Self { ep, context }
+    fn new(
+        ep: &'a descriptor::Endpoint,
+        context: &'a mut Context,
+        sender: &'a transfer::Sender,
+    ) -> Self {
+        Self {
+            ep,
+            context,
+            sender,
+        }
     }
 
     fn init(&mut self) {
@@ -137,6 +146,7 @@ impl<'a> ContextInitializer<'a> {
         let ep_ty = self.ep_ty();
         let max_packet_size = self.ep.max_packet_size;
         let interval = self.ep.interval;
+        let ring_addr = self.sender.ring_addr();
 
         let c = self.ep_context();
         c.set_endpoint_type(ep_ty);
@@ -147,6 +157,7 @@ impl<'a> ContextInitializer<'a> {
         c.set_mult(0);
         c.set_error_count(3);
         c.set_interval(interval);
+        c.set_dequeue_ptr(ring_addr);
     }
 
     fn ep_context(&mut self) -> &mut context::Endpoint {
