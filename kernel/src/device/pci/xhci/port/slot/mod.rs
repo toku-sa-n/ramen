@@ -4,7 +4,10 @@ use super::{super::structures::descriptor::Descriptor, Port};
 use crate::{
     device::pci::xhci::{
         exchanger::{command, receiver::Receiver, transfer},
-        structures::{context::Context, dcbaa::DeviceContextBaseAddressArray, descriptor},
+        structures::{
+            context::Context, dcbaa::DeviceContextBaseAddressArray, descriptor,
+            registers::Registers,
+        },
     },
     mem::allocator::page_box::PageBox,
 };
@@ -21,18 +24,25 @@ pub struct Slot {
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
     cx: Rc<RefCell<Context>>,
     def_ep: endpoint::Default,
+    recv: Rc<RefCell<Receiver>>,
+    regs: Rc<RefCell<Registers>>,
 }
 impl Slot {
-    pub fn new(port: Port, id: u8, receiver: Rc<RefCell<Receiver>>) -> Self {
+    pub fn new(port: Port, id: u8, recv: Rc<RefCell<Receiver>>) -> Self {
         let cx = Rc::new(RefCell::new(port.context));
         Self {
             id,
             dcbaa: port.dcbaa,
             cx: cx.clone(),
             def_ep: endpoint::Default::new(
-                transfer::Sender::new(receiver, DoorbellWriter::new(port.registers, id)),
+                transfer::Sender::new(
+                    recv.clone(),
+                    DoorbellWriter::new(port.registers.clone(), id),
+                ),
                 cx,
             ),
+            recv,
+            regs: port.registers,
         }
     }
 
@@ -52,7 +62,14 @@ impl Slot {
 
         for d in ds {
             if let Descriptor::Endpoint(ep) = d {
-                eps.push(Endpoint::new(ep, self.cx.clone()));
+                eps.push(Endpoint::new(
+                    ep,
+                    self.cx.clone(),
+                    transfer::Sender::new(
+                        self.recv.clone(),
+                        DoorbellWriter::new(self.regs.clone(), self.id),
+                    ),
+                ));
             }
         }
 

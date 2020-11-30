@@ -61,10 +61,15 @@ impl Collection {
 pub struct Endpoint {
     desc: descriptor::Endpoint,
     cx: Rc<RefCell<Context>>,
+    sender: transfer::Sender,
 }
 impl Endpoint {
-    pub fn new(desc: descriptor::Endpoint, cx: Rc<RefCell<Context>>) -> Self {
-        Self { desc, cx }
+    pub fn new(
+        desc: descriptor::Endpoint,
+        cx: Rc<RefCell<Context>>,
+        sender: transfer::Sender,
+    ) -> Self {
+        Self { desc, cx, sender }
     }
 
     pub fn init_context(&mut self) {
