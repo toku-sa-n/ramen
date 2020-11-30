@@ -80,7 +80,7 @@ impl Sender {
     }
 
     fn write_to_doorbell(&mut self) {
-        self.doorbell_writer.write(1);
+        self.doorbell_writer.write();
     }
 
     async fn get_trb(&mut self, ts: &[Trb], addrs: &[PhysAddr]) -> Vec<Option<Completion>> {
@@ -100,18 +100,22 @@ impl Sender {
     }
 }
 
-#[derive(Clone)]
 pub struct DoorbellWriter {
     registers: Rc<RefCell<Registers>>,
     slot_id: u8,
+    val: u32,
 }
 impl DoorbellWriter {
-    pub fn new(registers: Rc<RefCell<Registers>>, slot_id: u8) -> Self {
-        Self { registers, slot_id }
+    pub fn new(registers: Rc<RefCell<Registers>>, slot_id: u8, val: u32) -> Self {
+        Self {
+            registers,
+            slot_id,
+            val,
+        }
     }
 
-    pub fn write(&mut self, x: u32) {
+    pub fn write(&mut self) {
         let d = &mut self.registers.borrow_mut().doorbell_array;
-        d.update(self.slot_id.into(), |d| *d = x);
+        d.update(self.slot_id.into(), |d| *d = self.val);
     }
 }
