@@ -74,14 +74,19 @@ pub struct Default {
     cx: Rc<RefCell<Context>>,
 }
 impl Default {
-    fn new(rcv: Rc<RefCell<Receiver>>, reg: Rc<RefCell<Registers>>, slot: &Slot) -> Self {
+    fn new(
+        rcv: Rc<RefCell<Receiver>>,
+        reg: Rc<RefCell<Registers>>,
+        slot_id: u8,
+        cx: Rc<RefCell<Context>>,
+    ) -> Self {
         Self {
             sender: transfer::Sender::new(
                 TransferRing::new(),
                 rcv,
-                DoorbellWriter::new(reg, slot.id),
+                DoorbellWriter::new(reg, slot_id),
             ),
-            cx: slot.context.clone(),
+            cx,
         }
     }
 
