@@ -22,13 +22,9 @@ pub struct Sender {
     waker: Rc<RefCell<AtomicWaker>>,
 }
 impl Sender {
-    pub fn new(
-        ring: transfer::Ring,
-        receiver: Rc<RefCell<Receiver>>,
-        doorbell_writer: DoorbellWriter,
-    ) -> Self {
+    pub fn new(receiver: Rc<RefCell<Receiver>>, doorbell_writer: DoorbellWriter) -> Self {
         Self {
-            ring,
+            ring: transfer::Ring::new(),
             receiver,
             doorbell_writer,
             waker: Rc::new(RefCell::new(AtomicWaker::new())),

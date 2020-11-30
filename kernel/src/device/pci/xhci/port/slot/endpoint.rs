@@ -7,7 +7,7 @@ use crate::{
             context::{self, Context},
             descriptor,
             registers::Registers,
-            ring::{transfer::Ring as TransferRing, CycleBit},
+            ring::CycleBit,
         },
     },
     mem::allocator::page_box::PageBox,
@@ -85,11 +85,7 @@ impl Default {
         cx: Rc<RefCell<Context>>,
     ) -> Self {
         Self {
-            sender: transfer::Sender::new(
-                TransferRing::new(),
-                rcv,
-                DoorbellWriter::new(reg, slot_id),
-            ),
+            sender: transfer::Sender::new(rcv, DoorbellWriter::new(reg, slot_id)),
             cx,
         }
     }
