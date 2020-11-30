@@ -172,13 +172,6 @@ impl<'a> ContextInitializer<'a> {
         c.set_error_count(3);
         c.set_interval(interval);
         c.set_dequeue_ptr(ring_addr);
-
-        use x86_64::VirtAddr;
-        let addr = VirtAddr::new(c as *const _ as u64);
-
-        use x86_64::structures::paging::MapperAllSizes;
-        let phys = crate::mem::paging::pml4::PML4.lock().translate_addr(addr);
-        info!("Addr: {:?}", phys);
     }
 
     fn ep_context(&mut self) -> &mut context::Endpoint {
