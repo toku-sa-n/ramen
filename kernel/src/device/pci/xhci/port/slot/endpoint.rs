@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::device::pci::xhci::{
-    exchanger::{command, receiver::Receiver, transfer},
-    structures::{
-        context::{self, Context},
-        descriptor,
-        registers::Registers,
-        ring::{transfer::Ring as TransferRing, CycleBit},
+use crate::{
+    device::pci::xhci::{
+        exchanger::{command, receiver::Receiver, transfer},
+        structures::{
+            context::{self, Context},
+            descriptor,
+            registers::Registers,
+            ring::{transfer::Ring as TransferRing, CycleBit},
+        },
     },
+    mem::allocator::page_box::PageBox,
 };
 use alloc::{rc::Rc, vec::Vec};
 use bit_field::BitField;
@@ -28,9 +31,10 @@ pub struct Collection {
 impl Collection {
     pub async fn new(mut slot: Slot, cmd: Rc<LocalMutex<command::Sender>>) -> Self {
         let eps = slot.endpoints().await;
+        info!("Endpoints collected");
         Self {
             eps,
-            cx: slot.context,
+            cx: slot.cx,
             cmd,
             slot_id: slot.id,
         }
@@ -74,7 +78,7 @@ pub struct Default {
     cx: Rc<RefCell<Context>>,
 }
 impl Default {
-    fn new(
+    pub fn new(
         rcv: Rc<RefCell<Receiver>>,
         reg: Rc<RefCell<Registers>>,
         slot_id: u8,
@@ -90,7 +94,15 @@ impl Default {
         }
     }
 
-    fn init_context(&mut self) {
+    pub async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
+        self.sender.get_device_descriptor().await
+    }
+
+    pub async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
+        self.sender.get_configuration_descriptor().await
+    }
+
+    pub fn init_context(&mut self) {
         let mut cx = self.cx.borrow_mut();
         let ep_0 = &mut cx.input.device_mut().ep_0;
         ep_0.set_endpoint_type(EndpointType::Control);

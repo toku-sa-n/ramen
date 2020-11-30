@@ -52,6 +52,7 @@ impl Sender {
         let (setup, data, status) =
             Trb::new_get_descriptor(&b, DescTyIdx::new(descriptor::Ty::Configuration, 0));
         self.issue_trbs(&[setup, data, status]).await;
+        info!("Got TRBs");
         b
     }
 
