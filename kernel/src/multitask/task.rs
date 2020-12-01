@@ -111,6 +111,7 @@ impl Id {
 pub struct Task {
     id: Id,
     future: Pin<Box<dyn Future<Output = ()>>>,
+    polling: bool,
 }
 
 impl Task {
@@ -118,6 +119,15 @@ impl Task {
         Self {
             id: Id::new(),
             future: Box::pin(future),
+            polling: false,
+        }
+    }
+
+    pub fn new_poll(future: impl Future<Output = ()> + 'static) -> Self {
+        Self {
+            id: Id::new(),
+            future: Box::pin(future),
+            polling: true,
         }
     }
 
