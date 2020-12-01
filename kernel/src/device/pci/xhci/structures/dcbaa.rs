@@ -15,7 +15,7 @@ pub struct DeviceContextBaseAddressArray {
 }
 impl<'a> DeviceContextBaseAddressArray {
     pub fn new(registers: Rc<RefCell<Registers>>) -> Self {
-        let arr = PageBox::new_slice(PhysAddr::zero(), Self::num_of_slots(&registers));
+        let arr = PageBox::new_slice(PhysAddr::zero(), Self::num_of_slots(&registers.borrow()));
         Self { arr, registers }
     }
 
@@ -23,8 +23,8 @@ impl<'a> DeviceContextBaseAddressArray {
         self.register_address_to_xhci_register();
     }
 
-    fn num_of_slots(registers: &Rc<RefCell<Registers>>) -> usize {
-        let params1 = &registers.borrow().capability.hcs_params_1;
+    fn num_of_slots(registers: &Registers) -> usize {
+        let params1 = &registers.capability.hcs_params_1;
         (params1.read().max_slots() + 1).into()
     }
 
