@@ -100,8 +100,9 @@ struct Raw {
 }
 impl Raw {
     fn new(r: Rc<RefCell<Registers>>) -> Self {
+        let rings = Self::new_rings(&r.borrow());
         Self {
-            rings: Self::new_rings(&r),
+            rings,
             c: CycleBit::new(true),
             deq_p_seg: 0,
             deq_p_trb: 0,
@@ -109,7 +110,7 @@ impl Raw {
         }
     }
 
-    fn new_rings(r: &Rc<RefCell<Registers>>) -> Vec<PageBox<[[u32; 4]]>> {
+    fn new_rings(r: &Registers) -> Vec<PageBox<[[u32; 4]]>> {
         let mut v = Vec::new();
         for _ in 0..Self::max_num_of_erst(r) {
             v.push(PageBox::new_slice([0; 4], MAX_NUM_OF_TRB_IN_QUEUE.into()));
@@ -118,8 +119,8 @@ impl Raw {
         v
     }
 
-    fn max_num_of_erst(r: &Rc<RefCell<Registers>>) -> u16 {
-        let p2 = r.borrow().capability.hcs_params_2.read();
+    fn max_num_of_erst(r: &Registers) -> u16 {
+        let p2 = r.capability.hcs_params_2.read();
         p2.powered_erst_max()
     }
 
