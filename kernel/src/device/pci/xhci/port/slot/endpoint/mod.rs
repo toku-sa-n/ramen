@@ -21,7 +21,6 @@ use futures_intrusive::sync::LocalMutex;
 pub mod class_driver;
 
 pub struct Collection {
-    def: Default,
     eps: Vec<Endpoint>,
     cx: Rc<RefCell<Context>>,
     cmd: Rc<LocalMutex<command::Sender>>,
@@ -32,7 +31,6 @@ impl Collection {
         let eps = slot.endpoints().await;
         info!("Endpoints collected");
         Self {
-            def: slot.def_ep,
             eps,
             cx: slot.cx,
             cmd,
