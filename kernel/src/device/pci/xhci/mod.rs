@@ -20,8 +20,7 @@ use xhc::Xhc;
 
 pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
     let registers = Rc::new(RefCell::new(iter_devices().next().unwrap()));
-    let (event_ring, dcbaa, runner, command_completion_receiver) =
-        init(&registers, &task_collection);
+    let (event_ring, dcbaa, runner, command_completion_receiver) = init(&registers);
 
     port::spawn_tasks(
         &runner,
@@ -33,7 +32,7 @@ pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
 
     task_collection
         .borrow_mut()
-        .add_task_as_woken(Task::new(event::task(
+        .add_task_as_woken(Task::new_poll(event::task(
             event_ring,
             command_completion_receiver,
         )));
@@ -43,7 +42,6 @@ pub async fn task(task_collection: Rc<RefCell<task::Collection>>) {
 #[allow(clippy::type_complexity)]
 fn init(
     registers: &Rc<RefCell<Registers>>,
-    task_collection: &Rc<RefCell<task::Collection>>,
 ) -> (
     event::Ring,
     Rc<RefCell<DeviceContextBaseAddressArray>>,
@@ -51,7 +49,7 @@ fn init(
     Rc<RefCell<Receiver>>,
 ) {
     let mut xhc = Xhc::new(registers.clone());
-    let mut event_ring = event::Ring::new(registers.clone(), task_collection.clone());
+    let mut event_ring = event::Ring::new(registers.clone());
     let command_ring = Rc::new(RefCell::new(command::Ring::new(registers.clone())));
     let dcbaa = Rc::new(RefCell::new(DeviceContextBaseAddressArray::new(
         registers.clone(),
