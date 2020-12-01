@@ -76,7 +76,13 @@ impl Executor {
                 self.task_collection.borrow_mut().remove_task(id);
                 self.waker_collection.remove(&id);
             }
-            Poll::Pending => self.task_collection.borrow_mut().add_task_as_sleep(task),
+            Poll::Pending => {
+                if task.polling() {
+                    self.task_collection.borrow_mut().add_task_as_woken(task);
+                } else {
+                    self.task_collection.borrow_mut().add_task_as_sleep(task);
+                }
+            }
         }
     }
 }

@@ -135,6 +135,10 @@ impl Task {
         self.future.as_mut().poll(context)
     }
 
+    pub fn polling(&self) -> bool {
+        self.polling
+    }
+
     pub(super) fn id(&self) -> Id {
         self.id
     }
