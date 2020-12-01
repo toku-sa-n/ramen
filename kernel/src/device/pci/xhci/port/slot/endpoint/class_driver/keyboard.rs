@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use endpoint::Endpoint;
+
 use crate::{
     device::pci::xhci::{port::slot::endpoint, structures::context::EndpointType},
     mem::allocator::page_box::PageBox,
