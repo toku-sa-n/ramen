@@ -84,7 +84,7 @@ pub struct Endpoint {
     pub interval: u8,
 }
 impl Endpoint {
-    pub fn ty(&self) -> EndpointType {
+    pub fn ty(self) -> EndpointType {
         EndpointType::from_u8(if self.attributes == 0 {
             0
         } else {
