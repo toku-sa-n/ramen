@@ -2,20 +2,18 @@
 
 use super::registers::Registers;
 use crate::mem::allocator::page_box::PageBox;
-use alloc::rc::Rc;
-use core::{
-    cell::RefCell,
-    ops::{Index, IndexMut},
-};
+use alloc::sync::Arc;
+use core::ops::{Index, IndexMut};
+use spinning_top::Spinlock;
 use x86_64::PhysAddr;
 
 pub struct DeviceContextBaseAddressArray {
     arr: PageBox<[PhysAddr]>,
-    registers: Rc<RefCell<Registers>>,
+    registers: Arc<Spinlock<Registers>>,
 }
 impl<'a> DeviceContextBaseAddressArray {
-    pub fn new(registers: Rc<RefCell<Registers>>) -> Self {
-        let arr = PageBox::new_slice(PhysAddr::zero(), Self::num_of_slots(&registers.borrow()));
+    pub fn new(registers: Arc<Spinlock<Registers>>) -> Self {
+        let arr = PageBox::new_slice(PhysAddr::zero(), Self::num_of_slots(&registers.lock()));
         Self { arr, registers }
     }
 
@@ -29,7 +27,7 @@ impl<'a> DeviceContextBaseAddressArray {
     }
 
     fn register_address_to_xhci_register(&self) {
-        let dcbaap = &mut self.registers.borrow_mut().operational.dcbaap;
+        let dcbaap = &mut self.registers.lock().operational.dcbaap;
         dcbaap.update(|dcbaap| dcbaap.set(self.phys_addr()));
     }
 

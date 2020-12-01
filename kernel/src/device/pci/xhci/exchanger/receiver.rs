@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::device::pci::xhci::structures::ring::event::trb::completion::Completion;
-use alloc::{collections::BTreeMap, rc::Rc};
+use alloc::{collections::BTreeMap, sync::Arc};
 use core::{
-    cell::RefCell,
     future::Future,
     pin::Pin,
     task::{Context, Poll},
 };
 use futures_util::task::AtomicWaker;
+use spinning_top::Spinlock;
 use x86_64::PhysAddr;
 
 pub struct Receiver {
     trbs: BTreeMap<PhysAddr, Option<Completion>>,
-    wakers: BTreeMap<PhysAddr, Rc<RefCell<AtomicWaker>>>,
+    wakers: BTreeMap<PhysAddr, Arc<Spinlock<AtomicWaker>>>,
 }
 impl Receiver {
     pub fn new() -> Self {
@@ -26,7 +26,7 @@ impl Receiver {
     pub fn add_entry(
         &mut self,
         addr_to_trb: PhysAddr,
-        waker: Rc<RefCell<AtomicWaker>>,
+        waker: Arc<Spinlock<AtomicWaker>>,
     ) -> Result<(), Error> {
         if self.trbs.insert(addr_to_trb, None).is_some() {
             return Err(Error::AddrAlreadyRegistered);
@@ -64,7 +64,7 @@ impl Receiver {
         self.wakers
             .remove(&addr_to_trb)
             .ok_or(Error::NoSuchAddress)?
-            .borrow_mut()
+            .lock()
             .wake();
         Ok(())
     }
@@ -97,14 +97,14 @@ pub enum Error {
 
 pub struct ReceiveFuture {
     addr_to_trb: PhysAddr,
-    receiver: Rc<RefCell<Receiver>>,
-    waker: Rc<RefCell<AtomicWaker>>,
+    receiver: Arc<Spinlock<Receiver>>,
+    waker: Arc<Spinlock<AtomicWaker>>,
 }
 impl ReceiveFuture {
     pub fn new(
         addr_to_trb: PhysAddr,
-        receiver: Rc<RefCell<Receiver>>,
-        waker: Rc<RefCell<AtomicWaker>>,
+        receiver: Arc<Spinlock<Receiver>>,
+        waker: Arc<Spinlock<AtomicWaker>>,
     ) -> Self {
         Self {
             addr_to_trb,
@@ -121,10 +121,10 @@ impl Future for ReceiveFuture {
         let addr = self.addr_to_trb;
         let receiver = &mut Pin::into_inner(self).receiver;
 
-        waker.borrow_mut().register(cx.waker());
-        if receiver.borrow_mut().trb_arrives(addr) {
-            waker.borrow_mut().take();
-            let trb = receiver.borrow_mut().remove_entry(addr).unwrap();
+        waker.lock().register(cx.waker());
+        if receiver.lock().trb_arrives(addr) {
+            waker.lock().take();
+            let trb = receiver.lock().remove_entry(addr).unwrap();
             Poll::Ready(trb)
         } else {
             Poll::Pending

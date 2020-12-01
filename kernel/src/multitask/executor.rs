@@ -9,21 +9,19 @@
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 use super::task;
-use alloc::{collections::BTreeMap, rc::Rc};
-use core::{
-    cell::RefCell,
-    task::{Context, Poll, Waker},
-};
+use alloc::{collections::BTreeMap, sync::Arc};
+use core::task::{Context, Poll, Waker};
+use spinning_top::Spinlock;
 use task::Task;
 use x86_64::instructions::interrupts;
 
 pub struct Executor {
-    task_collection: Rc<RefCell<task::Collection>>,
+    task_collection: Arc<Spinlock<task::Collection>>,
     waker_collection: BTreeMap<task::Id, Waker>,
 }
 
 impl Executor {
-    pub fn new(task_collection: Rc<RefCell<task::Collection>>) -> Self {
+    pub fn new(task_collection: Arc<Spinlock<task::Collection>>) -> Self {
         Self {
             task_collection,
             waker_collection: BTreeMap::new(),
@@ -39,7 +37,7 @@ impl Executor {
 
     fn sleep_if_idle(&self) {
         interrupts::disable();
-        if self.task_collection.borrow().woken_task_exists() {
+        if self.task_collection.lock().woken_task_exists() {
             interrupts::enable()
         } else {
             interrupts::enable_and_hlt()
@@ -53,7 +51,7 @@ impl Executor {
     }
 
     fn pop_woken_task_id(&mut self) -> Option<task::Id> {
-        self.task_collection.borrow_mut().pop_woken_task_id()
+        self.task_collection.lock().pop_woken_task_id()
     }
 
     fn run_task(&mut self, id: task::Id) {
@@ -62,7 +60,7 @@ impl Executor {
             waker_collection: _,
         } = self;
 
-        let mut task = match task_collection.borrow_mut().remove_task(id) {
+        let mut task = match task_collection.lock().remove_task(id) {
             Some(task) => task,
             None => return,
         };
@@ -70,7 +68,7 @@ impl Executor {
         let mut context = self.generate_waker(id);
         match task.poll(&mut context) {
             Poll::Ready(_) => {
-                self.task_collection.borrow_mut().remove_task(id);
+                self.task_collection.lock().remove_task(id);
                 self.waker_collection.remove(&id);
             }
             Poll::Pending => self.add_task_as_pending(task),
@@ -85,15 +83,15 @@ impl Executor {
 
         let waker = waker_collection
             .entry(id)
-            .or_insert_with(|| task_collection.borrow_mut().create_waker(id));
+            .or_insert_with(|| task_collection.lock().create_waker(id));
         Context::from_waker(waker)
     }
 
     fn add_task_as_pending(&mut self, task: Task) {
         if task.polling() {
-            self.task_collection.borrow_mut().add_task_as_woken(task);
+            self.task_collection.lock().add_task_as_woken(task);
         } else {
-            self.task_collection.borrow_mut().add_task_as_sleep(task);
+            self.task_collection.lock().add_task_as_sleep(task);
         }
     }
 }

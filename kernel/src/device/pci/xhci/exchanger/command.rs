@@ -7,22 +7,22 @@ use super::{
     },
     receiver::{ReceiveFuture, Receiver},
 };
-use alloc::rc::Rc;
-use core::cell::RefCell;
+use alloc::sync::Arc;
 use futures_util::task::AtomicWaker;
+use spinning_top::Spinlock;
 use x86_64::PhysAddr;
 
 pub struct Sender {
-    ring: Rc<RefCell<command::Ring>>,
-    receiver: Rc<RefCell<Receiver>>,
-    waker: Rc<RefCell<AtomicWaker>>,
+    ring: Arc<Spinlock<command::Ring>>,
+    receiver: Arc<Spinlock<Receiver>>,
+    waker: Arc<Spinlock<AtomicWaker>>,
 }
 impl Sender {
-    pub fn new(ring: Rc<RefCell<command::Ring>>, receiver: Rc<RefCell<Receiver>>) -> Self {
+    pub fn new(ring: Arc<Spinlock<command::Ring>>, receiver: Arc<Spinlock<Receiver>>) -> Self {
         Self {
             ring,
             receiver,
-            waker: Rc::new(RefCell::new(AtomicWaker::new())),
+            waker: Arc::new(Spinlock::new(AtomicWaker::new())),
         }
     }
 
@@ -42,14 +42,14 @@ impl Sender {
     }
 
     async fn issue_trb(&mut self, t: Trb) -> Completion {
-        let a = self.ring.borrow_mut().enqueue(t);
+        let a = self.ring.lock().enqueue(t);
         self.register_with_receiver(a);
         self.get_trb(a).await
     }
 
     fn register_with_receiver(&mut self, addr_to_trb: PhysAddr) {
         self.receiver
-            .borrow_mut()
+            .lock()
             .add_entry(addr_to_trb, self.waker.clone())
             .expect("Sender is already registered.");
     }

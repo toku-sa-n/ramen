@@ -110,12 +110,12 @@ impl Id {
 
 pub struct Task {
     id: Id,
-    future: Pin<Box<dyn Future<Output = ()>>>,
+    future: Pin<Box<dyn Future<Output = ()> + Send>>,
     polling: bool,
 }
 
 impl Task {
-    pub fn new(future: impl Future<Output = ()> + 'static) -> Self {
+    pub fn new(future: impl Future<Output = ()> + 'static + Send) -> Self {
         Self {
             id: Id::new(),
             future: Box::pin(future),
@@ -123,7 +123,7 @@ impl Task {
         }
     }
 
-    pub fn new_poll(future: impl Future<Output = ()> + 'static) -> Self {
+    pub fn new_poll(future: impl Future<Output = ()> + 'static + Send) -> Self {
         Self {
             id: Id::new(),
             future: Box::pin(future),

@@ -5,22 +5,23 @@ mod received_fis;
 
 use super::registers::{port, Registers};
 use crate::multitask::task::{self, Task};
-use alloc::rc::Rc;
+use alloc::sync::Arc;
 use command_list::CommandList;
-use core::{cell::RefCell, convert::TryInto};
+use core::convert::TryInto;
 use received_fis::ReceivedFis;
+use spinning_top::Spinlock;
 
 const MAX_PORTS: usize = 32;
 
 pub fn spawn_tasks(
-    registers: &Rc<RefCell<Registers>>,
-    task_collection: &Rc<RefCell<task::Collection>>,
+    registers: &Arc<Spinlock<Registers>>,
+    task_collection: &Arc<Spinlock<task::Collection>>,
 ) {
     (0..MAX_PORTS)
         .filter_map(|i| Port::new(registers.clone(), i))
         .for_each(|port| {
             task_collection
-                .borrow_mut()
+                .lock()
                 .add_task_as_woken(Task::new(task(port)))
         })
 }
@@ -37,7 +38,7 @@ async fn task(mut port: Port) {
 }
 
 pub struct Port {
-    registers: Rc<RefCell<Registers>>,
+    registers: Arc<Spinlock<Registers>>,
     command_list: CommandList,
     received_fis: ReceivedFis,
     index: usize,
@@ -59,7 +60,7 @@ impl Port {
         } {}
     }
 
-    fn new(registers: Rc<RefCell<Registers>>, index: usize) -> Option<Self> {
+    fn new(registers: Arc<Spinlock<Registers>>, index: usize) -> Option<Self> {
         if Self::exists(&registers, index) {
             Some(Self::generate(registers, index))
         } else {
@@ -67,14 +68,14 @@ impl Port {
         }
     }
 
-    fn exists(registers: &Rc<RefCell<Registers>>, index: usize) -> bool {
-        let registers = &registers.borrow();
+    fn exists(registers: &Arc<Spinlock<Registers>>, index: usize) -> bool {
+        let registers = &registers.lock();
         let pi: usize = registers.generic.pi.read().0.try_into().unwrap();
         pi & (1 << index) != 0
     }
 
-    fn generate(registers: Rc<RefCell<Registers>>, index: usize) -> Self {
-        let command_list = CommandList::new(&*registers.borrow());
+    fn generate(registers: Arc<Spinlock<Registers>>, index: usize) -> Self {
+        let command_list = CommandList::new(&*registers.lock());
         let received_fis = ReceivedFis::new();
         Self {
             registers,
@@ -97,7 +98,7 @@ impl Port {
     }
 
     fn assert_64bit_accessing_is_supported(&self) {
-        let registers = &self.registers.borrow();
+        let registers = &self.registers.lock();
         assert!(registers.generic.cap.read().supports_64bit_addressing());
     }
 
@@ -171,7 +172,7 @@ impl Port {
     }
 
     fn num_of_command_slots(&self) -> usize {
-        let cap = &self.registers.borrow().generic.cap.read();
+        let cap = &self.registers.lock().generic.cap.read();
         cap.num_of_command_slots().try_into().unwrap()
     }
 
@@ -184,7 +185,7 @@ impl Port {
     where
         T: Fn(&port::Registers) -> U,
     {
-        let registers = &self.registers.borrow_mut();
+        let registers = &self.registers.lock();
         let port_rg = registers.port_regs[self.index].as_ref().unwrap();
         f(port_rg)
     }
@@ -193,7 +194,7 @@ impl Port {
     where
         T: Fn(&mut port::Registers),
     {
-        let registers = &mut self.registers.borrow_mut();
+        let registers = &mut self.registers.lock();
         let port_rg = registers.port_regs[self.index].as_mut().unwrap();
         f(port_rg);
     }
