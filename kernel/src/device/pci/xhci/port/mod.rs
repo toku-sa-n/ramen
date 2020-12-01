@@ -37,10 +37,10 @@ async fn task(
     let mut eps = endpoint::Collection::new(slot, runner).await;
     eps.init().await;
 
-    let kbd = class_driver::keyboard::Keyboard::new(eps, task_collection.clone());
+    let kbd = class_driver::keyboard::Keyboard::new(eps);
     task_collection
         .borrow_mut()
-        .add_task_as_woken(Task::new(class_driver::keyboard::task(kbd)));
+        .add_task_as_woken(Task::new_poll(class_driver::keyboard::task(kbd)));
 }
 
 // FIXME: Resolve this.

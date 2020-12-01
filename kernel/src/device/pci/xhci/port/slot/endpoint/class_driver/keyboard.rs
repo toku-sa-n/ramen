@@ -1,25 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use core::{
-    cell::RefCell,
     future::Future,
     pin::Pin,
     task::{Context, Poll},
 };
 
-use alloc::rc::Rc;
-use futures_util::task::AtomicWaker;
-use task::Task;
-
 use crate::{
-    device::pci::xhci::{
-        exchanger::transfer, port::slot::endpoint, structures::context::EndpointType,
-    },
+    device::pci::xhci::{port::slot::endpoint, structures::context::EndpointType},
     mem::allocator::page_box::PageBox,
-    multitask::task,
 };
-
-static WAKER: AtomicWaker = AtomicWaker::new();
 
 pub async fn task(mut kbd: Keyboard) {
     loop {
@@ -29,20 +19,14 @@ pub async fn task(mut kbd: Keyboard) {
     }
 }
 
-async fn waker_task() {
-    WAKER.wake();
-}
-
 pub struct Keyboard {
     ep: endpoint::Collection,
-    task_collection: Rc<RefCell<task::Collection>>,
     buf: PageBox<[u8; 8]>,
 }
 impl Keyboard {
-    pub fn new(ep: endpoint::Collection, task_collection: Rc<RefCell<task::Collection>>) -> Self {
+    pub fn new(ep: endpoint::Collection) -> Self {
         Self {
             ep,
-            task_collection,
             buf: PageBox::new([0; 8]),
         }
     }
@@ -84,16 +68,10 @@ impl<'a> PacketWaiterFuture<'a> {
 impl<'a> Future for PacketWaiterFuture<'a> {
     type Output = ();
 
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        WAKER.register(cx.waker());
-        let tasks = self.kbd.task_collection.clone();
+    fn poll(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Self::Output> {
         if *self.kbd.buf == [0; 8] {
-            tasks
-                .borrow_mut()
-                .add_task_as_woken(Task::new(waker_task()));
             Poll::Pending
         } else {
-            WAKER.take();
             Poll::Ready(())
         }
     }
