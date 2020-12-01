@@ -40,6 +40,7 @@ use device::{
     keyboard, mouse,
     pci::{ahci, xhci},
 };
+use futures_intrusive::sync::GenericMutex;
 use graphics::{
     screen::{self, desktop::Desktop, layer},
     Vram,
@@ -49,7 +50,10 @@ use multitask::{
     executor::Executor,
     task::{self, Task},
 };
+use spinning_top::RawSpinlock;
 use x86_64::instructions::interrupts;
+
+pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 
 #[no_mangle]
 #[start]
