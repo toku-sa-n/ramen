@@ -4,6 +4,8 @@ use core::ptr;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 
+use super::context::EndpointType;
+
 #[derive(Debug)]
 pub enum Descriptor {
     Device(Device),
@@ -80,6 +82,16 @@ pub struct Endpoint {
     pub attributes: u8,
     pub max_packet_size: u16,
     pub interval: u8,
+}
+impl Endpoint {
+    pub fn ty(self) -> EndpointType {
+        EndpointType::from_u8(if self.attributes == 0 {
+            0
+        } else {
+            self.attributes + if self.endpoint_address == 0 { 0 } else { 4 }
+        })
+        .unwrap()
+    }
 }
 
 #[derive(FromPrimitive)]

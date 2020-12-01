@@ -15,9 +15,10 @@ use crate::{
 use alloc::{rc::Rc, vec::Vec};
 use bit_field::BitField;
 use context::EndpointType;
-use core::cell::RefCell;
+use core::{cell::RefCell, slice};
 use futures_intrusive::sync::LocalMutex;
-use num_traits::FromPrimitive;
+
+pub mod class_driver;
 
 pub struct Collection {
     def: Default,
@@ -57,6 +58,14 @@ impl Collection {
         cmd.configure_endpoint(cx_addr, self.slot_id).await;
     }
 }
+impl<'a> IntoIterator for &'a mut Collection {
+    type Item = &'a mut Endpoint;
+    type IntoIter = slice::IterMut<'a, Endpoint>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.eps.iter_mut()
+    }
+}
 
 pub struct Endpoint {
     desc: descriptor::Endpoint,
@@ -74,6 +83,10 @@ impl Endpoint {
 
     pub fn init_context(&mut self) {
         ContextInitializer::new(&self.desc, &mut self.cx.borrow_mut(), &self.sender).init();
+    }
+
+    pub fn ty(&self) -> EndpointType {
+        self.desc.ty()
     }
 }
 
@@ -143,11 +156,12 @@ impl<'a> ContextInitializer<'a> {
     }
 
     fn init_ep_context(&mut self) {
-        let ep_ty = self.ep_ty();
+        let ep_ty = self.ep.ty();
         let max_packet_size = self.ep.max_packet_size;
         let interval = self.ep.interval;
         let ring_addr = self.sender.ring_addr();
 
+        info!("Endpoint type: {:?}", ep_ty);
         let c = self.ep_context();
         c.set_endpoint_type(ep_ty);
         c.set_max_packet_size(max_packet_size);
@@ -163,20 +177,11 @@ impl<'a> ContextInitializer<'a> {
     fn ep_context(&mut self) -> &mut context::Endpoint {
         let ep_idx: usize = self.ep.endpoint_address.get_bits(0..=3).into();
         let out_input = self.ep.endpoint_address.get_bit(7);
-        let context_inout = &mut self.context.output_device.ep_inout[ep_idx];
+        let context_inout = &mut self.context.input.device_mut().ep_inout[ep_idx - 1];
         if out_input {
             &mut context_inout.input
         } else {
             &mut context_inout.out
         }
-    }
-
-    fn ep_ty(&self) -> context::EndpointType {
-        context::EndpointType::from_u8(if self.ep.attributes == 0 {
-            0
-        } else {
-            self.ep.attributes + if self.ep.endpoint_address == 0 { 0 } else { 4 }
-        })
-        .unwrap()
     }
 }

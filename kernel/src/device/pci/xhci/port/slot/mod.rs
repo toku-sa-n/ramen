@@ -66,7 +66,7 @@ impl Slot {
                         DoorbellWriter::new(
                             self.regs.clone(),
                             self.id,
-                            u32::from(ep.endpoint_address.get_bits(0..=3))
+                            2 * u32::from(ep.endpoint_address.get_bits(0..=3))
                                 + ep.endpoint_address.get_bit(7) as u32,
                         ),
                     ),
