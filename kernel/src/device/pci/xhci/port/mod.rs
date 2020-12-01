@@ -54,7 +54,7 @@ pub fn spawn_tasks(
     receiver: &Rc<RefCell<Receiver>>,
     task_collection: &Rc<RefCell<task::Collection>>,
 ) {
-    for i in 0..num_of_ports(&registers) {
+    for i in 0..num_of_ports(&registers.borrow()) {
         let port = Port::new(&registers, dcbaa.clone(), i + 1);
         if port.connected() {
             task_collection
@@ -69,8 +69,8 @@ pub fn spawn_tasks(
     }
 }
 
-fn num_of_ports(registers: &Rc<RefCell<Registers>>) -> u8 {
-    let params1 = registers.borrow().capability.hcs_params_1.read();
+fn num_of_ports(registers: &Registers) -> u8 {
+    let params1 = registers.capability.hcs_params_1.read();
     params1.max_ports()
 }
 
