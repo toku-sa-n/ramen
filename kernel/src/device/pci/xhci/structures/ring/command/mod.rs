@@ -28,7 +28,7 @@ impl Ring {
     }
 
     pub fn init(&mut self) {
-        Initializer::new(self, self.registers.clone()).init();
+        Initializer::new(self, &mut self.registers.borrow_mut()).init();
     }
 
     pub fn enqueue(&mut self, trb: Trb) -> PhysAddr {
@@ -112,10 +112,10 @@ impl Raw {
 
 struct Initializer<'a> {
     ring: &'a Ring,
-    registers: Rc<RefCell<Registers>>,
+    registers: &'a mut Registers,
 }
 impl<'a> Initializer<'a> {
-    fn new(ring: &'a Ring, registers: Rc<RefCell<Registers>>) -> Self {
+    fn new(ring: &'a Ring, registers: &'a mut Registers) -> Self {
         Self { ring, registers }
     }
 
@@ -125,12 +125,13 @@ impl<'a> Initializer<'a> {
     }
 
     fn register_address_with_xhci(&mut self) {
-        let crcr = &mut self.registers.borrow_mut().operational.crcr;
-        crcr.update(|crcr| crcr.set_ptr(self.ring.phys_addr()));
+        let ring_addr = self.ring.phys_addr();
+        let crcr = &mut self.registers.operational.crcr;
+        crcr.update(|crcr| crcr.set_ptr(ring_addr));
     }
 
     fn set_initial_command_ring_cycle_state(&mut self) {
-        let crcr = &mut self.registers.borrow_mut().operational.crcr;
+        let crcr = &mut self.registers.operational.crcr;
         crcr.update(|crcr| crcr.set_ring_cycle_state(true));
     }
 }
