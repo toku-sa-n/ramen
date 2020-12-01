@@ -58,7 +58,7 @@ impl Executor {
     fn run_task(&mut self, id: task::Id) {
         let Self {
             task_collection,
-            waker_collection,
+            waker_collection: _,
         } = self;
 
         let mut task = match task_collection.borrow_mut().remove_task(id) {
@@ -66,11 +66,7 @@ impl Executor {
             None => return,
         };
 
-        let waker = waker_collection
-            .entry(id)
-            .or_insert_with(|| task_collection.borrow_mut().create_waker(id));
-
-        let mut context = Context::from_waker(waker);
+        let mut context = self.generate_waker(id);
         match task.poll(&mut context) {
             Poll::Ready(_) => {
                 self.task_collection.borrow_mut().remove_task(id);
@@ -84,5 +80,17 @@ impl Executor {
                 }
             }
         }
+    }
+
+    fn generate_waker(&mut self, id: task::Id) -> Context {
+        let Self {
+            task_collection,
+            waker_collection,
+        } = self;
+
+        let waker = waker_collection
+            .entry(id)
+            .or_insert_with(|| task_collection.borrow_mut().create_waker(id));
+        Context::from_waker(waker)
     }
 }
