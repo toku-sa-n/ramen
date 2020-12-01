@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{super::registers::Registers, CycleBit};
-use crate::{
-    device::pci::xhci::exchanger::receiver::Receiver,
-    mem::allocator::page_box::PageBox,
-    multitask::task::{self, Task},
-};
+use crate::{device::pci::xhci::exchanger::receiver::Receiver, mem::allocator::page_box::PageBox};
 use alloc::{rc::Rc, vec::Vec};
 use bit_field::BitField;
 use core::{
@@ -14,7 +10,7 @@ use core::{
     pin::Pin,
     task::{Context, Poll},
 };
-use futures_util::{stream::Stream, task::AtomicWaker, StreamExt};
+use futures_util::{stream::Stream, StreamExt};
 use segment_table::SegmentTable;
 use trb::Trb;
 use x86_64::{
@@ -24,11 +20,6 @@ use x86_64::{
 
 mod segment_table;
 pub mod trb;
-static WAKER: AtomicWaker = AtomicWaker::new();
-
-pub async fn task_to_check_event_ring() {
-    WAKER.wake();
-}
 
 pub async fn task(mut ring: Ring, command_completion_receiver: Rc<RefCell<Receiver>>) {
     info!("This is the Event ring task.");
@@ -47,21 +38,16 @@ const MAX_NUM_OF_TRB_IN_QUEUE: u16 = Size4KiB::SIZE as u16 / Trb::SIZE.as_usize(
 pub struct Ring {
     segment_table: SegmentTable,
     raw: Raw,
-    task_collection: Rc<RefCell<task::Collection>>,
     registers: Rc<RefCell<Registers>>,
 }
 impl<'a> Ring {
-    pub fn new(
-        registers: Rc<RefCell<Registers>>,
-        task_collection: Rc<RefCell<task::Collection>>,
-    ) -> Self {
+    pub fn new(registers: Rc<RefCell<Registers>>) -> Self {
         let p2 = registers.borrow().capability.hcs_params_2.read();
         let max_num_of_erst = p2.powered_erst_max();
 
         Self {
             segment_table: SegmentTable::new(max_num_of_erst.into()),
             raw: Raw::new(registers.clone()),
-            task_collection,
             registers,
         }
     }
@@ -98,21 +84,10 @@ impl<'a> Ring {
 impl<'a> Stream for Ring {
     type Item = Trb;
 
-    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        WAKER.register(&cx.waker());
-        let task_collection = self.task_collection.clone();
-        Pin::into_inner(self).try_dequeue().map_or_else(
-            || {
-                task_collection
-                    .borrow_mut()
-                    .add_task_as_woken(Task::new(task_to_check_event_ring()));
-                Poll::Pending
-            },
-            |trb| {
-                WAKER.take();
-                Poll::Ready(Some(trb))
-            },
-        )
+    fn poll_next(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        Pin::into_inner(self)
+            .try_dequeue()
+            .map_or_else(|| Poll::Pending, |trb| Poll::Ready(Some(trb)))
     }
 }
 
