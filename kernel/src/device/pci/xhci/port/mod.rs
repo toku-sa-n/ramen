@@ -20,6 +20,8 @@ mod context;
 mod resetter;
 mod slot;
 
+// FIXME
+#[allow(clippy::too_many_arguments)]
 async fn task(
     mut port: Port,
     runner: Rc<LocalMutex<command::Sender>>,
