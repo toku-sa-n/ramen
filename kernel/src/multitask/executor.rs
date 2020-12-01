@@ -14,6 +14,7 @@ use core::{
     cell::RefCell,
     task::{Context, Poll, Waker},
 };
+use task::Task;
 use x86_64::instructions::interrupts;
 
 pub struct Executor {
@@ -72,13 +73,7 @@ impl Executor {
                 self.task_collection.borrow_mut().remove_task(id);
                 self.waker_collection.remove(&id);
             }
-            Poll::Pending => {
-                if task.polling() {
-                    self.task_collection.borrow_mut().add_task_as_woken(task);
-                } else {
-                    self.task_collection.borrow_mut().add_task_as_sleep(task);
-                }
-            }
+            Poll::Pending => self.add_task_as_pending(task),
         }
     }
 
@@ -92,5 +87,13 @@ impl Executor {
             .entry(id)
             .or_insert_with(|| task_collection.borrow_mut().create_waker(id));
         Context::from_waker(waker)
+    }
+
+    fn add_task_as_pending(&mut self, task: Task) {
+        if task.polling() {
+            self.task_collection.borrow_mut().add_task_as_woken(task);
+        } else {
+            self.task_collection.borrow_mut().add_task_as_sleep(task);
+        }
     }
 }
