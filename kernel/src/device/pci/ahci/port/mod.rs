@@ -13,14 +13,11 @@ use spinning_top::Spinlock;
 
 const MAX_PORTS: usize = 32;
 
-pub fn spawn_tasks(
-    registers: &Arc<Spinlock<Registers>>,
-    task_collection: &Arc<Spinlock<task::Collection>>,
-) {
+pub fn spawn_tasks(registers: &Arc<Spinlock<Registers>>) {
     (0..MAX_PORTS)
         .filter_map(|i| Port::new(registers.clone(), i))
         .for_each(|port| {
-            task_collection
+            task::COLLECTION
                 .lock()
                 .add_task_as_woken(Task::new(task(port)))
         })

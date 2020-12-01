@@ -4,24 +4,21 @@ mod ahc;
 mod port;
 mod registers;
 
-use crate::{
-    device::pci::{self, config::bar},
-    multitask::task,
-};
+use crate::device::pci::{self, config::bar};
 use ahc::Ahc;
 use alloc::sync::Arc;
 use registers::Registers;
 use spinning_top::Spinlock;
 use x86_64::PhysAddr;
 
-pub async fn task(task_collection: Arc<Spinlock<task::Collection>>) {
+pub async fn task() {
     let (registers, mut ahc) = match init() {
         Some(x) => x,
         None => return,
     };
 
     ahc.init();
-    port::spawn_tasks(&registers, &task_collection);
+    port::spawn_tasks(&registers);
 }
 
 fn init() -> Option<(Arc<Spinlock<Registers>>, Ahc)> {

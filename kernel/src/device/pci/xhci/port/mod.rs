@@ -28,7 +28,6 @@ async fn task(
     mut port: Port,
     runner: Arc<Futurelock<command::Sender>>,
     receiver: Arc<Spinlock<Receiver>>,
-    task_collection: Arc<Spinlock<task::Collection>>,
 ) {
     port.reset();
     port.init_context();
@@ -42,7 +41,7 @@ async fn task(
     eps.init().await;
 
     let kbd = class_driver::keyboard::Keyboard::new(eps);
-    task_collection
+    task::COLLECTION
         .lock()
         .add_task_as_woken(Task::new_poll(class_driver::keyboard::task(kbd)));
 }
@@ -54,17 +53,15 @@ pub fn spawn_tasks(
     dcbaa: &Arc<Spinlock<DeviceContextBaseAddressArray>>,
     registers: &Arc<Spinlock<Registers>>,
     receiver: &Arc<Spinlock<Receiver>>,
-    task_collection: &Arc<Spinlock<task::Collection>>,
 ) {
     let ports_num = num_of_ports(&registers.lock());
     for i in 0..ports_num {
         let port = Port::new(&registers, dcbaa.clone(), i + 1);
         if port.connected() {
-            task_collection.lock().add_task_as_woken(Task::new(task(
+            task::COLLECTION.lock().add_task_as_woken(Task::new(task(
                 port,
                 command_runner.clone(),
                 receiver.clone(),
-                task_collection.clone(),
             )));
         }
     }

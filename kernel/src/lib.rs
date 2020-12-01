@@ -33,7 +33,6 @@ mod mem;
 mod multitask;
 mod panic;
 
-use alloc::sync::Arc;
 use common::kernelboot;
 use device::{
     keyboard, mouse,
@@ -49,7 +48,7 @@ use multitask::{
     executor::Executor,
     task::{self, Task},
 };
-use spinning_top::{RawSpinlock, Spinlock};
+use spinning_top::RawSpinlock;
 use x86_64::instructions::interrupts;
 pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 
@@ -94,21 +93,20 @@ fn initialization(boot_info: &mut kernelboot::Info) {
 
 #[cfg(not(feature = "qemu_test"))]
 fn run_tasks() -> ! {
-    let task_collection = Arc::new(Spinlock::new(task::Collection::new()));
-    task_collection
+    task::COLLECTION
         .lock()
         .add_task_as_woken(Task::new(keyboard::task()));
-    task_collection
+    task::COLLECTION
         .lock()
         .add_task_as_woken(Task::new(mouse::task()));
-    task_collection
+    task::COLLECTION
         .lock()
-        .add_task_as_woken(Task::new(xhci::task(task_collection.clone())));
-    task_collection
+        .add_task_as_woken(Task::new(xhci::task()));
+    task::COLLECTION
         .lock()
-        .add_task_as_woken(Task::new(ahci::task(task_collection.clone())));
+        .add_task_as_woken(Task::new(ahci::task()));
 
-    let mut executor = Executor::new(task_collection);
+    let mut executor = Executor::new();
     executor.run();
 }
 

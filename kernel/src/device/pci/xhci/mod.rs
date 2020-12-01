@@ -20,19 +20,13 @@ use structures::{
 };
 use xhc::Xhc;
 
-pub async fn task(task_collection: Arc<Spinlock<task::Collection>>) {
+pub async fn task() {
     let registers = Arc::new(Spinlock::new(iter_devices().next().unwrap()));
     let (event_ring, dcbaa, runner, command_completion_receiver) = init(&registers);
 
-    port::spawn_tasks(
-        &runner,
-        &dcbaa,
-        &registers,
-        &command_completion_receiver,
-        &task_collection,
-    );
+    port::spawn_tasks(&runner, &dcbaa, &registers, &command_completion_receiver);
 
-    task_collection
+    task::COLLECTION
         .lock()
         .add_task_as_woken(Task::new_poll(event::task(
             event_ring,
