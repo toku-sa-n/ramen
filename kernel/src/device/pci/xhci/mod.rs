@@ -6,11 +6,13 @@ mod structures;
 mod xhc;
 
 use super::config::bar;
-use crate::multitask::task::{self, Task};
+use crate::{
+    multitask::task::{self, Task},
+    Futurelock,
+};
 use alloc::rc::Rc;
 use core::cell::RefCell;
 use exchanger::{command::Sender, receiver::Receiver};
-use futures_intrusive::sync::LocalMutex;
 use structures::{
     dcbaa::DeviceContextBaseAddressArray,
     registers::Registers,
@@ -45,7 +47,7 @@ fn init(
 ) -> (
     event::Ring,
     Rc<RefCell<DeviceContextBaseAddressArray>>,
-    Rc<LocalMutex<Sender>>,
+    Rc<Futurelock<Sender>>,
     Rc<RefCell<Receiver>>,
 ) {
     let mut xhc = Xhc::new(registers.clone());
@@ -55,7 +57,7 @@ fn init(
         registers.clone(),
     )));
     let receiver = Rc::new(RefCell::new(Receiver::new()));
-    let sender = Rc::new(LocalMutex::new(
+    let sender = Rc::new(Futurelock::new(
         Sender::new(command_ring.clone(), receiver.clone()),
         false,
     ));

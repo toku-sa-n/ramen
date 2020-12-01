@@ -10,12 +10,12 @@ use crate::{
         },
     },
     mem::allocator::page_box::PageBox,
+    Futurelock,
 };
 use alloc::{rc::Rc, vec::Vec};
 use bit_field::BitField;
 use core::cell::RefCell;
 use endpoint::Endpoint;
-use futures_intrusive::sync::LocalMutex;
 use transfer::DoorbellWriter;
 
 pub mod endpoint;
@@ -42,7 +42,7 @@ impl Slot {
         }
     }
 
-    pub async fn init(&mut self, runner: Rc<LocalMutex<command::Sender>>) {
+    pub async fn init(&mut self, runner: Rc<Futurelock<command::Sender>>) {
         self.init_default_ep();
         self.register_with_dcbaa();
         self.issue_address_device(runner).await;
@@ -94,7 +94,7 @@ impl Slot {
         self.dcbaa.borrow_mut()[self.id.into()] = self.cx.borrow().output_device.phys_addr();
     }
 
-    async fn issue_address_device(&mut self, runner: Rc<LocalMutex<command::Sender>>) {
+    async fn issue_address_device(&mut self, runner: Rc<Futurelock<command::Sender>>) {
         let cx_addr = self.cx.borrow().input.phys_addr();
         runner.lock().await.address_device(cx_addr, self.id).await;
     }

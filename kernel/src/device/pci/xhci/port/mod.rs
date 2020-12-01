@@ -8,11 +8,13 @@ use super::{
         registers::{operational::PortRegisters, Registers},
     },
 };
-use crate::multitask::task::{self, Task};
+use crate::{
+    multitask::task::{self, Task},
+    Futurelock,
+};
 use alloc::rc::Rc;
 use core::cell::RefCell;
 use endpoint::class_driver;
-use futures_intrusive::sync::LocalMutex;
 use resetter::Resetter;
 use slot::{endpoint, Slot};
 
@@ -24,7 +26,7 @@ mod slot;
 #[allow(clippy::too_many_arguments)]
 async fn task(
     mut port: Port,
-    runner: Rc<LocalMutex<command::Sender>>,
+    runner: Rc<Futurelock<command::Sender>>,
     receiver: Rc<RefCell<Receiver>>,
     task_collection: Rc<RefCell<task::Collection>>,
 ) {
@@ -48,7 +50,7 @@ async fn task(
 // FIXME: Resolve this.
 #[allow(clippy::too_many_arguments)]
 pub fn spawn_tasks(
-    command_runner: &Rc<LocalMutex<command::Sender>>,
+    command_runner: &Rc<Futurelock<command::Sender>>,
     dcbaa: &Rc<RefCell<DeviceContextBaseAddressArray>>,
     registers: &Rc<RefCell<Registers>>,
     receiver: &Rc<RefCell<Receiver>>,

@@ -11,23 +11,23 @@ use crate::{
         },
     },
     mem::allocator::page_box::PageBox,
+    Futurelock,
 };
 use alloc::{rc::Rc, vec::Vec};
 use bit_field::BitField;
 use context::EndpointType;
 use core::{cell::RefCell, slice};
-use futures_intrusive::sync::LocalMutex;
 
 pub mod class_driver;
 
 pub struct Collection {
     eps: Vec<Endpoint>,
     cx: Rc<RefCell<Context>>,
-    cmd: Rc<LocalMutex<command::Sender>>,
+    cmd: Rc<Futurelock<command::Sender>>,
     slot_id: u8,
 }
 impl Collection {
-    pub async fn new(mut slot: Slot, cmd: Rc<LocalMutex<command::Sender>>) -> Self {
+    pub async fn new(mut slot: Slot, cmd: Rc<Futurelock<command::Sender>>) -> Self {
         let eps = slot.endpoints().await;
         info!("Endpoints collected");
         Self {
