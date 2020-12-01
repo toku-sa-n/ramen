@@ -53,7 +53,7 @@ pub fn spawn_tasks(
     task_collection: &Rc<RefCell<task::Collection>>,
 ) {
     for i in 0..num_of_ports(&registers) {
-        let port = Port::new(&registers, dcbaa.clone(), i + 1);
+        let port = Port::new(&registers, dcbaa.clone(), command_runner.clone(), i + 1);
         if port.connected() {
             task_collection
                 .borrow_mut()
@@ -76,18 +76,21 @@ pub struct Port {
     registers: Rc<RefCell<Registers>>,
     index: u8,
     context: Context,
+    sender: Rc<LocalMutex<command::Sender>>,
     dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
 }
 impl Port {
     fn new(
         registers: &Rc<RefCell<Registers>>,
         dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
+        sender: Rc<LocalMutex<command::Sender>>,
         index: u8,
     ) -> Self {
         Self {
             registers: registers.clone(),
             index,
             context: Context::new(&registers.borrow()),
+            sender,
             dcbaa,
         }
     }
