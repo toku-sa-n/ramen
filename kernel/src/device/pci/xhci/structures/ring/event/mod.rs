@@ -66,7 +66,7 @@ impl<'a> Ring {
     }
 
     fn init_tbl(&mut self) {
-        SegTblInitializer::new(self, self.registers.clone()).init();
+        SegTblInitializer::new(self, &mut self.registers.clone().borrow_mut()).init();
     }
 
     fn try_dequeue(&mut self) -> Option<Trb> {
@@ -189,10 +189,10 @@ impl Raw {
 
 struct SegTblInitializer<'a> {
     ring: &'a mut Ring,
-    r: Rc<RefCell<Registers>>,
+    r: &'a mut Registers,
 }
 impl<'a> SegTblInitializer<'a> {
-    fn new(ring: &'a mut Ring, r: Rc<RefCell<Registers>>) -> Self {
+    fn new(ring: &'a mut Ring, r: &'a mut Registers) -> Self {
         Self { ring, r }
     }
 
@@ -210,13 +210,17 @@ impl<'a> SegTblInitializer<'a> {
     }
 
     fn register_tbl_sz(&mut self) {
-        let sz = &mut self.r.borrow_mut().runtime.erst_sz;
-        sz.update(|sz| sz.set(self.tbl_len().try_into().unwrap()));
+        let tbl_len = self.tbl_len();
+        let sz = &mut self.r.runtime.erst_sz;
+
+        sz.update(|sz| sz.set(tbl_len.try_into().unwrap()));
     }
 
     fn enable_event_ring(&mut self) {
-        let ba = &mut self.r.borrow_mut().runtime.erst_ba;
-        ba.update(|ba| ba.set(self.tbl_addr()));
+        let tbl_addr = self.tbl_addr();
+        let ba = &mut self.r.runtime.erst_ba;
+
+        ba.update(|ba| ba.set(tbl_addr));
     }
 
     fn tbl_addr(&self) -> PhysAddr {
