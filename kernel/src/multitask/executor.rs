@@ -28,11 +28,11 @@ impl Executor {
     pub fn run(&mut self) -> ! {
         loop {
             self.run_woken_tasks();
-            self.sleep_if_idle();
+            Self::sleep_if_idle();
         }
     }
 
-    fn sleep_if_idle(&self) {
+    fn sleep_if_idle() {
         interrupts::disable();
         if task::COLLECTION.lock().woken_task_exists() {
             interrupts::enable()
@@ -42,12 +42,12 @@ impl Executor {
     }
 
     fn run_woken_tasks(&mut self) {
-        while let Some(id) = self.pop_woken_task_id() {
+        while let Some(id) = Self::pop_woken_task_id() {
             self.run_task(id);
         }
     }
 
-    fn pop_woken_task_id(&mut self) -> Option<task::Id> {
+    fn pop_woken_task_id() -> Option<task::Id> {
         task::COLLECTION.lock().pop_woken_task_id()
     }
 
@@ -67,7 +67,7 @@ impl Executor {
                 task::COLLECTION.lock().remove_task(id);
                 self.waker_collection.remove(&id);
             }
-            Poll::Pending => self.add_task_as_pending(task),
+            Poll::Pending => Self::add_task_as_pending(task),
         }
     }
 
@@ -80,7 +80,7 @@ impl Executor {
         Context::from_waker(waker)
     }
 
-    fn add_task_as_pending(&mut self, task: Task) {
+    fn add_task_as_pending(task: Task) {
         if task.polling() {
             task::COLLECTION.lock().add_task_as_woken(task);
         } else {
