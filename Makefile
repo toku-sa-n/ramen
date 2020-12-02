@@ -76,7 +76,7 @@ test:
 release_test:
 	make test_general TEST_MODE=release RELEASE_FLAGS=--release
 
-$(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
+$(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE) $(INITRD)
 	dd if=/dev/zero of=$@ bs=1k count=28800
 	mformat -i $@ -h 200 -t 500 -s 144::
 	# Cannot replace these mmd and mcopy with `make copy_to_usb` because `mount` needs `sudo`
