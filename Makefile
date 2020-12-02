@@ -24,6 +24,7 @@ KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
 LIB_FILE		:= $(BUILD_DIR)/libramen_os.a
 IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
 FAT_IMG			:= $(BUILD_DIR)/fat.img
+INITRD			:= $(BUILD_DIR)/initrd.img
 
 LD				:= ld
 RUSTCC			:= cargo
@@ -45,7 +46,7 @@ LDFLAGS			:= -nostdlib -T $(LD_SRC)
 
 .SUFFIXES:
 
-all:$(KERNEL_FILE) $(EFI_FILE)
+all:$(KERNEL_FILE) $(EFI_FILE) $(INITRD)
 
 copy_to_usb:$(KERNEL_FILE) $(EFI_FILE)
 ifeq ($(USB_DEVICE_PATH),)
@@ -58,7 +59,7 @@ else
 	sudo umount /mnt
 endif
 
-run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE) $(FAT_IMG)
+run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE) $(FAT_IMG) $(INITRD)
 	$(VIEWER) $(VIEWERFLAGS) -no-shutdown -monitor stdio
 
 test_general:$(IMG_FILE)
@@ -109,6 +110,9 @@ $(LIB_FILE): $(RUST_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(KERNEL_
 
 $(EFI_FILE):$(EFI_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(EFI_DIR)/$(CARGO_TOML)|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTCC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
+
+$(INITRD):|$(BUILD_DIR)
+	tar cf $@ $(BUILD_DIR)
 
 $(BUILD_DIR):
 	mkdir $@ -p
