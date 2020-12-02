@@ -48,13 +48,14 @@ LDFLAGS			:= -nostdlib -T $(LD_SRC)
 
 all:$(KERNEL_FILE) $(EFI_FILE) $(INITRD)
 
-copy_to_usb:$(KERNEL_FILE) $(EFI_FILE)
+copy_to_usb:$(KERNEL_FILE) $(EFI_FILE) $(INITRD)
 ifeq ($(USB_DEVICE_PATH),)
 	echo 'Specify device path by $$USB_DEVICE_PATH environment variable.' >&2
 else
 	sudo mount $(USB_DEVICE_PATH) /mnt
 	sudo mkdir -p /mnt/efi/boot
 	sudo cp $(EFI_FILE) /mnt/efi/boot/
+	sudo cp $(INITRD) /mnt/
 	sudo cp $(KERNEL_FILE) /mnt/
 	sudo umount /mnt
 endif
@@ -84,6 +85,7 @@ $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 	mmd -i $@ ::/efi
 	mmd -i $@ ::/efi/boot
 	mcopy -i $@ $(KERNEL_FILE) ::
+	mcopy -i $@ $(INITRD) ::
 	mcopy -i $@ $(EFI_FILE) ::/efi/boot
 
 $(FAT_IMG):$(IMG_FILE)
