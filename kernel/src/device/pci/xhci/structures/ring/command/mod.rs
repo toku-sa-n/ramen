@@ -2,8 +2,8 @@
 
 use super::{super::registers::Registers, CycleBit};
 use crate::mem::allocator::page_box::PageBox;
-use alloc::rc::Rc;
-use core::cell::RefCell;
+use alloc::sync::Arc;
+use spinning_top::Spinlock;
 use trb::Trb;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB},
@@ -17,10 +17,10 @@ const NUM_OF_TRBS: usize = Size4KiB::SIZE as usize / Trb::SIZE.as_usize();
 
 pub struct Ring {
     raw: Raw,
-    registers: Rc<RefCell<Registers>>,
+    registers: Arc<Spinlock<Registers>>,
 }
 impl Ring {
-    pub fn new(registers: Rc<RefCell<Registers>>) -> Self {
+    pub fn new(registers: Arc<Spinlock<Registers>>) -> Self {
         Self {
             raw: Raw::new(),
             registers,
@@ -28,7 +28,7 @@ impl Ring {
     }
 
     pub fn init(&mut self) {
-        Initializer::new(self, &mut self.registers.borrow_mut()).init();
+        Initializer::new(self, &mut self.registers.lock()).init();
     }
 
     pub fn enqueue(&mut self, trb: Trb) -> PhysAddr {
@@ -42,7 +42,7 @@ impl Ring {
     }
 
     fn notify_command_is_sent(&mut self) {
-        let doorbell_array = &mut self.registers.borrow_mut().doorbell_array;
+        let doorbell_array = &mut self.registers.lock().doorbell_array;
         doorbell_array.update(0, |reg| *reg = 0)
     }
 }

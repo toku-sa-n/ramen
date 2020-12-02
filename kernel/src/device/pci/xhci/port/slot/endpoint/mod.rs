@@ -13,21 +13,22 @@ use crate::{
     mem::allocator::page_box::PageBox,
     Futurelock,
 };
-use alloc::{rc::Rc, vec::Vec};
+use alloc::{sync::Arc, vec::Vec};
 use bit_field::BitField;
 use context::EndpointType;
-use core::{cell::RefCell, slice};
+use core::slice;
+use spinning_top::Spinlock;
 
 pub mod class_driver;
 
 pub struct Collection {
     eps: Vec<Endpoint>,
-    cx: Rc<RefCell<Context>>,
-    cmd: Rc<Futurelock<command::Sender>>,
+    cx: Arc<Spinlock<Context>>,
+    cmd: Arc<Futurelock<command::Sender>>,
     slot_id: u8,
 }
 impl Collection {
-    pub async fn new(mut slot: Slot, cmd: Rc<Futurelock<command::Sender>>) -> Self {
+    pub async fn new(mut slot: Slot, cmd: Arc<Futurelock<command::Sender>>) -> Self {
         let eps = slot.endpoints().await;
         info!("Endpoints collected");
         Self {
@@ -52,7 +53,7 @@ impl Collection {
 
     async fn issue_configure_eps(&mut self) {
         let mut cmd = self.cmd.lock().await;
-        let cx_addr = self.cx.borrow().input.phys_addr();
+        let cx_addr = self.cx.lock().input.phys_addr();
         cmd.configure_endpoint(cx_addr, self.slot_id).await;
     }
 }
@@ -67,20 +68,20 @@ impl<'a> IntoIterator for &'a mut Collection {
 
 pub struct Endpoint {
     desc: descriptor::Endpoint,
-    cx: Rc<RefCell<Context>>,
+    cx: Arc<Spinlock<Context>>,
     sender: transfer::Sender,
 }
 impl Endpoint {
     pub fn new(
         desc: descriptor::Endpoint,
-        cx: Rc<RefCell<Context>>,
+        cx: Arc<Spinlock<Context>>,
         sender: transfer::Sender,
     ) -> Self {
         Self { desc, cx, sender }
     }
 
     pub fn init_context(&mut self) {
-        ContextInitializer::new(&self.desc, &mut self.cx.borrow_mut(), &self.sender).init();
+        ContextInitializer::new(&self.desc, &mut self.cx.lock(), &self.sender).init();
     }
 
     pub fn ty(&self) -> EndpointType {
@@ -90,10 +91,10 @@ impl Endpoint {
 
 pub struct Default {
     sender: transfer::Sender,
-    cx: Rc<RefCell<Context>>,
+    cx: Arc<Spinlock<Context>>,
 }
 impl Default {
-    pub fn new(sender: transfer::Sender, cx: Rc<RefCell<Context>>) -> Self {
+    pub fn new(sender: transfer::Sender, cx: Arc<Spinlock<Context>>) -> Self {
         Self { sender, cx }
     }
 
@@ -106,7 +107,7 @@ impl Default {
     }
 
     pub fn init_context(&mut self) {
-        let mut cx = self.cx.borrow_mut();
+        let mut cx = self.cx.lock();
         let ep_0 = &mut cx.input.device_mut().ep_0;
         ep_0.set_endpoint_type(EndpointType::Control);
 

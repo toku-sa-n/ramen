@@ -12,25 +12,25 @@ use crate::{
     mem::allocator::page_box::PageBox,
     Futurelock,
 };
-use alloc::{rc::Rc, vec::Vec};
+use alloc::{sync::Arc, vec::Vec};
 use bit_field::BitField;
-use core::cell::RefCell;
 use endpoint::Endpoint;
+use spinning_top::Spinlock;
 use transfer::DoorbellWriter;
 
 pub mod endpoint;
 
 pub struct Slot {
     id: u8,
-    dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
-    cx: Rc<RefCell<Context>>,
+    dcbaa: Arc<Spinlock<DeviceContextBaseAddressArray>>,
+    cx: Arc<Spinlock<Context>>,
     def_ep: endpoint::Default,
-    recv: Rc<RefCell<Receiver>>,
-    regs: Rc<RefCell<Registers>>,
+    recv: Arc<Spinlock<Receiver>>,
+    regs: Arc<Spinlock<Registers>>,
 }
 impl Slot {
-    pub fn new(port: Port, id: u8, recv: Rc<RefCell<Receiver>>) -> Self {
-        let cx = Rc::new(RefCell::new(port.context));
+    pub fn new(port: Port, id: u8, recv: Arc<Spinlock<Receiver>>) -> Self {
+        let cx = Arc::new(Spinlock::new(port.context));
         let dbl_writer = DoorbellWriter::new(port.registers.clone(), id, 1);
         Self {
             id,
@@ -42,7 +42,7 @@ impl Slot {
         }
     }
 
-    pub async fn init(&mut self, runner: Rc<Futurelock<command::Sender>>) {
+    pub async fn init(&mut self, runner: Arc<Futurelock<command::Sender>>) {
         self.init_default_ep();
         self.register_with_dcbaa();
         self.issue_address_device(runner).await;
@@ -91,11 +91,11 @@ impl Slot {
     }
 
     fn register_with_dcbaa(&mut self) {
-        self.dcbaa.borrow_mut()[self.id.into()] = self.cx.borrow().output_device.phys_addr();
+        self.dcbaa.lock()[self.id.into()] = self.cx.lock().output_device.phys_addr();
     }
 
-    async fn issue_address_device(&mut self, runner: Rc<Futurelock<command::Sender>>) {
-        let cx_addr = self.cx.borrow().input.phys_addr();
+    async fn issue_address_device(&mut self, runner: Arc<Futurelock<command::Sender>>) {
+        let cx_addr = self.cx.lock().input.phys_addr();
         runner.lock().await.address_device(cx_addr, self.id).await;
     }
 }

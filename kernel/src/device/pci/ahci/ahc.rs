@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::registers::Registers;
-use alloc::rc::Rc;
-use core::cell::RefCell;
+use alloc::sync::Arc;
+use spinning_top::Spinlock;
 
 pub struct Ahc {
-    registers: Rc<RefCell<Registers>>,
+    registers: Arc<Spinlock<Registers>>,
 }
 impl Ahc {
-    pub fn new(registers: Rc<RefCell<Registers>>) -> Self {
+    pub fn new(registers: Arc<Spinlock<Registers>>) -> Self {
         Self { registers }
     }
 
@@ -19,7 +19,7 @@ impl Ahc {
     }
 
     pub fn indicate_system_software_is_ahci_aware(&mut self) {
-        let ghc = &mut self.registers.borrow_mut().generic.ghc;
+        let ghc = &mut self.registers.lock().generic.ghc;
         ghc.update(|ghc| ghc.set_ahci_enable(true));
     }
 
@@ -34,25 +34,25 @@ impl Ahc {
     }
 
     fn start_resetting(&mut self) {
-        let registers = &mut self.registers.borrow_mut();
+        let registers = &mut self.registers.lock();
         let ghc = &mut registers.generic.ghc;
         ghc.update(|ghc| ghc.set_hba_reset(true));
     }
 
     fn wait_until_reset_is_completed(&self) {
-        let registers = &self.registers.borrow();
+        let registers = &self.registers.lock();
         let ghc = &registers.generic.ghc;
         while ghc.read().hba_reset() {}
     }
 
     fn request_ownership_to_bios(&mut self) {
-        let registers = &mut self.registers.borrow_mut();
+        let registers = &mut self.registers.lock();
         let bohc = &mut registers.generic.bohc;
         bohc.update(|bohc| bohc.set_os_owned_semaphore(true));
     }
 
     fn wait_until_ownership_is_moved(&self) {
-        let registers = &self.registers.borrow();
+        let registers = &self.registers.lock();
         let bohc = &registers.generic.bohc;
         while bohc.read().os_owned_semaphore() && !bohc.read().bios_owned_semaphore() {}
     }

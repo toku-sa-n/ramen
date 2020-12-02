@@ -12,11 +12,11 @@ use crate::{
     multitask::task::{self, Task},
     Futurelock,
 };
-use alloc::rc::Rc;
-use core::cell::RefCell;
+use alloc::sync::Arc;
 use endpoint::class_driver;
 use resetter::Resetter;
 use slot::{endpoint, Slot};
+use spinning_top::Spinlock;
 
 mod context;
 mod resetter;
@@ -26,9 +26,8 @@ mod slot;
 #[allow(clippy::too_many_arguments)]
 async fn task(
     mut port: Port,
-    runner: Rc<Futurelock<command::Sender>>,
-    receiver: Rc<RefCell<Receiver>>,
-    task_collection: Rc<RefCell<task::Collection>>,
+    runner: Arc<Futurelock<command::Sender>>,
+    receiver: Arc<Spinlock<Receiver>>,
 ) {
     port.reset();
     port.init_context();
@@ -42,31 +41,28 @@ async fn task(
     eps.init().await;
 
     let kbd = class_driver::keyboard::Keyboard::new(eps);
-    task_collection
-        .borrow_mut()
+    task::COLLECTION
+        .lock()
         .add_task_as_woken(Task::new_poll(class_driver::keyboard::task(kbd)));
 }
 
 // FIXME: Resolve this.
 #[allow(clippy::too_many_arguments)]
 pub fn spawn_tasks(
-    command_runner: &Rc<Futurelock<command::Sender>>,
-    dcbaa: &Rc<RefCell<DeviceContextBaseAddressArray>>,
-    registers: &Rc<RefCell<Registers>>,
-    receiver: &Rc<RefCell<Receiver>>,
-    task_collection: &Rc<RefCell<task::Collection>>,
+    command_runner: &Arc<Futurelock<command::Sender>>,
+    dcbaa: &Arc<Spinlock<DeviceContextBaseAddressArray>>,
+    registers: &Arc<Spinlock<Registers>>,
+    receiver: &Arc<Spinlock<Receiver>>,
 ) {
-    for i in 0..num_of_ports(&registers.borrow()) {
+    let ports_num = num_of_ports(&registers.lock());
+    for i in 0..ports_num {
         let port = Port::new(&registers, dcbaa.clone(), i + 1);
         if port.connected() {
-            task_collection
-                .borrow_mut()
-                .add_task_as_woken(Task::new(task(
-                    port,
-                    command_runner.clone(),
-                    receiver.clone(),
-                    task_collection.clone(),
-                )));
+            task::COLLECTION.lock().add_task_as_woken(Task::new(task(
+                port,
+                command_runner.clone(),
+                receiver.clone(),
+            )));
         }
     }
 }
@@ -77,21 +73,21 @@ fn num_of_ports(registers: &Registers) -> u8 {
 }
 
 pub struct Port {
-    registers: Rc<RefCell<Registers>>,
+    registers: Arc<Spinlock<Registers>>,
     index: u8,
     context: Context,
-    dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
+    dcbaa: Arc<Spinlock<DeviceContextBaseAddressArray>>,
 }
 impl Port {
     fn new(
-        registers: &Rc<RefCell<Registers>>,
-        dcbaa: Rc<RefCell<DeviceContextBaseAddressArray>>,
+        registers: &Arc<Spinlock<Registers>>,
+        dcbaa: Arc<Spinlock<DeviceContextBaseAddressArray>>,
         index: u8,
     ) -> Self {
         Self {
             registers: registers.clone(),
             index,
-            context: Context::new(&registers.borrow()),
+            context: Context::new(&registers.lock()),
             dcbaa,
         }
     }
@@ -101,7 +97,7 @@ impl Port {
     }
 
     fn reset(&mut self) {
-        Resetter::new(&mut self.registers.borrow_mut(), self.index).reset();
+        Resetter::new(&mut self.registers.lock(), self.index).reset();
     }
 
     fn init_context(&mut self) {
@@ -109,7 +105,7 @@ impl Port {
     }
 
     fn read_port_rg(&self) -> PortRegisters {
-        let port_rg = &self.registers.borrow().operational.port_registers;
+        let port_rg = &self.registers.lock().operational.port_registers;
         port_rg.read((self.index - 1).into())
     }
 }

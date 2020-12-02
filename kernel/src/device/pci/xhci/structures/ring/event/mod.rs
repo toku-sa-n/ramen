@@ -2,16 +2,16 @@
 
 use super::{super::registers::Registers, CycleBit};
 use crate::{device::pci::xhci::exchanger::receiver::Receiver, mem::allocator::page_box::PageBox};
-use alloc::{rc::Rc, vec::Vec};
+use alloc::{sync::Arc, vec::Vec};
 use bit_field::BitField;
 use core::{
-    cell::RefCell,
     convert::TryInto,
     pin::Pin,
     task::{Context, Poll},
 };
 use futures_util::{stream::Stream, StreamExt};
 use segment_table::SegmentTable;
+use spinning_top::Spinlock;
 use trb::Trb;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB},
@@ -21,13 +21,13 @@ use x86_64::{
 mod segment_table;
 pub mod trb;
 
-pub async fn task(mut ring: Ring, command_completion_receiver: Rc<RefCell<Receiver>>) {
+pub async fn task(mut ring: Ring, command_completion_receiver: Arc<Spinlock<Receiver>>) {
     info!("This is the Event ring task.");
     while let Some(trb) = ring.next().await {
         info!("TRB: {:?}", trb);
         if let Trb::Completion(trb) = trb {
             info!("Command completion TRB arrived.");
-            command_completion_receiver.borrow_mut().receive(trb);
+            command_completion_receiver.lock().receive(trb);
         }
     }
 }
@@ -38,11 +38,11 @@ const MAX_NUM_OF_TRB_IN_QUEUE: u16 = Size4KiB::SIZE as u16 / Trb::SIZE.as_usize(
 pub struct Ring {
     segment_table: SegmentTable,
     raw: Raw,
-    registers: Rc<RefCell<Registers>>,
+    registers: Arc<Spinlock<Registers>>,
 }
 impl<'a> Ring {
-    pub fn new(registers: Rc<RefCell<Registers>>) -> Self {
-        let p2 = registers.borrow().capability.hcs_params_2.read();
+    pub fn new(registers: Arc<Spinlock<Registers>>) -> Self {
+        let p2 = registers.lock().capability.hcs_params_2.read();
         let max_num_of_erst = p2.powered_erst_max();
 
         Self {
@@ -66,7 +66,7 @@ impl<'a> Ring {
     }
 
     fn init_tbl(&mut self) {
-        SegTblInitializer::new(self, &mut self.registers.clone().borrow_mut()).init();
+        SegTblInitializer::new(self, &mut self.registers.clone().lock()).init();
     }
 
     fn try_dequeue(&mut self) -> Option<Trb> {
@@ -96,11 +96,11 @@ struct Raw {
     c: CycleBit,
     deq_p_seg: usize,
     deq_p_trb: usize,
-    r: Rc<RefCell<Registers>>,
+    r: Arc<Spinlock<Registers>>,
 }
 impl Raw {
-    fn new(r: Rc<RefCell<Registers>>) -> Self {
-        let rings = Self::new_rings(&r.borrow());
+    fn new(r: Arc<Spinlock<Registers>>) -> Self {
+        let rings = Self::new_rings(&r.lock());
         Self {
             rings,
             c: CycleBit::new(true),
@@ -174,7 +174,7 @@ impl Raw {
     }
 
     fn update_deq_p_with_xhci(&self) {
-        let p = &mut self.r.borrow_mut().runtime.erd_p;
+        let p = &mut self.r.lock().runtime.erd_p;
         p.update(|p| p.set(self.next_trb_addr()));
     }
 

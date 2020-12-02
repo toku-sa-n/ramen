@@ -9,25 +9,25 @@ use crate::{
     },
     mem::allocator::page_box::PageBox,
 };
-use alloc::{rc::Rc, vec::Vec};
-use core::cell::RefCell;
+use alloc::{sync::Arc, vec::Vec};
 use futures_util::task::AtomicWaker;
+use spinning_top::Spinlock;
 use transfer::trb::{control::DescTyIdx, Trb};
 use x86_64::PhysAddr;
 
 pub struct Sender {
     ring: transfer::Ring,
-    receiver: Rc<RefCell<Receiver>>,
+    receiver: Arc<Spinlock<Receiver>>,
     doorbell_writer: DoorbellWriter,
-    waker: Rc<RefCell<AtomicWaker>>,
+    waker: Arc<Spinlock<AtomicWaker>>,
 }
 impl Sender {
-    pub fn new(receiver: Rc<RefCell<Receiver>>, doorbell_writer: DoorbellWriter) -> Self {
+    pub fn new(receiver: Arc<Spinlock<Receiver>>, doorbell_writer: DoorbellWriter) -> Self {
         Self {
             ring: transfer::Ring::new(),
             receiver,
             doorbell_writer,
-            waker: Rc::new(RefCell::new(AtomicWaker::new())),
+            waker: Arc::new(Spinlock::new(AtomicWaker::new())),
         }
     }
 
@@ -74,7 +74,7 @@ impl Sender {
     fn register_trb(&mut self, t: &Trb, a: PhysAddr) {
         if t.ioc() {
             self.receiver
-                .borrow_mut()
+                .lock()
                 .add_entry(a, self.waker.clone())
                 .expect("Sender is already registered.");
         }
@@ -102,12 +102,12 @@ impl Sender {
 }
 
 pub struct DoorbellWriter {
-    registers: Rc<RefCell<Registers>>,
+    registers: Arc<Spinlock<Registers>>,
     slot_id: u8,
     val: u32,
 }
 impl DoorbellWriter {
-    pub fn new(registers: Rc<RefCell<Registers>>, slot_id: u8, val: u32) -> Self {
+    pub fn new(registers: Arc<Spinlock<Registers>>, slot_id: u8, val: u32) -> Self {
         Self {
             registers,
             slot_id,
@@ -116,7 +116,7 @@ impl DoorbellWriter {
     }
 
     pub fn write(&mut self) {
-        let d = &mut self.registers.borrow_mut().doorbell_array;
+        let d = &mut self.registers.lock().doorbell_array;
         d.update(self.slot_id.into(), |d| *d = self.val);
     }
 }
