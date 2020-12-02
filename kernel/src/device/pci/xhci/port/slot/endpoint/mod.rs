@@ -30,7 +30,7 @@ pub struct Collection {
 impl Collection {
     pub async fn new(mut slot: Slot, cmd: Arc<Futurelock<command::Sender>>) -> Self {
         let eps = slot.endpoints().await;
-        info!("Endpoints collected");
+        debug!("Endpoints collected");
         Self {
             eps,
             cx: slot.cx,
@@ -42,7 +42,7 @@ impl Collection {
     pub async fn init(&mut self) {
         self.enable_eps();
         self.issue_configure_eps().await;
-        info!("Endpoints initialized");
+        debug!("Endpoints initialized");
     }
 
     fn enable_eps(&mut self) {
@@ -160,7 +160,7 @@ impl<'a> ContextInitializer<'a> {
         let interval = self.ep.interval;
         let ring_addr = self.sender.ring_addr();
 
-        info!("Endpoint type: {:?}", ep_ty);
+        debug!("Endpoint type: {:?}", ep_ty);
         let c = self.ep_context();
         c.set_endpoint_type(ep_ty);
         c.set_max_packet_size(max_packet_size);

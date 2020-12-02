@@ -21,7 +21,7 @@ impl<'a> TypeSpec<'a> {
         };
 
         for i in 0..6 {
-            info!("Bar{}: {:?}", i, self.bar(bar::Index::new(i)));
+            debug!("Bar{}: {:?}", i, self.bar(bar::Index::new(i)));
         }
 
         self.bar(index)

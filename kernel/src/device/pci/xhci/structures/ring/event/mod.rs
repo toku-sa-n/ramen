@@ -22,11 +22,11 @@ mod segment_table;
 pub mod trb;
 
 pub async fn task(mut ring: Ring, command_completion_receiver: Arc<Spinlock<Receiver>>) {
-    info!("This is the Event ring task.");
+    debug!("This is the Event ring task.");
     while let Some(trb) = ring.next().await {
-        info!("TRB: {:?}", trb);
+        debug!("TRB: {:?}", trb);
         if let Trb::Completion(trb) = trb {
-            info!("Command completion TRB arrived.");
+            debug!("Command completion TRB arrived.");
             command_completion_receiver.lock().receive(trb);
         }
     }

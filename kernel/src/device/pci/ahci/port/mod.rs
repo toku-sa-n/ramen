@@ -24,11 +24,11 @@ pub fn spawn_tasks(registers: &Arc<Spinlock<Registers>>) {
 }
 
 async fn task(mut port: Port) {
-    info!("This is a task of port {}", port.index);
+    debug!("This is a task of port {}", port.index);
     port.init();
     port.start();
 
-    info!(
+    debug!(
         "Available command slot: {:?}",
         port.get_available_command_slot()
     );
@@ -127,7 +127,7 @@ impl Port {
     fn start(&mut self) {
         if self.ready_to_start() {
             self.start_processing();
-            info!(
+            debug!(
                 "Port {} signature: {:X}.",
                 self.index,
                 self.parse_port_rg(|r| r.sig.read().get())

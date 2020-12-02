@@ -36,7 +36,7 @@ async fn task(
 
     let mut slot = Slot::new(port, slot_id, receiver);
     slot.init(runner.clone()).await;
-    info!("Slot initialized");
+    debug!("Slot initialized");
     let mut eps = endpoint::Collection::new(slot, runner).await;
     eps.init().await;
 
