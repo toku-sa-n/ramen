@@ -31,3 +31,4 @@ pub const KEY_CMD_MODE: u8 = 0x47;
 pub const KEY_STATUS_SEND_NOT_READY: u8 = 0x02;
 
 pub const KERNEL_NAME: &str = "kernel.bin";
+pub const INITRD_NAME: &str = "initrd.img";
