@@ -63,7 +63,7 @@ endif
 run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE) $(FAT_IMG) $(INITRD)
 	$(VIEWER) $(VIEWERFLAGS) -no-shutdown -monitor stdio
 
-test_general:$(IMG_FILE)
+test_general:$(IMG_FILE) $(INITRD)
 	make $(IMG_FILE) RELEASE_FLAGS=$(RELEASE_FLAGS) TEST_FLAG=--features=qemu_test -B
 	make $(FAT_IMG)
 	$(VIEWER) $(VIEWERFLAGS) -nographic; if [[ $$? -eq 33 ]];\
