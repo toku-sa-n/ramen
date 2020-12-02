@@ -31,14 +31,14 @@ pub fn deploy(bs: &boot::BootServices, name: &'static str) -> (PhysAddr, Bytes) 
 }
 
 fn locate(
-    boot_services: &boot::BootServices,
-    root_dir: &mut file::Directory,
+    bs: &boot::BootServices,
+    root: &mut file::Directory,
     name: &'static str,
 ) -> (PhysAddr, Bytes) {
-    let kernel_bytes = size::get(root_dir, name);
-    let mut kernel_handler = get_handler(root_dir, name);
+    let kernel_bytes = size::get(root, name);
+    let mut kernel_handler = get_handler(root, name);
 
-    let addr = allocate(boot_services, kernel_bytes);
+    let addr = allocate(bs, kernel_bytes);
     put_on_memory(&mut kernel_handler, addr, kernel_bytes);
 
     (addr, kernel_bytes)
