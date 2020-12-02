@@ -24,10 +24,10 @@ use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 
 mod size;
 
-pub fn deploy(boot_services: &boot::BootServices) -> (PhysAddr, Bytes) {
-    let mut root_dir = root_dir::open(boot_services);
+pub fn deploy(bs: &boot::BootServices) -> (PhysAddr, Bytes) {
+    let mut root_dir = root_dir::open(bs);
 
-    locate(boot_services, &mut root_dir)
+    locate(bs, &mut root_dir)
 }
 
 fn locate(boot_services: &boot::BootServices, root_dir: &mut file::Directory) -> (PhysAddr, Bytes) {
