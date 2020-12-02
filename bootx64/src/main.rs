@@ -51,6 +51,7 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
         &reserved::PhysRange::new(phys_kernel_addr, actual_mem_size),
         stack_addr,
         &vram_info,
+        &reserved::PhysRange::new(initrd_addr, bytes_initrd),
     );
     let mem_map = terminate_boot_services(image, system_table);
 
