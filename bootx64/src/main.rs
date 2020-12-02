@@ -48,7 +48,7 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
 
     let stack_addr = stack::allocate(system_table.boot_services());
     let reserved_regions = reserved::Map::new(
-        &reserved::KernelPhysRange::new(phys_kernel_addr, actual_mem_size),
+        &reserved::PhysRange::new(phys_kernel_addr, actual_mem_size),
         stack_addr,
         &vram_info,
     );

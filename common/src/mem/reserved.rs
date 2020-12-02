@@ -7,12 +7,12 @@ use crate::{
 use os_units::Bytes;
 use x86_64::{PhysAddr, VirtAddr};
 
-pub struct KernelPhysRange {
+pub struct PhysRange {
     start: PhysAddr,
     bytes: Bytes,
 }
 
-impl KernelPhysRange {
+impl PhysRange {
     #[must_use]
     pub fn new(start: PhysAddr, bytes: Bytes) -> Self {
         Self { start, bytes }
@@ -25,7 +25,7 @@ pub struct Map([Range; 3]);
 impl Map {
     #[must_use]
     #[allow(clippy::too_many_arguments)]
-    pub fn new(kernel: &KernelPhysRange, phys_addr_stack: PhysAddr, vram: &vram::Info) -> Self {
+    pub fn new(kernel: &PhysRange, phys_addr_stack: PhysAddr, vram: &vram::Info) -> Self {
         Self {
             0: [
                 Range::kernel(&kernel),
@@ -51,7 +51,7 @@ pub struct Range {
 
 impl Range {
     #[must_use]
-    fn kernel(kernel: &KernelPhysRange) -> Self {
+    fn kernel(kernel: &PhysRange) -> Self {
         Self {
             virt: KERNEL_ADDR,
             phys: kernel.start,
