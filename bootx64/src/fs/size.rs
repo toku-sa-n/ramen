@@ -4,8 +4,8 @@ use core::convert::TryFrom;
 use os_units::Bytes;
 use uefi::proto::media::{file, file::RegularFile};
 
-pub fn get(root_dir: &mut file::Directory) -> Bytes {
-    let mut handler = super::get_handler(root_dir);
+pub fn get(root_dir: &mut file::Directory, name: &'static str) -> Bytes {
+    let mut handler = super::get_handler(root_dir, name);
 
     handler
         .set_position(RegularFile::END_OF_FILE)

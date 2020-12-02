@@ -2,7 +2,7 @@
 
 mod root_dir;
 
-use common::constant::{KERNEL_ADDR, KERNEL_NAME};
+use common::constant::KERNEL_ADDR;
 use core::{
     convert::{TryFrom, TryInto},
     slice,
@@ -24,15 +24,19 @@ use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 
 mod size;
 
-pub fn deploy(bs: &boot::BootServices) -> (PhysAddr, Bytes) {
+pub fn deploy(bs: &boot::BootServices, name: &'static str) -> (PhysAddr, Bytes) {
     let mut root_dir = root_dir::open(bs);
 
-    locate(bs, &mut root_dir)
+    locate(bs, &mut root_dir, name)
 }
 
-fn locate(boot_services: &boot::BootServices, root_dir: &mut file::Directory) -> (PhysAddr, Bytes) {
-    let kernel_bytes = size::get(root_dir);
-    let mut kernel_handler = get_handler(root_dir);
+fn locate(
+    boot_services: &boot::BootServices,
+    root_dir: &mut file::Directory,
+    name: &'static str,
+) -> (PhysAddr, Bytes) {
+    let kernel_bytes = size::get(root_dir, name);
+    let mut kernel_handler = get_handler(root_dir, name);
 
     let addr = allocate(boot_services, kernel_bytes);
     put_on_memory(&mut kernel_handler, addr, kernel_bytes);
@@ -67,9 +71,9 @@ pub fn fetch_entry_address_and_memory_size(addr: PhysAddr, bytes: Bytes) -> (Vir
     }
 }
 
-fn get_handler(root_dir: &mut file::Directory) -> file::RegularFile {
+fn get_handler(root_dir: &mut file::Directory, name: &'static str) -> file::RegularFile {
     let handler = root_dir
-        .open(KERNEL_NAME, FileMode::Read, FileAttribute::empty())
+        .open(name, FileMode::Read, FileAttribute::empty())
         .expect_success("Failed to get file handler of the kernel.");
 
     unsafe { file::RegularFile::new(handler) }
