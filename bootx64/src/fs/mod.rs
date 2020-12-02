@@ -35,13 +35,13 @@ fn locate(
     root: &mut file::Directory,
     name: &'static str,
 ) -> (PhysAddr, Bytes) {
-    let kernel_bytes = size::get(root, name);
-    let mut kernel_handler = get_handler(root, name);
+    let file_bytes = size::get(root, name);
+    let mut file_handler = get_handler(root, name);
 
-    let addr = allocate(bs, kernel_bytes);
-    put_on_memory(&mut kernel_handler, addr, kernel_bytes);
+    let addr = allocate(bs, file_bytes);
+    put_on_memory(&mut file_handler, addr, file_bytes);
 
-    (addr, kernel_bytes)
+    (addr, file_bytes)
 }
 
 pub fn fetch_entry_address_and_memory_size(addr: PhysAddr, bytes: Bytes) -> (VirtAddr, Bytes) {
