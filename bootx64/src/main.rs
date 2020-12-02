@@ -20,9 +20,12 @@ mod fs;
 mod gop;
 mod mem;
 
-use common::{kernelboot, mem::reserved};
+use common::{
+    constant::{INITRD_NAME, KERNEL_NAME},
+    kernelboot,
+    mem::reserved,
+};
 use core::{convert::TryInto, ptr, ptr::NonNull, slice};
-use fs::kernel;
 use mem::{paging, stack};
 use uefi::{
     prelude::{Boot, Handle, SystemTable},
@@ -37,15 +40,18 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
 
     let vram_info = gop::init(system_table.boot_services());
 
-    let (phys_kernel_addr, bytes_kernel) = kernel::deploy(system_table.boot_services());
+    let (phys_kernel_addr, bytes_kernel) = fs::deploy(system_table.boot_services(), KERNEL_NAME);
     let (entry_addr, actual_mem_size) =
-        kernel::fetch_entry_address_and_memory_size(phys_kernel_addr, bytes_kernel);
+        fs::fetch_entry_address_and_memory_size(phys_kernel_addr, bytes_kernel);
+
+    let (initrd_addr, bytes_initrd) = fs::deploy(system_table.boot_services(), INITRD_NAME);
 
     let stack_addr = stack::allocate(system_table.boot_services());
     let reserved_regions = reserved::Map::new(
-        &reserved::KernelPhysRange::new(phys_kernel_addr, actual_mem_size),
+        &reserved::PhysRange::new(phys_kernel_addr, actual_mem_size),
         stack_addr,
         &vram_info,
+        &reserved::PhysRange::new(initrd_addr, bytes_initrd),
     );
     let mem_map = terminate_boot_services(image, system_table);
 

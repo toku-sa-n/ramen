@@ -10,6 +10,7 @@ use x86_64::{
 pub const LOCAL_APIC_ID_REGISTER_ADDR: PhysAddr = PhysAddr::new_truncate(0xfee0_0020);
 
 pub const KERNEL_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_8000_0000);
+pub const INITRD_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_8800_0000);
 pub const KERNEL_HEAP_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_9000_0000);
 pub const VRAM_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_a000_1000);
 pub const STACK_BASE: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_c000_0000);
@@ -31,3 +32,4 @@ pub const KEY_CMD_MODE: u8 = 0x47;
 pub const KEY_STATUS_SEND_NOT_READY: u8 = 0x02;
 
 pub const KERNEL_NAME: &str = "kernel.bin";
+pub const INITRD_NAME: &str = "initrd.img";
