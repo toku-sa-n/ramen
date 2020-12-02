@@ -70,9 +70,12 @@ test_general:$(INITRD) $(FAT_IMG) $(OVMF_VARS) $(OVMF_CODE)
 		else echo "Booting test failed ($(TEST_MODE) mode)"; exit 1;fi
 
 test:
+	# For some reasons, without `make clean`, consecutive testing will go into the infinite loop.
+	make clean
 	make test_general TEST_MODE=debug
 
 release_test:
+	make clean
 	make test_general TEST_MODE=release RELEASE_FLAGS=--release
 
 $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE) $(INITRD)
