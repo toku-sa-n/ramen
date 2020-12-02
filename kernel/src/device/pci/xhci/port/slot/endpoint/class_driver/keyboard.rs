@@ -37,6 +37,6 @@ impl Keyboard {
     }
 
     fn print_buf(&self) {
-        info!("Keyboard packet: {:?}", self.buf);
+        debug!("Keyboard packet: {:?}", self.buf);
     }
 }

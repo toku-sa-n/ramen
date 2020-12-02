@@ -48,13 +48,13 @@ impl Sender {
         let (setup, data, status) =
             Trb::new_get_descriptor(&b, DescTyIdx::new(descriptor::Ty::Configuration, 0));
         self.issue_trbs(&[setup, data, status]).await;
-        info!("Got TRBs");
+        debug!("Got TRBs");
         b
     }
 
     pub async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
         let t = Trb::new_normal(&b);
-        info!("Normal TRB: {:X?}", t);
+        debug!("Normal TRB: {:X?}", t);
         self.issue_trbs(&[t]).await;
     }
 
