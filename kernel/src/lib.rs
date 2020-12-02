@@ -26,6 +26,7 @@ extern crate x86_64;
 #[macro_use]
 mod graphics;
 mod device;
+mod fs;
 mod gdt;
 mod idt;
 mod interrupt;
