@@ -19,6 +19,7 @@ mod exit;
 mod fs;
 mod gop;
 mod mem;
+mod rsdp;
 
 use common::{
     constant::{INITRD_NAME, KERNEL_NAME},
