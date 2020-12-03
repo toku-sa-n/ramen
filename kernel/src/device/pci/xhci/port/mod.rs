@@ -55,9 +55,9 @@ pub fn spawn_tasks(
         let port = Port::new(&registers, dcbaa.clone(), i + 1);
         if port.connected() {
             multitask::add(Task::new(task(
-                        port,
-                        command_runner.clone(),
-                        receiver.clone(),
+                port,
+                command_runner.clone(),
+                receiver.clone(),
             )));
         }
     }
