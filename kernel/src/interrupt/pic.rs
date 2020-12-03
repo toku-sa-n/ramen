@@ -8,7 +8,7 @@ use super::{
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // See P.128.
-pub fn init_pic() {
+pub fn init() {
     enable_interrupts_from_only_mouse_and_keyboard();
     enable_edge_trigger_mode();
     set_irq_receiver();
