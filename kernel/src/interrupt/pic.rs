@@ -1,11 +1,11 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use x86_64::instructions::port::Port;
 
 use super::{
     PIC0_ICW1, PIC0_ICW2, PIC0_ICW3, PIC0_ICW4, PIC0_IMR, PIC1_ICW1, PIC1_ICW2, PIC1_ICW3,
     PIC1_ICW4, PIC1_IMR,
 };
-
-// SPDX-License-Identifier: GPL-3.0-or-later
 
 // See P.128.
 pub fn init() {
