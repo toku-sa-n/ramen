@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use core::{ptr, str};
+use x86_64::VirtAddr;
+
 #[repr(C, packed)]
 struct Meta {
     name: [u8; 100],
@@ -19,4 +22,27 @@ struct Meta {
     device_minor_number: [u8; 8],
     filename_prefix: [u8; 155],
     _rsvd: [u8; 12],
+}
+impl Meta {
+    fn filesize_as_dec(&self) -> usize {
+        let mut sz: usize = 0;
+
+        // The last byte of `size` field is always 0 (u8), not 0 (char).
+        for d in 0..self.size.len() - 1 {
+            sz *= 8;
+            sz += usize::from(self.size[d] - '0' as u8);
+        }
+        sz
+    }
+}
+
+pub fn list_files(addr: VirtAddr) {
+    let mut p = addr;
+    while unsafe {
+        ptr::read_unaligned((p + 257_u64).as_ptr() as *const [u8; 5]) == *"ustar".as_bytes()
+    } {
+        let meta: Meta = unsafe { ptr::read_unaligned(p.as_ptr()) };
+        info!("{}", str::from_utf8(&meta.name).unwrap());
+        p += (((meta.filesize_as_dec() + 511) / 512) + 1) * 512;
+    }
 }
