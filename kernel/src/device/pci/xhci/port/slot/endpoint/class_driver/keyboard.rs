@@ -1,14 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use alloc::string::String;
+use spinning_top::Spinlock;
+
 use crate::{
     device::pci::xhci::{port::slot::endpoint, structures::context::EndpointType},
     mem::allocator::page_box::PageBox,
 };
 
+const LOWER_ALPHABETS: &str = "abcdefghijklmnopqrstuvwxyz";
+
+static STR: Spinlock<String> = Spinlock::new(String::new());
+
 pub async fn task(mut kbd: Keyboard) {
     loop {
         kbd.get_packet().await;
-        kbd.print_buf();
+        kbd.store_key();
     }
 }
 
@@ -36,7 +43,15 @@ impl Keyboard {
         }
     }
 
-    fn print_buf(&self) {
-        debug!("Keyboard packet: {:?}", self.buf);
+    fn store_key(&self) {
+        for c in self.buf.iter().skip(2) {
+            if *c >= 4 && *c <= 0x1d {
+                STR.lock()
+                    .push(LOWER_ALPHABETS.chars().nth((c - 4).into()).unwrap());
+            } else if *c == 0x28 {
+                info!("{}", STR.lock());
+                *STR.lock() = String::new();
+            }
+        }
     }
 }
