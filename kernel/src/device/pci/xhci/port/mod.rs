@@ -23,10 +23,22 @@ mod resetter;
 mod slot;
 
 async fn task(
-    mut port: Port,
+    port: Port,
     runner: Arc<Futurelock<command::Sender>>,
     receiver: Arc<Spinlock<Receiver>>,
 ) {
+    let mut eps = init_port_and_slot(port, runner, receiver).await;
+    eps.init().await;
+
+    let kbd = class_driver::keyboard::Keyboard::new(eps);
+    multitask::add(Task::new_poll(class_driver::keyboard::task(kbd)));
+}
+
+async fn init_port_and_slot(
+    mut port: Port,
+    runner: Arc<Futurelock<command::Sender>>,
+    receiver: Arc<Spinlock<Receiver>>,
+) -> endpoint::Collection {
     port.reset();
     port.init_context();
 
@@ -35,11 +47,7 @@ async fn task(
     let mut slot = Slot::new(port, slot_id, receiver);
     slot.init(runner.clone()).await;
     debug!("Slot initialized");
-    let mut eps = endpoint::Collection::new(slot, runner).await;
-    eps.init().await;
-
-    let kbd = class_driver::keyboard::Keyboard::new(eps);
-    multitask::add(Task::new_poll(class_driver::keyboard::task(kbd)));
+    endpoint::Collection::new(slot, runner).await
 }
 
 // FIXME: Resolve this.
