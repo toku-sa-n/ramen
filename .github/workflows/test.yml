@@ -26,7 +26,7 @@ jobs:
         components: clippy, rustfmt, rust-src
         override: true
 
-    - name: Runrustfmt with check mode
+    - name: Run rustfmt with check mode
       run: |
         shopt -s globstar
         rustfmt **/*.rs --check
