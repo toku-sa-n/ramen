@@ -4,7 +4,7 @@ mod command_list;
 mod received_fis;
 
 use super::registers::{port, Registers};
-use crate::multitask::task::{self, Task};
+use crate::multitask::{self, task::Task};
 use alloc::sync::Arc;
 use command_list::CommandList;
 use core::convert::TryInto;
@@ -16,11 +16,7 @@ const MAX_PORTS: usize = 32;
 pub fn spawn_tasks(registers: &Arc<Spinlock<Registers>>) {
     (0..MAX_PORTS)
         .filter_map(|i| Port::new(registers.clone(), i))
-        .for_each(|port| {
-            task::COLLECTION
-                .lock()
-                .add_task_as_woken(Task::new(task(port)))
-        })
+        .for_each(|port| multitask::add(Task::new(task(port))))
 }
 
 async fn task(mut port: Port) {

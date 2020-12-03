@@ -7,7 +7,7 @@ mod xhc;
 
 use super::config::bar;
 use crate::{
-    multitask::task::{self, Task},
+    multitask::{self, task::Task},
     Futurelock,
 };
 use alloc::sync::Arc;
@@ -26,12 +26,10 @@ pub async fn task() {
 
     port::spawn_tasks(&runner, &dcbaa, &registers, &command_completion_receiver);
 
-    task::COLLECTION
-        .lock()
-        .add_task_as_woken(Task::new_poll(event::task(
-            event_ring,
-            command_completion_receiver,
-        )));
+    multitask::add(Task::new_poll(event::task(
+        event_ring,
+        command_completion_receiver,
+    )));
 }
 
 // FIXME

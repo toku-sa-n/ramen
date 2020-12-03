@@ -19,7 +19,8 @@ use core::{
 use crossbeam_queue::ArrayQueue;
 use spinning_top::Spinlock;
 
-pub static COLLECTION: Lazy<Spinlock<Collection>> = Lazy::new(|| Spinlock::new(Collection::new()));
+pub(super) static COLLECTION: Lazy<Spinlock<Collection>> =
+    Lazy::new(|| Spinlock::new(Collection::new()));
 
 pub struct Collection {
     tasks: BTreeMap<Id, Task>,

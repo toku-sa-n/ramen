@@ -45,10 +45,7 @@ use graphics::{
     Vram,
 };
 use mem::allocator::{heap, phys::FrameManager};
-use multitask::{
-    executor::Executor,
-    task::{self, Task},
-};
+use multitask::{executor::Executor, task::Task};
 use spinning_top::RawSpinlock;
 use x86_64::instructions::interrupts;
 pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
@@ -96,18 +93,10 @@ fn initialization(boot_info: &mut kernelboot::Info) {
 
 #[cfg(not(feature = "qemu_test"))]
 fn run_tasks() -> ! {
-    task::COLLECTION
-        .lock()
-        .add_task_as_woken(Task::new(keyboard::task()));
-    task::COLLECTION
-        .lock()
-        .add_task_as_woken(Task::new(mouse::task()));
-    task::COLLECTION
-        .lock()
-        .add_task_as_woken(Task::new(xhci::task()));
-    task::COLLECTION
-        .lock()
-        .add_task_as_woken(Task::new(ahci::task()));
+    multitask::add(Task::new(keyboard::task()));
+    multitask::add(Task::new(mouse::task()));
+    multitask::add(Task::new(xhci::task()));
+    multitask::add(Task::new(ahci::task()));
 
     let mut executor = Executor::new();
     executor.run();

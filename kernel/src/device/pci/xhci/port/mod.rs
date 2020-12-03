@@ -9,7 +9,7 @@ use super::{
     },
 };
 use crate::{
-    multitask::task::{self, Task},
+    multitask::{self, task::Task},
     Futurelock,
 };
 use alloc::sync::Arc;
@@ -39,9 +39,7 @@ async fn task(
     eps.init().await;
 
     let kbd = class_driver::keyboard::Keyboard::new(eps);
-    task::COLLECTION
-        .lock()
-        .add_task_as_woken(Task::new_poll(class_driver::keyboard::task(kbd)));
+    multitask::add(Task::new_poll(class_driver::keyboard::task(kbd)));
 }
 
 // FIXME: Resolve this.
@@ -56,7 +54,7 @@ pub fn spawn_tasks(
     for i in 0..ports_num {
         let port = Port::new(&registers, dcbaa.clone(), i + 1);
         if port.connected() {
-            task::COLLECTION.lock().add_task_as_woken(Task::new(task(
+            multitask::add(Task::new(task(
                 port,
                 command_runner.clone(),
                 receiver.clone(),
