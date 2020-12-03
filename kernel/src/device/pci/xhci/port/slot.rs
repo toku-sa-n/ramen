@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{super::structures::descriptor::Descriptor, Port};
+use super::{super::structures::descriptor::Descriptor, endpoint, Port};
 use crate::{
     device::pci::xhci::{
         exchanger::{command, receiver::Receiver, transfer},
@@ -18,12 +18,10 @@ use endpoint::Endpoint;
 use spinning_top::Spinlock;
 use transfer::DoorbellWriter;
 
-pub mod endpoint;
-
 pub struct Slot {
-    id: u8,
+    pub id: u8,
     dcbaa: Arc<Spinlock<DeviceContextBaseAddressArray>>,
-    cx: Arc<Spinlock<Context>>,
+    pub cx: Arc<Spinlock<Context>>,
     def_ep: endpoint::Default,
     recv: Arc<Spinlock<Receiver>>,
     regs: Arc<Spinlock<Registers>>,

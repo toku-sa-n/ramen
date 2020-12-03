@@ -13,12 +13,13 @@ use crate::{
     Futurelock,
 };
 use alloc::sync::Arc;
-use endpoint::class_driver;
 use resetter::Resetter;
-use slot::{endpoint, Slot};
+use slot::Slot;
 use spinning_top::Spinlock;
 
+mod class_driver;
 mod context;
+mod endpoint;
 mod resetter;
 mod slot;
 
