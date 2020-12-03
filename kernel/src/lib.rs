@@ -63,7 +63,7 @@ fn initialization(boot_info: &mut kernelboot::Info) {
 
     gdt::init();
     idt::init();
-    interrupt::init_pic();
+    interrupt::pic::init_pic();
 
     interrupts::enable();
 
@@ -86,7 +86,7 @@ fn initialization(boot_info: &mut kernelboot::Info) {
         device::pci::iter_devices().count()
     );
 
-    interrupt::set_init_pic_bits();
+    interrupt::pic::set_init_pic_bits();
 
     fs::ustar::list_files(INITRD_ADDR);
 }
