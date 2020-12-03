@@ -7,79 +7,79 @@ use super::{PIC0_OCW2, PIC1_OCW2};
 
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pub extern "x86-interrupt" fn handler_00(
+pub extern "x86-interrupt" fn h_00(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     panic!("Divide-by-zero Error!");
 }
 
-pub extern "x86-interrupt" fn handler_01(
+pub extern "x86-interrupt" fn h_01(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     panic!("Debug exception!");
 }
 
-pub extern "x86-interrupt" fn handler_02(
+pub extern "x86-interrupt" fn h_02(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     panic!("Non-maskable Interrupt!");
 }
 
-pub extern "x86-interrupt" fn handler_03(
+pub extern "x86-interrupt" fn h_03(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     panic!("Breakpoint!");
 }
 
-pub extern "x86-interrupt" fn handler_04(
+pub extern "x86-interrupt" fn h_04(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     panic!("Overflow!");
 }
 
-pub extern "x86-interrupt" fn handler_05(
+pub extern "x86-interrupt" fn h_05(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     panic!("Bound Range Exceeded!");
 }
 
-pub extern "x86-interrupt" fn handler_06(
+pub extern "x86-interrupt" fn h_06(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     panic!("Invalid Opcode!");
 }
 
-pub extern "x86-interrupt" fn handler_07(
+pub extern "x86-interrupt" fn h_07(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     panic!("Device Not Available!");
 }
 
-pub extern "x86-interrupt" fn handler_09(
+pub extern "x86-interrupt" fn h_09(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     panic!("Coprocessor Segment Overrun!");
 }
 
-pub extern "x86-interrupt" fn handler_10(
+pub extern "x86-interrupt" fn h_10(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     panic!("x87 Floating-Point Exception");
 }
 
-pub extern "x86-interrupt" fn handler_13(
+pub extern "x86-interrupt" fn h_13(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     panic!("SIMD Floating-Point Exception");
 }
 
-pub extern "x86-interrupt" fn handler_14(
+pub extern "x86-interrupt" fn h_14(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     panic!("Virtualization Exception!");
 }
 
-pub extern "x86-interrupt" fn handler_20(
+pub extern "x86-interrupt" fn h_20(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     unsafe {
@@ -87,7 +87,7 @@ pub extern "x86-interrupt" fn handler_20(
     }
 }
 
-pub extern "x86-interrupt" fn handler_21(
+pub extern "x86-interrupt" fn h_21(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     unsafe { Port::new(PIC0_OCW2).write(0x61_u8) };
@@ -95,7 +95,7 @@ pub extern "x86-interrupt" fn handler_21(
     keyboard::enqueue_scancode(unsafe { port.read() });
 }
 
-pub extern "x86-interrupt" fn handler_2c(
+pub extern "x86-interrupt" fn h_2c(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     unsafe {
@@ -106,7 +106,7 @@ pub extern "x86-interrupt" fn handler_2c(
     mouse::enqueue_packet(unsafe { port.read() });
 }
 
-pub extern "x86-interrupt" fn handler_40(
+pub extern "x86-interrupt" fn h_40(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     info!("Interrupt from 0x40");
