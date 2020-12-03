@@ -26,6 +26,7 @@ extern crate x86_64;
 #[macro_use]
 mod graphics;
 mod device;
+mod fs;
 mod gdt;
 mod idt;
 mod interrupt;
@@ -33,7 +34,7 @@ mod mem;
 mod multitask;
 mod panic;
 
-use common::kernelboot;
+use common::{constant::INITRD_ADDR, kernelboot};
 use device::{
     keyboard, mouse,
     pci::{ahci, xhci},
@@ -89,6 +90,8 @@ fn initialization(boot_info: &mut kernelboot::Info) {
     );
 
     interrupt::set_init_pic_bits();
+
+    fs::ustar::list_files(INITRD_ADDR);
 }
 
 #[cfg(not(feature = "qemu_test"))]
