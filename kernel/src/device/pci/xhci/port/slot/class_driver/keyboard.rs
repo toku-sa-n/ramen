@@ -38,7 +38,7 @@ impl Keyboard {
     async fn issue_normal_trb(&mut self) {
         for e in &mut self.ep {
             if e.ty() == EndpointType::InterruptIn {
-                e.sender.issue_normal_trb(&self.buf).await;
+                e.issue_normal_trb(&self.buf).await;
             }
         }
     }

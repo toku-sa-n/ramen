@@ -18,6 +18,7 @@ use endpoint::Endpoint;
 use spinning_top::Spinlock;
 use transfer::DoorbellWriter;
 
+pub mod class_driver;
 pub mod endpoint;
 
 pub struct Slot {
