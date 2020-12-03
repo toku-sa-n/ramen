@@ -28,7 +28,6 @@ mod graphics;
 mod device;
 mod fs;
 mod gdt;
-mod idt;
 mod interrupt;
 mod mem;
 mod multitask;
@@ -44,6 +43,7 @@ use graphics::{
     screen::{self, desktop::Desktop, layer},
     Vram,
 };
+use interrupt::idt;
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
 use spinning_top::RawSpinlock;

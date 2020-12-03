@@ -2,7 +2,9 @@
 
 use crate::device::{keyboard, mouse};
 use common::constant::PORT_KEY_DATA;
-use x86_64::{instructions::port::Port, structures::idt};
+use x86_64::instructions::port::Port;
+
+pub mod idt;
 
 const PIC0_ICW1: u16 = 0x0020;
 const PIC0_OCW2: u16 = 0x0020;
@@ -70,67 +72,97 @@ pub fn set_init_pic_bits() {
     }
 }
 
-pub extern "x86-interrupt" fn handler_00(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_00(
+    _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
+) {
     panic!("Divide-by-zero Error!");
 }
 
-pub extern "x86-interrupt" fn handler_01(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_01(
+    _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
+) {
     panic!("Debug exception!");
 }
 
-pub extern "x86-interrupt" fn handler_02(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_02(
+    _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
+) {
     panic!("Non-maskable Interrupt!");
 }
 
-pub extern "x86-interrupt" fn handler_03(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_03(
+    _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
+) {
     panic!("Breakpoint!");
 }
 
-pub extern "x86-interrupt" fn handler_04(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_04(
+    _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
+) {
     panic!("Overflow!");
 }
 
-pub extern "x86-interrupt" fn handler_05(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_05(
+    _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
+) {
     panic!("Bound Range Exceeded!");
 }
 
-pub extern "x86-interrupt" fn handler_06(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_06(
+    _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
+) {
     panic!("Invalid Opcode!");
 }
 
-pub extern "x86-interrupt" fn handler_07(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_07(
+    _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
+) {
     panic!("Device Not Available!");
 }
 
-pub extern "x86-interrupt" fn handler_09(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_09(
+    _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
+) {
     panic!("Coprocessor Segment Overrun!");
 }
 
-pub extern "x86-interrupt" fn handler_10(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_10(
+    _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
+) {
     panic!("x87 Floating-Point Exception");
 }
 
-pub extern "x86-interrupt" fn handler_13(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_13(
+    _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
+) {
     panic!("SIMD Floating-Point Exception");
 }
 
-pub extern "x86-interrupt" fn handler_14(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_14(
+    _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
+) {
     panic!("Virtualization Exception!");
 }
 
-pub extern "x86-interrupt" fn handler_20(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_20(
+    _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
+) {
     unsafe {
         Port::new(PIC0_OCW2).write(0x60_u8);
     }
 }
 
-pub extern "x86-interrupt" fn handler_21(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_21(
+    _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
+) {
     unsafe { Port::new(PIC0_OCW2).write(0x61_u8) };
     let mut port = PORT_KEY_DATA;
     keyboard::enqueue_scancode(unsafe { port.read() });
 }
 
-pub extern "x86-interrupt" fn handler_2c(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_2c(
+    _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
+) {
     unsafe {
         Port::new(PIC1_OCW2).write(0x64_u8);
         Port::new(PIC0_OCW2).write(0x62_u8);
@@ -139,6 +171,8 @@ pub extern "x86-interrupt" fn handler_2c(_stack_frame: &mut idt::InterruptStackF
     mouse::enqueue_packet(unsafe { port.read() });
 }
 
-pub extern "x86-interrupt" fn handler_40(_stack_frame: &mut idt::InterruptStackFrame) {
+pub extern "x86-interrupt" fn handler_40(
+    _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
+) {
     info!("Interrupt from 0x40");
 }
