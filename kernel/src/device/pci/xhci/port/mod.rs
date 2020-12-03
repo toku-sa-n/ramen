@@ -14,10 +14,12 @@ use crate::{
 };
 use alloc::sync::Arc;
 use resetter::Resetter;
-use slot::{class_driver, endpoint, Slot};
+use slot::Slot;
 use spinning_top::Spinlock;
 
+mod class_driver;
 mod context;
+mod endpoint;
 mod resetter;
 mod slot;
 

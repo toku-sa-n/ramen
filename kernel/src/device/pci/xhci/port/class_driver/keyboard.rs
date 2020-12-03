@@ -4,7 +4,7 @@ use alloc::string::String;
 use spinning_top::Spinlock;
 
 use crate::{
-    device::pci::xhci::{port::slot::endpoint, structures::context::EndpointType},
+    device::pci::xhci::{port::endpoint, structures::context::EndpointType},
     mem::allocator::page_box::PageBox,
 };
 
