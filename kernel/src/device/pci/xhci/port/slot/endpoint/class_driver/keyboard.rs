@@ -8,7 +8,7 @@ use crate::{
     mem::allocator::page_box::PageBox,
 };
 
-const LOWER_ALPHABETS: &'static str = "abcdefghijklmnopqrstuvwxyz";
+const LOWER_ALPHABETS: &str = "abcdefghijklmnopqrstuvwxyz";
 
 static STR: Spinlock<String> = Spinlock::new(String::new());
 
