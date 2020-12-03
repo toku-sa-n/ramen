@@ -30,7 +30,7 @@ impl Meta {
         // The last byte of `size` field is always 0 (u8), not 0 (char).
         for d in 0..self.size.len() - 1 {
             sz *= 8;
-            sz += usize::from(self.size[d] - '0' as u8);
+            sz += usize::from(self.size[d] - b'0');
         }
         sz
     }
