@@ -10,3 +10,7 @@
 
 pub mod executor;
 pub mod task;
+
+pub fn add(task: task::Task) {
+    task::COLLECTION.lock().add_task_as_woken(task);
+}
