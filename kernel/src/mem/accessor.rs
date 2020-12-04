@@ -92,6 +92,19 @@ impl<T> Accessor<[T]> {
 }
 
 impl<T: ?Sized> Accessor<T> {
+    /// Safety: This method is unsafe because it can create multiple mutable references to the same
+    /// object.
+    pub unsafe fn new_from_bytes(phys_base: PhysAddr, offset: Bytes, bytes: Bytes) -> Self {
+        let phys_base = phys_base + offset.as_usize();
+        let virt = Self::map_pages(phys_base, bytes);
+
+        Self {
+            virt,
+            bytes,
+            _marker: PhantomData,
+        }
+    }
+
     fn map_pages(start: PhysAddr, object_size: Bytes) -> VirtAddr {
         let start_frame_addr = start.align_down(Size4KiB::SIZE);
         let end_frame_addr = (start + object_size.as_usize()).align_down(Size4KiB::SIZE);
