@@ -88,6 +88,8 @@ fn initialization(boot_info: &mut kernelboot::Info) {
 
     interrupt::pic::set_init_pic_bits();
 
+    info!("RSDP: {:?}", boot_info.rsdp());
+
     fs::ustar::list_files(INITRD_ADDR);
 }
 
