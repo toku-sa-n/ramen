@@ -19,7 +19,6 @@ use structures::{
     registers::Registers,
     ring::{command, event},
 };
-use xhc::Xhc;
 
 static REGISTERS: OnceCell<Spinlock<Registers>> = OnceCell::uninit();
 
@@ -72,13 +71,13 @@ fn init() -> (
         false,
     ));
 
-    Xhc::init();
+    xhc::init();
 
     event_ring.init();
     command_ring.lock().init();
     dcbaa.lock().init();
 
-    Xhc::run();
+    xhc::run();
 
     (event_ring, dcbaa, sender, receiver)
 }
