@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use core::{future::Future, pin::Pin, task::Poll};
+
 use super::{
     exchanger::{command, receiver::Receiver},
     structures::{
@@ -12,7 +14,9 @@ use crate::{
     multitask::{self, task::Task},
     Futurelock,
 };
-use alloc::sync::Arc;
+use alloc::{collections::VecDeque, sync::Arc, vec::Vec};
+use conquer_once::spin::Lazy;
+use futures_util::task::AtomicWaker;
 use resetter::Resetter;
 use slot::Slot;
 use spinning_top::Spinlock;
@@ -22,6 +26,39 @@ mod context;
 mod endpoint;
 mod resetter;
 mod slot;
+
+static CURRENT_RESET_PORT: Lazy<Spinlock<ResetPort>> =
+    Lazy::new(|| Spinlock::new(ResetPort::new()));
+
+struct ResetPort {
+    resetting: bool,
+    wakers: VecDeque<AtomicWaker>,
+}
+impl ResetPort {
+    fn new() -> Self {
+        Self {
+            resetting: false,
+            wakers: VecDeque::new(),
+        }
+    }
+
+    fn complete_reset(&mut self) {
+        self.resetting = false;
+        if let Some(w) = self.wakers.pop_front() {
+            w.wake();
+        }
+    }
+
+    fn resettable(&mut self, waker: AtomicWaker) -> bool {
+        if self.resetting || !self.wakers.is_empty() {
+            self.wakers.push_back(waker);
+            false
+        } else {
+            self.resetting = true;
+            true
+        }
+    }
+}
 
 async fn task(
     port: Port,
@@ -40,6 +77,12 @@ async fn init_port_and_slot(
     runner: Arc<Futurelock<command::Sender>>,
     receiver: Arc<Spinlock<Receiver>>,
 ) -> endpoint::Collection {
+    let reset_waiter = ResetWaiterFuture;
+    reset_waiter.await;
+
+    let port_idx = port.index;
+    info!("Resetting port {}", port_idx);
+
     port.reset();
     port.init_context();
 
@@ -48,6 +91,8 @@ async fn init_port_and_slot(
     let mut slot = Slot::new(port, slot_id, receiver);
     slot.init(runner.clone()).await;
     debug!("Slot initialized");
+    CURRENT_RESET_PORT.lock().complete_reset();
+    info!("Port {} reset completed.", port_idx);
     endpoint::Collection::new(slot, runner).await
 }
 
@@ -112,5 +157,20 @@ impl Port {
     fn read_port_rg(&self) -> PortRegisters {
         let port_rg = &self.registers.lock().operational.port_registers;
         port_rg.read((self.index - 1).into())
+    }
+}
+
+struct ResetWaiterFuture;
+impl Future for ResetWaiterFuture {
+    type Output = ();
+
+    fn poll(self: Pin<&mut Self>, cx: &mut core::task::Context<'_>) -> Poll<Self::Output> {
+        let waker = AtomicWaker::new();
+        waker.register(cx.waker());
+        if CURRENT_RESET_PORT.lock().resettable(waker) {
+            Poll::Ready(())
+        } else {
+            Poll::Pending
+        }
     }
 }
