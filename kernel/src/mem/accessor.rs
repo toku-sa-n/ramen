@@ -85,24 +85,6 @@ impl<T> Accessor<[T]> {
     }
 }
 
-impl<T: ?Sized> Accessor<T> {
-    /// Safety: This method is unsafe because it can create multiple mutable references to the same
-    /// object.
-    pub unsafe fn new_from_bytes(phys_base: PhysAddr, offset: Bytes, bytes: Bytes) -> Self {
-        let phys_base = phys_base + offset.as_usize();
-        let virt = super::map_pages(phys_base, bytes);
-
-        Self {
-            virt,
-            bytes,
-            _marker: PhantomData,
-        }
-    }
-
-    pub fn virt_addr(&self) -> VirtAddr {
-        self.virt
-    }
-}
 impl<T: ?Sized> Drop for Accessor<T> {
     fn drop(&mut self) {
         super::unmap_pages(self.virt, self.bytes);
