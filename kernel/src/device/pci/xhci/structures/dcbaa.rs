@@ -1,19 +1,32 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::{device::pci::xhci, mem::allocator::page_box::PageBox};
+use conquer_once::spin::Lazy;
 use core::ops::{Index, IndexMut};
+use spinning_top::Spinlock;
 use x86_64::PhysAddr;
+
+static DCBAA: Lazy<Spinlock<DeviceContextBaseAddressArray>> =
+    Lazy::new(|| Spinlock::new(DeviceContextBaseAddressArray::new()));
+
+pub fn init() {
+    DCBAA.lock().init();
+}
+
+pub fn register(port_id: usize, a: PhysAddr) {
+    DCBAA.lock()[port_id] = a;
+}
 
 pub struct DeviceContextBaseAddressArray {
     arr: PageBox<[PhysAddr]>,
 }
 impl<'a> DeviceContextBaseAddressArray {
-    pub fn new() -> Self {
+    fn new() -> Self {
         let arr = PageBox::new_slice(PhysAddr::zero(), Self::num_of_slots());
         Self { arr }
     }
 
-    pub fn init(&self) {
+    fn init(&self) {
         self.register_address_to_xhci_register();
     }
 
