@@ -42,6 +42,11 @@ impl Ring {
         })
     }
 }
+impl Default for Ring {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 struct Raw {
     raw: PageBox<[[u32; 4]]>,
