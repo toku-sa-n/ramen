@@ -19,8 +19,6 @@ use context::EndpointType;
 use core::slice;
 use spinning_top::Spinlock;
 
-pub mod class_driver;
-
 pub struct Collection {
     eps: Vec<Endpoint>,
     cx: Arc<Spinlock<Context>>,
@@ -82,6 +80,10 @@ impl Endpoint {
 
     pub fn init_context(&mut self) {
         ContextInitializer::new(&self.desc, &mut self.cx.lock(), &self.sender).init();
+    }
+
+    pub async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
+        self.sender.issue_normal_trb(b).await
     }
 
     pub fn ty(&self) -> EndpointType {

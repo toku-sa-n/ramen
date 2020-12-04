@@ -28,7 +28,6 @@ mod graphics;
 mod device;
 mod fs;
 mod gdt;
-mod idt;
 mod interrupt;
 mod mem;
 mod multitask;
@@ -44,6 +43,7 @@ use graphics::{
     screen::{self, desktop::Desktop, layer},
     Vram,
 };
+use interrupt::idt;
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
 use spinning_top::RawSpinlock;
@@ -63,7 +63,7 @@ fn initialization(boot_info: &mut kernelboot::Info) {
 
     gdt::init();
     idt::init();
-    interrupt::init_pic();
+    interrupt::pic::init();
 
     interrupts::enable();
 
@@ -86,7 +86,7 @@ fn initialization(boot_info: &mut kernelboot::Info) {
         device::pci::iter_devices().count()
     );
 
-    interrupt::set_init_pic_bits();
+    interrupt::pic::set_init_pic_bits();
 
     fs::ustar::list_files(INITRD_ADDR);
 }
