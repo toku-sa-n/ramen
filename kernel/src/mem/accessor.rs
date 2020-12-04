@@ -21,11 +21,12 @@ impl<T> Accessor<T> {
     /// object.
     pub unsafe fn new(phys_base: PhysAddr, offset: Bytes) -> Self {
         let phys_base = phys_base + offset.as_usize();
-        let virt = Self::map_pages(phys_base, Bytes::new(mem::size_of::<T>()));
+        let bytes = Bytes::new(mem::size_of::<T>());
+        let virt = Self::map_pages(phys_base, bytes);
 
         Self {
             virt,
-            bytes: Bytes::new(mem::size_of::<T>()),
+            bytes,
             _marker: PhantomData,
         }
     }
