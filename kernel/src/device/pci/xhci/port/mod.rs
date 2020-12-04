@@ -14,7 +14,7 @@ use crate::{
     multitask::{self, task::Task},
     Futurelock,
 };
-use alloc::{collections::VecDeque, sync::Arc, vec::Vec};
+use alloc::{collections::VecDeque, sync::Arc};
 use conquer_once::spin::Lazy;
 use futures_util::task::AtomicWaker;
 use resetter::Resetter;
