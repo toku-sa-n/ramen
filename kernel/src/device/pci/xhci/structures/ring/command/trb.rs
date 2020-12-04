@@ -8,6 +8,7 @@ use os_units::Bytes;
 use x86_64::PhysAddr;
 
 pub enum Trb {
+    Noop(Noop),
     Link(Link),
     EnableSlot(EnableSlot),
     AddressDevice(AddressDevice),
@@ -15,6 +16,10 @@ pub enum Trb {
 }
 impl Trb {
     pub const SIZE: Bytes = Bytes::new(16);
+
+    pub fn new_noop() -> Self {
+        Self::Noop(Noop::new())
+    }
 
     pub fn new_enable_slot() -> Self {
         Self::EnableSlot(EnableSlot::new())
@@ -34,6 +39,7 @@ impl Trb {
 
     pub fn set_c(&mut self, c: CycleBit) {
         match self {
+            Self::Noop(n) => n.set_cycle_bit(c),
             Self::Link(l) => l.set_cycle_bit(c),
             Self::EnableSlot(e) => e.set_cycle_bit(c),
             Self::AddressDevice(a) => a.set_cycle_bit(c),
@@ -44,11 +50,22 @@ impl Trb {
 impl From<Trb> for [u32; 4] {
     fn from(t: Trb) -> Self {
         match t {
+            Trb::Noop(n) => n.0,
             Trb::Link(l) => l.0,
             Trb::EnableSlot(e) => e.0,
             Trb::AddressDevice(a) => a.0,
             Trb::ConfigureEndpoint(c) => c.0,
         }
+    }
+}
+
+add_trb!(Noop);
+impl Noop {
+    const ID: u8 = 23;
+    fn new() -> Self {
+        let mut t = Self([0; 4]);
+        t.set_trb_type(Self::ID);
+        t
     }
 }
 
