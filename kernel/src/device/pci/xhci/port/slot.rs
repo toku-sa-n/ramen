@@ -49,18 +49,7 @@ impl Slot {
 
         for d in ds {
             if let Descriptor::Endpoint(ep) = d {
-                eps.push(Endpoint::new(
-                    ep,
-                    self.cx.clone(),
-                    transfer::Sender::new(
-                        self.recv.clone(),
-                        DoorbellWriter::new(
-                            self.id,
-                            2 * u32::from(ep.endpoint_address.get_bits(0..=3))
-                                + ep.endpoint_address.get_bit(7) as u32,
-                        ),
-                    ),
-                ));
+                eps.push(self.generate_endpoint(ep));
             }
         }
 
@@ -70,6 +59,21 @@ impl Slot {
     pub async fn get_configuration_descriptors(&mut self) -> Vec<Descriptor> {
         let r = self.get_raw_configuration_descriptors().await;
         RawDescriptorParser::new(r).parse()
+    }
+
+    fn generate_endpoint(&self, ep: descriptor::Endpoint) -> Endpoint {
+        Endpoint::new(
+            ep,
+            self.cx.clone(),
+            transfer::Sender::new(
+                self.recv.clone(),
+                DoorbellWriter::new(
+                    self.id,
+                    2 * u32::from(ep.endpoint_address.get_bits(0..=3))
+                        + ep.endpoint_address.get_bit(7) as u32,
+                ),
+            ),
+        )
     }
 
     fn init_default_ep(&mut self) {
