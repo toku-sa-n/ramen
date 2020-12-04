@@ -63,7 +63,6 @@ fn init() -> (
     Arc<Futurelock<Sender>>,
     Arc<Spinlock<Receiver>>,
 ) {
-    let mut xhc = Xhc::new();
     let mut event_ring = event::Ring::new();
     let command_ring = Arc::new(Spinlock::new(command::Ring::new()));
     let dcbaa = Arc::new(Spinlock::new(DeviceContextBaseAddressArray::new()));
@@ -73,13 +72,13 @@ fn init() -> (
         false,
     ));
 
-    xhc.init();
+    Xhc::init();
 
     event_ring.init();
     command_ring.lock().init();
     dcbaa.lock().init();
 
-    xhc.run();
+    Xhc::run();
 
     (event_ring, dcbaa, sender, receiver)
 }

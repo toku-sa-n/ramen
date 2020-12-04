@@ -27,7 +27,7 @@ impl Ring {
 
     pub fn enqueue(&mut self, trb: Trb) -> PhysAddr {
         let a = self.raw.enqueue(trb);
-        self.notify_command_is_sent();
+        Self::notify_command_is_sent();
         a
     }
 
@@ -35,7 +35,7 @@ impl Ring {
         self.raw.head_addr()
     }
 
-    fn notify_command_is_sent(&mut self) {
+    fn notify_command_is_sent() {
         xhci::handle_registers(|r| {
             let d = &mut r.doorbell_array;
             d.update(0, |reg| *reg = 0)
@@ -121,7 +121,7 @@ impl<'a> Initializer<'a> {
 
     fn init(&mut self) {
         self.register_address_with_xhci();
-        self.set_initial_command_ring_cycle_state();
+        Self::set_initial_command_ring_cycle_state();
     }
 
     fn register_address_with_xhci(&mut self) {
@@ -132,7 +132,7 @@ impl<'a> Initializer<'a> {
         })
     }
 
-    fn set_initial_command_ring_cycle_state(&mut self) {
+    fn set_initial_command_ring_cycle_state() {
         xhci::handle_registers(|r| {
             let c = &mut r.operational.crcr;
             c.update(|c| c.set_ring_cycle_state(true));
