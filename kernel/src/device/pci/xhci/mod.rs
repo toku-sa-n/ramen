@@ -30,6 +30,9 @@ pub async fn task() {
         event_ring,
         command_completion_receiver,
     )));
+
+    info!("Issuing the NOOP trb.");
+    runner.lock().await.noop().await;
 }
 
 // FIXME
