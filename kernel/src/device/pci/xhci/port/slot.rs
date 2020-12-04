@@ -4,7 +4,11 @@ use super::{super::structures::descriptor::Descriptor, endpoint, Port};
 use crate::{
     device::pci::xhci::{
         exchanger::{command, receiver::Receiver, transfer},
-        structures::{context::Context, dcbaa::DeviceContextBaseAddressArray, descriptor},
+        structures::{
+            context::Context,
+            dcbaa::{self},
+            descriptor,
+        },
     },
     mem::allocator::page_box::PageBox,
     Futurelock,
@@ -17,7 +21,6 @@ use transfer::DoorbellWriter;
 
 pub struct Slot {
     pub id: u8,
-    dcbaa: Arc<Spinlock<DeviceContextBaseAddressArray>>,
     pub cx: Arc<Spinlock<Context>>,
     def_ep: endpoint::Default,
     recv: Arc<Spinlock<Receiver>>,
@@ -28,7 +31,6 @@ impl Slot {
         let dbl_writer = DoorbellWriter::new(id, 1);
         Self {
             id,
-            dcbaa: port.dcbaa,
             cx: cx.clone(),
             def_ep: endpoint::Default::new(transfer::Sender::new(recv.clone(), dbl_writer), cx),
             recv,
@@ -83,7 +85,8 @@ impl Slot {
     }
 
     fn register_with_dcbaa(&mut self) {
-        self.dcbaa.lock()[self.id.into()] = self.cx.lock().output_device.phys_addr();
+        let a = self.cx.lock().output_device.phys_addr();
+        dcbaa::register(self.id.into(), a);
     }
 
     async fn issue_address_device(&mut self, runner: Arc<Futurelock<command::Sender>>) {

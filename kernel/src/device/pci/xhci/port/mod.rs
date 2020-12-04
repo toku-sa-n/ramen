@@ -4,10 +4,7 @@ use core::{future::Future, pin::Pin, task::Poll};
 
 use super::{
     exchanger::{command, receiver::Receiver},
-    structures::{
-        context::Context, dcbaa::DeviceContextBaseAddressArray,
-        registers::operational::PortRegisters,
-    },
+    structures::{context::Context, registers::operational::PortRegisters},
 };
 use crate::{
     multitask::{self, task::Task},
@@ -95,16 +92,13 @@ async fn init_port_and_slot(
     endpoint::Collection::new(slot, runner).await
 }
 
-// FIXME: Resolve this.
-#[allow(clippy::too_many_arguments)]
 pub fn spawn_tasks(
     command_runner: &Arc<Futurelock<command::Sender>>,
-    dcbaa: &Arc<Spinlock<DeviceContextBaseAddressArray>>,
     receiver: &Arc<Spinlock<Receiver>>,
 ) {
     let ports_num = num_of_ports();
     for i in 0..ports_num {
-        let port = Port::new(dcbaa.clone(), i + 1);
+        let port = Port::new(i + 1);
         if port.connected() {
             multitask::add(Task::new(task(
                 port,
@@ -125,14 +119,12 @@ fn num_of_ports() -> u8 {
 pub struct Port {
     index: u8,
     context: Context,
-    dcbaa: Arc<Spinlock<DeviceContextBaseAddressArray>>,
 }
 impl Port {
-    fn new(dcbaa: Arc<Spinlock<DeviceContextBaseAddressArray>>, index: u8) -> Self {
+    fn new(index: u8) -> Self {
         Self {
             index,
             context: Context::new(),
-            dcbaa,
         }
     }
 
