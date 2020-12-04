@@ -106,6 +106,10 @@ impl<T: ?Sized> Accessor<T> {
         }
     }
 
+    pub fn virt_addr(&self) -> VirtAddr {
+        self.virt
+    }
+
     fn map_pages(start: PhysAddr, object_size: Bytes) -> VirtAddr {
         let start_frame_addr = start.align_down(Size4KiB::SIZE);
         let end_frame_addr = (start + object_size.as_usize()).align_down(Size4KiB::SIZE);
