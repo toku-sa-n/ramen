@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+pub mod acpi;
 pub mod heap;
 pub mod page_box;
 pub mod phys;
