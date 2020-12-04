@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{registers::Registers, ring::CycleBit};
-use crate::mem::allocator::page_box::PageBox;
+use super::ring::CycleBit;
+use crate::{device::pci::xhci, mem::allocator::page_box::PageBox};
 use bit_field::BitField;
 use bitfield::bitfield;
 use core::convert::{TryFrom, TryInto};
@@ -13,9 +13,9 @@ pub struct Context {
     pub output_device: PageBox<Device>,
 }
 impl Context {
-    pub fn new(r: &Registers) -> Self {
+    pub fn new() -> Self {
         Self {
-            input: Input::null(r),
+            input: Input::null(),
             output_device: PageBox::new(Device::null()),
         }
     }
@@ -26,8 +26,8 @@ pub enum Input {
     Bit64(PageBox<InputWithControl64Bit>),
 }
 impl Input {
-    pub fn null(registers: &Registers) -> Self {
-        if Self::csz(registers) {
+    pub fn null() -> Self {
+        if Self::csz() {
             Self::Bit64(PageBox::new(InputWithControl64Bit::null()))
         } else {
             Self::Bit32(PageBox::new(InputWithControl32Bit::null()))
@@ -55,9 +55,11 @@ impl Input {
         }
     }
 
-    fn csz(registers: &Registers) -> bool {
-        let params1 = registers.capability.hc_cp_params_1.read();
-        params1.csz()
+    fn csz() -> bool {
+        xhci::handle_registers(|r| {
+            let p1 = r.capability.hc_cp_params_1.read();
+            p1.csz()
+        })
     }
 }
 

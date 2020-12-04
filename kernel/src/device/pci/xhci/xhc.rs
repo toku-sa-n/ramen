@@ -1,16 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::structures::registers::Registers;
-use alloc::sync::Arc;
-use spinning_top::Spinlock;
-
-pub struct Xhc {
-    registers: Arc<Spinlock<Registers>>,
-}
-
+pub struct Xhc;
 impl Xhc {
-    pub fn new(registers: Arc<Spinlock<Registers>>) -> Self {
-        Self { registers }
+    pub fn new() -> Self {
+        Xhc
     }
 
     pub fn init(&mut self) {
@@ -20,18 +13,22 @@ impl Xhc {
     }
 
     pub fn run(&mut self) {
-        let operational = &mut self.registers.lock().operational;
-        operational.usb_cmd.update(|oper| oper.set_run_stop(true));
-        while operational.usb_sts.read().hc_halted() {}
+        super::handle_registers(|r| {
+            let o = &mut r.operational;
+            o.usb_cmd.update(|o| o.set_run_stop(true));
+            while o.usb_sts.read().hc_halted() {}
+        });
     }
 
     fn get_ownership_from_bios(&mut self) {
-        if let Some(ref mut usb_leg_sup_cap) = self.registers.lock().usb_legacy_support_capability {
-            let usb_leg_sup = &mut usb_leg_sup_cap.usb_leg_sup;
-            usb_leg_sup.update(|sup| sup.os_request_ownership(true));
+        super::handle_registers(|r| {
+            if let Some(ref mut leg_sup_cap) = r.usb_legacy_support_capability {
+                let leg_sup = &mut leg_sup_cap.usb_leg_sup;
+                leg_sup.update(|s| s.os_request_ownership(true));
 
-            while usb_leg_sup.read().bios_owns_hc() || !usb_leg_sup.read().os_owns_hc() {}
-        }
+                while leg_sup.read().bios_owns_hc() || !leg_sup.read().os_owns_hc() {}
+            }
+        })
     }
 
     fn stop_and_reset(&mut self) {
@@ -41,13 +38,17 @@ impl Xhc {
     }
 
     fn stop(&mut self) {
-        let usb_cmd = &mut self.registers.lock().operational.usb_cmd;
-        usb_cmd.update(|cmd| cmd.set_run_stop(false));
+        super::handle_registers(|r| {
+            let c = &mut r.operational.usb_cmd;
+            c.update(|c| c.set_run_stop(false));
+        })
     }
 
     fn wait_until_halt(&self) {
-        let usb_sts = &self.registers.lock().operational.usb_sts;
-        while !usb_sts.read().hc_halted() {}
+        super::handle_registers(|r| {
+            let s = &r.operational.usb_sts;
+            while !s.read().hc_halted() {}
+        })
     }
 
     fn reset(&mut self) {
@@ -57,28 +58,38 @@ impl Xhc {
     }
 
     fn start_resetting(&mut self) {
-        let usb_cmd = &mut self.registers.lock().operational.usb_cmd;
-        usb_cmd.update(|cmd| cmd.set_hc_reset(true));
+        super::handle_registers(|r| {
+            let c = &mut r.operational.usb_cmd;
+            c.update(|c| c.set_hc_reset(true));
+        })
     }
 
     fn wait_until_reset_completed(&self) {
-        let usb_cmd = &self.registers.lock().operational.usb_cmd;
-        while usb_cmd.read().hc_reset() {}
+        super::handle_registers(|r| {
+            let c = &r.operational.usb_cmd;
+            while c.read().hc_reset() {}
+        })
     }
 
     fn wait_until_ready(&self) {
-        let usb_sts = &self.registers.lock().operational.usb_sts;
-        while usb_sts.read().controller_not_ready() {}
+        super::handle_registers(|r| {
+            let s = &r.operational.usb_sts;
+            while s.read().controller_not_ready() {}
+        })
     }
 
     fn set_num_of_enabled_slots(&mut self) {
-        let num_of_device_slots = self.num_of_device_slots();
-        let config = &mut self.registers.lock().operational.config;
-        config.update(|config| config.set_max_device_slots_enabled(num_of_device_slots))
+        let n = self.num_of_device_slots();
+        super::handle_registers(|r| {
+            let c = &mut r.operational.config;
+            c.update(|c| c.set_max_device_slots_enabled(n))
+        })
     }
 
     fn num_of_device_slots(&self) -> u8 {
-        let params1 = &self.registers.lock().capability.hcs_params_1;
-        params1.read().max_slots()
+        super::handle_registers(|r| {
+            let p = &r.capability.hcs_params_1;
+            p.read().max_slots()
+        })
     }
 }

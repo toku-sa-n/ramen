@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{super::registers::Registers, CycleBit};
-use crate::mem::allocator::page_box::PageBox;
-use alloc::sync::Arc;
-use spinning_top::Spinlock;
+use super::CycleBit;
+use crate::{device::pci::xhci, mem::allocator::page_box::PageBox};
 use trb::Trb;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB},
@@ -17,18 +15,14 @@ const NUM_OF_TRBS: usize = Size4KiB::SIZE as usize / Trb::SIZE.as_usize();
 
 pub struct Ring {
     raw: Raw,
-    registers: Arc<Spinlock<Registers>>,
 }
 impl Ring {
-    pub fn new(registers: Arc<Spinlock<Registers>>) -> Self {
-        Self {
-            raw: Raw::new(),
-            registers,
-        }
+    pub fn new() -> Self {
+        Self { raw: Raw::new() }
     }
 
     pub fn init(&mut self) {
-        Initializer::new(self, &mut self.registers.lock()).init();
+        Initializer::new(self).init();
     }
 
     pub fn enqueue(&mut self, trb: Trb) -> PhysAddr {
@@ -42,8 +36,10 @@ impl Ring {
     }
 
     fn notify_command_is_sent(&mut self) {
-        let doorbell_array = &mut self.registers.lock().doorbell_array;
-        doorbell_array.update(0, |reg| *reg = 0)
+        xhci::handle_registers(|r| {
+            let d = &mut r.doorbell_array;
+            d.update(0, |reg| *reg = 0)
+        })
     }
 }
 
@@ -112,11 +108,10 @@ impl Raw {
 
 struct Initializer<'a> {
     ring: &'a Ring,
-    registers: &'a mut Registers,
 }
 impl<'a> Initializer<'a> {
-    fn new(ring: &'a Ring, registers: &'a mut Registers) -> Self {
-        Self { ring, registers }
+    fn new(ring: &'a Ring) -> Self {
+        Self { ring }
     }
 
     fn init(&mut self) {
@@ -125,13 +120,17 @@ impl<'a> Initializer<'a> {
     }
 
     fn register_address_with_xhci(&mut self) {
-        let ring_addr = self.ring.phys_addr();
-        let crcr = &mut self.registers.operational.crcr;
-        crcr.update(|crcr| crcr.set_ptr(ring_addr));
+        xhci::handle_registers(|r| {
+            let a = self.ring.phys_addr();
+            let c = &mut r.operational.crcr;
+            c.update(|c| c.set_ptr(a));
+        })
     }
 
     fn set_initial_command_ring_cycle_state(&mut self) {
-        let crcr = &mut self.registers.operational.crcr;
-        crcr.update(|crcr| crcr.set_ring_cycle_state(true));
+        xhci::handle_registers(|r| {
+            let c = &mut r.operational.crcr;
+            c.update(|c| c.set_ring_cycle_state(true));
+        })
     }
 }
