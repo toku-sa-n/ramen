@@ -20,6 +20,11 @@ impl Context {
         }
     }
 }
+impl Default for Context {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 pub enum Input {
     Bit32(PageBox<InputWithControl32Bit>),
