@@ -1,44 +1,34 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{super::structures::descriptor::Descriptor, Port};
+use super::{super::structures::descriptor::Descriptor, endpoint, Port};
 use crate::{
     device::pci::xhci::{
         exchanger::{command, receiver::Receiver, transfer},
-        structures::{
-            context::Context, dcbaa::DeviceContextBaseAddressArray, descriptor,
-            registers::Registers,
-        },
+        structures::{context::Context, dcbaa, descriptor},
     },
     mem::allocator::page_box::PageBox,
     Futurelock,
 };
 use alloc::{sync::Arc, vec::Vec};
-use bit_field::BitField;
 use endpoint::Endpoint;
 use spinning_top::Spinlock;
 use transfer::DoorbellWriter;
 
-pub mod endpoint;
-
 pub struct Slot {
-    id: u8,
-    dcbaa: Arc<Spinlock<DeviceContextBaseAddressArray>>,
-    cx: Arc<Spinlock<Context>>,
+    pub id: u8,
+    pub cx: Arc<Spinlock<Context>>,
     def_ep: endpoint::Default,
     recv: Arc<Spinlock<Receiver>>,
-    regs: Arc<Spinlock<Registers>>,
 }
 impl Slot {
     pub fn new(port: Port, id: u8, recv: Arc<Spinlock<Receiver>>) -> Self {
         let cx = Arc::new(Spinlock::new(port.context));
-        let dbl_writer = DoorbellWriter::new(port.registers.clone(), id, 1);
+        let dbl_writer = DoorbellWriter::new(id, 1);
         Self {
             id,
-            dcbaa: port.dcbaa,
             cx: cx.clone(),
             def_ep: endpoint::Default::new(transfer::Sender::new(recv.clone(), dbl_writer), cx),
             recv,
-            regs: port.registers,
         }
     }
 
@@ -58,19 +48,7 @@ impl Slot {
 
         for d in ds {
             if let Descriptor::Endpoint(ep) = d {
-                eps.push(Endpoint::new(
-                    ep,
-                    self.cx.clone(),
-                    transfer::Sender::new(
-                        self.recv.clone(),
-                        DoorbellWriter::new(
-                            self.regs.clone(),
-                            self.id,
-                            2 * u32::from(ep.endpoint_address.get_bits(0..=3))
-                                + ep.endpoint_address.get_bit(7) as u32,
-                        ),
-                    ),
-                ));
+                eps.push(self.generate_endpoint(ep));
             }
         }
 
@@ -82,6 +60,17 @@ impl Slot {
         RawDescriptorParser::new(r).parse()
     }
 
+    fn generate_endpoint(&self, ep: descriptor::Endpoint) -> Endpoint {
+        Endpoint::new(
+            ep,
+            self.cx.clone(),
+            transfer::Sender::new(
+                self.recv.clone(),
+                DoorbellWriter::new(self.id, ep.doorbell_value()),
+            ),
+        )
+    }
+
     fn init_default_ep(&mut self) {
         self.def_ep.init_context();
     }
@@ -91,7 +80,8 @@ impl Slot {
     }
 
     fn register_with_dcbaa(&mut self) {
-        self.dcbaa.lock()[self.id.into()] = self.cx.lock().output_device.phys_addr();
+        let a = self.cx.lock().output_device.phys_addr();
+        dcbaa::register(self.id.into(), a);
     }
 
     async fn issue_address_device(&mut self, runner: Arc<Futurelock<command::Sender>>) {

@@ -2,10 +2,12 @@
 
 use super::receiver::{ReceiveFuture, Receiver};
 use crate::{
-    device::pci::xhci::structures::{
-        descriptor,
-        registers::Registers,
-        ring::{event::trb::completion::Completion, transfer},
+    device::pci::xhci::{
+        self,
+        structures::{
+            descriptor,
+            ring::{event::trb::completion::Completion, transfer},
+        },
     },
     mem::allocator::page_box::PageBox,
 };
@@ -102,21 +104,18 @@ impl Sender {
 }
 
 pub struct DoorbellWriter {
-    registers: Arc<Spinlock<Registers>>,
     slot_id: u8,
     val: u32,
 }
 impl DoorbellWriter {
-    pub fn new(registers: Arc<Spinlock<Registers>>, slot_id: u8, val: u32) -> Self {
-        Self {
-            registers,
-            slot_id,
-            val,
-        }
+    pub fn new(slot_id: u8, val: u32) -> Self {
+        Self { slot_id, val }
     }
 
     pub fn write(&mut self) {
-        let d = &mut self.registers.lock().doorbell_array;
-        d.update(self.slot_id.into(), |d| *d = self.val);
+        xhci::handle_registers(|r| {
+            let d = &mut r.doorbell_array;
+            d.update(self.slot_id.into(), |d| *d = self.val);
+        });
     }
 }
