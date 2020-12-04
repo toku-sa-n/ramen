@@ -7,7 +7,7 @@ use uefi::{
 use x86_64::PhysAddr;
 
 const GUID_RSDP: Guid = Guid::from_values(
-    0x8868e871,
+    0x8868_e871,
     0xe4f1,
     0x11d3,
     0xbc22,
