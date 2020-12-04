@@ -5,9 +5,8 @@ use core::{future::Future, pin::Pin, task::Poll};
 use super::{
     exchanger::{command, receiver::Receiver},
     structures::{
-        context::Context,
-        dcbaa::DeviceContextBaseAddressArray,
-        registers::{operational::PortRegisters, Registers},
+        context::Context, dcbaa::DeviceContextBaseAddressArray,
+        registers::operational::PortRegisters,
     },
 };
 use crate::{
@@ -101,12 +100,11 @@ async fn init_port_and_slot(
 pub fn spawn_tasks(
     command_runner: &Arc<Futurelock<command::Sender>>,
     dcbaa: &Arc<Spinlock<DeviceContextBaseAddressArray>>,
-    registers: &Arc<Spinlock<Registers>>,
     receiver: &Arc<Spinlock<Receiver>>,
 ) {
-    let ports_num = num_of_ports(&registers.lock());
+    let ports_num = num_of_ports();
     for i in 0..ports_num {
-        let port = Port::new(&registers, dcbaa.clone(), i + 1);
+        let port = Port::new(dcbaa.clone(), i + 1);
         if port.connected() {
             multitask::add(Task::new(task(
                 port,
@@ -117,27 +115,23 @@ pub fn spawn_tasks(
     }
 }
 
-fn num_of_ports(registers: &Registers) -> u8 {
-    let params1 = registers.capability.hcs_params_1.read();
-    params1.max_ports()
+fn num_of_ports() -> u8 {
+    super::handle_registers(|r| {
+        let params1 = r.capability.hcs_params_1.read();
+        params1.max_ports()
+    })
 }
 
 pub struct Port {
-    registers: Arc<Spinlock<Registers>>,
     index: u8,
     context: Context,
     dcbaa: Arc<Spinlock<DeviceContextBaseAddressArray>>,
 }
 impl Port {
-    fn new(
-        registers: &Arc<Spinlock<Registers>>,
-        dcbaa: Arc<Spinlock<DeviceContextBaseAddressArray>>,
-        index: u8,
-    ) -> Self {
+    fn new(dcbaa: Arc<Spinlock<DeviceContextBaseAddressArray>>, index: u8) -> Self {
         Self {
-            registers: registers.clone(),
             index,
-            context: Context::new(&registers.lock()),
+            context: Context::new(),
             dcbaa,
         }
     }
@@ -147,7 +141,7 @@ impl Port {
     }
 
     fn reset(&mut self) {
-        Resetter::new(&mut self.registers.lock(), self.index).reset();
+        Resetter::new(self.index).reset();
     }
 
     fn init_context(&mut self) {
@@ -155,8 +149,10 @@ impl Port {
     }
 
     fn read_port_rg(&self) -> PortRegisters {
-        let port_rg = &self.registers.lock().operational.port_registers;
-        port_rg.read((self.index - 1).into())
+        super::handle_registers(|r| {
+            let port_rg = &r.operational.port_registers;
+            port_rg.read((self.index - 1).into())
+        })
     }
 }
 

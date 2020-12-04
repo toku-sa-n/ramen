@@ -4,10 +4,7 @@ use super::{super::structures::descriptor::Descriptor, endpoint, Port};
 use crate::{
     device::pci::xhci::{
         exchanger::{command, receiver::Receiver, transfer},
-        structures::{
-            context::Context, dcbaa::DeviceContextBaseAddressArray, descriptor,
-            registers::Registers,
-        },
+        structures::{context::Context, dcbaa::DeviceContextBaseAddressArray, descriptor},
     },
     mem::allocator::page_box::PageBox,
     Futurelock,
@@ -24,19 +21,17 @@ pub struct Slot {
     pub cx: Arc<Spinlock<Context>>,
     def_ep: endpoint::Default,
     recv: Arc<Spinlock<Receiver>>,
-    regs: Arc<Spinlock<Registers>>,
 }
 impl Slot {
     pub fn new(port: Port, id: u8, recv: Arc<Spinlock<Receiver>>) -> Self {
         let cx = Arc::new(Spinlock::new(port.context));
-        let dbl_writer = DoorbellWriter::new(port.registers.clone(), id, 1);
+        let dbl_writer = DoorbellWriter::new(id, 1);
         Self {
             id,
             dcbaa: port.dcbaa,
             cx: cx.clone(),
             def_ep: endpoint::Default::new(transfer::Sender::new(recv.clone(), dbl_writer), cx),
             recv,
-            regs: port.registers,
         }
     }
 
@@ -62,7 +57,6 @@ impl Slot {
                     transfer::Sender::new(
                         self.recv.clone(),
                         DoorbellWriter::new(
-                            self.regs.clone(),
                             self.id,
                             2 * u32::from(ep.endpoint_address.get_bits(0..=3))
                                 + ep.endpoint_address.get_bit(7) as u32,

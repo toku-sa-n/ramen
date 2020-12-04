@@ -1,34 +1,34 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::registers::Registers;
-use crate::mem::allocator::page_box::PageBox;
-use alloc::sync::Arc;
+use crate::{device::pci::xhci, mem::allocator::page_box::PageBox};
 use core::ops::{Index, IndexMut};
-use spinning_top::Spinlock;
 use x86_64::PhysAddr;
 
 pub struct DeviceContextBaseAddressArray {
     arr: PageBox<[PhysAddr]>,
-    registers: Arc<Spinlock<Registers>>,
 }
 impl<'a> DeviceContextBaseAddressArray {
-    pub fn new(registers: Arc<Spinlock<Registers>>) -> Self {
-        let arr = PageBox::new_slice(PhysAddr::zero(), Self::num_of_slots(&registers.lock()));
-        Self { arr, registers }
+    pub fn new() -> Self {
+        let arr = PageBox::new_slice(PhysAddr::zero(), Self::num_of_slots());
+        Self { arr }
     }
 
     pub fn init(&self) {
         self.register_address_to_xhci_register();
     }
 
-    fn num_of_slots(registers: &Registers) -> usize {
-        let params1 = &registers.capability.hcs_params_1;
-        (params1.read().max_slots() + 1).into()
+    fn num_of_slots() -> usize {
+        xhci::handle_registers(|r| {
+            let p = &r.capability.hcs_params_1;
+            (p.read().max_slots() + 1).into()
+        })
     }
 
     fn register_address_to_xhci_register(&self) {
-        let dcbaap = &mut self.registers.lock().operational.dcbaap;
-        dcbaap.update(|dcbaap| dcbaap.set(self.phys_addr()));
+        xhci::handle_registers(|r| {
+            let p = &mut r.operational.dcbaap;
+            p.update(|dcbaap| dcbaap.set(self.phys_addr()));
+        })
     }
 
     fn phys_addr(&self) -> PhysAddr {
