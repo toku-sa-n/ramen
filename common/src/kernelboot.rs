@@ -40,6 +40,7 @@ impl Info {
         self.vram_info
     }
 
+    #[must_use]
     pub fn rsdp(&self) -> PhysAddr {
         self.rsdp
     }
