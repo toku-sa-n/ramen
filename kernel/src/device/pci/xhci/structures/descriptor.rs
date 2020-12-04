@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use bit_field::BitField;
 use core::ptr;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
@@ -91,6 +92,11 @@ impl Endpoint {
             self.attributes + if self.endpoint_address == 0 { 0 } else { 4 }
         })
         .unwrap()
+    }
+
+    pub fn doorbell_value(self) -> u32 {
+        2 * u32::from(self.endpoint_address.get_bits(0..=3))
+            + self.endpoint_address.get_bit(7) as u32
     }
 }
 

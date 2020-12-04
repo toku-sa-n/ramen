@@ -10,7 +10,6 @@ use crate::{
     Futurelock,
 };
 use alloc::{sync::Arc, vec::Vec};
-use bit_field::BitField;
 use endpoint::Endpoint;
 use spinning_top::Spinlock;
 use transfer::DoorbellWriter;
@@ -67,11 +66,7 @@ impl Slot {
             self.cx.clone(),
             transfer::Sender::new(
                 self.recv.clone(),
-                DoorbellWriter::new(
-                    self.id,
-                    2 * u32::from(ep.endpoint_address.get_bits(0..=3))
-                        + ep.endpoint_address.get_bit(7) as u32,
-                ),
+                DoorbellWriter::new(self.id, ep.doorbell_value()),
             ),
         )
     }
