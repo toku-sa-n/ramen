@@ -50,7 +50,7 @@ impl ResetPort {
     }
 
     fn resettable(&mut self, waker: AtomicWaker) -> bool {
-        if self.resetting || !self.wakers.is_empty() {
+        if self.resetting {
             self.wakers.push_back(waker);
             false
         } else {
