@@ -4,11 +4,7 @@ use super::{super::structures::descriptor::Descriptor, endpoint, Port};
 use crate::{
     device::pci::xhci::{
         exchanger::{command, receiver::Receiver, transfer},
-        structures::{
-            context::Context,
-            dcbaa::{self},
-            descriptor,
-        },
+        structures::{context::Context, dcbaa, descriptor},
     },
     mem::allocator::page_box::PageBox,
     Futurelock,
