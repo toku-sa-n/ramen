@@ -1,6 +1,6 @@
-use x86_64::instructions::port::Port;
-
 // SPDX-License-Identifier: GPL-3.0-or-later
+
+use x86_64::instructions::port::Port;
 
 pub fn disable() {
     pic_init_mode();
