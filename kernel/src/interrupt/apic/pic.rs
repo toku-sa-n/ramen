@@ -1,6 +1,24 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use x86_64::instructions::port::Port;
+use x86_64::instructions::port::PortWriteOnly;
+
+const MASTER_CMD: PortWriteOnly<u8> = PortWriteOnly::new(0x20);
+const MASTER_DATA: PortWriteOnly<u8> = PortWriteOnly::new(0x21);
+
+const SLAVE_CMD: PortWriteOnly<u8> = PortWriteOnly::new(0xa0);
+const SLAVE_DATA: PortWriteOnly<u8> = PortWriteOnly::new(0xa0);
+
+const MASTER_ICW1: PortWriteOnly<u8> = MASTER_CMD;
+const SLAVE_ICW1: PortWriteOnly<u8> = SLAVE_CMD;
+
+const MASTER_ICW2: PortWriteOnly<u8> = MASTER_DATA;
+const SLAVE_ICW2: PortWriteOnly<u8> = SLAVE_DATA;
+
+const MASTER_ICW3: PortWriteOnly<u8> = MASTER_DATA;
+const SLAVE_ICW3: PortWriteOnly<u8> = SLAVE_DATA;
+
+const MASTER_ICW4: PortWriteOnly<u8> = MASTER_DATA;
+const SLAVE_ICW4: PortWriteOnly<u8> = SLAVE_DATA;
 
 pub fn disable() {
     pic_init_mode();
@@ -11,52 +29,51 @@ pub fn disable() {
 }
 
 fn pic_init_mode() {
-    const PIC0_ICW1: u16 = 0x0020;
-    const PIC1_ICW1: u16 = 0x00A0;
+    let mut m = MASTER_ICW1;
+    let mut s = SLAVE_ICW1;
 
     unsafe {
-        Port::new(PIC0_ICW1).write(0x11_u8);
-        Port::new(PIC1_ICW1).write(0x11_u8);
+        m.write(0x11_u8);
+        s.write(0x11_u8);
     }
 }
 
 fn remap_pic() {
-    const PIC0_ICW2: u16 = 0x0021;
-    const PIC1_ICW2: u16 = 0x00A1;
+    let mut m = MASTER_ICW2;
+    let mut s = SLAVE_ICW2;
 
     unsafe {
-        Port::new(PIC0_ICW2).write(0x20_u8);
-        Port::new(PIC1_ICW2).write(0x28_u8);
+        m.write(0x20_u8);
+        s.write(0x28_u8);
     }
 }
 
 fn set_slave_offset() {
-    const PIC0_ICW3: u16 = 0x0021;
-    const PIC1_ICW3: u16 = 0x00A1;
+    let mut m = MASTER_ICW3;
+    let mut s = SLAVE_ICW3;
 
     unsafe {
-        Port::new(PIC0_ICW3).write(4_u8);
-        Port::new(PIC1_ICW3).write(2_u8);
+        m.write(4_u8);
+        s.write(2_u8);
     }
 }
 
 fn nonbuffer_mode() {
-    const PIC0_ICW4: u16 = 0x0021;
-    const PIC1_ICW4: u16 = 0x00A1;
+    let mut m = MASTER_ICW4;
+    let mut s = SLAVE_ICW4;
 
     unsafe {
-        Port::new(PIC0_ICW4).write(1_u8);
-        Port::new(PIC1_ICW4).write(1_u8);
+        m.write(1_u8);
+        s.write(1_u8);
     }
 }
 
 fn mask_pic() {
-    const PIC0_IMR: u16 = 0x0021;
-    const PIC1_IMR: u16 = 0x00A1;
+    let mut m = MASTER_DATA;
+    let mut s = SLAVE_DATA;
 
-    // Safety: These operations are safe because `PIC0_IMR` and `PIC1_IMR` are the valid port numbers.
     unsafe {
-        Port::new(PIC0_IMR).write(0xFF_u8);
-        Port::new(PIC1_IMR).write(0xFF_u8);
+        m.write(0xFF_u8);
+        s.write(0xFF_u8);
     }
 }
