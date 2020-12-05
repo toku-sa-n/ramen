@@ -1,11 +1,11 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 use common::constant::PORT_KEY_DATA;
 use x86_64::instructions::port::Port;
 
 use crate::device::{keyboard, mouse};
 
-use super::{PIC0_OCW2, PIC1_OCW2};
-
-// SPDX-License-Identifier: GPL-3.0-or-later
+use super::{apic, PIC0_OCW2};
 
 pub extern "x86-interrupt" fn h_00(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
@@ -90,7 +90,7 @@ pub extern "x86-interrupt" fn h_20(
 pub extern "x86-interrupt" fn h_21(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
-    unsafe { Port::new(PIC0_OCW2).write(0x61_u8) };
+    apic::local::end_of_interrupt();
     let mut port = PORT_KEY_DATA;
     keyboard::enqueue_scancode(unsafe { port.read() });
 }
@@ -98,10 +98,7 @@ pub extern "x86-interrupt" fn h_21(
 pub extern "x86-interrupt" fn h_2c(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
-    unsafe {
-        Port::new(PIC1_OCW2).write(0x64_u8);
-        Port::new(PIC0_OCW2).write(0x62_u8);
-    }
+    apic::local::end_of_interrupt();
     let mut port = PORT_KEY_DATA;
     mouse::enqueue_packet(unsafe { port.read() });
 }
