@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use common::constant::PORT_KEY_DATA;
-use x86_64::instructions::port::Port;
 
 use crate::device::{keyboard, mouse};
 
-use super::{apic, PIC0_OCW2};
+use super::apic;
 
 pub extern "x86-interrupt" fn h_00(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
@@ -82,9 +81,7 @@ pub extern "x86-interrupt" fn h_14(
 pub extern "x86-interrupt" fn h_20(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
-    unsafe {
-        Port::new(PIC0_OCW2).write(0x60_u8);
-    }
+    apic::local::end_of_interrupt();
 }
 
 pub extern "x86-interrupt" fn h_21(

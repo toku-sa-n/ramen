@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::mem::{accessor::Accessor, allocator};
-use acpi::{
-    platform::{Apic, IoApic},
-    AcpiTables, InterruptModel,
-};
+use acpi::{platform::IoApic, AcpiTables, InterruptModel};
 use alloc::vec::Vec;
 use bit_field::BitField;
 use core::convert::TryInto;
@@ -85,7 +82,6 @@ impl Redirection {
 
         match self.destination {
             DestinationMode::Physical(p) => v.set_bits(56..=59, p.into()),
-            DestinationMode::Logical(l) => v.set_bits(56..=63, l.into()),
         };
 
         v
@@ -95,23 +91,16 @@ impl Redirection {
 #[derive(Copy, Clone)]
 enum Delivery {
     Normal = 0,
-    LowPriority = 1,
-    SystemManagementInterrupt = 2,
-    NonMaskableInterrupt = 4,
-    Init = 5,
-    External = 7,
 }
 
 #[derive(Clone)]
 enum DestinationMode {
     Physical(u8),
-    Logical(u8),
 }
 impl DestinationMode {
     fn as_bool(&self) -> bool {
         match self {
             Self::Physical(_) => false,
-            Self::Logical(_) => true,
         }
     }
 }
@@ -153,7 +142,6 @@ pub unsafe fn init(rsdb: PhysAddr) {
     let interrupt = platform_info.interrupt_model;
     if let InterruptModel::Apic(apic) = interrupt {
         let id = apic.io_apics[0].id;
-        info!("{:?}", apic);
         let mut registers = Registers::new(apic.io_apics);
         registers.mask_all();
         init_ps2_keyboard(&mut registers, id);
