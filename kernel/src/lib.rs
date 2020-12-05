@@ -22,6 +22,8 @@ extern crate alloc;
 #[macro_use]
 extern crate log;
 extern crate x86_64;
+#[macro_use]
+extern crate derive_builder;
 
 #[macro_use]
 mod graphics;
@@ -43,11 +45,10 @@ use graphics::{
     screen::{self, desktop::Desktop, layer},
     Vram,
 };
-use interrupt::idt;
+use interrupt::{apic, idt};
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
 use spinning_top::RawSpinlock;
-use x86_64::instructions::interrupts;
 pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 
 #[no_mangle]
@@ -63,9 +64,6 @@ fn initialization(boot_info: &mut kernelboot::Info) {
 
     gdt::init();
     idt::init();
-    interrupt::pic::init();
-
-    interrupts::enable();
 
     heap::init(boot_info.mem_map_mut());
 
@@ -86,9 +84,8 @@ fn initialization(boot_info: &mut kernelboot::Info) {
         device::pci::iter_devices().count()
     );
 
-    interrupt::pic::set_init_pic_bits();
-
-    info!("RSDP: {:?}", boot_info.rsdp());
+    // Safety: This operation is safe because `boot_info.rsdp()` is a valid RSDP.
+    unsafe { apic::io::init(boot_info.rsdp()) }
 
     fs::ustar::list_files(INITRD_ADDR);
 }
