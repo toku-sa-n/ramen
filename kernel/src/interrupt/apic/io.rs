@@ -3,7 +3,6 @@
 use super::pic;
 use crate::mem::{accessor::Accessor, allocator};
 use acpi::{platform::IoApic, AcpiTables, InterruptModel};
-use alloc::vec::Vec;
 use bit_field::BitField;
 use core::convert::TryInto;
 use os_units::Bytes;
@@ -23,7 +22,7 @@ impl Registers {
     ///
     /// There is no need to create an instance of `IoApic` manually, but because it is possible as
     /// the all fields of the struct are public, this method is unsafe.
-    unsafe fn new(io_apics: Vec<IoApic>) -> Self {
+    unsafe fn new(io_apics: &[IoApic]) -> Self {
         let io_apic_base = PhysAddr::new(io_apics[0].address.into());
 
         Self {
@@ -32,7 +31,7 @@ impl Registers {
         }
     }
 
-    fn set_redirection(&mut self, irq: u8, redirection: Redirection) {
+    fn set_redirection(&mut self, irq: u8, redirection: &Redirection) {
         let val = redirection.as_u64();
         let l = val & 0xffff_ffff;
         let u = val >> 32;
@@ -143,7 +142,7 @@ pub unsafe fn init(rsdb: PhysAddr) {
     let interrupt = platform_info.interrupt_model;
     if let InterruptModel::Apic(apic) = interrupt {
         let id = apic.io_apics[0].id;
-        let mut registers = Registers::new(apic.io_apics);
+        let mut registers = Registers::new(&apic.io_apics);
         registers.mask_all();
         init_ps2_keyboard(&mut registers, id);
         init_ps2_mouse(&mut registers, id);
@@ -169,7 +168,7 @@ fn init_ps2_keyboard(r: &mut Registers, apic_id: u8) {
         .build()
         .unwrap();
 
-    r.set_redirection(1, key);
+    r.set_redirection(1, &key);
 }
 
 fn init_ps2_mouse(r: &mut Registers, apic_id: u8) {
@@ -183,5 +182,5 @@ fn init_ps2_mouse(r: &mut Registers, apic_id: u8) {
         .build()
         .unwrap();
 
-    r.set_redirection(12, mouse);
+    r.set_redirection(12, &mouse);
 }
