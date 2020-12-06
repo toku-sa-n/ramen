@@ -46,7 +46,7 @@ use graphics::{
     screen::{self, desktop::Desktop, layer},
     Vram,
 };
-use interrupt::{apic, idt, timer::AcpiPmTimer};
+use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
 use spinning_top::RawSpinlock;
@@ -89,7 +89,7 @@ fn initialization(boot_info: &mut kernelboot::Info) {
 
     apic::io::init(&acpi);
 
-    let mut acpi_pm_timer = AcpiPmTimer::new(&acpi);
+    let mut acpi_pm_timer = timer::AcpiPm::new(&acpi);
     acpi_pm_timer.wait_milliseconds(1000);
 
     fs::ustar::list_files(INITRD_ADDR);

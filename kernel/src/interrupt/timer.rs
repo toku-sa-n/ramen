@@ -7,11 +7,11 @@ use x86_64::instructions::port::PortReadOnly;
 
 use crate::mem::allocator;
 
-pub struct AcpiPmTimer {
+pub struct AcpiPm {
     reg: PortReadOnly<u32>,
     supported: SupportedBits,
 }
-impl AcpiPmTimer {
+impl AcpiPm {
     pub fn new(table: &AcpiTables<allocator::acpi::Mapper>) -> Self {
         let pm_timer = acpi::PmTimer::new(&table).unwrap();
         info!("Base: {}", pm_timer.io_base);
