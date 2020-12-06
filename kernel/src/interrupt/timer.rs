@@ -26,7 +26,7 @@ impl AcpiPmTimer {
     }
 
     pub fn wait_milliseconds(&mut self, t: u32) {
-        const FREQUENCY: u32 = 3579545;
+        const FREQUENCY: u32 = 3_579_545;
         let start = unsafe { self.reg.read() };
         let mut end = start.wrapping_add(FREQUENCY.wrapping_mul(t / 1000));
         if let SupportedBits::Bits24 = self.supported {
