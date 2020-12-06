@@ -27,6 +27,7 @@ extern crate derive_builder;
 
 #[macro_use]
 mod graphics;
+mod acpi;
 mod device;
 mod fs;
 mod gdt;
@@ -84,11 +85,11 @@ fn initialization(boot_info: &mut kernelboot::Info) {
         device::pci::iter_devices().count()
     );
 
-    // Safety: This operation is safe because `boot_info.rsdp()` is a valid RSDP.
-    unsafe { apic::io::init(boot_info.rsdp()) }
+    let acpi = unsafe { acpi::get(boot_info.rsdp()) };
 
-    // Safety: This operation is safe because `boot_info.rsdp()` is a valid RSDP.
-    let mut acpi_pm_timer = unsafe { AcpiPmTimer::new(boot_info.rsdp()) };
+    apic::io::init(&acpi);
+
+    let mut acpi_pm_timer = AcpiPmTimer::new(&acpi);
     acpi_pm_timer.wait_milliseconds(1000);
 
     fs::ustar::list_files(INITRD_ADDR);
