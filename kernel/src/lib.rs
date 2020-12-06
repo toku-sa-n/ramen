@@ -45,7 +45,7 @@ use graphics::{
     screen::{self, desktop::Desktop, layer},
     Vram,
 };
-use interrupt::{apic, idt};
+use interrupt::{apic, idt, timer::AcpiPmTimer};
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
 use spinning_top::RawSpinlock;
@@ -86,6 +86,10 @@ fn initialization(boot_info: &mut kernelboot::Info) {
 
     // Safety: This operation is safe because `boot_info.rsdp()` is a valid RSDP.
     unsafe { apic::io::init(boot_info.rsdp()) }
+
+    // Safety: This operation is safe because `boot_info.rsdp()` is a valid RSDP.
+    let mut acpi_pm_timer = unsafe { AcpiPmTimer::new(boot_info.rsdp()) };
+    acpi_pm_timer.wait_milliseconds(1000);
 
     fs::ustar::list_files(INITRD_ADDR);
 }
