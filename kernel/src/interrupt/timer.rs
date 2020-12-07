@@ -14,6 +14,11 @@ const CURRENT_COUNT: PhysAddr = PhysAddr::new_truncate(0xfee0_0390);
 const DIVIDE_CONFIG: PhysAddr = PhysAddr::new_truncate(0xfee0_03e0);
 const TIMER_VECTOR: u8 = 0x20;
 
+pub fn init(table: &AcpiTables<allocator::acpi::Mapper>) {
+    let mut local_apic_tm = LocalApic::new(table);
+    local_apic_tm.init();
+}
+
 struct LocalApic {
     lvt_timer: Accessor<u32>,
     initial_count: Accessor<u32>,
@@ -63,11 +68,6 @@ impl LocalApic {
         self.divide_config.write(3);
         self.initial_count.write(f * 10);
     }
-}
-
-pub fn init(table: &AcpiTables<allocator::acpi::Mapper>) {
-    let mut local_apic_tm = LocalApic::new(table);
-    local_apic_tm.init();
 }
 
 pub struct AcpiPm {
