@@ -70,7 +70,7 @@ impl LocalApic {
     }
 }
 
-pub struct AcpiPm {
+struct AcpiPm {
     reg: PortReadOnly<u32>,
     supported: SupportedBits,
 }
