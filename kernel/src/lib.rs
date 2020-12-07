@@ -89,8 +89,7 @@ fn initialization(boot_info: &mut kernelboot::Info) {
 
     apic::io::init(&acpi);
 
-    let mut acpi_pm_timer = timer::AcpiPm::new(&acpi);
-    acpi_pm_timer.wait_milliseconds(1000);
+    timer::init(&acpi);
 
     fs::ustar::list_files(INITRD_ADDR);
 }
