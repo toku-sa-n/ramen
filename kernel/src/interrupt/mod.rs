@@ -3,3 +3,4 @@
 pub mod apic;
 mod handler;
 pub mod idt;
+pub mod timer;

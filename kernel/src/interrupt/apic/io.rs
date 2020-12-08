@@ -133,28 +133,20 @@ impl TriggerMode {
     }
 }
 
-/// Safety: This method is unsafe because the caller must ensure that `rsdb` is a valid RSDB.
-/// Otherwise this function will break memory safety by dereferencing to an invalid address.
-pub unsafe fn init(rsdb: PhysAddr) {
+pub fn init(table: &AcpiTables<allocator::acpi::Mapper>) {
     pic::disable();
-    let table = fetch_apic(rsdb);
     let platform_info = table.platform_info().unwrap();
     let interrupt = platform_info.interrupt_model;
     if let InterruptModel::Apic(apic) = interrupt {
         let id = apic.io_apics[0].id;
-        let mut registers = Registers::new(&apic.io_apics);
+
+        // Safety: This operation is safe because `table` contains valid information.
+        let mut registers = unsafe { Registers::new(&apic.io_apics) };
         registers.mask_all();
         init_ps2_keyboard(&mut registers, id);
         init_ps2_mouse(&mut registers, id);
     }
     x86_64::instructions::interrupts::enable();
-}
-
-/// Safety: This method is unsafe because the caller must ensure that `rsdb` is a valid RSDB.
-/// Otherwise this function will break memory safety by dereferencing to an invalid address.
-unsafe fn fetch_apic(rsdb: PhysAddr) -> AcpiTables<allocator::acpi::Mapper> {
-    let mapper = allocator::acpi::Mapper;
-    AcpiTables::from_rsdp(mapper, rsdb.as_u64().try_into().unwrap()).unwrap()
 }
 
 fn init_ps2_keyboard(r: &mut Registers, apic_id: u8) {

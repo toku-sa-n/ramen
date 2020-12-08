@@ -27,6 +27,7 @@ extern crate derive_builder;
 
 #[macro_use]
 mod graphics;
+mod acpi;
 mod device;
 mod fs;
 mod gdt;
@@ -45,7 +46,7 @@ use graphics::{
     screen::{self, desktop::Desktop, layer},
     Vram,
 };
-use interrupt::{apic, idt};
+use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
 use spinning_top::RawSpinlock;
@@ -84,8 +85,11 @@ fn initialization(boot_info: &mut kernelboot::Info) {
         device::pci::iter_devices().count()
     );
 
-    // Safety: This operation is safe because `boot_info.rsdp()` is a valid RSDP.
-    unsafe { apic::io::init(boot_info.rsdp()) }
+    let acpi = unsafe { acpi::get(boot_info.rsdp()) };
+
+    apic::io::init(&acpi);
+
+    timer::init(&acpi);
 
     fs::ustar::list_files(INITRD_ADDR);
 }
