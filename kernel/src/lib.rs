@@ -35,6 +35,7 @@ mod interrupt;
 mod mem;
 mod multitask;
 mod panic;
+mod tss;
 
 use common::{constant::INITRD_ADDR, kernelboot};
 use device::{
