@@ -11,20 +11,22 @@ use crate::{
     Futurelock,
 };
 use alloc::sync::Arc;
+use conquer_once::spin::OnceCell;
 use exchanger::{command::Sender, receiver::Receiver};
 use spinning_top::Spinlock;
 use structures::{
-    dcbaa::DeviceContextBaseAddressArray,
+    dcbaa,
     registers::Registers,
     ring::{command, event},
 };
-use xhc::Xhc;
+
+static REGISTERS: OnceCell<Spinlock<Registers>> = OnceCell::uninit();
 
 pub async fn task() {
-    let registers = Arc::new(Spinlock::new(iter_devices().next().unwrap()));
-    let (event_ring, dcbaa, runner, command_completion_receiver) = init(&registers);
+    init_registers();
+    let (event_ring, runner, command_completion_receiver) = init();
 
-    port::spawn_tasks(&runner, &dcbaa, &registers, &command_completion_receiver);
+    port::spawn_tasks(&runner, &command_completion_receiver);
 
     multitask::add(Task::new_poll(event::task(
         event_ring,
@@ -35,37 +37,48 @@ pub async fn task() {
     runner.lock().await.noop().await;
 }
 
-// FIXME
-#[allow(clippy::type_complexity)]
-fn init(
-    registers: &Arc<Spinlock<Registers>>,
-) -> (
+fn init_registers() {
+    REGISTERS.init_once(|| Spinlock::new(iter_devices().next().unwrap()));
+}
+
+/// Handle xHCI registers.
+///
+/// To avoid deadlocking, this method takes a closure. Caller is supposed not to call this method
+/// inside the closure, otherwise a deadlock will happen.
+///
+/// Alternative implementation is to define a method which returns `impl Deref<Target =
+/// Registers>`, but this will expand the scope of the mutex guard, increasing the possibility of
+/// deadlocks.
+fn handle_registers<T, U>(f: T) -> U
+where
+    T: Fn(&mut Registers) -> U,
+{
+    let mut r = REGISTERS.try_get().unwrap().lock();
+    f(&mut r)
+}
+
+fn init() -> (
     event::Ring,
-    Arc<Spinlock<DeviceContextBaseAddressArray>>,
     Arc<Futurelock<Sender>>,
     Arc<Spinlock<Receiver>>,
 ) {
-    let mut xhc = Xhc::new(registers.clone());
-    let mut event_ring = event::Ring::new(registers.clone());
-    let command_ring = Arc::new(Spinlock::new(command::Ring::new(registers.clone())));
-    let dcbaa = Arc::new(Spinlock::new(DeviceContextBaseAddressArray::new(
-        registers.clone(),
-    )));
+    let mut event_ring = event::Ring::new();
+    let command_ring = Arc::new(Spinlock::new(command::Ring::new()));
     let receiver = Arc::new(Spinlock::new(Receiver::new()));
     let sender = Arc::new(Futurelock::new(
         Sender::new(command_ring.clone(), receiver.clone()),
         false,
     ));
 
-    xhc.init();
+    xhc::init();
 
     event_ring.init();
     command_ring.lock().init();
-    dcbaa.lock().init();
+    dcbaa::init();
 
-    xhc.run();
+    xhc::run();
 
-    (event_ring, dcbaa, sender, receiver)
+    (event_ring, sender, receiver)
 }
 
 fn iter_devices() -> impl Iterator<Item = Registers> {

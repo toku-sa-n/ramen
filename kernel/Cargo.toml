@@ -35,7 +35,7 @@ linked_list_allocator = "0.8.0"
 log = "0.4.11"
 vek = { version = "0.12.0", default-features = false, features = ["libm"] }
 rgb = "0.8.25"
-uefi = "0.6.0"
+uefi = "0.7.0"
 crossbeam-queue = { version = "0.3.0", default-features = false, features = ["alloc"] }
 futures-util = { version = "0.3.4", default-features = false, features = ["alloc"] }
 screen_layer = "0.1.0"
@@ -45,3 +45,5 @@ bit_field = "0.10.1"
 futures-intrusive = { version = "0.4.0", default-features = false, features = ["alloc"] }
 num-traits = { version = "0.2", default-features = false}
 num-derive = "0.3.3"
+acpi = { git = "https://github.com/toku-sa-n/acpi.git", branch = "implement_acpi_pm_timer" }
+derive_builder = "0.9.0"

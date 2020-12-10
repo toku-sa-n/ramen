@@ -9,8 +9,8 @@ license = "GPL-3.0-or-later"
 
 [dependencies]
 log = "0.4.8"
-uefi = { version = "0.6.0", features = ["logger"] }
-uefi-services = "0.3.0"
+uefi = { version = "0.7.0", features = ["logger"] }
+uefi-services = "0.4.0"
 common = { path = "../common/" }
 x86_64 = "0.12.0"
 elf_rs = "0.1.3"

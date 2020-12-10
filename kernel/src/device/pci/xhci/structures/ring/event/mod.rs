@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{super::registers::Registers, CycleBit};
-use crate::{device::pci::xhci::exchanger::receiver::Receiver, mem::allocator::page_box::PageBox};
+use super::CycleBit;
+use crate::{
+    device::pci::xhci::{self, exchanger::receiver::Receiver},
+    mem::allocator::page_box::PageBox,
+};
 use alloc::{sync::Arc, vec::Vec};
 use bit_field::BitField;
 use core::{
@@ -38,17 +41,17 @@ const MAX_NUM_OF_TRB_IN_QUEUE: u16 = Size4KiB::SIZE as u16 / Trb::SIZE.as_usize(
 pub struct Ring {
     segment_table: SegmentTable,
     raw: Raw,
-    registers: Arc<Spinlock<Registers>>,
 }
 impl<'a> Ring {
-    pub fn new(registers: Arc<Spinlock<Registers>>) -> Self {
-        let p2 = registers.lock().capability.hcs_params_2.read();
-        let max_num_of_erst = p2.powered_erst_max();
+    pub fn new() -> Self {
+        let max_num_of_erst = xhci::handle_registers(|r| {
+            let p2 = r.capability.hcs_params_2.read();
+            p2.powered_erst_max()
+        });
 
         Self {
             segment_table: SegmentTable::new(max_num_of_erst.into()),
-            raw: Raw::new(registers.clone()),
-            registers,
+            raw: Raw::new(),
         }
     }
 
@@ -66,7 +69,7 @@ impl<'a> Ring {
     }
 
     fn init_tbl(&mut self) {
-        SegTblInitializer::new(self, &mut self.registers.clone().lock()).init();
+        SegTblInitializer::new(self).init();
     }
 
     fn try_dequeue(&mut self) -> Option<Trb> {
@@ -96,32 +99,32 @@ struct Raw {
     c: CycleBit,
     deq_p_seg: usize,
     deq_p_trb: usize,
-    r: Arc<Spinlock<Registers>>,
 }
 impl Raw {
-    fn new(r: Arc<Spinlock<Registers>>) -> Self {
-        let rings = Self::new_rings(&r.lock());
+    fn new() -> Self {
+        let rings = Self::new_rings();
         Self {
             rings,
             c: CycleBit::new(true),
             deq_p_seg: 0,
             deq_p_trb: 0,
-            r,
         }
     }
 
-    fn new_rings(r: &Registers) -> Vec<PageBox<[[u32; 4]]>> {
+    fn new_rings() -> Vec<PageBox<[[u32; 4]]>> {
         let mut v = Vec::new();
-        for _ in 0..Self::max_num_of_erst(r) {
+        for _ in 0..Self::max_num_of_erst() {
             v.push(PageBox::new_slice([0; 4], MAX_NUM_OF_TRB_IN_QUEUE.into()));
         }
 
         v
     }
 
-    fn max_num_of_erst(r: &Registers) -> u16 {
-        let p2 = r.capability.hcs_params_2.read();
-        p2.powered_erst_max()
+    fn max_num_of_erst() -> u16 {
+        xhci::handle_registers(|r| {
+            let p = r.capability.hcs_params_2.read();
+            p.powered_erst_max()
+        })
     }
 
     fn try_dequeue(&mut self) -> Option<Trb> {
@@ -174,8 +177,10 @@ impl Raw {
     }
 
     fn update_deq_p_with_xhci(&self) {
-        let p = &mut self.r.lock().runtime.erd_p;
-        p.update(|p| p.set(self.next_trb_addr()));
+        xhci::handle_registers(|r| {
+            let p = &mut r.runtime.erd_p;
+            p.update(|p| p.set(self.next_trb_addr()));
+        });
     }
 
     fn next_trb_addr(&self) -> PhysAddr {
@@ -189,11 +194,10 @@ impl Raw {
 
 struct SegTblInitializer<'a> {
     ring: &'a mut Ring,
-    r: &'a mut Registers,
 }
 impl<'a> SegTblInitializer<'a> {
-    fn new(ring: &'a mut Ring, r: &'a mut Registers) -> Self {
-        Self { ring, r }
+    fn new(ring: &'a mut Ring) -> Self {
+        Self { ring }
     }
 
     fn init(&mut self) {
@@ -210,17 +214,21 @@ impl<'a> SegTblInitializer<'a> {
     }
 
     fn register_tbl_sz(&mut self) {
-        let tbl_len = self.tbl_len();
-        let sz = &mut self.r.runtime.erst_sz;
+        xhci::handle_registers(|r| {
+            let l = self.tbl_len();
+            let s = &mut r.runtime.erst_sz;
 
-        sz.update(|sz| sz.set(tbl_len.try_into().unwrap()));
+            s.update(|s| s.set(l.try_into().unwrap()));
+        })
     }
 
     fn enable_event_ring(&mut self) {
-        let tbl_addr = self.tbl_addr();
-        let ba = &mut self.r.runtime.erst_ba;
+        xhci::handle_registers(|r| {
+            let a = self.tbl_addr();
+            let b = &mut r.runtime.erst_ba;
 
-        ba.update(|ba| ba.set(tbl_addr));
+            b.update(|b| b.set(a));
+        });
     }
 
     fn tbl_addr(&self) -> PhysAddr {

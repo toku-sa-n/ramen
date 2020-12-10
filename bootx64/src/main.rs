@@ -19,6 +19,7 @@ mod exit;
 mod fs;
 mod gop;
 mod mem;
+mod rsdp;
 
 use common::{
     constant::{INITRD_NAME, KERNEL_NAME},
@@ -47,6 +48,7 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     let (initrd_addr, bytes_initrd) = fs::deploy(system_table.boot_services(), INITRD_NAME);
 
     let stack_addr = stack::allocate(system_table.boot_services());
+    let rsdp = rsdp::get(&system_table);
     let reserved_regions = reserved::Map::new(
         &reserved::PhysRange::new(phys_kernel_addr, actual_mem_size),
         stack_addr,
@@ -55,7 +57,7 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     );
     let mem_map = terminate_boot_services(image, system_table);
 
-    let mut boot_info = kernelboot::Info::new(entry_addr, vram_info, mem_map);
+    let mut boot_info = kernelboot::Info::new(entry_addr, vram_info, mem_map, rsdp);
 
     paging::init(&mut boot_info, &reserved_regions);
     exit::bootx64(boot_info);
