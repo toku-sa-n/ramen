@@ -69,6 +69,7 @@ bitfield! {
 }
 impl CommandRingControlRegister {
     pub fn set_ptr(&mut self, ptr: PhysAddr) {
+        assert!(ptr.is_aligned(64_u64));
         let ptr = ptr.as_u64() >> 6;
 
         self.set_pointer(ptr);
