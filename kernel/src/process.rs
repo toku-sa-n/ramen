@@ -49,13 +49,8 @@ impl Pml4Creator {
     }
 
     fn enable_recursive_mapping(&mut self) {
-        // Safety: This operation is safe as this address is the recursive address.
-        const RECURSIVE_ADDRESS: PhysAddr = unsafe { PhysAddr::new_unsafe(0xffff_ffff_ffff_f000) };
-
-        self.pml4[511].set_addr(
-            RECURSIVE_ADDRESS,
-            PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
-        );
+        let a = self.pml4.phys_addr();
+        self.pml4[511].set_addr(a, PageTableFlags::PRESENT | PageTableFlags::WRITABLE);
     }
 
     fn map_kernel_regions(&mut self) {
