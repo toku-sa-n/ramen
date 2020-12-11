@@ -2,6 +2,9 @@
 
 use core::convert::TryInto;
 
+use crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4};
+use alloc::vec::Vec;
+use spinning_top::Spinlock;
 use x86_64::{
     structures::paging::{
         page_table::PageTableEntry, PageSize, PageTable, PageTableFlags, Size4KiB,
@@ -9,7 +12,7 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
-use crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4};
+static QUEUE: Spinlock<Vec<Process>> = Spinlock::new(Vec::new());
 
 struct Process {
     pml4: PageBox<PageTable>,
