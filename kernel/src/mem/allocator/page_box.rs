@@ -133,6 +133,10 @@ where
 }
 
 impl<T: ?Sized> PageBox<T> {
+    pub fn virt_addr(&self) -> VirtAddr {
+        self.virt
+    }
+
     pub fn phys_addr(&self) -> PhysAddr {
         PML4.lock().translate_addr(self.virt).unwrap()
     }
