@@ -1,6 +1,6 @@
-use core::convert::TryInto;
-
 // SPDX-License-Identifier: GPL-3.0-or-later
+
+use core::convert::TryInto;
 
 pub fn syscall() {
     info!("This is `syscall` function.");
