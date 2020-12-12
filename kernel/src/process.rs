@@ -17,7 +17,7 @@ static QUEUE: Spinlock<Vec<Process>> = Spinlock::new(Vec::new());
 
 struct Process {
     pml4: PageBox<PageTable>,
-    entry_addr: VirtAddr,
+    rip: VirtAddr,
     rsp: VirtAddr,
     stack: PageBox<[u8]>,
 }
@@ -26,7 +26,7 @@ impl Process {
         let stack = PageBox::new_slice(0, Size4KiB::SIZE.try_into().unwrap());
         Self {
             pml4: Pml4Creator::new().create(),
-            entry_addr,
+            rip: entry_addr,
             rsp: stack.virt_addr() + stack.bytes().as_usize(),
             stack,
         }
@@ -66,7 +66,7 @@ impl Process {
 
             # Restore rsp
             mov rsp, rcx
-            ", in(reg) self.rsp.as_u64(),in(reg) self.entry_addr.as_u64(),out(reg) rsp);
+            ", in(reg) self.rsp.as_u64(),in(reg) self.rip.as_u64(),out(reg) rsp);
         }
 
         self.rsp = VirtAddr::new(rsp);
