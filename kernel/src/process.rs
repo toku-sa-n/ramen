@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::convert::TryInto;
+use core::{
+    convert::TryInto,
+    sync::atomic::{AtomicUsize, Ordering},
+};
 
 use crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4};
 use alloc::vec::Vec;
@@ -14,6 +17,67 @@ use x86_64::{
 };
 
 static QUEUE: Spinlock<Vec<Process>> = Spinlock::new(Vec::new());
+static CURRENT: AtomicUsize = AtomicUsize::new(0);
+
+fn schedule() {
+    let old = CURRENT.load(Ordering::Relaxed);
+
+    let mut i = 1;
+    while CURRENT.load(Ordering::Relaxed) == old {
+        let next = CURRENT.load(Ordering::Relaxed) + i;
+        if QUEUE.lock()[next].running {
+            CURRENT.store(next, Ordering::Relaxed);
+            break;
+        }
+
+        i += 1;
+    }
+
+    let old_rsp = &mut QUEUE.lock()[old].rsp as *mut VirtAddr as *mut u64;
+    let cur_rsp = QUEUE.lock()[CURRENT.load(Ordering::Relaxed)].rsp.as_u64();
+    unsafe { switch_context(old_rsp, cur_rsp) }
+}
+
+/// Safety: `current_rsp` must be a valid pointer to RSP value.
+unsafe fn switch_context(current_rsp: *mut u64, old_rsp: u64) {
+    asm!("
+    # Save general registers
+        push rbp
+        push r15
+        push r14
+        push r13
+        push r12
+        push r11
+        push r10
+        push r9
+        push r8
+        push rdi
+        push rsi
+        push rdx
+        push rcx
+        push rax
+
+    # Save the current rsp
+        mov [{}], rsp
+    # switch rsp
+        mov rsp, {}
+
+    # Restore general registers
+        pop rax
+        pop rcx
+        pop rdx
+        pop rsi
+        pop rdi
+        pop r8
+        pop r9
+        pop r10
+        pop r11
+        pop r12
+        pop r13
+        pop r14
+        pop r15
+        pop rbp", out(reg) *current_rsp, in(reg) old_rsp);
+}
 
 struct Process {
     pml4: PageBox<PageTable>,
