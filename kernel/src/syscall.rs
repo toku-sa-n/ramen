@@ -21,7 +21,7 @@ fn enable() {
 }
 
 fn register() {
-    let addr = syscall as u64;
+    let addr = syscall as usize;
     let l: u32 = (addr & 0xffff_ffff).try_into().unwrap();
     let u: u32 = (addr >> 32).try_into().unwrap();
 
