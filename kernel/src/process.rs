@@ -20,6 +20,7 @@ struct Process {
     rip: VirtAddr,
     rsp: VirtAddr,
     stack: PageBox<[u8]>,
+    running: bool,
 }
 impl Process {
     fn new(entry_addr: VirtAddr) -> Self {
@@ -29,6 +30,7 @@ impl Process {
             rip: entry_addr,
             rsp: stack.virt_addr() + stack.bytes().as_usize(),
             stack,
+            running: true,
         }
     }
 
