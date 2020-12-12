@@ -21,16 +21,18 @@ struct Process {
     rsp: VirtAddr,
     stack: PageBox<[u8]>,
     running: bool,
+    f: fn(),
 }
 impl Process {
-    fn new(entry_addr: VirtAddr) -> Self {
+    fn new(f: fn()) -> Self {
         let stack = PageBox::new_slice(0, Size4KiB::SIZE.try_into().unwrap());
         Self {
             pml4: Pml4Creator::new().create(),
-            rip: entry_addr,
+            rip: VirtAddr::new(Self::exec as *mut u64 as u64),
             rsp: stack.virt_addr() + stack.bytes().as_usize(),
             stack,
             running: true,
+            f,
         }
     }
 
@@ -72,6 +74,13 @@ impl Process {
         }
 
         self.rsp = VirtAddr::new(rsp);
+    }
+
+    /// Safety: `p` must be a pointer to `Process`.
+    unsafe fn exec(p: *mut Self) {
+        let t = &mut *p;
+        (t.f)();
+        t.running = false;
     }
 }
 
