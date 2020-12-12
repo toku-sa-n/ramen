@@ -32,9 +32,10 @@ fn task_b() {
 fn schedule() {
     let old = CURRENT.load(Ordering::Relaxed);
 
+    let l = QUEUE.lock().len();
     let mut i = 1;
     while CURRENT.load(Ordering::Relaxed) == old {
-        let next = CURRENT.load(Ordering::Relaxed) + i;
+        let next = (CURRENT.load(Ordering::Relaxed) + i) % l;
         if QUEUE.lock()[next].running {
             CURRENT.store(next, Ordering::Relaxed);
             break;
