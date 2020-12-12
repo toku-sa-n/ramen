@@ -2,11 +2,25 @@
 
 use core::convert::TryInto;
 
-pub fn syscall() {
-    info!("This is `syscall` function.");
+pub fn init() {
+    enable();
+    register();
 }
 
-pub fn register() {
+fn enable() {
+    unsafe {
+        asm!(
+            "
+        mov ecx, 0xc0000080
+        rdmsr
+        or eax, 1
+        wrmsr
+        "
+        );
+    }
+}
+
+fn register() {
     let addr = syscall as u64;
     let l: u32 = (addr & 0xffff_ffff).try_into().unwrap();
     let u: u32 = (addr >> 32).try_into().unwrap();
@@ -19,4 +33,8 @@ pub fn register() {
         wrmsr
         ",in(reg) u,in(reg) l);
     }
+}
+
+fn syscall() {
+    info!("This is `syscall` function.");
 }
