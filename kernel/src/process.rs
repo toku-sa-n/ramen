@@ -6,6 +6,7 @@ use crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4};
 use alloc::vec::Vec;
 use spinning_top::Spinlock;
 use x86_64::{
+    instructions::interrupts,
     structures::paging::{
         page_table::PageTableEntry, PageSize, PageTable, PageTableFlags, Size4KiB,
     },
@@ -29,6 +30,46 @@ impl Process {
             rsp: stack.virt_addr() + stack.bytes().as_usize(),
             stack,
         }
+    }
+
+    fn init_stack(&mut self) {
+        interrupts::disable();
+
+        let rsp: u64;
+        unsafe {
+            asm!("
+            # Save the stack pointer.
+            mov rcx, rsp
+
+            # Jump to the stack of this process.
+            mov rsp, {}
+
+            # Save registers
+            push {} # rip
+            push 0  # rbp
+            push 0  # r15
+            push 0  # r14
+            push 0  # r13
+            push 0  # r12
+            push 0  # r11
+            push 0  # r10
+            push 0  # r9
+            push 0  # r8
+            push 0  # rdi
+            push 0  # rsi
+            push 0  # rdx
+            push 0  # rcx
+            push 0  # rax
+
+            # Return the current rsp
+            mov {}, rsp
+
+            # Restore rsp
+            mov rsp, rcx
+            ", in(reg) self.rsp.as_u64(),in(reg) self.entry_addr.as_u64(),out(reg) rsp);
+        }
+
+        self.rsp = VirtAddr::new(rsp);
     }
 }
 
