@@ -26,7 +26,7 @@ impl Process {
         Self {
             pml4: Pml4Creator::new().create(),
             entry_addr,
-            rsp: stack.virt_addr(),
+            rsp: stack.virt_addr() + stack.bytes().as_usize(),
             stack,
         }
     }
