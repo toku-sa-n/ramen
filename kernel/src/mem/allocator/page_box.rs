@@ -176,7 +176,9 @@ impl<T: ?Sized> PageBox<T> {
             let page =
                 Page::<Size4KiB>::from_start_address(virt_addr + Size4KiB::SIZE * i).unwrap();
             let frame = PhysFrame::from_start_address(phys_addr + Size4KiB::SIZE * i).unwrap();
-            let flags: PageTableFlags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
+            let flags: PageTableFlags = PageTableFlags::PRESENT
+                | PageTableFlags::WRITABLE
+                | PageTableFlags::USER_ACCESSIBLE;
 
             unsafe {
                 PML4.lock()

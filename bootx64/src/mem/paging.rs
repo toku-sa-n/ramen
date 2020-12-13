@@ -53,7 +53,10 @@ pub fn init(boot_info: &mut kernelboot::Info, reserved: &reserved::Map) {
 fn enable_recursive_mapping() {
     let p4: &mut PageTable = unsafe { &mut *(get_pml4_addr().as_u64() as *mut _) };
 
-    p4[511].set_addr(get_pml4_addr(), PageTableFlags::PRESENT);
+    p4[511].set_addr(
+        get_pml4_addr(),
+        PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE,
+    );
 }
 
 fn remove_table_protection() {
@@ -71,15 +74,16 @@ fn map_virt_to_phys(region: &reserved::Range, allocator: &mut AllocatorWithEfiMe
     let num_of_pages = region.bytes().as_num_of_pages::<Size4KiB>().as_usize();
     for i in 0..num_of_pages {
         unsafe {
-            p4.map_to_with_table_flags::<AllocatorWithEfiMemoryMap>(
+            p4.map_to(
                 Page::<Size4KiB>::containing_address(
                     region.virt() + usize::try_from(Size4KiB::SIZE).unwrap() * i,
                 ),
                 PhysFrame::containing_address(
                     region.phys() + usize::try_from(Size4KiB::SIZE).unwrap() * i,
                 ),
-                PageTableFlags::PRESENT,
-                PageTableFlags::PRESENT,
+                PageTableFlags::PRESENT
+                    | PageTableFlags::WRITABLE
+                    | PageTableFlags::USER_ACCESSIBLE,
                 allocator,
             )
         }

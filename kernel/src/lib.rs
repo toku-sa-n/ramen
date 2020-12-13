@@ -96,6 +96,8 @@ fn initialization(boot_info: &mut kernelboot::Info) {
     syscall::init();
 
     fs::ustar::list_files(INITRD_ADDR);
+
+    gdt::enter_usermode();
 }
 
 #[cfg(not(feature = "qemu_test"))]
