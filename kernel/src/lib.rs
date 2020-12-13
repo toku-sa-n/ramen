@@ -93,6 +93,8 @@ fn initialization(boot_info: &mut kernelboot::Info) {
 
     timer::init(&acpi);
 
+    syscall::init();
+
     fs::ustar::list_files(INITRD_ADDR);
 }
 
