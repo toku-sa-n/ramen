@@ -56,17 +56,18 @@ pub fn enter_usermode() {
         segmentation::load_fs(GDT.user_data);
         segmentation::load_gs(GDT.user_data);
 
+        let data = u64::from(GDT.user_data.0);
+        let code = u64::from(GDT.user_code.0);
+
         asm!("
-                push {ss}
                 mov rax, rsp
+                push rbx
                 push rax
                 pushfq
-                ", ss=in(reg) u64::from(GDT.user_data.0));
-        asm!("
-                push {sel}
-                lea {tmp}, [1f + rip]
-                push {tmp}
+                push rcx
+                lea rdx, [1f + rip]
+                push rdx
                 iretq
-                1:", sel=in(reg) u64::from(GDT.user_code.0),tmp=lateout(reg) _,);
+                1:", in("rbx") data, in("rcx") code,lateout("rdx") _,); // Do not specify in(reg) or lateout(reg) as these do not consider which registers are used. They may use registers which are already used.
     }
 }
