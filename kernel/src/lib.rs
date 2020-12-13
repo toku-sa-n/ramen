@@ -35,6 +35,7 @@ mod interrupt;
 mod mem;
 mod multitask;
 mod panic;
+mod syscall;
 mod tss;
 
 use common::{constant::INITRD_ADDR, kernelboot};
@@ -91,6 +92,8 @@ fn initialization(boot_info: &mut kernelboot::Info) {
     apic::io::init(&acpi);
 
     timer::init(&acpi);
+
+    syscall::init();
 
     fs::ustar::list_files(INITRD_ADDR);
 }
