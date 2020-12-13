@@ -21,7 +21,7 @@ fn enable() {
 }
 
 fn register() {
-    let addr = syscall as usize;
+    let addr = wrapper as usize;
     let l: u32 = (addr & 0xffff_ffff).try_into().unwrap();
     let u: u32 = (addr >> 32).try_into().unwrap();
 
@@ -32,6 +32,29 @@ fn register() {
         mov ecx, 0xc0000082
         wrmsr
         ",in(reg) u,in(reg) l);
+    }
+}
+
+fn wrapper() {
+    unsafe {
+        asm!(
+            "
+        push rcx    # Save rip
+        push r11    # Save rflags
+        "
+        );
+    }
+
+    syscall();
+
+    unsafe {
+        asm!(
+            "
+        pop r11     # Restore rflags
+        pop rcx     # Restore rip
+        sysret
+        "
+        );
     }
 }
 
