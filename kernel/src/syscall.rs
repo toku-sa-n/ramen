@@ -2,7 +2,6 @@
 
 use core::convert::TryInto;
 use x86_64::{
-    instructions::interrupts,
     registers::model_specific::{Efer, EferFlags, LStar},
     VirtAddr,
 };
@@ -23,29 +22,28 @@ fn register() {
     LStar::write(VirtAddr::new(addr.try_into().unwrap()));
 }
 
-fn wrapper() {
+#[naked]
+extern "C" fn wrapper() {
     unsafe {
         asm!(
             "
             cli
         push rcx    # Save rip
         push r11    # Save rflags
-        "
-        );
 
-        syscall();
+        call syscall
 
-        asm!(
-            "
         pop r11     # Restore rflags
         pop rcx     # Restore rip
         sti
         sysretq
-        "
+        ",
+            options(noreturn)
         );
     }
 }
 
+#[no_mangle]
 fn syscall() {
     info!("This is `syscall` function.");
 }
