@@ -11,6 +11,19 @@ pub fn init() {
     register();
 }
 
+pub fn read_from_port(port: u16) -> u32 {
+    let r: u32;
+    unsafe {
+        asm!("
+            mov eax, 0
+            mov ebx, {:e}
+            syscall
+            mov {:e}, eax
+            ", in(reg) u32::from(port), out(reg) r);
+    }
+    r
+}
+
 fn enable() {
     // Safety: This operation is safe as this does not touch any unsafe things.
     unsafe { Efer::update(|e| *e |= EferFlags::SYSTEM_CALL_EXTENSIONS) }
@@ -22,12 +35,17 @@ fn register() {
     LStar::write(VirtAddr::new(addr.try_into().unwrap()));
 }
 
+/// `syscall` instruction calls this function.
+///
+/// RAX: system call index
+/// RBX: 1st argument
+/// RDX: 2nd argument
 #[naked]
-extern "C" fn wrapper() {
+extern "C" fn wrapper() -> u64 {
     unsafe {
         asm!(
             "
-            cli
+        cli
         push rcx    # Save rip
         push r11    # Save rflags
 
@@ -44,6 +62,18 @@ extern "C" fn wrapper() {
 }
 
 #[no_mangle]
-fn syscall() {
-    info!("This is `syscall` function.");
+fn syscall() -> u64 {
+    let syscall_index: u64;
+    let a1: u64;
+    let a2: u64;
+
+    unsafe {
+        asm!("
+        mov {}, rax
+        mov {}, rbx
+        mov {}, rdx
+        ", out(reg) syscall_index, out(reg) a1, out(reg) a2);
+    }
+
+    334
 }
