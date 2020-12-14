@@ -49,7 +49,7 @@ extern "C" fn save_rip_and_rflags() -> u64 {
         push rcx    # Save rip
         push r11    # Save rflags
 
-        call syscall
+        call prepare_arguments
 
         pop r11     # Restore rflags
         pop rcx     # Restore rip
@@ -62,7 +62,7 @@ extern "C" fn save_rip_and_rflags() -> u64 {
 }
 
 #[no_mangle]
-fn syscall() -> u64 {
+fn prepare_arguments() -> u64 {
     let syscall_index: u64;
     let a1: u64;
     let a2: u64;
