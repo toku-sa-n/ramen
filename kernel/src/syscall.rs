@@ -3,7 +3,8 @@
 use core::convert::TryInto;
 use x86_64::{
     instructions::interrupts,
-    registers::model_specific::{Efer, EferFlags},
+    registers::model_specific::{Efer, EferFlags, LStar},
+    VirtAddr,
 };
 
 pub fn init() {
@@ -18,17 +19,8 @@ fn enable() {
 
 fn register() {
     let addr = wrapper as usize;
-    let l: u32 = (addr & 0xffff_ffff).try_into().unwrap();
-    let u: u32 = (addr >> 32).try_into().unwrap();
 
-    unsafe {
-        asm!("
-        mov edx, {:e}
-        mov eax, {:e}
-        mov ecx, 0xc0000082
-        wrmsr
-        ",in(reg) u,in(reg) l);
-    }
+    LStar::write(VirtAddr::new(addr.try_into().unwrap()));
 }
 
 fn wrapper() {
