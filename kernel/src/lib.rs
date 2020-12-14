@@ -82,11 +82,6 @@ fn initialization(boot_info: &mut kernelboot::Info) {
     info!("Hello Ramen OS!");
     info!("Vram information: {}", Vram::display());
 
-    info!(
-        "The number of PCI devices: {}",
-        device::pci::iter_devices().count()
-    );
-
     let acpi = unsafe { acpi::get(boot_info.rsdp()) };
 
     apic::io::init(&acpi);
