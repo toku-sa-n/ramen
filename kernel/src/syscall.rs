@@ -28,6 +28,18 @@ pub unsafe fn read_from_port(port: u16) -> u32 {
     r
 }
 
+/// Safety: This function is unsafe because writing a value via I/O port may have side effects
+/// which violate memory safety.
+pub unsafe fn write_to_port(port: u16, value: u32) {
+    const R: u64 = Syscalls::WriteToPort as u64;
+    asm!("
+        mov rax, {}
+        mov ebx, {:e}
+        mov edx, {:e}
+        syscall
+        ", const R, in(reg) u32::from(port), in(reg) value);
+}
+
 pub fn disable_interrupt() {
     const R: u64 = Syscalls::DisableInterrupt as u64;
 
@@ -62,18 +74,6 @@ pub fn enable_interrupt_and_halt() {
         syscall
         ", const R);
     }
-}
-
-/// Safety: This function is unsafe because writing a value via I/O port may have side effects
-/// which violate memory safety.
-pub unsafe fn write_to_port(port: u16, value: u32) {
-    const R: u64 = Syscalls::WriteToPort as u64;
-    asm!("
-        mov rax, {}
-        mov ebx, {:e}
-        mov edx, {:e}
-        syscall
-        ", const R, in(reg) u32::from(port), in(reg) value);
 }
 
 fn enable() {
