@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use core::convert::TryInto;
+use x86_64::instructions::interrupts;
 
 pub fn init() {
     enable();
@@ -36,6 +37,7 @@ fn register() {
 }
 
 fn wrapper() {
+    interrupts::disable();
     unsafe {
         asm!(
             "
@@ -52,6 +54,7 @@ fn wrapper() {
             "
         pop r11     # Restore rflags
         pop rcx     # Restore rip
+        sti
         sysret
         "
         );
