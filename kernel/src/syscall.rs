@@ -14,30 +14,30 @@ pub fn init() {
     register();
 }
 
-pub fn read_from_port(port: u16) -> u32 {
+/// Safety: This function is unsafe because reading a value from I/O port may have side effects
+/// which violate memory safety.
+pub unsafe fn read_from_port(port: u16) -> u32 {
     let r: u32;
     const R: u64 = Syscalls::ReadFromPort as u64;
-    unsafe {
-        asm!("
+    asm!("
             mov rax, {}
             mov ebx, {:e}
             syscall
             mov {:e}, eax
             ", const R, in(reg) u32::from(port), out(reg) r);
-    }
     r
 }
 
-pub fn write_to_port(port: u16, value: u32) {
+/// Safety: This function is unsafe because writing a value via I/O port may have side effects
+/// which violate memory safety.
+pub unsafe fn write_to_port(port: u16, value: u32) {
     const R: u64 = Syscalls::WriteToPort as u64;
-    unsafe {
-        asm!("
+    asm!("
         mov rax, {}
         mov ebx, {:e}
         mov edx, {:e}
         syscall
         ", const R, in(reg) u32::from(port), in(reg) value);
-    }
 }
 
 fn enable() {
