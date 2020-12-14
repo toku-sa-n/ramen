@@ -9,29 +9,33 @@ use crate::{
     },
 };
 use conquer_once::spin::Lazy;
+use x86_64::registers::model_specific::Star;
 
 pub static GDT: Lazy<Gdt> = Lazy::new(|| {
     let mut gdt = GlobalDescriptorTable::new();
     let kernel_code = gdt.add_entry(Descriptor::kernel_code_segment());
-    let tss_selector = gdt.add_entry(Descriptor::tss_segment(&TSS));
-    let user_code = gdt.add_entry(Descriptor::user_code_segment());
+    let kernel_data = gdt.add_entry(Descriptor::kernel_data_segment());
     let user_data = gdt.add_entry(Descriptor::user_data_segment());
+    let user_code = gdt.add_entry(Descriptor::user_code_segment());
+    let tss_selector = gdt.add_entry(Descriptor::tss_segment(&TSS));
 
     Gdt {
         table: gdt,
         kernel_code,
-        tss_selector,
-        user_code,
+        kernel_data,
         user_data,
+        user_code,
+        tss_selector,
     }
 });
 
 pub struct Gdt {
     table: GlobalDescriptorTable,
+    kernel_data: SegmentSelector,
     kernel_code: SegmentSelector,
-    tss_selector: SegmentSelector,
     user_code: SegmentSelector,
     user_data: SegmentSelector,
+    tss_selector: SegmentSelector,
 }
 
 pub fn init() {
@@ -39,14 +43,15 @@ pub fn init() {
     unsafe {
         segmentation::set_cs(GDT.kernel_code);
 
-        let null_seg = SegmentSelector::new(0, PrivilegeLevel::Ring0);
-        segmentation::load_ds(null_seg);
-        segmentation::load_es(null_seg);
-        segmentation::load_fs(null_seg);
-        segmentation::load_gs(null_seg);
-        segmentation::load_ss(null_seg);
+        segmentation::load_ds(GDT.kernel_data);
+        segmentation::load_es(GDT.kernel_data);
+        segmentation::load_fs(GDT.kernel_data);
+        segmentation::load_gs(GDT.kernel_data);
+        segmentation::load_ss(GDT.kernel_data);
         tables::load_tss(GDT.tss_selector);
     }
+
+    init_star();
 }
 
 pub fn enter_usermode() {
@@ -70,4 +75,14 @@ pub fn enter_usermode() {
                 iretq
                 1:", in("rbx") data, in("rcx") code,lateout("rdx") _,); // Do not specify in(reg) or lateout(reg) as these do not consider which registers are used. They may use registers which are already used.
     }
+}
+
+fn init_star() {
+    Star::write(
+        GDT.user_code,
+        GDT.user_data,
+        GDT.kernel_code,
+        GDT.kernel_data,
+    )
+    .unwrap();
 }
