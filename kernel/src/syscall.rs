@@ -28,6 +28,18 @@ pub unsafe fn read_from_port(port: u16) -> u32 {
     r
 }
 
+pub fn disable_interrupt() {
+    const R: u64 = Syscalls::DisableInterrupt as u64;
+
+    // Safety: This operation is safe as it does not touch any unsafe things.
+    unsafe {
+        asm!("
+        mov rax, {}
+        syscall
+        ", const R);
+    }
+}
+
 /// Safety: This function is unsafe because writing a value via I/O port may have side effects
 /// which violate memory safety.
 pub unsafe fn write_to_port(port: u16, value: u32) {
@@ -101,6 +113,7 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64) -> u64 {
             Syscalls::WriteToPort => {
                 sys_write_to_port(a1.try_into().unwrap(), a2.try_into().unwrap())
             }
+            Syscalls::DisableInterrupt => sys_disable_interrupt(),
         },
         None => panic!("Unsupported syscall index: {}", idx),
     }
@@ -121,8 +134,14 @@ unsafe fn sys_write_to_port(port: u16, v: u32) -> u64 {
     0
 }
 
+fn sys_disable_interrupt() -> u64 {
+    x86_64::instructions::interrupts::disable();
+    0
+}
+
 #[derive(FromPrimitive)]
 enum Syscalls {
     ReadFromPort,
     WriteToPort,
+    DisableInterrupt,
 }
