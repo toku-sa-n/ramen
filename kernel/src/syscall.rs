@@ -30,7 +30,7 @@ fn enable() {
 }
 
 fn register() {
-    let addr = wrapper as usize;
+    let addr = save_rip_and_rflags as usize;
 
     LStar::write(VirtAddr::new(addr.try_into().unwrap()));
 }
@@ -41,7 +41,7 @@ fn register() {
 /// RBX: 1st argument
 /// RDX: 2nd argument
 #[naked]
-extern "C" fn wrapper() -> u64 {
+extern "C" fn save_rip_and_rflags() -> u64 {
     unsafe {
         asm!(
             "
