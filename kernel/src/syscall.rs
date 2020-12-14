@@ -4,7 +4,7 @@ use core::convert::TryInto;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use x86_64::{
-    instructions::port::PortReadOnly,
+    instructions::port::{PortReadOnly, PortWriteOnly},
     registers::model_specific::{Efer, EferFlags, LStar},
     VirtAddr,
 };
@@ -26,6 +26,18 @@ pub fn read_from_port(port: u16) -> u32 {
             ", const R, in(reg) u32::from(port), out(reg) r);
     }
     r
+}
+
+pub fn write_to_port(port: u16, value: u32) {
+    const R: u64 = Syscalls::WriteToPort as u64;
+    unsafe {
+        asm!("
+        mov rax, {}
+        mov ebx, {:e}
+        mov edx, {:e}
+        syscall
+        ", const R, in(reg) u32::from(port), in(reg) value);
+    }
 }
 
 fn enable() {
@@ -86,6 +98,9 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64) -> u64 {
     match FromPrimitive::from_u64(idx) {
         Some(s) => match s {
             Syscalls::ReadFromPort => sys_read_from_port(a1.try_into().unwrap()).into(),
+            Syscalls::WriteToPort => {
+                sys_write_to_port(a1.try_into().unwrap(), a2.try_into().unwrap())
+            }
         },
         None => panic!("Unsupported syscall index: {}", idx),
     }
@@ -98,7 +113,16 @@ unsafe fn sys_read_from_port(port: u16) -> u32 {
     p.read()
 }
 
+/// Safety: This function is unsafe because writing to I/O port may have side effects which violate
+/// memory safety.
+unsafe fn sys_write_to_port(port: u16, v: u32) -> u64 {
+    let mut p = PortWriteOnly::new(port);
+    p.write(v);
+    0
+}
+
 #[derive(FromPrimitive)]
 enum Syscalls {
-    ReadFromPort = 1,
+    ReadFromPort,
+    WriteToPort,
 }
