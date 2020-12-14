@@ -5,13 +5,11 @@ mod common;
 pub mod type_spec;
 
 use self::common::Common;
+use crate::syscall;
 use bar::Bar;
 use core::{convert::TryFrom, ops::Add};
 use type_spec::TypeSpec;
-use x86_64::{
-    instructions::port::{Port, PortWriteOnly},
-    PhysAddr,
-};
+use x86_64::PhysAddr;
 
 #[derive(Debug)]
 pub struct Space {
@@ -81,8 +79,8 @@ struct ConfigAddress {
 }
 
 impl ConfigAddress {
-    const PORT_CONFIG_ADDR: PortWriteOnly<u32> = PortWriteOnly::new(0xcf8);
-    const PORT_CONFIG_DATA: Port<u32> = Port::new(0xcfc);
+    const PORT_CONFIG_ADDR: u16 = 0xcf8;
+    const PORT_CONFIG_DATA: u16 = 0xcfc;
 
     #[allow(clippy::too_many_arguments)]
     fn new(bus: Bus, device: Device, function: Function, register: RegisterIndex) -> Self {
@@ -106,11 +104,8 @@ impl ConfigAddress {
 
     /// Safety: `self` must contain the valid config address.
     unsafe fn read(&self) -> u32 {
-        let mut addr = Self::PORT_CONFIG_ADDR;
-        addr.write(self.as_u32());
-
-        let mut data = Self::PORT_CONFIG_DATA;
-        data.read()
+        syscall::write_to_port(Self::PORT_CONFIG_ADDR, self.as_u32());
+        syscall::read_from_port(Self::PORT_CONFIG_DATA)
     }
 }
 
