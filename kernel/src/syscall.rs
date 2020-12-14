@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use core::convert::TryInto;
-use x86_64::instructions::interrupts;
+use x86_64::{
+    instructions::interrupts,
+    registers::model_specific::{Efer, EferFlags},
+};
 
 pub fn init() {
     enable();
@@ -9,16 +12,8 @@ pub fn init() {
 }
 
 fn enable() {
-    unsafe {
-        asm!(
-            "
-        mov ecx, 0xc0000080
-        rdmsr
-        or eax, 1
-        wrmsr
-        "
-        );
-    }
+    // Safety: This operation is safe as this does not touch any unsafe things.
+    unsafe { Efer::update(|e| *e |= EferFlags::SYSTEM_CALL_EXTENSIONS) }
 }
 
 fn register() {
