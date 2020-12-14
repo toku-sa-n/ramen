@@ -5,7 +5,6 @@ use crate::{
     x86_64::{
         instructions::{segmentation, tables},
         structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector},
-        PrivilegeLevel,
     },
 };
 use conquer_once::spin::Lazy;
