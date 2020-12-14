@@ -24,19 +24,17 @@ fn register() {
 }
 
 fn wrapper() {
-    interrupts::disable();
     unsafe {
         asm!(
             "
+            cli
         push rcx    # Save rip
         push r11    # Save rflags
         "
         );
-    }
 
-    syscall();
+        syscall();
 
-    unsafe {
         asm!(
             "
         pop r11     # Restore rflags
