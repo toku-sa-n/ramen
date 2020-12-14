@@ -42,7 +42,7 @@ fn wrapper() {
         pop r11     # Restore rflags
         pop rcx     # Restore rip
         sti
-        sysret
+        sysretq
         "
         );
     }
