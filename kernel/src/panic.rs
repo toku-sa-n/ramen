@@ -2,7 +2,7 @@
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
-    x86_64::instructions::interrupts::disable();
+    crate::syscall::disable_interrupt();
     print_banner();
     if let Some(location) = info.location() {
         print_panic_location(location, info);
