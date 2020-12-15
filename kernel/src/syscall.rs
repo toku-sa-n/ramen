@@ -40,6 +40,13 @@ pub unsafe fn write_to_port(port: u16, value: u32) {
         ", const R, in(reg) u32::from(port), in(reg) value);
 }
 
+pub fn halt() {
+    const R: u64 = Syscalls::Halt as u64;
+
+    // Safety: This operation is safe as it does not touch any unsafe things.
+    unsafe { asm!("syscall",in("rax") R) }
+}
+
 pub fn disable_interrupt() {
     const R: u64 = Syscalls::DisableInterrupt as u64;
 
@@ -132,6 +139,7 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64) -> u64 {
             Syscalls::WriteToPort => {
                 sys_write_to_port(a1.try_into().unwrap(), a2.try_into().unwrap())
             }
+            Syscalls::Halt => sys_halt(),
             Syscalls::DisableInterrupt => sys_disable_interrupt(),
             Syscalls::EnableInterrupt => sys_enable_interrupt(),
             Syscalls::EnableInterruptAndHalt => sys_enable_interrupt_and_halt(),
@@ -155,6 +163,11 @@ unsafe fn sys_write_to_port(port: u16, v: u32) -> u64 {
     0
 }
 
+fn sys_halt() -> u64 {
+    x86_64::instructions::hlt();
+    0
+}
+
 fn sys_disable_interrupt() -> u64 {
     x86_64::instructions::interrupts::disable();
     0
@@ -174,6 +187,7 @@ fn sys_enable_interrupt_and_halt() -> u64 {
 enum Syscalls {
     ReadFromPort,
     WriteToPort,
+    Halt,
     DisableInterrupt,
     EnableInterrupt,
     EnableInterruptAndHalt,
