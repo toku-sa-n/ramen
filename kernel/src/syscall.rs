@@ -17,27 +17,17 @@ pub fn init() {
 /// Safety: This function is unsafe because reading a value from I/O port may have side effects
 /// which violate memory safety.
 pub unsafe fn read_from_port(port: u16) -> u32 {
-    let r: u32;
+    let r: u64;
     const R: u64 = Syscalls::ReadFromPort as u64;
-    asm!("
-            mov rax, {}
-            mov ebx, {:e}
-            syscall
-            mov {:e}, eax
-            ", const R, in(reg) u32::from(port), out(reg) r);
-    r
+    asm!("syscall", inout("rax") R => r, in("rbx") u32::from(port));
+    r.try_into().unwrap()
 }
 
 /// Safety: This function is unsafe because writing a value via I/O port may have side effects
 /// which violate memory safety.
 pub unsafe fn write_to_port(port: u16, value: u32) {
     const R: u64 = Syscalls::WriteToPort as u64;
-    asm!("
-        mov rax, {}
-        mov ebx, {:e}
-        mov edx, {:e}
-        syscall
-        ", const R, in(reg) u32::from(port), in(reg) value);
+    asm!("syscall", in("rax") R, in("rbx") u32::from(port), in("rdx") value);
 }
 
 pub fn halt() {
@@ -122,11 +112,7 @@ unsafe fn prepare_arguments() -> u64 {
     let a1: u64;
     let a2: u64;
 
-    asm!("
-        mov {}, rax
-        mov {}, rbx
-        mov {}, rdx
-        ", out(reg) syscall_index, out(reg) a1, out(reg) a2);
+    asm!("", out("rax") syscall_index, out("rbx") a1, out("rdx") a2);
 
     select_proper_syscall(syscall_index, a1, a2)
 }
