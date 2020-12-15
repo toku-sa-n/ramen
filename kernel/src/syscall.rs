@@ -44,12 +44,7 @@ pub fn disable_interrupt() {
     const R: u64 = Syscalls::DisableInterrupt as u64;
 
     // Safety: This operation is safe as it does not touch any unsafe things.
-    unsafe {
-        asm!("
-        mov rax, {}
-        syscall
-        ", const R);
-    }
+    unsafe { asm!("syscall", in("rax") R) }
 }
 
 pub fn enable_interrupt() {
