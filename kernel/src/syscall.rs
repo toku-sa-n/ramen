@@ -19,7 +19,7 @@ pub fn init() {
 pub unsafe fn read_from_port(port: u16) -> u32 {
     let r: u64;
     const R: u64 = Syscalls::ReadFromPort as u64;
-    asm!("syscall", inout("rax") R => r, in("rbx") u32::from(port));
+    asm!("syscall", inout("rax") R => r, in("rbx") u64::from(port));
     r.try_into().unwrap()
 }
 
@@ -27,7 +27,7 @@ pub unsafe fn read_from_port(port: u16) -> u32 {
 /// which violate memory safety.
 pub unsafe fn write_to_port(port: u16, value: u32) {
     const R: u64 = Syscalls::WriteToPort as u64;
-    asm!("syscall", in("rax") R, in("rbx") u32::from(port), in("rdx") value);
+    asm!("syscall", in("rax") R, in("rbx") u64::from(port), in("rdx") u64::from(value));
 }
 
 pub fn halt() {
