@@ -2,7 +2,7 @@
 
 use crate::syscall;
 
-use super::{super::paging::pml4::PML4, phys::FRAME_MANAGER};
+use super::super::paging::pml4::PML4;
 use core::{
     convert::TryFrom,
     fmt,
@@ -13,7 +13,7 @@ use core::{
 };
 use os_units::Bytes;
 use x86_64::{
-    structures::paging::{FrameDeallocator, Mapper, MapperAllSizes, Page, PageSize, Size4KiB},
+    structures::paging::{MapperAllSizes, Size4KiB},
     PhysAddr, VirtAddr,
 };
 
