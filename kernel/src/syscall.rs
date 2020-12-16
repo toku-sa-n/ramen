@@ -90,7 +90,7 @@ pub fn map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
     })
 }
 
-pub fn unmap_pages(start: PhysAddr, bytes: Bytes) {
+pub fn unmap_pages(start: VirtAddr, bytes: Bytes) {
     unsafe {
         general_syscall(
             Syscalls::UnmapPages,
