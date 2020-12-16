@@ -21,6 +21,20 @@ pub fn init() {
     register();
 }
 
+/// Safety: This function is unsafe because reading a value from I/O port may have side effects
+/// which violate memory safety.
+pub unsafe fn inb(port: u16) -> u8 {
+    general_syscall(Syscalls::Inb, port.into(), 0, 0)
+        .try_into()
+        .unwrap()
+}
+
+/// Safety: This function is unsafe because writing a value to I/O port may have side effects which
+/// violate memory safety.
+pub unsafe fn outb(port: u16, value: u8) {
+    general_syscall(Syscalls::Outb, port.into(), value.into(), 0);
+}
+
 /// Safety: This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
 pub unsafe fn inl(port: u16) -> u32 {
     general_syscall(Syscalls::Inl, port.into(), 0, 0)
@@ -163,28 +177,48 @@ unsafe fn prepare_arguments() {
 /// Safety: This function is unsafe because invalid arguments may break memory safety.
 unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
     match FromPrimitive::from_u64(idx) {
-        Some(s) => match s {
-            Syscalls::Inl => sys_inl(a1.try_into().unwrap()).into(),
-            Syscalls::Outl => sys_outl(a1.try_into().unwrap(), a2.try_into().unwrap()),
-            Syscalls::Halt => sys_halt(),
-            Syscalls::DisableInterrupt => sys_disable_interrupt(),
-            Syscalls::EnableInterrupt => sys_enable_interrupt(),
-            Syscalls::EnableInterruptAndHalt => sys_enable_interrupt_and_halt(),
-            Syscalls::AllocatePages => {
-                sys_allocate_pages(NumOfPages::new(a1.try_into().unwrap())).as_u64()
-            }
-            Syscalls::DeallocatePages => {
-                sys_deallocate_pages(VirtAddr::new(a1), NumOfPages::new(a2.try_into().unwrap()))
-            }
-            Syscalls::MapPages => {
-                sys_map_pages(PhysAddr::new(a1), Bytes::new(a2.try_into().unwrap())).as_u64()
-            }
-            Syscalls::UnmapPages => {
-                sys_unmap_pages(VirtAddr::new(a1), Bytes::new(a2.try_into().unwrap()))
-            }
-        },
+        Some(s) => {
+            let var_name = match s {
+                Syscalls::Inb => sys_inb(a1.try_into().unwrap()).into(),
+                Syscalls::Outb => sys_outb(a1.try_into().unwrap(), a2.try_into().unwrap()),
+                Syscalls::Inl => sys_inl(a1.try_into().unwrap()).into(),
+                Syscalls::Outl => sys_outl(a1.try_into().unwrap(), a2.try_into().unwrap()),
+                Syscalls::Halt => sys_halt(),
+                Syscalls::DisableInterrupt => sys_disable_interrupt(),
+                Syscalls::EnableInterrupt => sys_enable_interrupt(),
+                Syscalls::EnableInterruptAndHalt => sys_enable_interrupt_and_halt(),
+                Syscalls::AllocatePages => {
+                    sys_allocate_pages(NumOfPages::new(a1.try_into().unwrap())).as_u64()
+                }
+                Syscalls::DeallocatePages => {
+                    sys_deallocate_pages(VirtAddr::new(a1), NumOfPages::new(a2.try_into().unwrap()))
+                }
+                Syscalls::MapPages => {
+                    sys_map_pages(PhysAddr::new(a1), Bytes::new(a2.try_into().unwrap())).as_u64()
+                }
+                Syscalls::UnmapPages => {
+                    sys_unmap_pages(VirtAddr::new(a1), Bytes::new(a2.try_into().unwrap()))
+                }
+            };
+            var_name
+        }
         None => panic!("Unsupported syscall index: {}", idx),
     }
+}
+
+/// Safety: This function is unsafe because reading from I/O port may have side effects which
+/// violate memory safety.
+unsafe fn sys_inb(port: u16) -> u8 {
+    let mut p = PortReadOnly::new(port);
+    p.read()
+}
+
+/// Safety: This function is unsafe because writing to I/O port may have side effects which violate
+/// memory safety.
+unsafe fn sys_outb(port: u16, v: u8) -> u64 {
+    let mut p = PortWriteOnly::new(port);
+    p.write(v);
+    0
 }
 
 /// Safety: This function is unsafe because reading from I/O port may have side effects which
@@ -242,6 +276,8 @@ fn sys_unmap_pages(start: VirtAddr, bytes: Bytes) -> u64 {
 
 #[derive(FromPrimitive)]
 enum Syscalls {
+    Inb,
+    Outb,
     Inl,
     Outl,
     Halt,
