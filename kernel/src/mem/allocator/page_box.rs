@@ -165,6 +165,6 @@ impl<T: ?Sized> PageBox<T> {
 impl<T: ?Sized> Drop for PageBox<T> {
     fn drop(&mut self) {
         let num_of_pages = self.bytes.as_num_of_pages::<Size4KiB>();
-        super::deallocate_pages(self.virt, num_of_pages);
+        syscall::deallocate_pages(self.virt, num_of_pages);
     }
 }
