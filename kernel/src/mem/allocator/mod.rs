@@ -18,7 +18,7 @@ pub mod page_box;
 pub mod phys;
 pub mod virt;
 
-fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> VirtAddr {
+pub fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> VirtAddr {
     let virt_addr = virt::search_free_addr(num_of_pages).expect("OOM during creating `PageBox`");
 
     let phys_addr = FRAME_MANAGER

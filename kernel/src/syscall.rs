@@ -3,14 +3,18 @@
 use core::convert::TryInto;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
+use os_units::NumOfPages;
 use x86_64::{
     instructions::{
         self, interrupts,
         port::{PortReadOnly, PortWriteOnly},
     },
     registers::model_specific::{Efer, EferFlags, LStar},
+    structures::paging::Size4KiB,
     VirtAddr,
 };
+
+use crate::mem::allocator;
 
 pub fn init() {
     enable();
@@ -48,6 +52,17 @@ pub fn enable_interrupt() {
 pub fn enable_interrupt_and_halt() {
     // Safety: This operation is safe as it does not touch any unsafe things.
     unsafe { general_syscall(Syscalls::EnableInterruptAndHalt, 0, 0, 0) };
+}
+
+pub fn allocate_pages(pages: NumOfPages<Size4KiB>) -> VirtAddr {
+    VirtAddr::new(unsafe {
+        general_syscall(
+            Syscalls::AllocatePages,
+            pages.as_usize().try_into().unwrap(),
+            0,
+            0,
+        )
+    })
 }
 
 /// Safety: This function is unsafe if arguments are invalid.
@@ -121,6 +136,9 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
             Syscalls::DisableInterrupt => sys_disable_interrupt(),
             Syscalls::EnableInterrupt => sys_enable_interrupt(),
             Syscalls::EnableInterruptAndHalt => sys_enable_interrupt_and_halt(),
+            Syscalls::AllocatePages => {
+                sys_allocate_pages(NumOfPages::new(a1.try_into().unwrap())).as_u64()
+            }
         },
         None => panic!("Unsupported syscall index: {}", idx),
     }
@@ -161,6 +179,10 @@ fn sys_enable_interrupt_and_halt() -> u64 {
     0
 }
 
+fn sys_allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> VirtAddr {
+    allocator::allocate_pages(num_of_pages)
+}
+
 #[derive(FromPrimitive)]
 enum Syscalls {
     ReadFromPort,
@@ -169,4 +191,5 @@ enum Syscalls {
     DisableInterrupt,
     EnableInterrupt,
     EnableInterruptAndHalt,
+    AllocatePages,
 }
