@@ -22,7 +22,7 @@ pub fn init() {
 }
 
 /// Safety: This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
-pub unsafe fn read_from_port(port: u16) -> u32 {
+pub unsafe fn inl(port: u16) -> u32 {
     general_syscall(Syscalls::ReadFromPort, port.into(), 0, 0)
         .try_into()
         .unwrap()
@@ -30,7 +30,7 @@ pub unsafe fn read_from_port(port: u16) -> u32 {
 
 /// Safety: This function is unsafe because writing a value via I/O port may have side effects
 /// which violate memory safety.
-pub unsafe fn write_to_port(port: u16, value: u32) {
+pub unsafe fn outl(port: u16, value: u32) {
     general_syscall(Syscalls::WriteToPort, port.into(), value.into(), 0);
 }
 
@@ -164,10 +164,8 @@ unsafe fn prepare_arguments() {
 unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
     match FromPrimitive::from_u64(idx) {
         Some(s) => match s {
-            Syscalls::ReadFromPort => sys_read_from_port(a1.try_into().unwrap()).into(),
-            Syscalls::WriteToPort => {
-                sys_write_to_port(a1.try_into().unwrap(), a2.try_into().unwrap())
-            }
+            Syscalls::ReadFromPort => sys_inl(a1.try_into().unwrap()).into(),
+            Syscalls::WriteToPort => sys_outl(a1.try_into().unwrap(), a2.try_into().unwrap()),
             Syscalls::Halt => sys_halt(),
             Syscalls::DisableInterrupt => sys_disable_interrupt(),
             Syscalls::EnableInterrupt => sys_enable_interrupt(),
@@ -191,14 +189,14 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
 
 /// Safety: This function is unsafe because reading from I/O port may have side effects which
 /// violate memory safety.
-unsafe fn sys_read_from_port(port: u16) -> u32 {
+unsafe fn sys_inl(port: u16) -> u32 {
     let mut p = PortReadOnly::new(port);
     p.read()
 }
 
 /// Safety: This function is unsafe because writing to I/O port may have side effects which violate
 /// memory safety.
-unsafe fn sys_write_to_port(port: u16, v: u32) -> u64 {
+unsafe fn sys_outl(port: u16, v: u32) -> u64 {
     let mut p = PortWriteOnly::new(port);
     p.write(v);
     0

@@ -104,8 +104,8 @@ impl ConfigAddress {
 
     /// Safety: `self` must contain the valid config address.
     unsafe fn read(&self) -> u32 {
-        syscall::write_to_port(Self::PORT_CONFIG_ADDR, self.as_u32());
-        syscall::read_from_port(Self::PORT_CONFIG_DATA)
+        syscall::outl(Self::PORT_CONFIG_ADDR, self.as_u32());
+        syscall::inl(Self::PORT_CONFIG_DATA)
     }
 }
 
