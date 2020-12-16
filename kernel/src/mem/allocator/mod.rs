@@ -4,7 +4,9 @@ use core::convert::TryFrom;
 use os_units::NumOfPages;
 use phys::FRAME_MANAGER;
 use x86_64::{
-    structures::paging::{Mapper, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
+    structures::paging::{
+        FrameDeallocator, Mapper, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB,
+    },
     VirtAddr,
 };
 
@@ -35,4 +37,14 @@ fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> VirtAddr {
     }
 
     virt_addr
+}
+
+fn deallocate_pages(virt: VirtAddr, num_of_pages: NumOfPages<Size4KiB>) {
+    for i in 0..u64::try_from(num_of_pages.as_usize()).unwrap() {
+        let page = Page::from_start_address(virt + Size4KiB::SIZE * i).unwrap();
+
+        let (frame, flush) = PML4.lock().unmap(page).unwrap();
+        flush.flush();
+        unsafe { FRAME_MANAGER.lock().deallocate_frame(frame) }
+    }
 }

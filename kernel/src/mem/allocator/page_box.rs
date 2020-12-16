@@ -163,13 +163,6 @@ impl<T: ?Sized> PageBox<T> {
 impl<T: ?Sized> Drop for PageBox<T> {
     fn drop(&mut self) {
         let num_of_pages = self.bytes.as_num_of_pages::<Size4KiB>();
-
-        for i in 0..u64::try_from(num_of_pages.as_usize()).unwrap() {
-            let page = Page::from_start_address(self.virt + Size4KiB::SIZE * i).unwrap();
-
-            let (frame, flush) = PML4.lock().unmap(page).unwrap();
-            flush.flush();
-            unsafe { FRAME_MANAGER.lock().deallocate_frame(frame) }
-        }
+        super::deallocate_pages(self.virt, num_of_pages);
     }
 }
