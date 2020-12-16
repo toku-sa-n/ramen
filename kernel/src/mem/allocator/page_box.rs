@@ -179,13 +179,9 @@ impl<T: ?Sized> PageBox<T> {
             let flags = PageTableFlags::PRESENT
                 | PageTableFlags::WRITABLE
                 | PageTableFlags::USER_ACCESSIBLE;
+            let f = &mut *FRAME_MANAGER.lock();
 
-            unsafe {
-                PML4.lock()
-                    .map_to(page, frame, flags, &mut *FRAME_MANAGER.lock())
-                    .unwrap()
-                    .flush()
-            }
+            unsafe { PML4.lock().map_to(page, frame, flags, f).unwrap().flush() }
         }
 
         virt_addr
