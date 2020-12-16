@@ -48,7 +48,7 @@ fn alloc_for_heap(mem_map: &mut [boot::MemoryDescriptor]) {
 fn init_allocator() {
     unsafe {
         ALLOCATOR.lock().init(
-            usize::try_from(KERNEL_HEAP_ADDR.as_u64()).unwrap(),
+            KERNEL_HEAP_ADDR.as_u64().try_into().unwrap(),
             BYTES_KERNEL_HEAP.as_usize(),
         )
     }
