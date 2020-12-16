@@ -23,7 +23,7 @@ pub fn init() {
 
 /// Safety: This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
 pub unsafe fn inl(port: u16) -> u32 {
-    general_syscall(Syscalls::ReadFromPort, port.into(), 0, 0)
+    general_syscall(Syscalls::Inl, port.into(), 0, 0)
         .try_into()
         .unwrap()
 }
@@ -31,7 +31,7 @@ pub unsafe fn inl(port: u16) -> u32 {
 /// Safety: This function is unsafe because writing a value via I/O port may have side effects
 /// which violate memory safety.
 pub unsafe fn outl(port: u16, value: u32) {
-    general_syscall(Syscalls::WriteToPort, port.into(), value.into(), 0);
+    general_syscall(Syscalls::Outl, port.into(), value.into(), 0);
 }
 
 pub fn halt() {
@@ -164,8 +164,8 @@ unsafe fn prepare_arguments() {
 unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
     match FromPrimitive::from_u64(idx) {
         Some(s) => match s {
-            Syscalls::ReadFromPort => sys_inl(a1.try_into().unwrap()).into(),
-            Syscalls::WriteToPort => sys_outl(a1.try_into().unwrap(), a2.try_into().unwrap()),
+            Syscalls::Inl => sys_inl(a1.try_into().unwrap()).into(),
+            Syscalls::Outl => sys_outl(a1.try_into().unwrap(), a2.try_into().unwrap()),
             Syscalls::Halt => sys_halt(),
             Syscalls::DisableInterrupt => sys_disable_interrupt(),
             Syscalls::EnableInterrupt => sys_enable_interrupt(),
@@ -242,8 +242,8 @@ fn sys_unmap_pages(start: VirtAddr, bytes: Bytes) -> u64 {
 
 #[derive(FromPrimitive)]
 enum Syscalls {
-    ReadFromPort,
-    WriteToPort,
+    Inl,
+    Outl,
     Halt,
     DisableInterrupt,
     EnableInterrupt,
