@@ -177,31 +177,28 @@ unsafe fn prepare_arguments() {
 /// Safety: This function is unsafe because invalid arguments may break memory safety.
 unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
     match FromPrimitive::from_u64(idx) {
-        Some(s) => {
-            let var_name = match s {
-                Syscalls::Inb => sys_inb(a1.try_into().unwrap()).into(),
-                Syscalls::Outb => sys_outb(a1.try_into().unwrap(), a2.try_into().unwrap()),
-                Syscalls::Inl => sys_inl(a1.try_into().unwrap()).into(),
-                Syscalls::Outl => sys_outl(a1.try_into().unwrap(), a2.try_into().unwrap()),
-                Syscalls::Halt => sys_halt(),
-                Syscalls::DisableInterrupt => sys_disable_interrupt(),
-                Syscalls::EnableInterrupt => sys_enable_interrupt(),
-                Syscalls::EnableInterruptAndHalt => sys_enable_interrupt_and_halt(),
-                Syscalls::AllocatePages => {
-                    sys_allocate_pages(NumOfPages::new(a1.try_into().unwrap())).as_u64()
-                }
-                Syscalls::DeallocatePages => {
-                    sys_deallocate_pages(VirtAddr::new(a1), NumOfPages::new(a2.try_into().unwrap()))
-                }
-                Syscalls::MapPages => {
-                    sys_map_pages(PhysAddr::new(a1), Bytes::new(a2.try_into().unwrap())).as_u64()
-                }
-                Syscalls::UnmapPages => {
-                    sys_unmap_pages(VirtAddr::new(a1), Bytes::new(a2.try_into().unwrap()))
-                }
-            };
-            var_name
-        }
+        Some(s) => match s {
+            Syscalls::Inb => sys_inb(a1.try_into().unwrap()).into(),
+            Syscalls::Outb => sys_outb(a1.try_into().unwrap(), a2.try_into().unwrap()),
+            Syscalls::Inl => sys_inl(a1.try_into().unwrap()).into(),
+            Syscalls::Outl => sys_outl(a1.try_into().unwrap(), a2.try_into().unwrap()),
+            Syscalls::Halt => sys_halt(),
+            Syscalls::DisableInterrupt => sys_disable_interrupt(),
+            Syscalls::EnableInterrupt => sys_enable_interrupt(),
+            Syscalls::EnableInterruptAndHalt => sys_enable_interrupt_and_halt(),
+            Syscalls::AllocatePages => {
+                sys_allocate_pages(NumOfPages::new(a1.try_into().unwrap())).as_u64()
+            }
+            Syscalls::DeallocatePages => {
+                sys_deallocate_pages(VirtAddr::new(a1), NumOfPages::new(a2.try_into().unwrap()))
+            }
+            Syscalls::MapPages => {
+                sys_map_pages(PhysAddr::new(a1), Bytes::new(a2.try_into().unwrap())).as_u64()
+            }
+            Syscalls::UnmapPages => {
+                sys_unmap_pages(VirtAddr::new(a1), Bytes::new(a2.try_into().unwrap()))
+            }
+        },
         None => panic!("Unsupported syscall index: {}", idx),
     }
 }
