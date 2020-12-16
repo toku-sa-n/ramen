@@ -64,7 +64,6 @@ pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
 
 fn init(boot_info: &mut kernelboot::Info) {
     initialize_in_kernel_mode(boot_info);
-    gdt::enter_usermode();
     initialize_in_user_mode(boot_info);
 }
 
@@ -81,6 +80,9 @@ fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
 }
 
 fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
+    syscall::init();
+    gdt::enter_usermode();
+
     Vram::init(&boot_info);
 
     layer::init();
@@ -98,8 +100,6 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     apic::io::init(&acpi);
 
     timer::init(&acpi);
-
-    syscall::init();
 
     fs::ustar::list_files(INITRD_ADDR);
 }
