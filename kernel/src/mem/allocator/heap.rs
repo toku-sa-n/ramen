@@ -5,7 +5,10 @@
 
 use super::super::paging::pml4::PML4;
 use common::constant::{BYTES_KERNEL_HEAP, KERNEL_HEAP_ADDR};
-use core::{alloc::Layout, convert::TryFrom};
+use core::{
+    alloc::Layout,
+    convert::{TryFrom, TryInto},
+};
 use linked_list_allocator::LockedHeap;
 use uefi::table::boot;
 use x86_64::{
