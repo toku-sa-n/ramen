@@ -55,6 +55,7 @@ pub fn enable_interrupt_and_halt() {
 }
 
 pub fn allocate_pages(pages: NumOfPages<Size4KiB>) -> VirtAddr {
+    // Safety: This operation is safe as the arguments are propertly passed.
     VirtAddr::new(unsafe {
         general_syscall(
             Syscalls::AllocatePages,
@@ -66,6 +67,7 @@ pub fn allocate_pages(pages: NumOfPages<Size4KiB>) -> VirtAddr {
 }
 
 pub fn deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) {
+    // Safety: This operation is safe as the all arguments are propertly passed.
     unsafe {
         general_syscall(
             Syscalls::DeallocatePages,
