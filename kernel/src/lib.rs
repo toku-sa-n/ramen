@@ -57,16 +57,24 @@ pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 #[no_mangle]
 #[start]
 pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
-    initialization(&mut boot_info);
+    init(&mut boot_info);
 
     run_tasks();
 }
 
-fn initialization(boot_info: &mut kernelboot::Info) {
-    Vram::init(&boot_info);
+fn init(boot_info: &mut kernelboot::Info) {
+    initialize_in_kernel_mode();
+    gdt::enter_usermode();
+    initialize_in_user_mode(boot_info);
+}
 
+fn initialize_in_kernel_mode() {
     gdt::init();
     idt::init();
+}
+
+fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
+    Vram::init(&boot_info);
 
     heap::init(boot_info.mem_map_mut());
 
@@ -91,8 +99,6 @@ fn initialization(boot_info: &mut kernelboot::Info) {
     syscall::init();
 
     fs::ustar::list_files(INITRD_ADDR);
-
-    gdt::enter_usermode();
 }
 
 #[cfg(not(feature = "qemu_test"))]
