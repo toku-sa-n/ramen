@@ -63,20 +63,22 @@ pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
 }
 
 fn init(boot_info: &mut kernelboot::Info) {
-    initialize_in_kernel_mode();
+    initialize_in_kernel_mode(boot_info);
     gdt::enter_usermode();
     initialize_in_user_mode(boot_info);
 }
 
-fn initialize_in_kernel_mode() {
+fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
     gdt::init();
     idt::init();
+
+    // It is bothering to initialize heap memory in the user mode as this is to map the area, which an initialized
+    // frame manager is needed.
+    heap::init(boot_info.mem_map_mut());
 }
 
 fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     Vram::init(&boot_info);
-
-    heap::init(boot_info.mem_map_mut());
 
     FrameManager::init(boot_info.mem_map_mut());
 
