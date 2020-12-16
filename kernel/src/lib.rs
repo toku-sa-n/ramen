@@ -75,12 +75,13 @@ fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
     // It is bothering to initialize heap memory in the user mode as this is to map the area, which an initialized
     // frame manager is needed.
     heap::init(boot_info.mem_map_mut());
+
+    // This function unmaps all user memory, which needs the kernel privilege.
+    FrameManager::init(boot_info.mem_map_mut());
 }
 
 fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     Vram::init(&boot_info);
-
-    FrameManager::init(boot_info.mem_map_mut());
 
     layer::init();
 
