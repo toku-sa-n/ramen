@@ -39,7 +39,7 @@ pub fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> VirtAddr {
     virt_addr
 }
 
-fn deallocate_pages(virt: VirtAddr, num_of_pages: NumOfPages<Size4KiB>) {
+pub fn deallocate_pages(virt: VirtAddr, num_of_pages: NumOfPages<Size4KiB>) {
     for i in 0..u64::try_from(num_of_pages.as_usize()).unwrap() {
         let page = Page::from_start_address(virt + Size4KiB::SIZE * i).unwrap();
 
