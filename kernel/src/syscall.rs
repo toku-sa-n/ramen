@@ -3,7 +3,7 @@
 use core::convert::TryInto;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
-use os_units::NumOfPages;
+use os_units::{Bytes, NumOfPages};
 use x86_64::{
     instructions::{
         self, interrupts,
@@ -11,7 +11,7 @@ use x86_64::{
     },
     registers::model_specific::{Efer, EferFlags, LStar},
     structures::paging::Size4KiB,
-    VirtAddr,
+    PhysAddr, VirtAddr,
 };
 
 use crate::mem::allocator;
@@ -76,6 +76,18 @@ pub fn deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) {
             0,
         )
     };
+}
+
+pub fn map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
+    // Safety: This operation is safe as the all arguments are propertly passed.
+    VirtAddr::new(unsafe {
+        general_syscall(
+            Syscalls::MapPages,
+            start.as_u64(),
+            bytes.as_usize().try_into().unwrap(),
+            0,
+        )
+    })
 }
 
 /// Safety: This function is unsafe if arguments are invalid.
@@ -155,6 +167,9 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
             Syscalls::DeallocatePages => {
                 sys_deallocate_pages(VirtAddr::new(a1), NumOfPages::new(a2.try_into().unwrap()))
             }
+            Syscalls::MapPages => {
+                sys_map_pages(PhysAddr::new(a1), Bytes::new(a2.try_into().unwrap())).as_u64()
+            }
         },
         None => panic!("Unsupported syscall index: {}", idx),
     }
@@ -204,6 +219,10 @@ fn sys_deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) -> u64 {
     0
 }
 
+fn sys_map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
+    crate::mem::map_pages(start, bytes)
+}
+
 #[derive(FromPrimitive)]
 enum Syscalls {
     ReadFromPort,
@@ -214,4 +233,5 @@ enum Syscalls {
     EnableInterruptAndHalt,
     AllocatePages,
     DeallocatePages,
+    MapPages,
 }

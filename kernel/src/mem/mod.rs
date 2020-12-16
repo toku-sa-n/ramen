@@ -13,7 +13,7 @@ pub mod accessor;
 pub mod allocator;
 pub mod paging;
 
-fn map_pages(start: PhysAddr, object_size: Bytes) -> VirtAddr {
+pub fn map_pages(start: PhysAddr, object_size: Bytes) -> VirtAddr {
     let start_frame_addr = start.align_down(Size4KiB::SIZE);
     let end_frame_addr = (start + object_size.as_usize()).align_down(Size4KiB::SIZE);
 
