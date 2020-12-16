@@ -4,7 +4,10 @@ use core::convert::TryInto;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use x86_64::{
-    instructions::port::{PortReadOnly, PortWriteOnly},
+    instructions::{
+        self, interrupts,
+        port::{PortReadOnly, PortWriteOnly},
+    },
     registers::model_specific::{Efer, EferFlags, LStar},
     VirtAddr,
 };
@@ -138,22 +141,22 @@ unsafe fn sys_write_to_port(port: u16, v: u32) -> u64 {
 }
 
 fn sys_halt() -> u64 {
-    x86_64::instructions::hlt();
+    instructions::hlt();
     0
 }
 
 fn sys_disable_interrupt() -> u64 {
-    x86_64::instructions::interrupts::disable();
+    interrupts::disable();
     0
 }
 
 fn sys_enable_interrupt() -> u64 {
-    x86_64::instructions::interrupts::enable();
+    interrupts::enable();
     0
 }
 
 fn sys_enable_interrupt_and_halt() -> u64 {
-    x86_64::instructions::interrupts::enable_and_hlt();
+    interrupts::enable_and_hlt();
     0
 }
 
