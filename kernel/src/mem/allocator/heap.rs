@@ -34,16 +34,11 @@ fn alloc_for_heap(mem_map: &mut [boot::MemoryDescriptor]) {
 
         let page =
             Page::<Size4KiB>::containing_address(KERNEL_HEAP_ADDR + Size4KiB::SIZE * i as u64);
+        let flags =
+            PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
         unsafe {
             PML4.lock()
-                .map_to(
-                    page,
-                    frame,
-                    PageTableFlags::PRESENT
-                        | PageTableFlags::WRITABLE
-                        | PageTableFlags::USER_ACCESSIBLE,
-                    &mut temp_allocator,
-                )
+                .map_to(page, frame, flags, &mut temp_allocator)
                 .unwrap()
                 .flush();
         };
