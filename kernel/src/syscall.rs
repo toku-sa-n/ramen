@@ -90,6 +90,17 @@ pub fn map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
     })
 }
 
+pub fn unmap_pages(start: PhysAddr, bytes: Bytes) {
+    unsafe {
+        general_syscall(
+            Syscalls::UnmapPages,
+            start.as_u64(),
+            bytes.as_usize().try_into().unwrap(),
+            0,
+        );
+    }
+}
+
 /// Safety: This function is unsafe if arguments are invalid.
 unsafe fn general_syscall(ty: Syscalls, a1: u64, a2: u64, a3: u64) -> u64 {
     let ty = ty as u64;
@@ -170,6 +181,9 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
             Syscalls::MapPages => {
                 sys_map_pages(PhysAddr::new(a1), Bytes::new(a2.try_into().unwrap())).as_u64()
             }
+            Syscalls::UnmapPages => {
+                sys_unmap_pages(VirtAddr::new(a1), Bytes::new(a2.try_into().unwrap()))
+            }
         },
         None => panic!("Unsupported syscall index: {}", idx),
     }
@@ -223,6 +237,11 @@ fn sys_map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
     crate::mem::map_pages(start, bytes)
 }
 
+fn sys_unmap_pages(start: VirtAddr, bytes: Bytes) -> u64 {
+    crate::mem::unmap_pages(start, bytes);
+    0
+}
+
 #[derive(FromPrimitive)]
 enum Syscalls {
     ReadFromPort,
@@ -234,4 +253,5 @@ enum Syscalls {
     AllocatePages,
     DeallocatePages,
     MapPages,
+    UnmapPages,
 }
