@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::pic;
-use crate::mem::{accessor::Accessor, allocator};
+use crate::{
+    mem::{accessor::Accessor, allocator},
+    syscall,
+};
 use acpi::{platform::IoApic, AcpiTables, InterruptModel};
 use bit_field::BitField;
 use core::convert::TryInto;
@@ -146,7 +149,7 @@ pub fn init(table: &AcpiTables<allocator::acpi::Mapper>) {
         init_ps2_keyboard(&mut registers, id);
         init_ps2_mouse(&mut registers, id);
     }
-    x86_64::instructions::interrupts::enable();
+    syscall::enable_interrupt();
 }
 
 fn init_ps2_keyboard(r: &mut Registers, apic_id: u8) {
