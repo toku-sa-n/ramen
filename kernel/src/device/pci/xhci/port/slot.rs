@@ -60,14 +60,13 @@ impl Slot {
             .get_configuration_descriptors()
             .await
             .iter()
-            .filter_map(|x| {
+            .find_map(|x| {
                 if let Descriptor::Interface(e) = x {
                     Some(e)
                 } else {
                     None
                 }
             })
-            .next()
             .unwrap()
     }
 
