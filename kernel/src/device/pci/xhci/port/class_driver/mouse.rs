@@ -14,7 +14,7 @@ pub async fn task(mut mouse: Mouse) {
 
 pub struct Mouse {
     ep: endpoint::Collection,
-    buf: PageBox<[u8; 4]>,
+    buf: PageBox<[i8; 4]>,
 }
 impl Mouse {
     pub fn new(ep: endpoint::Collection) -> Self {
@@ -37,6 +37,13 @@ impl Mouse {
     }
 
     fn print_buf(&self) {
-        info!("{:?}", self.buf);
+        info!(
+            "Button: {} {} {}, X: {}, Y: {}",
+            self.buf[0] & 1 == 1,
+            self.buf[0] & 2 == 2,
+            self.buf[0] & 4 == 4,
+            self.buf[1],
+            self.buf[2]
+        );
     }
 }
