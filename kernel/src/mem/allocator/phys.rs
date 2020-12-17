@@ -2,13 +2,14 @@
 
 use crate::mem::paging;
 use alloc::collections::vec_deque::VecDeque;
+use bit_field::BitField;
 use conquer_once::spin::Lazy;
-use core::convert::TryFrom;
+use core::convert::{TryFrom, TryInto};
 use os_units::NumOfPages;
 use spinning_top::Spinlock;
 use uefi::table::boot::{self, MemoryType};
 use x86_64::{
-    structures::paging::{FrameAllocator, FrameDeallocator, PageSize, PhysFrame, Size4KiB},
+    structures::paging::{FrameAllocator, FrameDeallocator, PhysFrame, Size4KiB},
     PhysAddr,
 };
 
@@ -59,11 +60,22 @@ impl FrameManager {
     }
 
     fn init_for_descriptor(&mut self, descriptor: &boot::MemoryDescriptor) {
-        for i in 0..descriptor.page_count {
-            let addr = PhysAddr::new(descriptor.phys_start + Size4KiB::SIZE * i);
-            let frames = Frames::new(addr, NumOfPages::new(1), true);
+        let mut offset = NumOfPages::<Size4KiB>::new(0);
 
-            self.0.push_back(frames);
+        // By reversing the range, bigger memory chanks come first.
+        // This will make it faster to search a small amount of memory.
+        for i in (0..u64::BITS).rev() {
+            if descriptor.page_count.get_bit(i.try_into().unwrap()) {
+                let addr = PhysAddr::new(
+                    descriptor.phys_start + u64::try_from(offset.as_bytes().as_usize()).unwrap(),
+                );
+                let pages = NumOfPages::new(2_usize.pow(i));
+                let frames = Frames::new(addr, pages, true);
+
+                self.0.push_back(frames);
+
+                offset += pages;
+            }
         }
     }
 
@@ -86,7 +98,7 @@ impl FrameManager {
     }
 
     fn merge_all_nodes(&mut self) {
-        // By reversing the range, bit chunks of memory will go to the back of list.
+        // By reversing the range, bigger memory chanks come first.
         // This will make it faster to search a small amount of memory.
         for i in (0..self.0.len()).rev() {
             if self.mergeable(i) {

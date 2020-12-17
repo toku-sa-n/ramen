@@ -64,8 +64,17 @@ async fn task(
     let mut eps = init_port_and_slot(port, runner, receiver).await;
     eps.init().await;
 
-    let kbd = class_driver::keyboard::Keyboard::new(eps);
-    multitask::add(Task::new_poll(class_driver::keyboard::task(kbd)));
+    match eps.ty() {
+        (3, 1, 2) => {
+            let mouse = class_driver::mouse::Mouse::new(eps);
+            multitask::add(Task::new_poll(class_driver::mouse::task(mouse)));
+        }
+        (3, 1, 1) => {
+            let kbd = class_driver::keyboard::Keyboard::new(eps);
+            multitask::add(Task::new_poll(class_driver::keyboard::task(kbd)));
+        }
+        _ => {}
+    }
 }
 
 async fn init_port_and_slot(

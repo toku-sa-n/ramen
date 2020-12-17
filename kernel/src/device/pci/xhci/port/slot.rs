@@ -55,6 +55,21 @@ impl Slot {
         eps
     }
 
+    pub async fn interface_descriptor(&mut self) -> descriptor::Interface {
+        *self
+            .get_configuration_descriptors()
+            .await
+            .iter()
+            .find_map(|x| {
+                if let Descriptor::Interface(e) = x {
+                    Some(e)
+                } else {
+                    None
+                }
+            })
+            .unwrap()
+    }
+
     pub async fn get_configuration_descriptors(&mut self) -> Vec<Descriptor> {
         let r = self.get_raw_configuration_descriptors().await;
         RawDescriptorParser::new(r).parse()

@@ -73,6 +73,15 @@ pub struct Interface {
     interface_protocol: u8,
     interface: u8,
 }
+impl Interface {
+    pub fn ty(&self) -> (u8, u8, u8) {
+        (
+            self.interface_class,
+            self.interface_subclass,
+            self.interface_protocol,
+        )
+    }
+}
 
 #[derive(Copy, Clone, Default, Debug)]
 #[repr(C, packed)]
