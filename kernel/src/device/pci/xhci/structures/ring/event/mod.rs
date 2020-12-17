@@ -27,7 +27,7 @@ pub mod trb;
 pub async fn task(mut ring: Ring, command_completion_receiver: Arc<Spinlock<Receiver>>) {
     debug!("This is the Event ring task.");
     while let Some(trb) = ring.next().await {
-        debug!("TRB: {:?}", trb);
+        info!("TRB: {:?}", trb);
         if let Trb::Completion(trb) = trb {
             debug!("Command completion TRB arrived.");
             command_completion_receiver.lock().receive(trb);

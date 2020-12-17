@@ -26,6 +26,12 @@ impl Sender {
         }
     }
 
+    pub async fn noop(&mut self) {
+        let t = Trb::new_noop();
+        self.issue_trb(t).await;
+        info!("NOOP SUCCEESS");
+    }
+
     pub async fn enable_device_slot(&mut self) -> u8 {
         let t = Trb::new_enable_slot();
         self.issue_trb(t).await.slot_id()
