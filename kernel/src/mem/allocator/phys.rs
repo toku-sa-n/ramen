@@ -86,7 +86,7 @@ impl FrameManager {
     }
 
     fn merge_all_nodes(&mut self) {
-        // By reversing the range, bit chunks of memory will go to the back of list.
+        // By reversing the range, bigger memory chanks come first.
         // This will make it faster to search a small amount of memory.
         for i in (0..self.0.len()).rev() {
             if self.mergeable(i) {
