@@ -70,14 +70,14 @@ fn initialization(boot_info: &mut kernelboot::Info) {
 
     heap::init(boot_info.mem_map_mut());
 
-    FrameManager::init(boot_info.mem_map_mut());
-
     layer::init();
 
     screen::log::init().unwrap();
 
     let desktop = Desktop::new();
     desktop.draw();
+
+    FrameManager::init(boot_info.mem_map_mut());
 
     info!("Hello Ramen OS!");
     info!("Vram information: {}", Vram::display());
@@ -118,4 +118,20 @@ fn run_tasks() -> ! {
     // If you change the value `0xf4` and `33`, don't forget to change the correspond values in
     // `Makefile`!
     qemu_exit::X86::new(0xf4, 33).exit_success();
+}
+
+fn draw_white(boot_info: &mut kernelboot::Info) {
+    use core::convert::TryFrom;
+    let v = boot_info.vram();
+    for y in 0..v.resolution().y {
+        for x in 0..v.resolution().x {
+            unsafe {
+                core::ptr::write(
+                    (v.phys_ptr().as_u64() + u64::try_from(y * v.resolution().x + x).unwrap())
+                        as *mut u8,
+                    0xff,
+                );
+            }
+        }
+    }
 }
