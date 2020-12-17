@@ -119,19 +119,3 @@ fn run_tasks() -> ! {
     // `Makefile`!
     qemu_exit::X86::new(0xf4, 33).exit_success();
 }
-
-fn draw_white(boot_info: &mut kernelboot::Info) {
-    use core::convert::TryFrom;
-    let v = boot_info.vram();
-    for y in 0..v.resolution().y {
-        for x in 0..v.resolution().x {
-            unsafe {
-                core::ptr::write(
-                    (v.phys_ptr().as_u64() + u64::try_from(y * v.resolution().x + x).unwrap())
-                        as *mut u8,
-                    0xff,
-                );
-            }
-        }
-    }
-}
