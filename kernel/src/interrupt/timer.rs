@@ -4,9 +4,12 @@ use core::convert::TryInto;
 
 use acpi::AcpiTables;
 use os_units::Bytes;
-use x86_64::{instructions::port::PortReadOnly, PhysAddr};
+use x86_64::PhysAddr;
 
-use crate::mem::{accessor::Accessor, allocator};
+use crate::{
+    mem::{accessor::Accessor, allocator},
+    syscall,
+};
 
 const LVT_TIMER: PhysAddr = PhysAddr::new_truncate(0xfee0_0320);
 const INITIAL_COUNT: PhysAddr = PhysAddr::new_truncate(0xfee0_0380);
@@ -71,7 +74,7 @@ impl LocalApic {
 }
 
 struct AcpiPm {
-    reg: PortReadOnly<u32>,
+    port: u16,
     supported: SupportedBits,
 }
 impl AcpiPm {
@@ -79,7 +82,7 @@ impl AcpiPm {
         let pm_timer = acpi::PmTimer::new(&table).unwrap();
         info!("Base: {}", pm_timer.io_base);
         Self {
-            reg: PortReadOnly::new(pm_timer.io_base.try_into().unwrap()),
+            port: pm_timer.io_base.try_into().unwrap(),
             supported: if pm_timer.supports_32bit {
                 SupportedBits::Bits32
             } else {
@@ -90,17 +93,17 @@ impl AcpiPm {
 
     pub fn wait_milliseconds(&mut self, t: u32) {
         const FREQUENCY: u32 = 3_579_545;
-        let start = unsafe { self.reg.read() };
+        let start = unsafe { syscall::inl(self.port) };
         let mut end = start.wrapping_add(FREQUENCY.wrapping_mul(t / 1000));
         if let SupportedBits::Bits24 = self.supported {
             end &= 0x00ff_ffff;
         }
 
         if end < start {
-            while unsafe { self.reg.read() >= start } {}
+            while unsafe { syscall::inl(self.port) >= start } {}
         }
 
-        while unsafe { self.reg.read() < end } {}
+        while unsafe { syscall::inl(self.port) < end } {}
     }
 }
 
