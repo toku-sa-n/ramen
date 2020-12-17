@@ -71,6 +71,8 @@ impl Raw {
     }
 
     fn write_trb(&mut self, trb: Trb) {
+        // TODO: Write four 32-bit values. This way of writing is described in the spec, although
+        // I cannot find which section has the description.
         self.raw[self.enq_p] = trb.into();
     }
 
@@ -120,22 +122,17 @@ impl<'a> Initializer<'a> {
     }
 
     fn init(&mut self) {
-        self.register_address_with_xhci();
-        Self::set_initial_command_ring_cycle_state();
-    }
-
-    fn register_address_with_xhci(&mut self) {
         xhci::handle_registers(|r| {
             let a = self.ring.phys_addr();
             let c = &mut r.operational.crcr;
-            c.update(|c| c.set_ptr(a));
-        })
-    }
 
-    fn set_initial_command_ring_cycle_state() {
-        xhci::handle_registers(|r| {
-            let c = &mut r.operational.crcr;
-            c.update(|c| c.set_ring_cycle_state(true));
+            // Do not split this closure to avoid read-modify-write bug. Reading fields may return
+            // 0, this will cause writing 0 to fields.
+            c.update(|c| {
+                c.set_ptr(a);
+                c.set_ring_cycle_state(true);
+                info!("CRCR: {:X?}", c);
+            });
         })
     }
 }
