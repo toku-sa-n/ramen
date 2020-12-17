@@ -23,7 +23,7 @@ use structures::{
 static REGISTERS: OnceCell<Spinlock<Registers>> = OnceCell::uninit();
 
 pub async fn task() {
-    if let Err(_) = init_registers() {
+    if init_registers().is_err() {
         warn!("xHC not found.");
         return;
     }
