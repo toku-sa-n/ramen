@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
+#![feature(int_bits_const)]
 #![feature(async_closure)]
 #![feature(alloc_error_handler)]
 #![feature(min_const_generics)]
@@ -70,14 +71,14 @@ fn initialization(boot_info: &mut kernelboot::Info) {
 
     heap::init(boot_info.mem_map_mut());
 
-    FrameManager::init(boot_info.mem_map_mut());
-
     layer::init();
 
     screen::log::init().unwrap();
 
     let desktop = Desktop::new();
     desktop.draw();
+
+    FrameManager::init(boot_info.mem_map_mut());
 
     info!("Hello Ramen OS!");
     info!("Vram information: {}", Vram::display());
