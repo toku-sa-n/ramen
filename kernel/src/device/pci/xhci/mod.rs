@@ -23,7 +23,11 @@ use structures::{
 static REGISTERS: OnceCell<Spinlock<Registers>> = OnceCell::uninit();
 
 pub async fn task() {
-    init_registers();
+    if init_registers().is_err() {
+        warn!("xHC not found.");
+        return;
+    }
+
     let (event_ring, runner, command_completion_receiver) = init();
 
     port::spawn_tasks(&runner, &command_completion_receiver);
@@ -34,9 +38,18 @@ pub async fn task() {
     )));
 }
 
-fn init_registers() {
-    REGISTERS.init_once(|| Spinlock::new(iter_devices().next().unwrap()));
+fn init_registers() -> Result<(), XhcNotFound> {
+    match iter_devices().next() {
+        Some(r) => {
+            REGISTERS.init_once(|| Spinlock::new(r));
+            Ok(())
+        }
+        None => Err(XhcNotFound),
+    }
 }
+
+#[derive(Debug)]
+struct XhcNotFound;
 
 /// Handle xHCI registers.
 ///
