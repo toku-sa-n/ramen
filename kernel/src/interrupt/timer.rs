@@ -127,6 +127,7 @@ impl IoReader {
 }
 impl Reader for IoReader {
     fn read(&mut self) -> u32 {
+        // Safety: This operation is safe as the `port` has an I/O address taken from `AcpiTables`.
         unsafe { self.port.read() }
     }
 }
