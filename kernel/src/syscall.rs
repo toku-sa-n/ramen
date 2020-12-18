@@ -119,8 +119,9 @@ pub fn unmap_pages(start: VirtAddr, bytes: Bytes) {
 unsafe fn general_syscall(ty: Syscalls, a1: u64, a2: u64, a3: u64) -> u64 {
     let ty = ty as u64;
     let r: u64;
-    asm!("syscall", inout("rax") ty => r, inout("rbx") a1 => _, inout("rdx") a2 => _,
-    out("rcx") _, inout("rsi") a3 => _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
+    asm!("syscall",
+        inout("rax") ty => r, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
+        out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
     r
 }
 
@@ -138,9 +139,9 @@ fn register() {
 /// `syscall` instruction calls this function.
 ///
 /// RAX: system call index
-/// RBX: 1st argument
-/// RDX: 2nd argument
-/// RSI: 3rd argument
+/// RDI: 1st argument
+/// RSI: 2nd argument
+/// RDX: 3rd argument
 #[naked]
 extern "C" fn save_rip_and_rflags() -> u64 {
     unsafe {
@@ -170,7 +171,7 @@ unsafe fn prepare_arguments() {
     let a2: u64;
     let a3: u64;
 
-    asm!("", out("rax") syscall_index, out("rbx") a1, out("rdx") a2, out("rsi") a3);
+    asm!("", out("rax") syscall_index, out("rdi") a1, out("rsi") a2, out("rdx") a3);
     asm!("", in("rax") select_proper_syscall(syscall_index, a1, a2,a3))
 }
 
