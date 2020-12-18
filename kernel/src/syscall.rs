@@ -24,7 +24,7 @@ pub fn init() {
 /// Safety: This function is unsafe because reading a value from I/O port may have side effects
 /// which violate memory safety.
 pub unsafe fn inb(port: u16) -> u8 {
-    general_syscall(Syscalls::Inb, port.into(), 0, 0)
+    general_syscall(Syscalls::Inb, port.into(), 0)
         .try_into()
         .unwrap()
 }
@@ -32,12 +32,12 @@ pub unsafe fn inb(port: u16) -> u8 {
 /// Safety: This function is unsafe because writing a value to I/O port may have side effects which
 /// violate memory safety.
 pub unsafe fn outb(port: u16, value: u8) {
-    general_syscall(Syscalls::Outb, port.into(), value.into(), 0);
+    general_syscall(Syscalls::Outb, port.into(), value.into());
 }
 
 /// Safety: This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
 pub unsafe fn inl(port: u16) -> u32 {
-    general_syscall(Syscalls::Inl, port.into(), 0, 0)
+    general_syscall(Syscalls::Inl, port.into(), 0)
         .try_into()
         .unwrap()
 }
@@ -45,27 +45,27 @@ pub unsafe fn inl(port: u16) -> u32 {
 /// Safety: This function is unsafe because writing a value via I/O port may have side effects
 /// which violate memory safety.
 pub unsafe fn outl(port: u16, value: u32) {
-    general_syscall(Syscalls::Outl, port.into(), value.into(), 0);
+    general_syscall(Syscalls::Outl, port.into(), value.into());
 }
 
 pub fn halt() {
     // Safety: This operation is safe as it does not touch any unsafe things.
-    unsafe { general_syscall(Syscalls::Halt, 0, 0, 0) };
+    unsafe { general_syscall(Syscalls::Halt, 0, 0) };
 }
 
 pub fn disable_interrupt() {
     // Safety: This operation is safe as it does not touch any unsafe things.
-    unsafe { general_syscall(Syscalls::DisableInterrupt, 0, 0, 0) };
+    unsafe { general_syscall(Syscalls::DisableInterrupt, 0, 0) };
 }
 
 pub fn enable_interrupt() {
     // Safety: This operation is safe as it does not touch any unsafe things.
-    unsafe { general_syscall(Syscalls::EnableInterrupt, 0, 0, 0) };
+    unsafe { general_syscall(Syscalls::EnableInterrupt, 0, 0) };
 }
 
 pub fn enable_interrupt_and_halt() {
     // Safety: This operation is safe as it does not touch any unsafe things.
-    unsafe { general_syscall(Syscalls::EnableInterruptAndHalt, 0, 0, 0) };
+    unsafe { general_syscall(Syscalls::EnableInterruptAndHalt, 0, 0) };
 }
 
 pub fn allocate_pages(pages: NumOfPages<Size4KiB>) -> VirtAddr {
@@ -74,7 +74,6 @@ pub fn allocate_pages(pages: NumOfPages<Size4KiB>) -> VirtAddr {
         general_syscall(
             Syscalls::AllocatePages,
             pages.as_usize().try_into().unwrap(),
-            0,
             0,
         )
     })
@@ -87,7 +86,6 @@ pub fn deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) {
             Syscalls::DeallocatePages,
             virt.as_u64(),
             pages.as_usize().try_into().unwrap(),
-            0,
         )
     };
 }
@@ -99,7 +97,6 @@ pub fn map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
             Syscalls::MapPages,
             start.as_u64(),
             bytes.as_usize().try_into().unwrap(),
-            0,
         )
     })
 }
@@ -110,17 +107,16 @@ pub fn unmap_pages(start: VirtAddr, bytes: Bytes) {
             Syscalls::UnmapPages,
             start.as_u64(),
             bytes.as_usize().try_into().unwrap(),
-            0,
         );
     }
 }
 
 /// Safety: This function is unsafe if arguments are invalid.
-unsafe fn general_syscall(ty: Syscalls, a1: u64, a2: u64, a3: u64) -> u64 {
+unsafe fn general_syscall(ty: Syscalls, a1: u64, a2: u64) -> u64 {
     let ty = ty as u64;
     let r: u64;
     asm!("syscall",
-        inout("rax") ty => r, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
+        inout("rax") ty => r, inout("rdi") a1 => _, inout("rsi") a2 => _, out("rdx") _,
         out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
     r
 }
@@ -141,7 +137,6 @@ fn register() {
 /// RAX: system call index
 /// RDI: 1st argument
 /// RSI: 2nd argument
-/// RDX: 3rd argument
 #[naked]
 extern "C" fn save_rip_and_rflags() -> u64 {
     unsafe {
@@ -169,14 +164,13 @@ unsafe fn prepare_arguments() {
     let syscall_index: u64;
     let a1: u64;
     let a2: u64;
-    let a3: u64;
 
-    asm!("", out("rax") syscall_index, out("rdi") a1, out("rsi") a2, out("rdx") a3);
-    asm!("", in("rax") select_proper_syscall(syscall_index, a1, a2,a3))
+    asm!("", out("rax") syscall_index, out("rdi") a1, out("rsi") a2);
+    asm!("", in("rax") select_proper_syscall(syscall_index, a1, a2))
 }
 
 /// Safety: This function is unsafe because invalid arguments may break memory safety.
-unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
+unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64) -> u64 {
     match FromPrimitive::from_u64(idx) {
         Some(s) => match s {
             Syscalls::Inb => sys_inb(a1.try_into().unwrap()).into(),
