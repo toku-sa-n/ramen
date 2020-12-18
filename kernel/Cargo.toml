@@ -45,5 +45,5 @@ bit_field = "0.10.1"
 futures-intrusive = { version = "0.4.0", default-features = false, features = ["alloc"] }
 num-traits = { version = "0.2", default-features = false}
 num-derive = "0.3.3"
-acpi = { git = "https://github.com/toku-sa-n/acpi.git", branch = "implement_acpi_pm_timer" }
+acpi = { git = "https://github.com/rust-osdev/acpi.git" }
 derive_builder = "0.9.0"
