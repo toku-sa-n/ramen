@@ -162,6 +162,7 @@ unsafe fn prepare_arguments() {
 }
 
 /// Safety: This function is unsafe because invalid arguments may break memory safety.
+#[allow(clippy::too_many_lines)]
 unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64) -> u64 {
     match FromPrimitive::from_u64(idx) {
         Some(s) => match s {
