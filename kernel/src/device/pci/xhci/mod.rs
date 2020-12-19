@@ -97,7 +97,7 @@ fn init() -> (
 fn iter_devices() -> impl Iterator<Item = Registers> {
     super::iter_devices().filter_map(|device| {
         if device.is_xhci() {
-            // Safety: This operation is safe because MMIO base address is generated from the 0th
+            // SAFETY: This operation is safe because MMIO base address is generated from the 0th
             // BAR.
             Some(unsafe { Registers::new(device.base_address(bar::Index::new(0))) })
         } else {
