@@ -73,22 +73,15 @@ fn map_virt_to_phys(region: &reserved::Range, allocator: &mut AllocatorWithEfiMe
 
     let num_of_pages = region.bytes().as_num_of_pages::<Size4KiB>().as_usize();
     for i in 0..num_of_pages {
-        unsafe {
-            p4.map_to(
-                Page::<Size4KiB>::containing_address(
-                    region.virt() + usize::try_from(Size4KiB::SIZE).unwrap() * i,
-                ),
-                PhysFrame::containing_address(
-                    region.phys() + usize::try_from(Size4KiB::SIZE).unwrap() * i,
-                ),
-                PageTableFlags::PRESENT
-                    | PageTableFlags::WRITABLE
-                    | PageTableFlags::USER_ACCESSIBLE,
-                allocator,
-            )
-        }
-        .unwrap()
-        .flush();
+        let v = Page::<Size4KiB>::containing_address(
+            region.virt() + usize::try_from(Size4KiB::SIZE).unwrap() * i,
+        );
+        let p = PhysFrame::containing_address(
+            region.phys() + usize::try_from(Size4KiB::SIZE).unwrap() * i,
+        );
+        let f =
+            PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
+        unsafe { p4.map_to(v, p, f, allocator) }.unwrap().flush();
     }
 }
 
