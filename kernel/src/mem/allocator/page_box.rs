@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{super::paging::pml4::PML4, phys::FRAME_MANAGER, virt};
+use crate::syscall;
+
+use super::super::paging::pml4::PML4;
 use core::{
     convert::TryFrom,
     fmt,
@@ -9,12 +11,9 @@ use core::{
     ops::{Deref, DerefMut},
     ptr, slice,
 };
-use os_units::{Bytes, NumOfPages};
+use os_units::Bytes;
 use x86_64::{
-    structures::paging::{
-        FrameDeallocator, Mapper, MapperAllSizes, Page, PageSize, PageTableFlags, PhysFrame,
-        Size4KiB,
-    },
+    structures::paging::{MapperAllSizes, Size4KiB},
     PhysAddr, VirtAddr,
 };
 
@@ -146,7 +145,7 @@ impl<T: ?Sized> PageBox<T> {
     }
 
     fn new_zeroed_from_bytes(bytes: Bytes) -> Self {
-        let virt = Self::allocate_pages(bytes.as_num_of_pages());
+        let virt = syscall::allocate_pages(bytes.as_num_of_pages());
 
         let mut page_box = Self {
             virt,
@@ -162,43 +161,10 @@ impl<T: ?Sized> PageBox<T> {
             core::ptr::write_bytes(self.virt.as_mut_ptr::<u8>(), 0, self.bytes.as_usize());
         }
     }
-
-    fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> VirtAddr {
-        let virt_addr =
-            virt::search_free_addr(num_of_pages).expect("OOM during creating `PageBox`");
-
-        let phys_addr = FRAME_MANAGER
-            .lock()
-            .alloc(num_of_pages)
-            .expect("OOM during creating `PageBox");
-
-        for i in 0..u64::try_from(num_of_pages.as_usize()).unwrap() {
-            let page =
-                Page::<Size4KiB>::from_start_address(virt_addr + Size4KiB::SIZE * i).unwrap();
-            let frame = PhysFrame::from_start_address(phys_addr + Size4KiB::SIZE * i).unwrap();
-            let flags: PageTableFlags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
-
-            unsafe {
-                PML4.lock()
-                    .map_to(page, frame, flags, &mut *FRAME_MANAGER.lock())
-                    .unwrap()
-                    .flush()
-            }
-        }
-
-        virt_addr
-    }
 }
 impl<T: ?Sized> Drop for PageBox<T> {
     fn drop(&mut self) {
         let num_of_pages = self.bytes.as_num_of_pages::<Size4KiB>();
-
-        for i in 0..u64::try_from(num_of_pages.as_usize()).unwrap() {
-            let page = Page::from_start_address(self.virt + Size4KiB::SIZE * i).unwrap();
-
-            let (frame, flush) = PML4.lock().unmap(page).unwrap();
-            flush.flush();
-            unsafe { FRAME_MANAGER.lock().deallocate_frame(frame) }
-        }
+        syscall::deallocate_pages(self.virt, num_of_pages);
     }
 }

@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use acpi::{platform::address::AddressSpace, AcpiTables};
 use core::convert::TryInto;
-
-use acpi::AcpiTables;
 use os_units::Bytes;
-use x86_64::{instructions::port::PortReadOnly, PhysAddr};
+use x86_64::PhysAddr;
 
-use crate::mem::{accessor::Accessor, allocator};
+use crate::{
+    mem::{accessor::Accessor, allocator},
+    syscall,
+};
 
 const LVT_TIMER: PhysAddr = PhysAddr::new_truncate(0xfee0_0320);
 const INITIAL_COUNT: PhysAddr = PhysAddr::new_truncate(0xfee0_0380);
@@ -64,6 +66,7 @@ impl LocalApic {
 
     fn set_modes(&mut self) {
         let f = self.frequency.expect("Get the frequency first.");
+        info!("Frequency: {}", f);
         self.lvt_timer.write(u32::from(TIMER_VECTOR) | (1 << 17));
         self.divide_config.write(3);
         self.initial_count.write(f * 10);
@@ -71,15 +74,20 @@ impl LocalApic {
 }
 
 struct AcpiPm {
-    reg: PortReadOnly<u32>,
+    reader: Reader,
     supported: SupportedBits,
 }
 impl AcpiPm {
     pub fn new(table: &AcpiTables<allocator::acpi::Mapper>) -> Self {
-        let pm_timer = acpi::PmTimer::new(&table).unwrap();
-        info!("Base: {}", pm_timer.io_base);
+        let pm_timer = table.platform_info().unwrap().pm_timer.unwrap();
+        let reader = match pm_timer.base.address_space {
+            AddressSpace::SystemMemory => Reader::Memory(MemoryReader::new(table)),
+            AddressSpace::SystemIo => Reader::Io(IoReader::new(table)),
+            _ => unreachable!(),
+        };
+
         Self {
-            reg: PortReadOnly::new(pm_timer.io_base.try_into().unwrap()),
+            reader,
             supported: if pm_timer.supports_32bit {
                 SupportedBits::Bits32
             } else {
@@ -90,17 +98,64 @@ impl AcpiPm {
 
     pub fn wait_milliseconds(&mut self, t: u32) {
         const FREQUENCY: u32 = 3_579_545;
-        let start = unsafe { self.reg.read() };
+        let start = self.reader.read();
         let mut end = start.wrapping_add(FREQUENCY.wrapping_mul(t / 1000));
         if let SupportedBits::Bits24 = self.supported {
             end &= 0x00ff_ffff;
         }
 
         if end < start {
-            while unsafe { self.reg.read() >= start } {}
+            while self.reader.read() >= start {}
         }
 
-        while unsafe { self.reg.read() < end } {}
+        while self.reader.read() < end {}
+    }
+}
+
+enum Reader {
+    Io(IoReader),
+    Memory(MemoryReader),
+}
+impl Reader {
+    fn read(&mut self) -> u32 {
+        match self {
+            Reader::Io(i) => i.read(),
+            Reader::Memory(m) => m.read(),
+        }
+    }
+}
+
+struct IoReader {
+    port: u16,
+}
+impl IoReader {
+    fn new(table: &AcpiTables<allocator::acpi::Mapper>) -> Self {
+        let b = table.platform_info().unwrap().pm_timer.unwrap().base;
+        Self {
+            port: b.address.try_into().unwrap(),
+        }
+    }
+
+    fn read(&mut self) -> u32 {
+        // Safety: This operation is safe as the `port` has an I/O address taken from `AcpiTables`.
+        unsafe { syscall::inl(self.port) }
+    }
+}
+
+struct MemoryReader {
+    addr: Accessor<u32>,
+}
+impl MemoryReader {
+    fn new(table: &AcpiTables<allocator::acpi::Mapper>) -> Self {
+        let b = table.platform_info().unwrap().pm_timer.unwrap().base;
+        Self {
+            // Safety: This operation is safe as the address is generated from `AcpiTables`.
+            addr: unsafe { Accessor::new(PhysAddr::new(b.address), Bytes::new(0)) },
+        }
+    }
+
+    fn read(&mut self) -> u32 {
+        self.addr.read()
     }
 }
 

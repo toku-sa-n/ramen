@@ -5,7 +5,7 @@
 
 use super::super::paging::pml4::PML4;
 use common::constant::{BYTES_KERNEL_HEAP, KERNEL_HEAP_ADDR};
-use core::{alloc::Layout, convert::TryFrom};
+use core::{alloc::Layout, convert::TryInto};
 use linked_list_allocator::LockedHeap;
 use uefi::table::boot;
 use x86_64::{
@@ -34,9 +34,11 @@ fn alloc_for_heap(mem_map: &mut [boot::MemoryDescriptor]) {
 
         let page =
             Page::<Size4KiB>::containing_address(KERNEL_HEAP_ADDR + Size4KiB::SIZE * i as u64);
+        let flags =
+            PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
         unsafe {
             PML4.lock()
-                .map_to(page, frame, PageTableFlags::PRESENT, &mut temp_allocator)
+                .map_to(page, frame, flags, &mut temp_allocator)
                 .unwrap()
                 .flush();
         };
@@ -46,7 +48,7 @@ fn alloc_for_heap(mem_map: &mut [boot::MemoryDescriptor]) {
 fn init_allocator() {
     unsafe {
         ALLOCATOR.lock().init(
-            usize::try_from(KERNEL_HEAP_ADDR.as_u64()).unwrap(),
+            KERNEL_HEAP_ADDR.as_u64().try_into().unwrap(),
             BYTES_KERNEL_HEAP.as_usize(),
         )
     }
