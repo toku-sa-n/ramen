@@ -18,12 +18,9 @@ impl Cursor {
             Vec2::new(MOUSE_CURSOR_WIDTH, MOUSE_CURSOR_HEIGHT).as_(),
         );
 
-        let id = layer::get_controller().lock().add_layer(layer);
+        let id = layer::add(layer);
 
-        layer::get_controller()
-            .lock()
-            .edit_layer(id, Self::init_layer)
-            .expect("Layer of mouse cursor should be added.");
+        layer::edit(id, Self::init_layer).expect("Layer of mouse cursor should be added.");
 
         Self {
             coord: Vec2::new(0, 0),
@@ -35,10 +32,7 @@ impl Cursor {
         let new_coord = self.coord + offset;
         self.coord = new_coord;
         self.fit_in_screen();
-        layer::get_controller()
-            .lock()
-            .slide_layer(self.id, self.coord.as_())
-            .expect("Layer of mouse cursor should be added.");
+        layer::slide(self.id, self.coord.as_()).expect("Layer of mouse cursor should be added.");
     }
 
     fn init_layer(layer: &mut Layer) {
