@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use acpi::{platform::address::AddressSpace, AcpiTables};
-use alloc::boxed::Box;
 use core::convert::TryInto;
 use os_units::Bytes;
 use x86_64::PhysAddr;
@@ -75,15 +74,15 @@ impl LocalApic {
 }
 
 struct AcpiPm {
-    reader: Box<dyn Reader>,
+    reader: Reader,
     supported: SupportedBits,
 }
 impl AcpiPm {
     pub fn new(table: &AcpiTables<allocator::acpi::Mapper>) -> Self {
         let pm_timer = table.platform_info().unwrap().pm_timer.unwrap();
         let reader = match pm_timer.base.address_space {
-            AddressSpace::SystemMemory => Box::new(MemoryReader::new(table)) as Box<dyn Reader>,
-            AddressSpace::SystemIo => Box::new(IoReader::new(table)) as Box<dyn Reader>,
+            AddressSpace::SystemMemory => Reader::Memory(MemoryReader::new(table)),
+            AddressSpace::SystemIo => Reader::Io(IoReader::new(table)),
             _ => unreachable!(),
         };
 
@@ -113,8 +112,17 @@ impl AcpiPm {
     }
 }
 
-trait Reader {
-    fn read(&mut self) -> u32;
+enum Reader {
+    Io(IoReader),
+    Memory(MemoryReader),
+}
+impl Reader {
+    fn read(&mut self) -> u32 {
+        match self {
+            Reader::Io(i) => i.read(),
+            Reader::Memory(m) => m.read(),
+        }
+    }
 }
 
 struct IoReader {
@@ -127,8 +135,7 @@ impl IoReader {
             port: b.address.try_into().unwrap(),
         }
     }
-}
-impl Reader for IoReader {
+
     fn read(&mut self) -> u32 {
         // Safety: This operation is safe as the `port` has an I/O address taken from `AcpiTables`.
         unsafe { syscall::inl(self.port) }
@@ -146,8 +153,7 @@ impl MemoryReader {
             addr: unsafe { Accessor::new(PhysAddr::new(b.address), Bytes::new(0)) },
         }
     }
-}
-impl Reader for MemoryReader {
+
     fn read(&mut self) -> u32 {
         self.addr.read()
     }
