@@ -31,7 +31,7 @@ struct LocalApic {
 }
 impl LocalApic {
     fn new(table: &AcpiTables<allocator::acpi::Mapper>) -> Self {
-        // Safety: These operations are safe because the addresses are the correct ones.
+        // SAFETY: These operations are safe because the addresses are the correct ones.
         let lvt_timer = unsafe { Accessor::<u32>::new(LVT_TIMER, Bytes::new(0)) };
         let initial_count = unsafe { Accessor::<u32>::new(INITIAL_COUNT, Bytes::new(0)) };
         let current_count = unsafe { Accessor::<u32>::new(CURRENT_COUNT, Bytes::new(0)) };
@@ -137,7 +137,7 @@ impl IoReader {
     }
 
     fn read(&mut self) -> u32 {
-        // Safety: This operation is safe as the `port` has an I/O address taken from `AcpiTables`.
+        // SAFETY: This operation is safe as the `port` has an I/O address taken from `AcpiTables`.
         unsafe { syscall::inl(self.port) }
     }
 }
@@ -149,7 +149,7 @@ impl MemoryReader {
     fn new(table: &AcpiTables<allocator::acpi::Mapper>) -> Self {
         let b = table.platform_info().unwrap().pm_timer.unwrap().base;
         Self {
-            // Safety: This operation is safe as the address is generated from `AcpiTables`.
+            // SAFETY: This operation is safe as the address is generated from `AcpiTables`.
             addr: unsafe { Accessor::new(PhysAddr::new(b.address), Bytes::new(0)) },
         }
     }

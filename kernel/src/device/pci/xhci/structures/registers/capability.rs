@@ -15,7 +15,7 @@ pub struct Capability {
 }
 
 impl Capability {
-    /// Safety: This method is unsafe because if `mmio_base` is not the valid MMIO base address, it
+    /// SAFETY: This method is unsafe because if `mmio_base` is not the valid MMIO base address, it
     /// can violate memory safety.
     pub unsafe fn new(mmio_base: PhysAddr) -> Self {
         let cap_length = Accessor::new(mmio_base, Bytes::new(0));

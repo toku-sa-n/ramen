@@ -7,7 +7,7 @@ use x86_64::PhysAddr;
 
 use crate::mem::allocator;
 
-/// Safety: This method is unsafe because the caller must ensure that `rsdb` is a valid RSDB.
+/// SAFETY: This method is unsafe because the caller must ensure that `rsdb` is a valid RSDB.
 /// Otherwise this function will break memory safety by dereferencing to an invalid address.
 pub unsafe fn get(rsdb: PhysAddr) -> AcpiTables<allocator::acpi::Mapper> {
     let mapper = allocator::acpi::Mapper;

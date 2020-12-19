@@ -16,7 +16,7 @@ pub struct Operational {
 }
 
 impl Operational {
-    /// Safety: This method is unsafe because if `mmio_base` is not a valid MMIO base address, it
+    /// SAFETY: This method is unsafe because if `mmio_base` is not a valid MMIO base address, it
     /// can violate memory safety.
     pub unsafe fn new(mmio_base: PhysAddr, capabilities: &Capability) -> Self {
         let operational_base = mmio_base + capabilities.cap_length.read().get();

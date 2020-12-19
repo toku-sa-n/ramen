@@ -31,7 +31,7 @@ fn init() -> Option<(Arc<Spinlock<Registers>>, Ahc)> {
 fn fetch_registers() -> Option<Registers> {
     let abar = AchiBaseAddr::new()?;
 
-    // Safety: This operation is safe because `abar` is generated from the 5th BAR.
+    // SAFETY: This operation is safe because `abar` is generated from the 5th BAR.
     Some(unsafe { Registers::new(abar) })
 }
 

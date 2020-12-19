@@ -12,7 +12,7 @@ pub struct Accessor<T: ?Sized> {
     _marker: PhantomData<T>,
 }
 impl<T> Accessor<T> {
-    /// Safety: This method is unsafe because it can create multiple mutable references to the same
+    /// SAFETY: This method is unsafe because it can create multiple mutable references to the same
     /// object.
     pub unsafe fn new(phys_base: PhysAddr, offset: Bytes) -> Self {
         let phys_base = phys_base + offset.as_usize();
@@ -45,7 +45,7 @@ impl<T> Accessor<T> {
 }
 
 impl<T> Accessor<[T]> {
-    /// Safety: This method is unsafe because it can create multiple mutable references to the same
+    /// SAFETY: This method is unsafe because it can create multiple mutable references to the same
     /// object.
     pub fn new_slice(phys_base: PhysAddr, offset: Bytes, len: usize) -> Self {
         let phys_base = phys_base + offset.as_usize();

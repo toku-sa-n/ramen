@@ -21,7 +21,7 @@ impl Descriptor {
         assert_eq!(raw.len(), raw[0].into());
         match FromPrimitive::from_u8(raw[1]) {
             Some(t) => match t {
-                // Safety: This operation is safe because the length of `raw` is equivalent to the
+                // SAFETY: This operation is safe because the length of `raw` is equivalent to the
                 // one of the descriptor.
                 Ty::Device => Ok(Self::Device(unsafe {
                     ptr::read(raw as *const [u8] as *const _)

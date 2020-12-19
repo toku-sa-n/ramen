@@ -21,47 +21,47 @@ pub fn init() {
     register();
 }
 
-/// Safety: This function is unsafe because writing a value to I/O port may have side effects which
+/// SAFETY: This function is unsafe because writing a value to I/O port may have side effects which
 /// violate memory safety.
 pub unsafe fn outb(port: u16, value: u8) {
     general_syscall(Syscalls::Outb, port.into(), value.into());
 }
 
-/// Safety: This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
+/// SAFETY: This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
 pub unsafe fn inl(port: u16) -> u32 {
     general_syscall(Syscalls::Inl, port.into(), 0)
         .try_into()
         .unwrap()
 }
 
-/// Safety: This function is unsafe because writing a value via I/O port may have side effects
+/// SAFETY: This function is unsafe because writing a value via I/O port may have side effects
 /// which violate memory safety.
 pub unsafe fn outl(port: u16, value: u32) {
     general_syscall(Syscalls::Outl, port.into(), value.into());
 }
 
 pub fn halt() {
-    // Safety: This operation is safe as it does not touch any unsafe things.
+    // SAFETY: This operation is safe as it does not touch any unsafe things.
     unsafe { general_syscall(Syscalls::Halt, 0, 0) };
 }
 
 pub fn disable_interrupt() {
-    // Safety: This operation is safe as it does not touch any unsafe things.
+    // SAFETY: This operation is safe as it does not touch any unsafe things.
     unsafe { general_syscall(Syscalls::DisableInterrupt, 0, 0) };
 }
 
 pub fn enable_interrupt() {
-    // Safety: This operation is safe as it does not touch any unsafe things.
+    // SAFETY: This operation is safe as it does not touch any unsafe things.
     unsafe { general_syscall(Syscalls::EnableInterrupt, 0, 0) };
 }
 
 pub fn enable_interrupt_and_halt() {
-    // Safety: This operation is safe as it does not touch any unsafe things.
+    // SAFETY: This operation is safe as it does not touch any unsafe things.
     unsafe { general_syscall(Syscalls::EnableInterruptAndHalt, 0, 0) };
 }
 
 pub fn allocate_pages(pages: NumOfPages<Size4KiB>) -> VirtAddr {
-    // Safety: This operation is safe as the arguments are propertly passed.
+    // SAFETY: This operation is safe as the arguments are propertly passed.
     VirtAddr::new(unsafe {
         general_syscall(
             Syscalls::AllocatePages,
@@ -72,7 +72,7 @@ pub fn allocate_pages(pages: NumOfPages<Size4KiB>) -> VirtAddr {
 }
 
 pub fn deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) {
-    // Safety: This operation is safe as the all arguments are propertly passed.
+    // SAFETY: This operation is safe as the all arguments are propertly passed.
     unsafe {
         general_syscall(
             Syscalls::DeallocatePages,
@@ -83,7 +83,7 @@ pub fn deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) {
 }
 
 pub fn map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
-    // Safety: This operation is safe as the all arguments are propertly passed.
+    // SAFETY: This operation is safe as the all arguments are propertly passed.
     VirtAddr::new(unsafe {
         general_syscall(
             Syscalls::MapPages,
@@ -103,7 +103,7 @@ pub fn unmap_pages(start: VirtAddr, bytes: Bytes) {
     }
 }
 
-/// Safety: This function is unsafe if arguments are invalid.
+/// SAFETY: This function is unsafe if arguments are invalid.
 unsafe fn general_syscall(ty: Syscalls, a1: u64, a2: u64) -> u64 {
     let ty = ty as u64;
     let r: u64;
@@ -114,7 +114,7 @@ unsafe fn general_syscall(ty: Syscalls, a1: u64, a2: u64) -> u64 {
 }
 
 fn enable() {
-    // Safety: This operation is safe as this does not touch any unsafe things.
+    // SAFETY: This operation is safe as this does not touch any unsafe things.
     unsafe { Efer::update(|e| *e |= EferFlags::SYSTEM_CALL_EXTENSIONS) }
 }
 
@@ -150,7 +150,7 @@ extern "C" fn save_rip_and_rflags() -> u64 {
     }
 }
 
-/// Safety: This function is unsafe because invalid values in registers may break memory safety.
+/// SAFETY: This function is unsafe because invalid values in registers may break memory safety.
 #[no_mangle]
 unsafe fn prepare_arguments() {
     let syscall_index: u64;
@@ -161,7 +161,7 @@ unsafe fn prepare_arguments() {
     asm!("", in("rax") select_proper_syscall(syscall_index, a1, a2))
 }
 
-/// Safety: This function is unsafe because invalid arguments may break memory safety.
+/// SAFETY: This function is unsafe because invalid arguments may break memory safety.
 #[allow(clippy::too_many_lines)]
 unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64) -> u64 {
     match FromPrimitive::from_u64(idx) {
@@ -191,14 +191,14 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64) -> u64 {
     }
 }
 
-/// Safety: This function is unsafe because reading from I/O port may have side effects which
+/// SAFETY: This function is unsafe because reading from I/O port may have side effects which
 /// violate memory safety.
 unsafe fn sys_inb(port: u16) -> u8 {
     let mut p = PortReadOnly::new(port);
     p.read()
 }
 
-/// Safety: This function is unsafe because writing to I/O port may have side effects which violate
+/// SAFETY: This function is unsafe because writing to I/O port may have side effects which violate
 /// memory safety.
 unsafe fn sys_outb(port: u16, v: u8) -> u64 {
     let mut p = PortWriteOnly::new(port);
@@ -206,14 +206,14 @@ unsafe fn sys_outb(port: u16, v: u8) -> u64 {
     0
 }
 
-/// Safety: This function is unsafe because reading from I/O port may have side effects which
+/// SAFETY: This function is unsafe because reading from I/O port may have side effects which
 /// violate memory safety.
 unsafe fn sys_inl(port: u16) -> u32 {
     let mut p = PortReadOnly::new(port);
     p.read()
 }
 
-/// Safety: This function is unsafe because writing to I/O port may have side effects which violate
+/// SAFETY: This function is unsafe because writing to I/O port may have side effects which violate
 /// memory safety.
 unsafe fn sys_outl(port: u16, v: u32) -> u64 {
     let mut p = PortWriteOnly::new(port);

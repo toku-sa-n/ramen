@@ -31,7 +31,7 @@ impl<T> PageBox<T> {
     }
 
     fn write_initial_value(&mut self, x: T) {
-        // Safety: This operation is safe because the memory `self.virt.as_mut_ptr` points is
+        // SAFETY: This operation is safe because the memory `self.virt.as_mut_ptr` points is
         // allocated, and is page-aligned.
         unsafe {
             ptr::write(self.virt.as_mut_ptr(), x);
@@ -41,14 +41,14 @@ impl<T> PageBox<T> {
 impl<T> Deref for PageBox<T> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
-        // Safety: This operation is safe because the memory region `virt` points is allocated and
+        // SAFETY: This operation is safe because the memory region `virt` points is allocated and
         // is not used by the others.
         unsafe { &*self.virt.as_ptr() }
     }
 }
 impl<T> DerefMut for PageBox<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        // Safety: This operation is safe because the memory region `virt` points is allocated and
+        // SAFETY: This operation is safe because the memory region `virt` points is allocated and
         // is not used by the others.
         unsafe { &mut *self.virt.as_mut_ptr() }
     }
@@ -85,7 +85,7 @@ where
         for i in 0..self.len() {
             let ptr: usize = usize::try_from(self.virt.as_u64()).unwrap() + mem::size_of::<T>() * i;
 
-            // Safety: This operation is safe. The memory ptr points is allocated and is aligned
+            // SAFETY: This operation is safe. The memory ptr points is allocated and is aligned
             // because the first elements is page-aligned.
             unsafe { ptr::write(ptr as *mut T, x) }
         }
