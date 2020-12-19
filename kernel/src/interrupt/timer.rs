@@ -4,9 +4,12 @@ use acpi::{platform::address::AddressSpace, AcpiTables};
 use alloc::boxed::Box;
 use core::convert::TryInto;
 use os_units::Bytes;
-use x86_64::{instructions::port::PortReadOnly, PhysAddr};
+use x86_64::PhysAddr;
 
-use crate::mem::{accessor::Accessor, allocator};
+use crate::{
+    mem::{accessor::Accessor, allocator},
+    syscall,
+};
 
 const LVT_TIMER: PhysAddr = PhysAddr::new_truncate(0xfee0_0320);
 const INITIAL_COUNT: PhysAddr = PhysAddr::new_truncate(0xfee0_0380);
@@ -115,20 +118,20 @@ trait Reader {
 }
 
 struct IoReader {
-    port: PortReadOnly<u32>,
+    port: u16,
 }
 impl IoReader {
     fn new(table: &AcpiTables<allocator::acpi::Mapper>) -> Self {
         let b = table.platform_info().unwrap().pm_timer.unwrap().base;
         Self {
-            port: PortReadOnly::new(b.address.try_into().unwrap()),
+            port: b.address.try_into().unwrap(),
         }
     }
 }
 impl Reader for IoReader {
     fn read(&mut self) -> u32 {
         // Safety: This operation is safe as the `port` has an I/O address taken from `AcpiTables`.
-        unsafe { self.port.read() }
+        unsafe { syscall::inl(self.port) }
     }
 }
 
