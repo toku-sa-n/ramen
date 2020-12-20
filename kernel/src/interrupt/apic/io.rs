@@ -1,15 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::pic;
-use crate::{
-    mem::{accessor::Accessor, allocator},
-    syscall,
-};
+use crate::mem::{accessor::Accessor, allocator};
 use acpi::{platform::IoApic, AcpiTables, InterruptModel};
 use bit_field::BitField;
 use core::convert::TryInto;
 use os_units::Bytes;
-use x86_64::PhysAddr;
+use x86_64::{instructions::interrupts, PhysAddr};
 
 /// Currently this OS does not support multiple I/O APIC.
 
@@ -25,12 +22,14 @@ impl Registers {
     ///
     /// There is no need to create an instance of `IoApic` manually, but because it is possible as
     /// the all fields of the struct are public, this method is unsafe.
+    ///
+    /// This method must be called in the kernel privilege.
     unsafe fn new(io_apics: &[IoApic]) -> Self {
         let io_apic_base = PhysAddr::new(io_apics[0].address.into());
 
         Self {
-            addr: Accessor::new(io_apic_base, Bytes::new(0)),
-            data: Accessor::new(io_apic_base, Bytes::new(0x10)),
+            addr: Accessor::kernel(io_apic_base, Bytes::new(0)),
+            data: Accessor::kernel(io_apic_base, Bytes::new(0x10)),
         }
     }
 
@@ -149,7 +148,9 @@ pub fn init(table: &AcpiTables<allocator::acpi::Mapper>) {
         init_ps2_keyboard(&mut registers, id);
         init_ps2_mouse(&mut registers, id);
     }
-    syscall::enable_interrupt();
+
+    // Here the operation is in the kernel mode. `syscall` must not be called.
+    interrupts::enable();
 }
 
 fn init_ps2_keyboard(r: &mut Registers, apic_id: u8) {

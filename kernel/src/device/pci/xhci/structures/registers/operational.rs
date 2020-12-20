@@ -21,12 +21,12 @@ impl Operational {
     pub unsafe fn new(mmio_base: PhysAddr, capabilities: &Capability) -> Self {
         let operational_base = mmio_base + capabilities.cap_length.read().get();
 
-        let usb_cmd = Accessor::new(operational_base, Bytes::new(0x00));
-        let usb_sts = Accessor::new(operational_base, Bytes::new(0x04));
-        let crcr = Accessor::new(operational_base, Bytes::new(0x18));
-        let dcbaap = Accessor::new(operational_base, Bytes::new(0x30));
-        let config = Accessor::new(operational_base, Bytes::new(0x38));
-        let port_registers = Accessor::new_slice(
+        let usb_cmd = Accessor::user(operational_base, Bytes::new(0x00));
+        let usb_sts = Accessor::user(operational_base, Bytes::new(0x04));
+        let crcr = Accessor::user(operational_base, Bytes::new(0x18));
+        let dcbaap = Accessor::user(operational_base, Bytes::new(0x30));
+        let config = Accessor::user(operational_base, Bytes::new(0x38));
+        let port_registers = Accessor::user_slice(
             operational_base,
             Bytes::new(0x400),
             capabilities.hcs_params_1.read().max_ports().into(),
