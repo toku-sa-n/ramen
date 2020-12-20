@@ -15,9 +15,9 @@ impl<'a> Runtime {
     /// `runtime_register_space_offset` is not a valid value, it can violate memory safety.
     pub unsafe fn new(mmio_base: PhysAddr, runtime_register_space_offset: usize) -> Self {
         let runtime_base = mmio_base + runtime_register_space_offset;
-        let erst_sz = Accessor::new(runtime_base, Bytes::new(0x28));
-        let erst_ba = Accessor::new(runtime_base, Bytes::new(0x30));
-        let erd_p = Accessor::new(runtime_base, Bytes::new(0x38));
+        let erst_sz = Accessor::user(runtime_base, Bytes::new(0x28));
+        let erst_ba = Accessor::user(runtime_base, Bytes::new(0x30));
+        let erd_p = Accessor::user(runtime_base, Bytes::new(0x38));
 
         Self {
             erst_sz,

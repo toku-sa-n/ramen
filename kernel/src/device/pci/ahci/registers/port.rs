@@ -39,7 +39,7 @@ impl Registers {
 
         macro_rules! new_accessor {
             ($offset:expr) => {
-                Accessor::new(base_addr, Bytes::new($offset))
+                Accessor::user(base_addr, Bytes::new($offset))
             };
         }
 

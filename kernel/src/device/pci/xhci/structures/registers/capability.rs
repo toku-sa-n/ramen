@@ -18,12 +18,12 @@ impl Capability {
     /// SAFETY: This method is unsafe because if `mmio_base` is not the valid MMIO base address, it
     /// can violate memory safety.
     pub unsafe fn new(mmio_base: PhysAddr) -> Self {
-        let cap_length = Accessor::new(mmio_base, Bytes::new(0));
-        let hcs_params_1 = Accessor::new(mmio_base, Bytes::new(0x04));
-        let hcs_params_2 = Accessor::new(mmio_base, Bytes::new(0x08));
-        let hc_cp_params_1 = Accessor::new(mmio_base, Bytes::new(0x10));
-        let db_off = Accessor::new(mmio_base, Bytes::new(0x14));
-        let rts_off = Accessor::new(mmio_base, Bytes::new(0x18));
+        let cap_length = Accessor::user(mmio_base, Bytes::new(0));
+        let hcs_params_1 = Accessor::user(mmio_base, Bytes::new(0x04));
+        let hcs_params_2 = Accessor::user(mmio_base, Bytes::new(0x08));
+        let hc_cp_params_1 = Accessor::user(mmio_base, Bytes::new(0x10));
+        let db_off = Accessor::user(mmio_base, Bytes::new(0x14));
+        let rts_off = Accessor::user(mmio_base, Bytes::new(0x18));
 
         Self {
             cap_length,
