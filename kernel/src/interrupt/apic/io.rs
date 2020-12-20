@@ -29,8 +29,8 @@ impl Registers {
         let io_apic_base = PhysAddr::new(io_apics[0].address.into());
 
         Self {
-            addr: Accessor::new(io_apic_base, Bytes::new(0)),
-            data: Accessor::new(io_apic_base, Bytes::new(0x10)),
+            addr: Accessor::user(io_apic_base, Bytes::new(0)),
+            data: Accessor::user(io_apic_base, Bytes::new(0x10)),
         }
     }
 

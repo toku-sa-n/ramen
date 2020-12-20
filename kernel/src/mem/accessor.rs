@@ -10,19 +10,33 @@ pub struct Accessor<T: ?Sized> {
     virt: VirtAddr,
     bytes: Bytes, // The size of `T` is not always computable. Thus save the bytes of objects.
     _marker: PhantomData<T>,
+    mappers: Mappers,
 }
 impl<T> Accessor<T> {
     /// SAFETY: This method is unsafe because it can create multiple mutable references to the same
     /// object.
-    pub unsafe fn new(phys_base: PhysAddr, offset: Bytes) -> Self {
+    pub unsafe fn kernel(phys_base: PhysAddr, offset: Bytes) -> Self {
+        Self::new(phys_base, offset, Mappers::kernel())
+    }
+
+    /// SAFETY: This method is unsafe because it can create multiple mutable references to the same
+    /// object.
+    pub unsafe fn user(phys_base: PhysAddr, offset: Bytes) -> Self {
+        Self::new(phys_base, offset, Mappers::user())
+    }
+
+    /// SAFETY: This method is unsafe because it can create multiple mutable references to the same
+    /// object.
+    unsafe fn new(phys_base: PhysAddr, offset: Bytes, mappers: Mappers) -> Self {
         let phys_base = phys_base + offset.as_usize();
         let bytes = Bytes::new(mem::size_of::<T>());
-        let virt = syscall::map_pages(phys_base, bytes);
+        let virt = mappers.map(phys_base, bytes);
 
         Self {
             virt,
             bytes,
             _marker: PhantomData,
+            mappers,
         }
     }
 
@@ -45,17 +59,26 @@ impl<T> Accessor<T> {
 }
 
 impl<T> Accessor<[T]> {
+    pub fn kernel_slice(phys_base: PhysAddr, offset: Bytes, len: usize) -> Self {
+        Self::new_slice(phys_base, offset, len, Mappers::kernel())
+    }
+
+    pub fn user_slice(phys_base: PhysAddr, offset: Bytes, len: usize) -> Self {
+        Self::new_slice(phys_base, offset, len, Mappers::user())
+    }
+
     /// SAFETY: This method is unsafe because it can create multiple mutable references to the same
     /// object.
-    pub fn new_slice(phys_base: PhysAddr, offset: Bytes, len: usize) -> Self {
+    fn new_slice(phys_base: PhysAddr, offset: Bytes, len: usize, mappers: Mappers) -> Self {
         let phys_base = phys_base + offset.as_usize();
         let bytes = Bytes::new(mem::size_of::<T>() * len);
-        let virt = syscall::map_pages(phys_base, bytes);
+        let virt = mappers.map(phys_base, bytes);
 
         Self {
             virt,
             bytes,
             _marker: PhantomData,
+            mappers,
         }
     }
 
@@ -89,6 +112,37 @@ impl<T> Accessor<[T]> {
 
 impl<T: ?Sized> Drop for Accessor<T> {
     fn drop(&mut self) {
-        syscall::unmap_pages(self.virt, self.bytes);
+        self.mappers.unmap(self.virt, self.bytes);
+    }
+}
+
+type Mapper = fn(PhysAddr, Bytes) -> VirtAddr;
+type Unmapper = fn(VirtAddr, Bytes);
+
+struct Mappers {
+    mapper: Mapper,
+    unmapper: Unmapper,
+}
+impl Mappers {
+    fn kernel() -> Self {
+        Self {
+            mapper: super::map_pages,
+            unmapper: super::unmap_pages,
+        }
+    }
+
+    fn user() -> Self {
+        Self {
+            mapper: syscall::map_pages,
+            unmapper: syscall::unmap_pages,
+        }
+    }
+
+    fn map(&self, p: PhysAddr, b: Bytes) -> VirtAddr {
+        (self.mapper)(p, b)
+    }
+
+    fn unmap(&self, v: VirtAddr, b: Bytes) {
+        (self.unmapper)(v, b)
     }
 }

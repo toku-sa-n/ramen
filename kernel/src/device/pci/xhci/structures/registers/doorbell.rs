@@ -10,7 +10,7 @@ const NUM_OF_REGISTERS: usize = 256;
 pub struct Array(Accessor<[u32]>);
 impl Array {
     pub fn new(mmio_base: PhysAddr, db_off: u32) -> Self {
-        Self(Accessor::new_slice(
+        Self(Accessor::user_slice(
             mmio_base,
             Bytes::new(db_off.try_into().unwrap()),
             NUM_OF_REGISTERS,
