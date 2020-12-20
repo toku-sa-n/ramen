@@ -59,7 +59,9 @@ impl<T> Accessor<T> {
 }
 
 impl<T> Accessor<[T]> {
-    pub fn user_slice(phys_base: PhysAddr, offset: Bytes, len: usize) -> Self {
+    /// # Safety: This method is unsafe because it can create multiple mutable references to the
+    /// same object.
+    pub unsafe fn user_slice(phys_base: PhysAddr, offset: Bytes, len: usize) -> Self {
         Self::new_slice(phys_base, offset, len, Mappers::user())
     }
 

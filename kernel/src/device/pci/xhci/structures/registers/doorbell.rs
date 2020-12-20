@@ -9,7 +9,8 @@ const NUM_OF_REGISTERS: usize = 256;
 
 pub struct Array(Accessor<[u32]>);
 impl Array {
-    pub fn new(mmio_base: PhysAddr, db_off: u32) -> Self {
+    /// Safety: `mmio_base` must be a valid address to the top of the doorbell registers.
+    pub unsafe fn new(mmio_base: PhysAddr, db_off: u32) -> Self {
         Self(Accessor::user_slice(
             mmio_base,
             Bytes::new(db_off.try_into().unwrap()),
