@@ -16,18 +16,18 @@ impl<T> Accessor<T> {
     /// SAFETY: This method is unsafe because it can create multiple mutable references to the same
     /// object.
     pub unsafe fn kernel(phys_base: PhysAddr, offset: Bytes) -> Self {
-        Self::new(EffectiveAddr::new(phys_base, offset), Mappers::kernel())
+        Self::new(&EffectiveAddr::new(phys_base, offset), Mappers::kernel())
     }
 
     /// SAFETY: This method is unsafe because it can create multiple mutable references to the same
     /// object.
     pub unsafe fn user(phys_base: PhysAddr, offset: Bytes) -> Self {
-        Self::new(EffectiveAddr::new(phys_base, offset), Mappers::user())
+        Self::new(&EffectiveAddr::new(phys_base, offset), Mappers::user())
     }
 
     /// SAFETY: This method is unsafe because it can create multiple mutable references to the same
     /// object.
-    unsafe fn new(effective: EffectiveAddr, mappers: Mappers) -> Self {
+    unsafe fn new(effective: &EffectiveAddr, mappers: Mappers) -> Self {
         let phys_base = effective.calculate();
         let bytes = Bytes::new(mem::size_of::<T>());
         let virt = mappers.map(phys_base, bytes);
@@ -62,7 +62,7 @@ impl<T> Accessor<[T]> {
     /// # Safety: This method is unsafe because it can create multiple mutable references to the
     /// same object.
     pub unsafe fn user_slice(phys_base: PhysAddr, offset: Bytes, len: usize) -> Self {
-        Self::new_slice(EffectiveAddr::new(phys_base, offset), len, Mappers::user())
+        Self::new_slice(&EffectiveAddr::new(phys_base, offset), len, Mappers::user())
     }
 
     pub fn read(&self, index: usize) -> T {
@@ -86,7 +86,7 @@ impl<T> Accessor<[T]> {
 
     /// SAFETY: This method is unsafe because it can create multiple mutable references to the same
     /// object.
-    fn new_slice(effective: EffectiveAddr, len: usize, mappers: Mappers) -> Self {
+    fn new_slice(effective: &EffectiveAddr, len: usize, mappers: Mappers) -> Self {
         let phys_base = effective.calculate();
         let bytes = Bytes::new(mem::size_of::<T>() * len);
         let virt = mappers.map(phys_base, bytes);
