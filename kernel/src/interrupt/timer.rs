@@ -5,10 +5,7 @@ use core::convert::TryInto;
 use os_units::Bytes;
 use x86_64::{instructions::port::PortReadOnly, PhysAddr};
 
-use crate::{
-    mem::{accessor::Accessor, allocator},
-    syscall,
-};
+use crate::mem::{accessor::Accessor, allocator};
 
 const LVT_TIMER: PhysAddr = PhysAddr::new_truncate(0xfee0_0320);
 const INITIAL_COUNT: PhysAddr = PhysAddr::new_truncate(0xfee0_0380);

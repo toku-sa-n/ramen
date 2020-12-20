@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::pic;
-use crate::{
-    mem::{accessor::Accessor, allocator},
-    syscall,
-};
+use crate::mem::{accessor::Accessor, allocator};
 use acpi::{platform::IoApic, AcpiTables, InterruptModel};
 use bit_field::BitField;
 use core::convert::TryInto;

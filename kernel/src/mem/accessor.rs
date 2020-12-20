@@ -59,10 +59,6 @@ impl<T> Accessor<T> {
 }
 
 impl<T> Accessor<[T]> {
-    pub fn kernel_slice(phys_base: PhysAddr, offset: Bytes, len: usize) -> Self {
-        Self::new_slice(phys_base, offset, len, Mappers::kernel())
-    }
-
     pub fn user_slice(phys_base: PhysAddr, offset: Bytes, len: usize) -> Self {
         Self::new_slice(phys_base, offset, len, Mappers::user())
     }

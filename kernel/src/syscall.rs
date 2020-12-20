@@ -21,12 +21,6 @@ pub fn init() {
     register();
 }
 
-/// SAFETY: This function is unsafe because writing a value to I/O port may have side effects which
-/// violate memory safety.
-pub unsafe fn outb(port: u16, value: u8) {
-    general_syscall(Syscalls::Outb, port.into(), value.into());
-}
-
 /// SAFETY: This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
 pub unsafe fn inl(port: u16) -> u32 {
     general_syscall(Syscalls::Inl, port.into(), 0)
