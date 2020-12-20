@@ -63,21 +63,6 @@ impl<T> Accessor<[T]> {
         Self::new_slice(phys_base, offset, len, Mappers::user())
     }
 
-    /// SAFETY: This method is unsafe because it can create multiple mutable references to the same
-    /// object.
-    fn new_slice(phys_base: PhysAddr, offset: Bytes, len: usize, mappers: Mappers) -> Self {
-        let phys_base = phys_base + offset.as_usize();
-        let bytes = Bytes::new(mem::size_of::<T>() * len);
-        let virt = mappers.map(phys_base, bytes);
-
-        Self {
-            virt,
-            bytes,
-            _marker: PhantomData,
-            mappers,
-        }
-    }
-
     pub fn read(&self, index: usize) -> T {
         assert!(index < self.len());
         unsafe { ptr::read_volatile(self.addr_to_elem(index).as_ptr()) }
@@ -95,6 +80,21 @@ impl<T> Accessor<[T]> {
         let mut val = self.read(index);
         f(&mut val);
         self.write(index, val);
+    }
+
+    /// SAFETY: This method is unsafe because it can create multiple mutable references to the same
+    /// object.
+    fn new_slice(phys_base: PhysAddr, offset: Bytes, len: usize, mappers: Mappers) -> Self {
+        let phys_base = phys_base + offset.as_usize();
+        let bytes = Bytes::new(mem::size_of::<T>() * len);
+        let virt = mappers.map(phys_base, bytes);
+
+        Self {
+            virt,
+            bytes,
+            _marker: PhantomData,
+            mappers,
+        }
     }
 
     fn addr_to_elem(&self, index: usize) -> VirtAddr {
