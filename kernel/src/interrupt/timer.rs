@@ -3,7 +3,7 @@
 use acpi::{platform::address::AddressSpace, AcpiTables};
 use core::convert::TryInto;
 use os_units::Bytes;
-use x86_64::PhysAddr;
+use x86_64::{instructions::port::PortReadOnly, PhysAddr};
 
 use crate::{
     mem::{accessor::Accessor, allocator},
@@ -32,10 +32,10 @@ struct LocalApic {
 impl LocalApic {
     fn new(table: &AcpiTables<allocator::acpi::Mapper>) -> Self {
         // SAFETY: These operations are safe because the addresses are the correct ones.
-        let lvt_timer = unsafe { Accessor::<u32>::user(LVT_TIMER, Bytes::new(0)) };
-        let initial_count = unsafe { Accessor::<u32>::user(INITIAL_COUNT, Bytes::new(0)) };
-        let current_count = unsafe { Accessor::<u32>::user(CURRENT_COUNT, Bytes::new(0)) };
-        let divide_config = unsafe { Accessor::<u32>::user(DIVIDE_CONFIG, Bytes::new(0)) };
+        let lvt_timer = unsafe { Accessor::<u32>::kernel(LVT_TIMER, Bytes::new(0)) };
+        let initial_count = unsafe { Accessor::<u32>::kernel(INITIAL_COUNT, Bytes::new(0)) };
+        let current_count = unsafe { Accessor::<u32>::kernel(CURRENT_COUNT, Bytes::new(0)) };
+        let divide_config = unsafe { Accessor::<u32>::kernel(DIVIDE_CONFIG, Bytes::new(0)) };
         let pm = AcpiPm::new(table);
 
         Self {
@@ -126,19 +126,21 @@ impl Reader {
 }
 
 struct IoReader {
-    port: u16,
+    // Initialization of the APIC timer is done in the kernel privilege. `syscall` must not be
+    // called.
+    port: PortReadOnly<u32>,
 }
 impl IoReader {
     fn new(table: &AcpiTables<allocator::acpi::Mapper>) -> Self {
         let b = table.platform_info().unwrap().pm_timer.unwrap().base;
         Self {
-            port: b.address.try_into().unwrap(),
+            port: PortReadOnly::new(b.address.try_into().unwrap()),
         }
     }
 
     fn read(&mut self) -> u32 {
         // SAFETY: This operation is safe as the `port` has an I/O address taken from `AcpiTables`.
-        unsafe { syscall::inl(self.port) }
+        unsafe { self.port.read() }
     }
 }
 
@@ -150,7 +152,7 @@ impl MemoryReader {
         let b = table.platform_info().unwrap().pm_timer.unwrap().base;
         Self {
             // SAFETY: This operation is safe as the address is generated from `AcpiTables`.
-            addr: unsafe { Accessor::user(PhysAddr::new(b.address), Bytes::new(0)) },
+            addr: unsafe { Accessor::kernel(PhysAddr::new(b.address), Bytes::new(0)) },
         }
     }
 
