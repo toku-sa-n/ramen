@@ -99,18 +99,21 @@ struct Process {
     pml4: PageBox<PageTable>,
     rip: VirtAddr,
     rsp: VirtAddr,
-    stack: PageBox<[u8]>,
+    process_stack: PageBox<[u8]>,
+    kernel_stack: PageBox<[u8]>,
     running: bool,
     f: fn(),
 }
 impl Process {
     fn new(f: fn()) -> Self {
-        let stack = PageBox::new_slice(0, Size4KiB::SIZE.try_into().unwrap());
+        let process_stack = PageBox::new_slice(0, Size4KiB::SIZE.try_into().unwrap());
+        let kernel_stack = PageBox::new_slice(0, Size4KiB::SIZE.try_into().unwrap());
         Self {
             pml4: Pml4Creator::new().create(),
             rip: VirtAddr::new(Self::exec as *mut u64 as u64),
-            rsp: stack.virt_addr() + stack.bytes().as_usize(),
-            stack,
+            rsp: process_stack.virt_addr() + process_stack.bytes().as_usize(),
+            process_stack,
+            kernel_stack,
             running: true,
             f,
         }
