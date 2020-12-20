@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::pic;
-use crate::mem::{accessor::Accessor, allocator};
+use crate::{
+    mem::{accessor::Accessor, allocator},
+    syscall,
+};
 use acpi::{platform::IoApic, AcpiTables, InterruptModel};
 use bit_field::BitField;
 use core::convert::TryInto;
@@ -17,7 +20,7 @@ struct Registers {
 impl Registers {
     const DEST_BASE: u8 = 0x10;
 
-    /// Safety: This operation is unsafe because the caller must ensure that `IoApic::address` must
+    /// SAFETY: This operation is unsafe because the caller must ensure that `IoApic::address` must
     /// be a valid address to I/O APIC registers.
     ///
     /// There is no need to create an instance of `IoApic` manually, but because it is possible as
@@ -140,13 +143,13 @@ pub fn init(table: &AcpiTables<allocator::acpi::Mapper>) {
     if let InterruptModel::Apic(apic) = interrupt {
         let id = apic.io_apics[0].id;
 
-        // Safety: This operation is safe because `table` contains valid information.
+        // SAFETY: This operation is safe because `table` contains valid information.
         let mut registers = unsafe { Registers::new(&apic.io_apics) };
         registers.mask_all();
         init_ps2_keyboard(&mut registers, id);
         init_ps2_mouse(&mut registers, id);
     }
-    x86_64::instructions::interrupts::enable();
+    syscall::enable_interrupt();
 }
 
 fn init_ps2_keyboard(r: &mut Registers, apic_id: u8) {

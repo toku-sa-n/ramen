@@ -12,7 +12,7 @@ pub struct UsbLegacySupportCapability {
 }
 
 impl UsbLegacySupportCapability {
-    /// Safety: This method is unsafe because if `mmio_base` is not a valid MMIO base address, it
+    /// SAFETY: This method is unsafe because if `mmio_base` is not a valid MMIO base address, it
     /// can violate memory safety.
     pub unsafe fn new(mmio_base: PhysAddr, hc_capability_registers: &Capability) -> Option<Self> {
         let xecp = hc_capability_registers

@@ -11,7 +11,7 @@ pub struct Runtime {
     pub erd_p: Accessor<EventRingDequeuePointerRegister>,
 }
 impl<'a> Runtime {
-    /// Safety: This method is unsafe because if `mmio_base` is not a valid address, or
+    /// SAFETY: This method is unsafe because if `mmio_base` is not a valid address, or
     /// `runtime_register_space_offset` is not a valid value, it can violate memory safety.
     pub unsafe fn new(mmio_base: PhysAddr, runtime_register_space_offset: usize) -> Self {
         let runtime_base = mmio_base + runtime_register_space_offset;

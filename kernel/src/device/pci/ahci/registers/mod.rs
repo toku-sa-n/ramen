@@ -12,7 +12,7 @@ pub struct Registers {
     pub port_regs: Vec<Option<port::Registers>>,
 }
 impl Registers {
-    /// Safety: This method is unsafe because if `abar` is not the valid AHCI base address, it can
+    /// SAFETY: This method is unsafe because if `abar` is not the valid AHCI base address, it can
     /// violate memory safety.
     pub unsafe fn new(abar: AchiBaseAddr) -> Self {
         let generic = Generic::new(abar);
@@ -21,7 +21,7 @@ impl Registers {
         Self { generic, port_regs }
     }
 
-    /// Safety: This method is unsafe because if `abar` is not the valid AHCI base address, it can
+    /// SAFETY: This method is unsafe because if `abar` is not the valid AHCI base address, it can
     /// violate memory safety.
     unsafe fn collect_port_regs(
         abar: AchiBaseAddr,

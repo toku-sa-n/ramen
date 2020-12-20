@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
+#![feature(int_bits_const)]
 #![feature(async_closure)]
 #![feature(alloc_error_handler)]
 #![feature(min_const_generics)]
@@ -36,6 +37,7 @@ mod mem;
 mod multitask;
 mod panic;
 mod process;
+mod syscall;
 mod tss;
 
 use common::{constant::INITRD_ADDR, kernelboot};
@@ -57,20 +59,33 @@ pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 #[no_mangle]
 #[start]
 pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
-    initialization(&mut boot_info);
+    init(&mut boot_info);
 
     run_tasks();
 }
 
-fn initialization(boot_info: &mut kernelboot::Info) {
-    Vram::init(&boot_info);
+fn init(boot_info: &mut kernelboot::Info) {
+    initialize_in_kernel_mode(boot_info);
+    initialize_in_user_mode(boot_info);
+}
 
+fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
     gdt::init();
     idt::init();
 
+    // It is bothering to initialize heap memory in the user mode as this is to map the area, which an initialized
+    // frame manager is needed.
     heap::init(boot_info.mem_map_mut());
 
+    // This function unmaps all user memory, which needs the kernel privilege.
     FrameManager::init(boot_info.mem_map_mut());
+}
+
+fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
+    syscall::init();
+    gdt::enter_usermode();
+
+    Vram::init(&boot_info);
 
     layer::init();
 
@@ -81,11 +96,6 @@ fn initialization(boot_info: &mut kernelboot::Info) {
 
     info!("Hello Ramen OS!");
     info!("Vram information: {}", Vram::display());
-
-    info!(
-        "The number of PCI devices: {}",
-        device::pci::iter_devices().count()
-    );
 
     let acpi = unsafe { acpi::get(boot_info.rsdp()) };
 

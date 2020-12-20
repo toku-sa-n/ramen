@@ -23,16 +23,19 @@ pub struct Collection {
     eps: Vec<Endpoint>,
     cx: Arc<Spinlock<Context>>,
     cmd: Arc<Futurelock<command::Sender>>,
+    interface: descriptor::Interface,
     slot_id: u8,
 }
 impl Collection {
     pub async fn new(mut slot: Slot, cmd: Arc<Futurelock<command::Sender>>) -> Self {
         let eps = slot.endpoints().await;
+        let interface = slot.interface_descriptor().await;
         debug!("Endpoints collected");
         Self {
             eps,
             cx: slot.cx,
             cmd,
+            interface,
             slot_id: slot.id,
         }
     }
@@ -41,6 +44,10 @@ impl Collection {
         self.enable_eps();
         self.issue_configure_eps().await;
         debug!("Endpoints initialized");
+    }
+
+    pub fn ty(&self) -> (u8, u8, u8) {
+        self.interface.ty()
     }
 
     fn enable_eps(&mut self) {

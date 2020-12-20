@@ -13,7 +13,7 @@ pub struct Desktop {
 impl Desktop {
     pub fn new() -> Self {
         let layer = Layer::new(Vec2::new(0, 0), Vram::resolution().as_());
-        let id = layer::get_controller().lock().add_layer(layer);
+        let id = layer::add(layer);
 
         Self { id }
     }
@@ -96,9 +96,6 @@ impl Desktop {
             );
         };
 
-        layer::get_controller()
-            .lock()
-            .edit_layer(self.id, edit)
-            .expect("Desktop layer is not added.")
+        layer::edit(self.id, edit).expect("Desktop layer is not added.")
     }
 }

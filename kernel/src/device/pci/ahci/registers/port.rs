@@ -18,7 +18,7 @@ pub struct Registers {
     pub ci: Accessor<PortxCommandIssue>,
 }
 impl Registers {
-    /// Safety: This method is unsafe because if `abar` is not a valid AHCI base address, it can
+    /// SAFETY: This method is unsafe because if `abar` is not a valid AHCI base address, it can
     /// violate memory safety.
     pub unsafe fn new(abar: AchiBaseAddr, port_index: usize, generic: &Generic) -> Option<Self> {
         if Self::exist(port_index, generic) {
@@ -32,7 +32,7 @@ impl Registers {
         generic.pi.read().0 & (1 << port_index) != 0
     }
 
-    /// Safety: This method is unsafe because if `abar` is not a valid AHCI base address, it can
+    /// SAFETY: This method is unsafe because if `abar` is not a valid AHCI base address, it can
     /// violate memory safety.
     unsafe fn fetch(abar: AchiBaseAddr, port_index: usize) -> Self {
         let base_addr = Self::base_addr_to_registers(abar, port_index);

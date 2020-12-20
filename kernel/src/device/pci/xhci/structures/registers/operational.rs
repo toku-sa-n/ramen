@@ -16,7 +16,7 @@ pub struct Operational {
 }
 
 impl Operational {
-    /// Safety: This method is unsafe because if `mmio_base` is not a valid MMIO base address, it
+    /// SAFETY: This method is unsafe because if `mmio_base` is not a valid MMIO base address, it
     /// can violate memory safety.
     pub unsafe fn new(mmio_base: PhysAddr, capabilities: &Capability) -> Self {
         let operational_base = mmio_base + capabilities.cap_length.read().get();
@@ -63,12 +63,15 @@ bitfield! {
 bitfield! {
     #[repr(transparent)]
     pub struct CommandRingControlRegister(u64);
-
+    impl Debug;
     pub _, set_ring_cycle_state: 0;
+    command_ring_running, _: 3;
     _, set_pointer:63,6;
 }
 impl CommandRingControlRegister {
     pub fn set_ptr(&mut self, ptr: PhysAddr) {
+        assert!(ptr.is_aligned(64_u64));
+        assert!(!self.command_ring_running());
         let ptr = ptr.as_u64() >> 6;
 
         self.set_pointer(ptr);

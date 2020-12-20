@@ -12,7 +12,7 @@ pub struct Generic {
     pub bohc: Accessor<BiosOsHandoffControlAndStatus>,
 }
 impl Generic {
-    /// Safety: This method is unsafe because if `abar` is not the valid AHCI base address, this
+    /// SAFETY: This method is unsafe because if `abar` is not the valid AHCI base address, this
     /// method can violate memory safety.
     pub unsafe fn new(abar: AchiBaseAddr) -> Self {
         let cap = Accessor::new(abar.into(), Bytes::new(0x00));
