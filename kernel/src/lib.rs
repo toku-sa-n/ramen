@@ -79,6 +79,12 @@ fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
 
     // This function unmaps all user memory, which needs the kernel privilege.
     FrameManager::init(boot_info.mem_map_mut());
+
+    let acpi = unsafe { acpi::get(boot_info.rsdp()) };
+
+    apic::io::init(&acpi);
+
+    timer::init(&acpi);
 }
 
 fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
@@ -96,12 +102,6 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
 
     info!("Hello Ramen OS!");
     info!("Vram information: {}", Vram::display());
-
-    let acpi = unsafe { acpi::get(boot_info.rsdp()) };
-
-    apic::io::init(&acpi);
-
-    timer::init(&acpi);
 
     fs::ustar::list_files(INITRD_ADDR);
 }
