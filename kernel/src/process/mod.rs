@@ -38,26 +38,6 @@ fn task_b() {
     loop {}
 }
 
-fn schedule() {
-    let old = CURRENT.load(Ordering::Relaxed);
-
-    let l = QUEUE.lock().len();
-    let mut i = 1;
-    while CURRENT.load(Ordering::Relaxed) == old {
-        let next = (CURRENT.load(Ordering::Relaxed) + i) % l;
-        if QUEUE.lock()[next].running {
-            CURRENT.store(next, Ordering::Relaxed);
-            break;
-        }
-
-        i += 1;
-    }
-
-    let old_rsp = &mut QUEUE.lock()[old].rsp as *mut VirtAddr as *mut u64;
-    let cur_rsp = QUEUE.lock()[CURRENT.load(Ordering::Relaxed)].rsp.as_u64();
-    unsafe { switch_context(old_rsp, cur_rsp) }
-}
-
 /// Safety: `current_rsp` must be a valid pointer to RSP value.
 unsafe fn switch_context(current_rsp: *mut u64, old_rsp: u64) {
     asm!("
