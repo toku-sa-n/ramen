@@ -102,6 +102,7 @@ struct Process {
     rip: VirtAddr,
     rsp: VirtAddr,
     stack: PageBox<[u8]>,
+    stack_frame: PageBox<[u8]>,
     running: bool,
     f: fn(),
 }
@@ -113,6 +114,7 @@ impl Process {
             rip: VirtAddr::new(Self::exec as *mut u64 as u64),
             rsp: stack.virt_addr() + stack.bytes().as_usize(),
             stack,
+            stack_frame: PageBox::new_slice(0, Size4KiB::SIZE.try_into().unwrap()),
             running: true,
             f,
         }
