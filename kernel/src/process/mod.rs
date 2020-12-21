@@ -34,17 +34,19 @@ pub struct Process {
     rip: VirtAddr,
     rsp: VirtAddr,
     stack: PageBox<[u8]>,
-    stack_frame: PageBox<[u8]>,
+    stack_frame: PageBox<StackFrame>,
 }
 impl Process {
     fn new(f: fn()) -> Self {
         let stack = PageBox::new_slice(0, Size4KiB::SIZE.try_into().unwrap());
+        let rip = VirtAddr::new((f as usize).try_into().unwrap());
+        let rsp = stack.virt_addr() + stack.bytes().as_usize();
         Self {
             pml4: Pml4Creator::new().create(),
-            rip: VirtAddr::new((f as usize).try_into().unwrap()),
-            rsp: stack.virt_addr() + stack.bytes().as_usize(),
+            rip,
+            rsp,
             stack,
-            stack_frame: PageBox::new_slice(0, Size4KiB::SIZE.try_into().unwrap()),
+            stack_frame: PageBox::new(StackFrame::new(rip, rsp)),
         }
     }
 
