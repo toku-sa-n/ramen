@@ -18,13 +18,22 @@ impl Manager {
         }
     }
 
-    fn switch_process(rsp: u64) -> u64 {
+    fn switch_process(rsp: VirtAddr) -> VirtAddr {
         let mut m = MANAGER.lock();
-        m.tasks[0].rsp = VirtAddr::new(rsp);
+        m.update_rsp_of_current_process(rsp);
+        m.change_current_process();
+        m.rsp_of_current_task()
+    }
 
-        let t = m.tasks.pop_front().unwrap();
-        m.tasks.push_back(t);
+    fn update_rsp_of_current_process(&mut self, rsp: VirtAddr) {
+        self.tasks[0].rsp = rsp;
+    }
 
-        m.tasks[0].rsp.as_u64()
+    fn change_current_process(&mut self) {
+        self.tasks.rotate_left(1);
+    }
+
+    fn rsp_of_current_task(&self) -> VirtAddr {
+        self.tasks[0].rsp
     }
 }
