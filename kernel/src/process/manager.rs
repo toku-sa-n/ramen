@@ -8,7 +8,7 @@ use x86_64::VirtAddr;
 
 static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
 
-struct Manager {
+pub struct Manager {
     tasks: VecDeque<Process>,
 }
 impl Manager {
@@ -18,7 +18,7 @@ impl Manager {
         }
     }
 
-    fn switch_process(rsp: VirtAddr) -> VirtAddr {
+    pub fn switch_process(rsp: VirtAddr) -> VirtAddr {
         let mut m = MANAGER.lock();
         m.update_rsp_of_current_process(rsp);
         m.change_current_process();
