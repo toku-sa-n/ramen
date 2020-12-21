@@ -10,6 +10,7 @@ use core::{
 
 use crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4};
 use alloc::vec::Vec;
+use manager::Manager;
 use spinning_top::Spinlock;
 use x86_64::{
     instructions::interrupts,
@@ -98,7 +99,7 @@ unsafe fn switch_context(current_rsp: *mut u64, old_rsp: u64) {
         pop rbp", out(reg) *current_rsp, in(reg) old_rsp);
 }
 
-struct Process {
+pub struct Process {
     pml4: PageBox<PageTable>,
     rip: VirtAddr,
     rsp: VirtAddr,
@@ -197,6 +198,6 @@ impl Pml4Creator {
     }
 }
 
-pub fn switch(rsp: u64) {
-    unimplemented!()
+pub fn switch(rsp: VirtAddr) -> VirtAddr {
+    Manager::switch_process(rsp)
 }
