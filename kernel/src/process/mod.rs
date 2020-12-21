@@ -3,26 +3,20 @@
 mod context;
 mod manager;
 
-use core::{
-    convert::TryInto,
-    sync::atomic::{AtomicUsize, Ordering},
-};
+use core::convert::TryInto;
 
 use crate::{
     gdt::GDT,
     mem::{allocator::page_box::PageBox, paging::pml4::PML4},
 };
-use alloc::vec::Vec;
 use manager::Manager;
-use spinning_top::Spinlock;
 use x86_64::{
-    instructions::interrupts,
     registers::rflags,
     structures::{
         idt::InterruptStackFrameValue,
-        paging::{page_table::PageTableEntry, PageSize, PageTable, PageTableFlags, Size4KiB},
+        paging::{PageSize, PageTable, PageTableFlags, Size4KiB},
     },
-    PhysAddr, VirtAddr,
+    VirtAddr,
 };
 
 fn task_a() {
