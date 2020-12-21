@@ -94,3 +94,23 @@ impl Pml4Creator {
 pub fn switch(rsp: VirtAddr) -> VirtAddr {
     Manager::switch_process(rsp)
 }
+
+#[repr(C)]
+struct StackFrame {
+    _rax: u64,
+    _rbx: u64,
+    _rcx: u64,
+    _rdx: u64,
+    _rsi: u64,
+    _rdi: u64,
+    _r8: u64,
+    _r9: u64,
+    _r10: u64,
+    _r11: u64,
+    _r12: u64,
+    _r13: u64,
+    _r14: u64,
+    _r15: u64,
+
+    _interrupt: InterruptStackFrameValue,
+}
