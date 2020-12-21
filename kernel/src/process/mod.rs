@@ -35,7 +35,6 @@ pub struct Process {
     rsp: VirtAddr,
     stack: PageBox<[u8]>,
     stack_frame: PageBox<[u8]>,
-    running: bool,
 }
 impl Process {
     fn new(f: fn()) -> Self {
@@ -46,7 +45,6 @@ impl Process {
             rsp: stack.virt_addr() + stack.bytes().as_usize(),
             stack,
             stack_frame: PageBox::new_slice(0, Size4KiB::SIZE.try_into().unwrap()),
-            running: true,
         }
     }
 
