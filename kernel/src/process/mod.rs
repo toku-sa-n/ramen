@@ -162,6 +162,10 @@ impl Process {
         self.rsp = VirtAddr::new(rsp);
     }
 
+    fn stack_bottom_addr(&self) -> VirtAddr {
+        self.stack.virt_addr() + self.stack.bytes().as_usize()
+    }
+
     /// Safety: `p` must be a pointer to `Process`.
     unsafe fn exec(p: *mut Self) {
         let t = &mut *p;
