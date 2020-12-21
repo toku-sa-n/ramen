@@ -110,6 +110,7 @@ struct StackFrame {
 }
 
 #[repr(C)]
+#[derive(Default)]
 struct GeneralRegisters {
     _rax: u64,
     _rbx: u64,
