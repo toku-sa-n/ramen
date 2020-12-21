@@ -105,6 +105,12 @@ pub fn switch(rsp: VirtAddr) -> VirtAddr {
 
 #[repr(C)]
 struct StackFrame {
+    regs: GeneralRegisters,
+    _interrupt: InterruptStackFrameValue,
+}
+
+#[repr(C)]
+struct GeneralRegisters {
     _rax: u64,
     _rbx: u64,
     _rcx: u64,
@@ -119,6 +125,4 @@ struct StackFrame {
     _r13: u64,
     _r14: u64,
     _r15: u64,
-
-    _interrupt: InterruptStackFrameValue,
 }
