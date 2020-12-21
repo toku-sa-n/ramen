@@ -12,17 +12,17 @@ pub struct Manager {
     tasks: VecDeque<Process>,
 }
 impl Manager {
-    fn new() -> Self {
-        Self {
-            tasks: VecDeque::new(),
-        }
-    }
-
     pub fn switch_process(rsp: VirtAddr) -> VirtAddr {
         let mut m = MANAGER.lock();
         m.update_rsp_of_current_process(rsp);
         m.change_current_process();
         m.rsp_of_current_task()
+    }
+
+    fn new() -> Self {
+        Self {
+            tasks: VecDeque::new(),
+        }
     }
 
     fn update_rsp_of_current_process(&mut self, rsp: VirtAddr) {
