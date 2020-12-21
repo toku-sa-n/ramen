@@ -16,7 +16,9 @@ pub static GDT: Lazy<Gdt> = Lazy::new(|| {
     let kernel_data = gdt.add_entry(Descriptor::kernel_data_segment());
     let user_data = gdt.add_entry(Descriptor::user_data_segment());
     let user_code = gdt.add_entry(Descriptor::user_code_segment());
-    let tss_selector = gdt.add_entry(Descriptor::tss_segment(&TSS));
+
+    // Safety: This operation is safe because there is no instances of `MutexGuard`.
+    let tss_selector = gdt.add_entry(Descriptor::tss_segment(unsafe { &*TSS.data_ptr() }));
 
     Gdt {
         table: gdt,
