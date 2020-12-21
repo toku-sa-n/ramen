@@ -34,8 +34,8 @@ pub struct Gdt {
     table: GlobalDescriptorTable,
     kernel_data: SegmentSelector,
     kernel_code: SegmentSelector,
-    user_code: SegmentSelector,
-    user_data: SegmentSelector,
+    pub user_code: SegmentSelector,
+    pub user_data: SegmentSelector,
     tss_selector: SegmentSelector,
 }
 
