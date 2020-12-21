@@ -25,9 +25,6 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
-static QUEUE: Spinlock<Vec<Process>> = Spinlock::new(Vec::new());
-static CURRENT: AtomicUsize = AtomicUsize::new(0);
-
 fn task_a() {
     info!("Task A");
     loop {}
