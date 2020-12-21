@@ -6,3 +6,10 @@ use alloc::collections::VecDeque;
 struct Manager {
     tasks: VecDeque<Process>,
 }
+impl Manager {
+    fn new() -> Self {
+        Self {
+            tasks: VecDeque::new(),
+        }
+    }
+}
