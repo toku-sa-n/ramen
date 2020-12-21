@@ -49,28 +49,6 @@ impl Process {
             stack_frame: PageBox::new(StackFrame::new(rip, rsp)),
         }
     }
-
-    fn initial_stack_frame(&self) -> InterruptStackFrameValue {
-        InterruptStackFrameValue {
-            instruction_pointer: self.rip,
-            code_segment: GDT.user_code.0.into(),
-            cpu_flags: rflags::read().bits(),
-            stack_pointer: self.stack_bottom_addr(),
-            stack_segment: GDT.user_data.0.into(),
-        }
-    }
-
-    fn stack_frame_top_addr(&self) -> VirtAddr {
-        self.stack_frame_bottom_addr() - mem::size_of::<StackFrame>()
-    }
-
-    fn stack_frame_bottom_addr(&self) -> VirtAddr {
-        self.stack_frame.virt_addr() + self.stack_frame.bytes().as_usize()
-    }
-
-    fn stack_bottom_addr(&self) -> VirtAddr {
-        self.stack.virt_addr() + self.stack.bytes().as_usize()
-    }
 }
 
 struct Pml4Creator {
