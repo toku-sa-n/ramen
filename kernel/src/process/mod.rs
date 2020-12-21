@@ -106,7 +106,21 @@ pub fn switch(rsp: VirtAddr) -> VirtAddr {
 #[repr(C)]
 struct StackFrame {
     regs: GeneralRegisters,
-    _interrupt: InterruptStackFrameValue,
+    interrupt: InterruptStackFrameValue,
+}
+impl StackFrame {
+    fn new(instruction_pointer: VirtAddr, stack_pointer: VirtAddr) -> Self {
+        Self {
+            regs: GeneralRegisters::default(),
+            interrupt: InterruptStackFrameValue {
+                instruction_pointer,
+                code_segment: GDT.user_code.0.into(),
+                cpu_flags: rflags::read().bits(),
+                stack_pointer,
+                stack_segment: GDT.user_data.0.into(),
+            },
+        }
+    }
 }
 
 #[repr(C)]
