@@ -3,7 +3,7 @@
 mod context;
 mod manager;
 
-use core::convert::TryInto;
+use core::{convert::TryInto, mem};
 
 use crate::{
     gdt::GDT,
@@ -56,6 +56,11 @@ impl Process {
             stack_pointer: self.stack_bottom_addr(),
             stack_segment: GDT.user_data.0.into(),
         }
+    }
+
+    fn stack_frame_top_addr(&self) -> VirtAddr {
+        self.stack_frame.virt_addr() + self.stack_frame.bytes().as_usize()
+            - mem::size_of::<StackFrame>()
     }
 
     fn stack_bottom_addr(&self) -> VirtAddr {
