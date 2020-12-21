@@ -28,11 +28,6 @@ use x86_64::{
 static QUEUE: Spinlock<Vec<Process>> = Spinlock::new(Vec::new());
 static CURRENT: AtomicUsize = AtomicUsize::new(0);
 
-fn init() {
-    QUEUE.lock().push(Process::new(task_a));
-    QUEUE.lock().push(Process::new(task_b));
-}
-
 fn task_a() {
     info!("Task A");
     loop {}
