@@ -195,3 +195,7 @@ impl Pml4Creator {
         self.pml4[510].set_addr(p3, PageTableFlags::PRESENT | PageTableFlags::WRITABLE);
     }
 }
+
+pub fn switch(rsp: u64) {
+    unimplemented!()
+}
