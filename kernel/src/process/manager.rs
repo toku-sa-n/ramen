@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::gdt::GDT;
-
 use super::Process;
 use alloc::collections::VecDeque;
 use conquer_once::spin::Lazy;
