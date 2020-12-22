@@ -6,7 +6,7 @@ use conquer_once::spin::Lazy;
 use spinning_top::Spinlock;
 use x86_64::VirtAddr;
 
-static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
+pub static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
 
 pub struct Manager {
     tasks: VecDeque<Process>,
@@ -17,6 +17,10 @@ impl Manager {
         m.update_rsp_of_current_process(rsp);
         m.change_current_process();
         m.rsp_of_current_task()
+    }
+
+    pub fn add_process(&mut self, p: Process) {
+        self.tasks.push_back(p)
     }
 
     fn new() -> Self {
