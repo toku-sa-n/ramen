@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use crate::gdt::GDT;
+
 use super::Process;
 use alloc::collections::VecDeque;
 use conquer_once::spin::Lazy;
@@ -21,6 +23,24 @@ impl Manager {
 
     pub fn add_process(&mut self, p: Process) {
         self.processes.push_back(p)
+    }
+
+    pub fn start_multiprocessing(&mut self) {
+        let d = u64::from(GDT.user_data.0);
+        let c = u64::from(GDT.user_code.0);
+        let rsp = self.processes[0].stack_bottom_addr().as_u64();
+        let rip = self.processes[0].rip.as_u64();
+
+        unsafe {
+            asm!("
+        push {}
+        push {}
+        pushfq
+        push {}
+        push {}
+        iretq
+        ", in(reg) d, in(reg) rsp, in(reg) c, in(reg) rip)
+        }
     }
 
     fn new() -> Self {
