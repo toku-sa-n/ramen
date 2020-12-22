@@ -6,7 +6,7 @@ use acpi::{platform::IoApic, AcpiTables, InterruptModel};
 use bit_field::BitField;
 use core::convert::TryInto;
 use os_units::Bytes;
-use x86_64::{instructions::interrupts, PhysAddr};
+use x86_64::PhysAddr;
 
 /// Currently this OS does not support multiple I/O APIC.
 
