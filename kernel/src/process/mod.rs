@@ -4,7 +4,7 @@ mod manager;
 
 use core::convert::TryInto;
 
-use crate::{gdt::GDT, mem::allocator::page_box::PageBox};
+use crate::{gdt::GDT, mem::allocator::page_box::PageBox, tss::TSS};
 use manager::{Manager, MANAGER};
 use x86_64::{
     registers::rflags,
@@ -17,8 +17,13 @@ use x86_64::{
 
 pub fn init() {
     let mut m = MANAGER.lock();
+    let pa = Process::new(task_a);
+    let pb = Process::new(task_b);
+
+    TSS.lock().privilege_stack_table[0] = pa.rsp;
+
     m.add_process(Process::new(task_a));
-    m.add_process(Process::new(task_b))
+    m.add_process(Process::new(task_b));
 }
 
 fn task_a() {
