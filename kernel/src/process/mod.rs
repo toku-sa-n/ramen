@@ -49,34 +49,6 @@ impl Process {
     }
 }
 
-struct Pml4Creator {
-    pml4: PageBox<PageTable>,
-}
-impl Pml4Creator {
-    fn new() -> Self {
-        Self {
-            pml4: PageBox::new(PageTable::new()),
-        }
-    }
-
-    fn create(mut self) -> PageBox<PageTable> {
-        self.enable_recursive_mapping();
-        self.map_kernel_regions();
-        self.pml4
-    }
-
-    fn enable_recursive_mapping(&mut self) {
-        let a = self.pml4.phys_addr();
-        self.pml4[511].set_addr(a, PageTableFlags::PRESENT | PageTableFlags::WRITABLE);
-    }
-
-    fn map_kernel_regions(&mut self) {
-        // Kernel region starts from `0xffff_ffff_8000_0000`.
-        let p3 = PML4.lock().level_4_table()[510].addr();
-        self.pml4[510].set_addr(p3, PageTableFlags::PRESENT | PageTableFlags::WRITABLE);
-    }
-}
-
 pub fn switch(rsp: VirtAddr) -> VirtAddr {
     Manager::switch_process(rsp)
 }
