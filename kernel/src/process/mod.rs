@@ -64,12 +64,14 @@ pub fn switch() -> VirtAddr {
 #[repr(C)]
 struct StackFrame {
     regs: GeneralRegisters,
+    _err_code: u64,
     interrupt: InterruptStackFrameValue,
 }
 impl StackFrame {
     fn new(instruction_pointer: VirtAddr, stack_pointer: VirtAddr) -> Self {
         Self {
             regs: GeneralRegisters::default(),
+            _err_code: 0,
             interrupt: InterruptStackFrameValue {
                 instruction_pointer,
                 code_segment: GDT.user_code.0.into(),
