@@ -51,6 +51,10 @@ impl Process {
         }
     }
 
+    fn stack_bottom_addr(&self) -> VirtAddr {
+        self.stack.virt_addr() + self.stack.bytes().as_usize()
+    }
+
     fn stack_frame_bottom_addr(&self) -> VirtAddr {
         self.stack_frame.virt_addr() + self.stack_frame.bytes().as_usize()
     }
