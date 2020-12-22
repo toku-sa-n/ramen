@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod context;
 mod manager;
 
 use core::convert::TryInto;
