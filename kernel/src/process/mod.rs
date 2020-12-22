@@ -22,6 +22,10 @@ pub fn init() {
     m.add_process(Process::new(task_b))
 }
 
+pub fn start() {
+    MANAGER.lock().start_multiprocessing();
+}
+
 fn task_a() {
     info!("Task A");
     loop {}
