@@ -9,7 +9,7 @@ use x86_64::VirtAddr;
 pub static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
 
 pub struct Manager {
-    tasks: VecDeque<Process>,
+    processes: VecDeque<Process>,
 }
 impl Manager {
     pub fn switch_process(rsp: VirtAddr) -> VirtAddr {
@@ -20,24 +20,24 @@ impl Manager {
     }
 
     pub fn add_process(&mut self, p: Process) {
-        self.tasks.push_back(p)
+        self.processes.push_back(p)
     }
 
     fn new() -> Self {
         Self {
-            tasks: VecDeque::new(),
+            processes: VecDeque::new(),
         }
     }
 
     fn update_rsp_of_current_process(&mut self, rsp: VirtAddr) {
-        self.tasks[0].rsp = rsp;
+        self.processes[0].rsp = rsp;
     }
 
     fn change_current_process(&mut self) {
-        self.tasks.rotate_left(1);
+        self.processes.rotate_left(1);
     }
 
     fn rsp_of_current_task(&self) -> VirtAddr {
-        self.tasks[0].rsp
+        self.processes[0].rsp
     }
 }
