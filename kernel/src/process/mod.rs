@@ -30,7 +30,6 @@ fn task_b() {
 }
 
 pub struct Process {
-    pml4: PageBox<PageTable>,
     rip: VirtAddr,
     rsp: VirtAddr,
     stack: PageBox<[u8]>,
@@ -42,7 +41,6 @@ impl Process {
         let rip = VirtAddr::new((f as usize).try_into().unwrap());
         let rsp = stack.virt_addr() + stack.bytes().as_usize();
         Self {
-            pml4: Pml4Creator::new().create(),
             rip,
             rsp,
             stack,
