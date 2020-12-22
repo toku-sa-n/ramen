@@ -148,9 +148,6 @@ pub fn init(table: &AcpiTables<allocator::acpi::Mapper>) {
         init_ps2_keyboard(&mut registers, id);
         init_ps2_mouse(&mut registers, id);
     }
-
-    // Here the operation is in the kernel mode. `syscall` must not be called.
-    interrupts::enable();
 }
 
 fn init_ps2_keyboard(r: &mut Registers, apic_id: u8) {
