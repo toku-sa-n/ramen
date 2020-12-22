@@ -4,7 +4,7 @@ mod manager;
 
 use core::convert::TryInto;
 
-use crate::{gdt::GDT, mem::allocator::page_box::PageBox, tss::TSS};
+use crate::{gdt::GDT, mem::allocator::page_box::PageBox, syscall, tss::TSS};
 use manager::{Manager, MANAGER};
 use x86_64::{
     registers::rflags,
@@ -29,12 +29,16 @@ pub fn init() {
 
 fn task_a() {
     info!("Task A");
-    loop {}
+    loop {
+        syscall::halt();
+    }
 }
 
 fn task_b() {
     info!("Task B");
-    loop {}
+    loop {
+        syscall::halt();
+    }
 }
 
 pub struct Process {
