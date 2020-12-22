@@ -17,13 +17,14 @@ use x86_64::{
 
 pub fn init() {
     let mut m = MANAGER.lock();
+
     let pa = Process::new(task_a);
     let pb = Process::new(task_b);
 
     TSS.lock().privilege_stack_table[0] = pa.rsp;
 
-    m.add_process(Process::new(task_a));
-    m.add_process(Process::new(task_b));
+    m.add_process(pa);
+    m.add_process(pb);
 }
 
 fn task_a() {
