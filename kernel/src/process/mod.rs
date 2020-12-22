@@ -50,6 +50,10 @@ impl Process {
             stack_frame: PageBox::new(StackFrame::new(rip, rsp)),
         }
     }
+
+    fn stack_frame_bottom_addr(&self) -> VirtAddr {
+        self.stack_frame.virt_addr() + self.stack_frame.bytes().as_usize()
+    }
 }
 
 pub fn switch(rsp: VirtAddr) -> VirtAddr {
