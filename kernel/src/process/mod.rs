@@ -21,7 +21,7 @@ pub fn init() {
     let pa = Process::new(task_a);
     let pb = Process::new(task_b);
 
-    TSS.lock().privilege_stack_table[0] = pa.rsp;
+    TSS.lock().privilege_stack_table[0] = pa.stack_frame_bottom_addr();
 
     m.add_process(pa);
     m.add_process(pb);
@@ -38,7 +38,6 @@ fn task_b() {
 }
 
 pub struct Process {
-    rsp: VirtAddr,
     stack: PageBox<[u8]>,
     stack_frame: PageBox<StackFrame>,
 }
@@ -48,7 +47,6 @@ impl Process {
         let rip = VirtAddr::new((f as usize).try_into().unwrap());
         let rsp = stack.virt_addr() + stack.bytes().as_usize();
         Self {
-            rsp,
             stack,
             stack_frame: PageBox::new(StackFrame::new(rip, rsp)),
         }
@@ -63,8 +61,8 @@ impl Process {
     }
 }
 
-pub fn switch(rsp: VirtAddr) -> VirtAddr {
-    Manager::switch_process(rsp)
+pub fn switch() -> VirtAddr {
+    Manager::switch_process()
 }
 
 #[repr(C)]

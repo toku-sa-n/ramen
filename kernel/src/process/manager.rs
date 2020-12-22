@@ -12,11 +12,10 @@ pub struct Manager {
     processes: VecDeque<Process>,
 }
 impl Manager {
-    pub fn switch_process(rsp: VirtAddr) -> VirtAddr {
+    pub fn switch_process() -> VirtAddr {
         let mut m = MANAGER.lock();
-        m.update_rsp_of_current_process(rsp);
         m.change_current_process();
-        m.rsp_of_current_task()
+        m.next_stack_frame_addr()
     }
 
     pub fn add_process(&mut self, p: Process) {
@@ -29,15 +28,11 @@ impl Manager {
         }
     }
 
-    fn update_rsp_of_current_process(&mut self, rsp: VirtAddr) {
-        self.processes[0].rsp = rsp;
-    }
-
     fn change_current_process(&mut self) {
         self.processes.rotate_left(1);
     }
 
-    fn rsp_of_current_task(&self) -> VirtAddr {
-        self.processes[0].rsp
+    fn next_stack_frame_addr(&self) -> VirtAddr {
+        self.processes[0].stack_frame.virt_addr()
     }
 }
