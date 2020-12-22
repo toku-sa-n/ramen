@@ -16,7 +16,7 @@ use x86_64::{
     VirtAddr,
 };
 
-fn init() {
+pub fn init() {
     let mut m = MANAGER.lock();
     m.add_process(Process::new(task_a));
     m.add_process(Process::new(task_b))
