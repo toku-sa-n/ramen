@@ -25,24 +25,6 @@ impl Manager {
         self.processes.push_back(p)
     }
 
-    pub fn start_multiprocessing(&mut self) {
-        let d = u64::from(GDT.user_data.0);
-        let c = u64::from(GDT.user_code.0);
-        let rsp = self.processes[0].stack_bottom_addr().as_u64();
-        let rip = self.processes[0].rip.as_u64();
-
-        unsafe {
-            asm!("
-        push {}
-        push {}
-        pushfq
-        push {}
-        push {}
-        iretq
-        ", in(reg) d, in(reg) rsp, in(reg) c, in(reg) rip)
-        }
-    }
-
     fn new() -> Self {
         Self {
             processes: VecDeque::new(),
