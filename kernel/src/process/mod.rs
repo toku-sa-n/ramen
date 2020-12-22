@@ -9,7 +9,7 @@ use crate::{
     gdt::GDT,
     mem::{allocator::page_box::PageBox, paging::pml4::PML4},
 };
-use manager::Manager;
+use manager::{Manager, MANAGER};
 use x86_64::{
     registers::rflags,
     structures::{
@@ -18,6 +18,12 @@ use x86_64::{
     },
     VirtAddr,
 };
+
+fn init() {
+    let mut m = MANAGER.lock();
+    m.add_process(Process::new(task_a));
+    m.add_process(Process::new(task_b))
+}
 
 fn task_a() {
     info!("Task A");
