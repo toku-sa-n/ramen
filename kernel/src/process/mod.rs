@@ -3,18 +3,15 @@
 mod context;
 mod manager;
 
-use core::{convert::TryInto, mem};
+use core::convert::TryInto;
 
-use crate::{
-    gdt::GDT,
-    mem::{allocator::page_box::PageBox, paging::pml4::PML4},
-};
+use crate::{gdt::GDT, mem::allocator::page_box::PageBox};
 use manager::{Manager, MANAGER};
 use x86_64::{
     registers::rflags,
     structures::{
         idt::InterruptStackFrameValue,
-        paging::{PageSize, PageTable, PageTableFlags, Size4KiB},
+        paging::{PageSize, Size4KiB},
     },
     VirtAddr,
 };
