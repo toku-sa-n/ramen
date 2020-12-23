@@ -4,7 +4,7 @@ mod manager;
 
 use core::convert::TryInto;
 
-use crate::{gdt::GDT, mem::allocator::page_box::PageBox, syscall, tss::TSS};
+use crate::{gdt::GDT, mem::allocator::page_box::PageBox, syscall};
 use manager::{Manager, MANAGER};
 use x86_64::{
     registers::rflags,
@@ -20,8 +20,6 @@ pub fn init() {
 
     let pa = Process::new(task_a);
     let pb = Process::new(task_b);
-
-    TSS.lock().privilege_stack_table[0] = pa.stack_frame_bottom_addr();
 
     m.add_process(pa);
     m.add_process(pb);
