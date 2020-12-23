@@ -89,7 +89,6 @@ pub extern "x86-interrupt" fn h_20(
     unsafe {
         asm!(
             "
-            mov rdi, rsp
             mov rsp, {}
             call {}
             mov rsp, rax
