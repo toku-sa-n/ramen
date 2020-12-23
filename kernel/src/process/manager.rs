@@ -40,6 +40,6 @@ impl Manager {
     }
 
     fn register_new_stack_frame_with_tss(&self) {
-        TSS.lock().privilege_stack_table[0] = self.processes[0].stack_frame_bottom_addr();
+        TSS.lock().privilege_stack_table[0] = self.next_stack_frame_addr();
     }
 }
