@@ -36,11 +36,15 @@ impl Manager {
     }
 
     fn register_current_stack_frame_with_tss(&self) {
-        TSS.lock().privilege_stack_table[0] = self.current_stack_frame_addr();
+        TSS.lock().privilege_stack_table[0] = self.current_stack_frame_bottom_addr();
     }
 
     fn current_stack_frame_addr(&self) -> VirtAddr {
         self.current_process().stack_frame.virt_addr()
+    }
+
+    fn current_stack_frame_bottom_addr(&self) -> VirtAddr {
+        self.current_process().stack_frame_bottom_addr()
     }
 
     fn current_process(&self) -> &Process {
