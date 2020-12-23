@@ -30,14 +30,14 @@ pub fn init() {
 fn task_a() {
     info!("Task A");
     loop {
-        syscall::halt();
+        syscall::enable_interrupt_and_halt();
     }
 }
 
 fn task_b() {
     info!("Task B");
     loop {
-        syscall::halt();
+        syscall::enable_interrupt_and_halt();
     }
 }
 
