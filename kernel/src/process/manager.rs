@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use crate::tss::TSS;
+
 use super::Process;
 use alloc::collections::VecDeque;
 use conquer_once::spin::Lazy;
@@ -15,6 +17,7 @@ impl Manager {
     pub fn switch_process() -> VirtAddr {
         let mut m = MANAGER.lock();
         m.change_current_process();
+        m.register_new_stack_frame_with_tss();
         m.next_stack_frame_addr()
     }
 
@@ -34,5 +37,9 @@ impl Manager {
 
     fn next_stack_frame_addr(&self) -> VirtAddr {
         self.processes[0].stack_frame.virt_addr()
+    }
+
+    fn register_new_stack_frame_with_tss(&self) {
+        TSS.lock().privilege_stack_table[0] = self.processes[0].stack_frame_bottom_addr();
     }
 }
