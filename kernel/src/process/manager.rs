@@ -40,7 +40,7 @@ impl Manager {
     }
 
     fn current_stack_frame_top_addr(&self) -> VirtAddr {
-        self.current_process().stack_frame.virt_addr()
+        self.current_process().stack_frame_top_addr()
     }
 
     fn current_stack_frame_bottom_addr(&self) -> VirtAddr {
