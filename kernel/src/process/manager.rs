@@ -35,11 +35,11 @@ impl Manager {
         self.processes.rotate_left(1);
     }
 
-    fn current_stack_frame_addr(&self) -> VirtAddr {
-        self.processes[0].stack_frame.virt_addr()
-    }
-
     fn register_new_stack_frame_with_tss(&self) {
         TSS.lock().privilege_stack_table[0] = self.current_stack_frame_addr();
+    }
+
+    fn current_stack_frame_addr(&self) -> VirtAddr {
+        self.processes[0].stack_frame.virt_addr()
     }
 }
