@@ -69,15 +69,15 @@ pub fn switch() -> VirtAddr {
 
 #[repr(C)]
 struct StackFrame {
+    _pad: u64, // Stack frame must be aligned to 16-bytes.
     regs: GeneralRegisters,
-    _err_code: u64,
     interrupt: InterruptStackFrameValue,
 }
 impl StackFrame {
     fn new(instruction_pointer: VirtAddr, stack_pointer: VirtAddr) -> Self {
         Self {
+            _pad: 0,
             regs: GeneralRegisters::default(),
-            _err_code: 0,
             interrupt: InterruptStackFrameValue {
                 instruction_pointer,
                 code_segment: GDT.user_code.0.into(),
