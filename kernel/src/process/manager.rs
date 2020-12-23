@@ -40,6 +40,10 @@ impl Manager {
     }
 
     fn current_stack_frame_addr(&self) -> VirtAddr {
-        self.processes[0].stack_frame.virt_addr()
+        self.current_process().stack_frame.virt_addr()
+    }
+
+    fn current_process(&self) -> &Process {
+        &self.processes[0]
     }
 }
