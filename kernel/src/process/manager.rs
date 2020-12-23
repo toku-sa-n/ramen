@@ -17,7 +17,7 @@ impl Manager {
     pub fn switch_process() -> VirtAddr {
         let mut m = MANAGER.lock();
         m.change_current_process();
-        m.register_new_stack_frame_with_tss();
+        m.register_current_stack_frame_with_tss();
         m.current_stack_frame_addr()
     }
 
@@ -35,7 +35,7 @@ impl Manager {
         self.processes.rotate_left(1);
     }
 
-    fn register_new_stack_frame_with_tss(&self) {
+    fn register_current_stack_frame_with_tss(&self) {
         TSS.lock().privilege_stack_table[0] = self.current_stack_frame_addr();
     }
 
