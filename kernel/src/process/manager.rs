@@ -36,7 +36,7 @@ impl Manager {
     }
 
     fn register_current_stack_frame_with_tss(&self) {
-        TSS.lock().privilege_stack_table[0] = self.current_stack_frame_bottom_addr();
+        TSS.lock().interrupt_stack_table[0] = self.current_stack_frame_bottom_addr();
     }
 
     fn current_stack_frame_top_addr(&self) -> VirtAddr {
