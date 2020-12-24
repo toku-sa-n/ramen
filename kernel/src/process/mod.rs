@@ -41,6 +41,7 @@ fn task_b() {
 
 pub struct Process {
     _stack: PageBox<[u8]>,
+    rsp: VirtAddr,
     stack_frame: PageBox<StackFrame>,
 }
 impl Process {
@@ -50,6 +51,7 @@ impl Process {
         let rip = VirtAddr::new((f as usize).try_into().unwrap());
         Self {
             _stack: stack,
+            rsp: stack_bottom_addr,
             stack_frame: PageBox::new(StackFrame::new(rip, stack_bottom_addr)),
         }
     }
