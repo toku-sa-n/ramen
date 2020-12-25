@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::{ptr, str};
+use core::{mem, ptr, str};
 use x86_64::VirtAddr;
+
+use crate::mem::allocator::page_box::PageBox;
 
 pub struct Ustar {
     addr: VirtAddr,
@@ -16,6 +18,24 @@ impl Ustar {
         for m in self.iter() {
             info!("{}", m.name());
         }
+    }
+
+    pub fn content(&self, name: &str) -> Option<PageBox<[u8]>> {
+        let m = self.iter().find(|&m| m.name() == name)?;
+        let m_ptr = m as *const Meta;
+        let cont_ptr = (m_ptr as usize + mem::size_of::<Meta>()) as *const u8;
+
+        let b = PageBox::new_slice(0, m.filesize_as_dec());
+
+        // SAFETY: Both the source and the destination pointers are valid and aligned.
+        unsafe {
+            ptr::copy(
+                cont_ptr,
+                b.virt_addr().as_mut_ptr() as *mut u8,
+                m.filesize_as_dec(),
+            )
+        }
+        Some(b)
     }
 
     fn iter(&self) -> impl Iterator<Item = &'static Meta> {
