@@ -22,20 +22,20 @@ struct Manager {
     processes: VecDeque<Process>,
 }
 impl Manager {
-    fn switch_process(&mut self) -> VirtAddr {
-        self.change_current_process();
-        self.register_current_stack_frame_with_tss();
-        self.current_stack_frame_top_addr()
+    fn new() -> Self {
+        Self {
+            processes: VecDeque::new(),
+        }
     }
 
     fn add_process(&mut self, p: Process) {
         self.processes.push_back(p)
     }
 
-    fn new() -> Self {
-        Self {
-            processes: VecDeque::new(),
-        }
+    fn switch_process(&mut self) -> VirtAddr {
+        self.change_current_process();
+        self.register_current_stack_frame_with_tss();
+        self.current_stack_frame_top_addr()
     }
 
     fn change_current_process(&mut self) {
