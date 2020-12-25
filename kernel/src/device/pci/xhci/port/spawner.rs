@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use alloc::sync::Arc;
+use alloc::{sync::Arc, vec, vec::Vec};
+use conquer_once::spin::Lazy;
 use multitask::task::Task;
 use spinning_top::Spinlock;
 
@@ -8,6 +9,9 @@ use crate::{
     device::pci::xhci::exchanger::{command, receiver::Receiver},
     multitask, Futurelock,
 };
+
+static SPAWN_STATUS: Lazy<Spinlock<Vec<bool>>> =
+    Lazy::new(|| Spinlock::new(vec![false; super::max_num().into()]));
 
 use super::Port;
 
