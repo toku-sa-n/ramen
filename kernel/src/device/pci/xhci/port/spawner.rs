@@ -21,8 +21,15 @@ pub fn init(sender: Arc<Futurelock<command::Sender>>, receiver: Arc<Spinlock<Rec
 }
 
 pub fn spawn_all_connected_ports() {
-    let s = SPAWNER.try_get().expect("SPAWNER is not initialized.");
-    s.spawn_all_connected_ports();
+    spawner().spawn_all_connected_ports();
+}
+
+pub fn try_spawn(port_idx: u8) -> Result<(), PortNotConnected> {
+    spawner().try_spawn(port_idx)
+}
+
+fn spawner() -> &'static Spawner {
+    SPAWNER.try_get().expect("SPAWNER is not initialized.")
 }
 
 struct Spawner {
@@ -78,4 +85,4 @@ fn mark_as_spawned(p: &Port) {
 }
 
 #[derive(Debug)]
-struct PortNotConnected;
+pub struct PortNotConnected;

@@ -57,6 +57,10 @@ impl ResetPort {
     }
 }
 
+pub fn try_spawn(port_idx: u8) -> Result<(), spawner::PortNotConnected> {
+    spawner::try_spawn(port_idx)
+}
+
 async fn task(
     port: Port,
     runner: Arc<Futurelock<command::Sender>>,
@@ -102,7 +106,10 @@ async fn init_port_and_slot(
     endpoint::Collection::new(slot, runner).await
 }
 
-pub fn spawn_tasks(sender: Arc<Futurelock<command::Sender>>, receiver: Arc<Spinlock<Receiver>>) {
+pub fn spawn_all_connected_port_tasks(
+    sender: Arc<Futurelock<command::Sender>>,
+    receiver: Arc<Spinlock<Receiver>>,
+) {
     spawner::init(sender, receiver);
     spawner::spawn_all_connected_ports();
 }
