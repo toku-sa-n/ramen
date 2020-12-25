@@ -16,6 +16,12 @@ static SPAWNER: OnceCell<Spawner> = OnceCell::uninit();
 
 use super::Port;
 
+fn init(sender: Arc<Futurelock<command::Sender>>, receiver: Arc<Spinlock<Receiver>>) {
+    SPAWNER
+        .try_init_once(|| Spawner::new(sender, receiver))
+        .expect("SPAWNER is already initialized.")
+}
+
 pub struct Spawner {
     sender: Arc<Futurelock<command::Sender>>,
     receiver: Arc<Spinlock<Receiver>>,
