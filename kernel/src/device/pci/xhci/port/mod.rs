@@ -15,6 +15,7 @@ use conquer_once::spin::Lazy;
 use futures_util::task::AtomicWaker;
 use resetter::Resetter;
 use slot::Slot;
+use spawner::Spawner;
 use spinning_top::Spinlock;
 
 mod class_driver;
@@ -22,6 +23,7 @@ mod context;
 mod endpoint;
 mod resetter;
 mod slot;
+mod spawner;
 
 static CURRENT_RESET_PORT: Lazy<Spinlock<ResetPort>> =
     Lazy::new(|| Spinlock::new(ResetPort::new()));
@@ -101,24 +103,12 @@ async fn init_port_and_slot(
     endpoint::Collection::new(slot, runner).await
 }
 
-pub fn spawn_tasks(
-    command_runner: &Arc<Futurelock<command::Sender>>,
-    receiver: &Arc<Spinlock<Receiver>>,
-) {
-    let ports_num = num_of_ports();
-    for i in 0..ports_num {
-        let port = Port::new(i + 1);
-        if port.connected() {
-            multitask::add(Task::new(task(
-                port,
-                command_runner.clone(),
-                receiver.clone(),
-            )));
-        }
-    }
+pub fn spawn_tasks(sender: Arc<Futurelock<command::Sender>>, receiver: Arc<Spinlock<Receiver>>) {
+    let s = Spawner::new(sender, receiver);
+    s.scan_all_ports_and_spawn();
 }
 
-fn num_of_ports() -> u8 {
+fn max_num() -> u8 {
     super::handle_registers(|r| {
         let params1 = r.capability.hcs_params_1.read();
         params1.max_ports()
