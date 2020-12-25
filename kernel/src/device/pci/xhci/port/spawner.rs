@@ -27,19 +27,16 @@ pub fn spawn_all_connected_ports() {
     s.spawn_all_connected_ports();
 }
 
-pub struct Spawner {
+struct Spawner {
     sender: Arc<Futurelock<command::Sender>>,
     receiver: Arc<Spinlock<Receiver>>,
 }
 impl Spawner {
-    pub fn new(
-        sender: Arc<Futurelock<command::Sender>>,
-        receiver: Arc<Spinlock<Receiver>>,
-    ) -> Self {
+    fn new(sender: Arc<Futurelock<command::Sender>>, receiver: Arc<Spinlock<Receiver>>) -> Self {
         Self { sender, receiver }
     }
 
-    pub fn spawn_all_connected_ports(&self) {
+    fn spawn_all_connected_ports(&self) {
         let n = super::max_num();
         for i in 0..n {
             let _ = self.try_spawn(i + 1);
