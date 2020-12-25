@@ -84,6 +84,9 @@ pub extern "x86-interrupt" fn h_20(
 ) {
     // Here, the stack pointer points the stack frame of the current task. By cloberring registers,
     // the state will be stored on the stack frame.
+    //
+    // SAFETY: This operation is safe. `rax` contains the address to the top of the stack frame of
+    // the new process. It does not violate any memory safety.
     unsafe {
         asm!(
             "
