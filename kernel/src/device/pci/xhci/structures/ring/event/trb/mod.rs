@@ -31,6 +31,10 @@ impl TryFrom<[u32; 4]> for Trb {
 add_trb!(PortStatusChange);
 impl PortStatusChange {
     const ID: u8 = 34;
+
+    fn port(&self) -> u8 {
+        self.0[0].get_bits(24..=31).try_into().unwrap()
+    }
 }
 
 #[derive(Debug)]
