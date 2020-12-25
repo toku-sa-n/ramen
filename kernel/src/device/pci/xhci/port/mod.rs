@@ -103,7 +103,7 @@ async fn init_port_and_slot(
 }
 
 pub fn spawn_tasks(sender: Arc<Futurelock<command::Sender>>, receiver: Arc<Spinlock<Receiver>>) {
-    spawner::init(sender.clone(), receiver.clone());
+    spawner::init(sender, receiver);
     spawner::spawn_all_connected_ports();
 }
 
