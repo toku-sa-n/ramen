@@ -25,6 +25,11 @@ pub fn spawn_all_connected_ports() {
     s.spawn_all_connected_ports();
 }
 
+pub fn try_spawn(port_idx: u8) -> Result<(), PortNotConnected> {
+    let s = SPAWNER.try_get().expect("SPAWNER is not initialized.");
+    s.try_spawn(port_idx)
+}
+
 struct Spawner {
     sender: Arc<Futurelock<command::Sender>>,
     receiver: Arc<Spinlock<Receiver>>,
