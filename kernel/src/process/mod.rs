@@ -4,9 +4,9 @@ mod manager;
 
 use core::convert::TryInto;
 
-use crate::{gdt::GDT, mem::allocator::page_box::PageBox, syscall, tss::TSS};
+use crate::{gdt::GDT, mem::allocator::page_box::PageBox, tss::TSS};
 use common::constant::INTERRUPT_STACK;
-use manager::{Manager, MANAGER};
+use manager::Manager;
 use x86_64::{
     registers::rflags,
     structures::{
@@ -17,29 +17,7 @@ use x86_64::{
 };
 
 pub fn init() {
-    let mut m = MANAGER.lock();
-
-    let pa = Process::new(task_a);
-    let pb = Process::new(task_b);
-
     TSS.lock().interrupt_stack_table[0] = INTERRUPT_STACK;
-
-    m.add_process(pa);
-    m.add_process(pb);
-}
-
-fn task_a() {
-    info!("Task A");
-    loop {
-        syscall::enable_interrupt_and_halt();
-    }
-}
-
-fn task_b() {
-    info!("Task B");
-    loop {
-        syscall::enable_interrupt_and_halt();
-    }
 }
 
 pub struct Process {
