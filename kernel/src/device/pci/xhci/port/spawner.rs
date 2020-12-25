@@ -58,6 +58,10 @@ impl Spawner {
     }
 }
 
+fn spawnable(p: &Port) -> bool {
+    p.connected() && !spawned(p)
+}
+
 fn spawned(p: &Port) -> bool {
     SPAWN_STATUS.lock()[usize::from(p.index)]
 }
