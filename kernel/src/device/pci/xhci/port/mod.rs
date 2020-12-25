@@ -103,11 +103,8 @@ async fn init_port_and_slot(
     endpoint::Collection::new(slot, runner).await
 }
 
-pub fn spawn_tasks(
-    command_runner: Arc<Futurelock<command::Sender>>,
-    receiver: Arc<Spinlock<Receiver>>,
-) {
-    let s = Spawner::new(command_runner, receiver);
+pub fn spawn_tasks(sender: Arc<Futurelock<command::Sender>>, receiver: Arc<Spinlock<Receiver>>) {
+    let s = Spawner::new(sender, receiver);
     s.scan_all_ports_and_spawn();
 }
 
