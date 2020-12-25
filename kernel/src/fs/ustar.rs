@@ -3,11 +3,11 @@
 use core::{ptr, str};
 use x86_64::VirtAddr;
 
-pub struct UStar {
+pub struct Ustar {
     addr: VirtAddr,
 }
-impl UStar {
-    /// Safety: `addr` must be the valid address to the data of UStar.
+impl Ustar {
+    /// Safety: `addr` must be the valid address to the data of ustar.
     pub unsafe fn new(addr: VirtAddr) -> Self {
         Self { addr }
     }
@@ -19,7 +19,7 @@ impl UStar {
     }
 
     fn iter(&self) -> impl Iterator<Item = &'static Meta> {
-        // SAFETY: `UStar::new` ensures `self.addr` is a valid address to the head of UStar data.
+        // SAFETY: `Ustar::new` ensures `self.addr` is a valid address to the head of ustar data.
         unsafe { Iter::new(self.addr) }
     }
 }
@@ -28,7 +28,7 @@ struct Iter {
     p: VirtAddr,
 }
 impl Iter {
-    /// Safety: `p` must be a valid address to the head of UStar data.
+    /// Safety: `p` must be a valid address to the head of ustar data.
     unsafe fn new(p: VirtAddr) -> Self {
         Self { p }
     }

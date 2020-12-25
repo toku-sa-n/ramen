@@ -45,7 +45,7 @@ use device::{
     keyboard, mouse,
     pci::{ahci, xhci},
 };
-use fs::ustar::UStar;
+use fs::ustar::Ustar;
 use futures_intrusive::sync::GenericMutex;
 use graphics::{
     screen::{self, desktop::Desktop, layer},
@@ -105,7 +105,7 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     info!("Vram information: {}", Vram::display());
 
     // SAFETY: `INITRD_ADDR` is the valid address to UStar data.
-    let ustar = unsafe { UStar::new(INITRD_ADDR) };
+    let ustar = unsafe { Ustar::new(INITRD_ADDR) };
     ustar.list();
 
     process::init();
