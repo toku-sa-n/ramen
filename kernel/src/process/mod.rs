@@ -6,7 +6,7 @@ use core::convert::TryInto;
 
 use crate::{gdt::GDT, mem::allocator::page_box::PageBox, tss::TSS};
 use common::constant::INTERRUPT_STACK;
-use manager::Manager;
+use manager::{Manager, MANAGER};
 use x86_64::{
     registers::rflags,
     structures::{
@@ -18,6 +18,10 @@ use x86_64::{
 
 pub fn init() {
     TSS.lock().interrupt_stack_table[0] = INTERRUPT_STACK;
+}
+
+pub fn add(p: Process) {
+    MANAGER.lock().add_process(p);
 }
 
 pub struct Process {
