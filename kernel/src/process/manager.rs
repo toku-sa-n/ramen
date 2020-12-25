@@ -8,7 +8,7 @@ use conquer_once::spin::Lazy;
 use spinning_top::Spinlock;
 use x86_64::VirtAddr;
 
-pub static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
+static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
 
 pub fn add_process(p: Process) {
     MANAGER.lock().add_process(p);
@@ -18,17 +18,17 @@ pub fn switch_process() -> VirtAddr {
     MANAGER.lock().switch_process()
 }
 
-pub struct Manager {
+struct Manager {
     processes: VecDeque<Process>,
 }
 impl Manager {
-    pub fn switch_process(&mut self) -> VirtAddr {
+    fn switch_process(&mut self) -> VirtAddr {
         self.change_current_process();
         self.register_current_stack_frame_with_tss();
         self.current_stack_frame_top_addr()
     }
 
-    pub fn add_process(&mut self, p: Process) {
+    fn add_process(&mut self, p: Process) {
         self.processes.push_back(p)
     }
 
