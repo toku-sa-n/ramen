@@ -6,7 +6,6 @@ use core::convert::TryInto;
 
 use crate::{gdt::GDT, mem::allocator::page_box::PageBox, tss::TSS};
 use common::constant::INTERRUPT_STACK;
-use manager::Manager;
 use x86_64::{
     registers::rflags,
     structures::{
@@ -25,7 +24,7 @@ pub fn add(p: Process) {
 }
 
 pub fn switch() -> VirtAddr {
-    Manager::switch_process()
+    manager::switch_process()
 }
 
 pub struct Process {

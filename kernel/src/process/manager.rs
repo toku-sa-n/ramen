@@ -14,15 +14,18 @@ pub fn add_process(p: Process) {
     MANAGER.lock().add_process(p);
 }
 
+pub fn switch_process() -> VirtAddr {
+    MANAGER.lock().switch_process()
+}
+
 pub struct Manager {
     processes: VecDeque<Process>,
 }
 impl Manager {
-    pub fn switch_process() -> VirtAddr {
-        let mut m = MANAGER.lock();
-        m.change_current_process();
-        m.register_current_stack_frame_with_tss();
-        m.current_stack_frame_top_addr()
+    pub fn switch_process(&mut self) -> VirtAddr {
+        self.change_current_process();
+        self.register_current_stack_frame_with_tss();
+        self.current_stack_frame_top_addr()
     }
 
     pub fn add_process(&mut self, p: Process) {
