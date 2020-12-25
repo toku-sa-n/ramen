@@ -20,6 +20,13 @@ impl Spawner {
         Self { sender, receiver }
     }
 
+    fn scan_all_ports_and_spawn(&self) {
+        let n = super::max_num();
+        for i in 0..n {
+            let _ = self.try_spawn(i);
+        }
+    }
+
     fn try_spawn(&self, port_idx: u8) -> Result<(), PortNotConnected> {
         let p = Port::new(port_idx);
         if p.connected() {
