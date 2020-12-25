@@ -24,6 +24,10 @@ pub fn add(p: Process) {
     MANAGER.lock().add_process(p);
 }
 
+pub fn switch() -> VirtAddr {
+    Manager::switch_process()
+}
+
 pub struct Process {
     _stack: PageBox<[u8]>,
     stack_frame: PageBox<StackFrame>,
@@ -46,10 +50,6 @@ impl Process {
     fn stack_frame_bottom_addr(&self) -> VirtAddr {
         self.stack_frame_top_addr() + self.stack_frame.bytes().as_usize()
     }
-}
-
-pub fn switch() -> VirtAddr {
-    Manager::switch_process()
 }
 
 #[repr(C)]
