@@ -104,6 +104,8 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     info!("Vram information: {}", Vram::display());
 
     fs::ustar::list_files(INITRD_ADDR);
+
+    process::init();
 }
 
 #[cfg(not(feature = "qemu_test"))]
