@@ -13,13 +13,44 @@ impl UStar {
     }
 
     pub fn list(&self) {
-        let mut p = self.addr;
-        while unsafe {
-            ptr::read_unaligned((p + 257_u64).as_ptr() as *const [u8; 5]) == *"ustar".as_bytes()
-        } {
-            let meta: Meta = unsafe { ptr::read_unaligned(p.as_ptr()) };
-            info!("{}", str::from_utf8(&meta.name).unwrap());
-            p += (((meta.filesize_as_dec() + 511) / 512) + 1) * 512;
+        for m in self.iter() {
+            info!("{}", str::from_utf8(&m.name).unwrap());
+        }
+    }
+
+    fn iter(&self) -> impl Iterator<Item = &'static Meta> {
+        // SAFETY: `UStar::new` ensures `self.addr` is a valid address to the head of UStar data.
+        unsafe { Iter::new(self.addr) }
+    }
+}
+
+struct Iter {
+    p: VirtAddr,
+}
+impl Iter {
+    /// Safety: `p` must be a valid address to the head of UStar data.
+    unsafe fn new(p: VirtAddr) -> Self {
+        Self { p }
+    }
+
+    fn correct_magic_number(&self) -> bool {
+        // SAFETY: This operation is safe as `self.p` is a valid address.
+        unsafe {
+            ptr::read_unaligned((self.p + 257_u64).as_ptr() as *const [u8; 5])
+                == *"ustar".as_bytes()
+        }
+    }
+}
+impl Iterator for Iter {
+    type Item = &'static Meta;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.correct_magic_number() {
+            let meta: &Meta = unsafe { &*self.p.as_ptr() };
+            self.p += (((meta.filesize_as_dec() + 511) / 512) + 1) * 512;
+            Some(meta)
+        } else {
+            None
         }
     }
 }
