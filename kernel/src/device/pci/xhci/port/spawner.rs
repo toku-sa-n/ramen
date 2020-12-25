@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use alloc::{sync::Arc, vec, vec::Vec};
-use conquer_once::spin::Lazy;
+use conquer_once::spin::{Lazy, OnceCell};
 use multitask::task::Task;
 use spinning_top::Spinlock;
 
@@ -12,6 +12,7 @@ use crate::{
 
 static SPAWN_STATUS: Lazy<Spinlock<Vec<bool>>> =
     Lazy::new(|| Spinlock::new(vec![false; super::max_num().into()]));
+static SPAWNER: OnceCell<Spawner> = OnceCell::uninit();
 
 use super::Port;
 
