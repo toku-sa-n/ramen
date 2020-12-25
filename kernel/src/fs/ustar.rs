@@ -3,12 +3,23 @@
 use core::{ptr, str};
 use x86_64::VirtAddr;
 
-struct UStar {
+pub struct UStar {
     addr: VirtAddr,
 }
 impl UStar {
-    fn new(addr: VirtAddr) -> Self {
+    pub fn new(addr: VirtAddr) -> Self {
         Self { addr }
+    }
+
+    pub fn list(&self) {
+        let mut p = self.addr;
+        while unsafe {
+            ptr::read_unaligned((p + 257_u64).as_ptr() as *const [u8; 5]) == *"ustar".as_bytes()
+        } {
+            let meta: Meta = unsafe { ptr::read_unaligned(p.as_ptr()) };
+            info!("{}", str::from_utf8(&meta.name).unwrap());
+            p += (((meta.filesize_as_dec() + 511) / 512) + 1) * 512;
+        }
     }
 }
 
@@ -42,16 +53,5 @@ impl Meta {
             sz += usize::from(self.size[d] - b'0');
         }
         sz
-    }
-}
-
-pub fn list_files(addr: VirtAddr) {
-    let mut p = addr;
-    while unsafe {
-        ptr::read_unaligned((p + 257_u64).as_ptr() as *const [u8; 5]) == *"ustar".as_bytes()
-    } {
-        let meta: Meta = unsafe { ptr::read_unaligned(p.as_ptr()) };
-        info!("{}", str::from_utf8(&meta.name).unwrap());
-        p += (((meta.filesize_as_dec() + 511) / 512) + 1) * 512;
     }
 }
