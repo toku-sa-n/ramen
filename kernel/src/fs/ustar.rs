@@ -3,6 +3,15 @@
 use core::{ptr, str};
 use x86_64::VirtAddr;
 
+struct UStar {
+    addr: VirtAddr,
+}
+impl UStar {
+    fn new(addr: VirtAddr) -> Self {
+        Self { addr }
+    }
+}
+
 #[repr(C, packed)]
 struct Meta {
     name: [u8; 100],
