@@ -23,15 +23,19 @@ impl Spawner {
     fn try_spawn(&self, port_idx: u8) -> Result<(), PortNotConnected> {
         let p = Port::new(port_idx);
         if p.connected() {
-            multitask::add(Task::new(super::task(
-                p,
-                self.sender.clone(),
-                self.receiver.clone(),
-            )));
+            self.spawn(p);
             Ok(())
         } else {
             Err(PortNotConnected)
         }
+    }
+
+    fn spawn(&self, p: Port) {
+        multitask::add(Task::new(super::task(
+            p,
+            self.sender.clone(),
+            self.receiver.clone(),
+        )));
     }
 }
 
