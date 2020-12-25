@@ -1,20 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use super::Port;
+use crate::{
+    device::pci::xhci::exchanger::{command, receiver::Receiver},
+    multitask, Futurelock,
+};
 use alloc::{sync::Arc, vec, vec::Vec};
 use conquer_once::spin::{Lazy, OnceCell};
 use multitask::task::Task;
 use spinning_top::Spinlock;
 
-use crate::{
-    device::pci::xhci::exchanger::{command, receiver::Receiver},
-    multitask, Futurelock,
-};
-
 static SPAWN_STATUS: Lazy<Spinlock<Vec<bool>>> =
     Lazy::new(|| Spinlock::new(vec![false; super::max_num().into()]));
 static SPAWNER: OnceCell<Spawner> = OnceCell::uninit();
-
-use super::Port;
 
 pub fn init(sender: Arc<Futurelock<command::Sender>>, receiver: Arc<Spinlock<Receiver>>) {
     SPAWNER
