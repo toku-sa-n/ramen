@@ -22,6 +22,11 @@ pub fn init(sender: Arc<Futurelock<command::Sender>>, receiver: Arc<Spinlock<Rec
         .expect("SPAWNER is already initialized.")
 }
 
+pub fn spawn_all_connected_ports() {
+    let s = SPAWNER.try_get().expect("SPAWNER is not initialized.");
+    s.scan_all_ports_and_spawn();
+}
+
 pub struct Spawner {
     sender: Arc<Futurelock<command::Sender>>,
     receiver: Arc<Spinlock<Receiver>>,
