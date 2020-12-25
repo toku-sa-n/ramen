@@ -30,7 +30,7 @@ pub async fn task() {
 
     let (event_ring, runner, command_completion_receiver) = init();
 
-    port::spawn_tasks(&runner, &command_completion_receiver);
+    port::spawn_tasks(runner.clone(), command_completion_receiver.clone());
 
     multitask::add(Task::new_poll(event::task(
         event_ring,
