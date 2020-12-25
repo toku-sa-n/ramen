@@ -10,6 +10,10 @@ use x86_64::VirtAddr;
 
 pub static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
 
+pub fn add_process(p: Process) {
+    MANAGER.lock().add_process(p);
+}
+
 pub struct Manager {
     processes: VecDeque<Process>,
 }
