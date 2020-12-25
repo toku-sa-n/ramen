@@ -7,7 +7,8 @@ pub struct UStar {
     addr: VirtAddr,
 }
 impl UStar {
-    pub fn new(addr: VirtAddr) -> Self {
+    /// Safety: `addr` must be the valid address to the data of UStar.
+    pub unsafe fn new(addr: VirtAddr) -> Self {
         Self { addr }
     }
 
