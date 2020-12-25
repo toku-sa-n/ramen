@@ -106,7 +106,7 @@ pub fn spawn_tasks(
     command_runner: &Arc<Futurelock<command::Sender>>,
     receiver: &Arc<Spinlock<Receiver>>,
 ) {
-    let ports_num = num_of_ports();
+    let ports_num = max_num();
     for i in 0..ports_num {
         let port = Port::new(i + 1);
         if port.connected() {
@@ -119,7 +119,7 @@ pub fn spawn_tasks(
     }
 }
 
-fn num_of_ports() -> u8 {
+fn max_num() -> u8 {
     super::handle_registers(|r| {
         let params1 = r.capability.hcs_params_1.read();
         params1.max_ports()
