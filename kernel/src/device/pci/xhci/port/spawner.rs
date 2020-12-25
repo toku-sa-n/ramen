@@ -58,6 +58,10 @@ impl Spawner {
     }
 }
 
+fn spawned(p: &Port) -> bool {
+    SPAWN_STATUS.lock()[usize::from(p.index)]
+}
+
 fn mark_as_spawned(p: &Port) {
     SPAWN_STATUS.lock()[usize::from(p.index)] = true;
 }
