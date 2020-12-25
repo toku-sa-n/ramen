@@ -19,6 +19,9 @@ static IDT: Lazy<InterruptDescriptorTable> = Lazy::new(|| {
     idt[0x10].set_handler_fn(interrupt::handler::h_10);
     idt[0x13].set_handler_fn(interrupt::handler::h_13);
     idt[0x14].set_handler_fn(interrupt::handler::h_14);
+
+    // SAFETY: This operation is safe as the stack index 0 is allocated for the timer
+    // interruption.
     unsafe {
         idt[0x20]
             .set_handler_fn(interrupt::handler::h_20)
