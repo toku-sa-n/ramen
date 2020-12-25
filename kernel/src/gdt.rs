@@ -16,7 +16,10 @@ pub static GDT: Lazy<Gdt> = Lazy::new(|| {
     let kernel_data = gdt.add_entry(Descriptor::kernel_data_segment());
     let user_data = gdt.add_entry(Descriptor::user_data_segment());
     let user_code = gdt.add_entry(Descriptor::user_code_segment());
-    let tss_selector = gdt.add_entry(Descriptor::tss_segment(&TSS));
+
+    // SAFETY: This operation is safe because there is no instances of `MutexGuard` which wraps
+    // `TSS`.
+    let tss_selector = gdt.add_entry(Descriptor::tss_segment(unsafe { &*TSS.data_ptr() }));
 
     Gdt {
         table: gdt,
@@ -32,8 +35,8 @@ pub struct Gdt {
     table: GlobalDescriptorTable,
     kernel_data: SegmentSelector,
     kernel_code: SegmentSelector,
-    user_code: SegmentSelector,
-    user_data: SegmentSelector,
+    pub user_code: SegmentSelector,
+    pub user_data: SegmentSelector,
     tss_selector: SegmentSelector,
 }
 

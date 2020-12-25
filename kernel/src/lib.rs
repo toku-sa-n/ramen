@@ -36,6 +36,7 @@ mod interrupt;
 mod mem;
 mod multitask;
 mod panic;
+mod process;
 mod syscall;
 mod tss;
 
@@ -52,6 +53,7 @@ use graphics::{
 use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
+use process::Process;
 use spinning_top::RawSpinlock;
 pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 
@@ -59,8 +61,7 @@ pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 #[start]
 pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
     init(&mut boot_info);
-
-    run_tasks();
+    wait_until_timer_interrupt_happens();
 }
 
 fn init(boot_info: &mut kernelboot::Info) {
@@ -103,6 +104,16 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     info!("Vram information: {}", Vram::display());
 
     fs::ustar::list_files(INITRD_ADDR);
+
+    process::init();
+
+    process::add(Process::new(run_tasks));
+}
+
+fn wait_until_timer_interrupt_happens() -> ! {
+    loop {
+        syscall::enable_interrupt_and_halt()
+    }
 }
 
 #[cfg(not(feature = "qemu_test"))]
