@@ -26,7 +26,7 @@ impl Spawner {
     pub fn scan_all_ports_and_spawn(&self) {
         let n = super::max_num();
         for i in 0..n {
-            let _ = self.try_spawn(i);
+            let _ = self.try_spawn(i + 1);
         }
     }
 
