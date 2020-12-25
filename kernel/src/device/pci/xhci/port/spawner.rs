@@ -36,7 +36,7 @@ impl Spawner {
 
     fn try_spawn(&self, port_idx: u8) -> Result<(), PortNotConnected> {
         let p = Port::new(port_idx);
-        if p.connected() {
+        if spawnable(&p) {
             self.spawn(p);
             Ok(())
         } else {
