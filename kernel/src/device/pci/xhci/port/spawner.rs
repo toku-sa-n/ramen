@@ -11,16 +11,19 @@ use crate::{
 
 use super::Port;
 
-struct Spawner {
+pub struct Spawner {
     sender: Arc<Futurelock<command::Sender>>,
     receiver: Arc<Spinlock<Receiver>>,
 }
 impl Spawner {
-    fn new(sender: Arc<Futurelock<command::Sender>>, receiver: Arc<Spinlock<Receiver>>) -> Self {
+    pub fn new(
+        sender: Arc<Futurelock<command::Sender>>,
+        receiver: Arc<Spinlock<Receiver>>,
+    ) -> Self {
         Self { sender, receiver }
     }
 
-    fn scan_all_ports_and_spawn(&self) {
+    pub fn scan_all_ports_and_spawn(&self) {
         let n = super::max_num();
         for i in 0..n {
             let _ = self.try_spawn(i);
