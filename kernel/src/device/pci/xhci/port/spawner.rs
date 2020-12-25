@@ -45,6 +45,7 @@ impl Spawner {
     }
 
     fn spawn(&self, p: Port) {
+        mark_as_spawned(&p);
         self.add_task_for_port(p);
     }
 
