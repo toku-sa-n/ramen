@@ -57,6 +57,10 @@ impl ResetPort {
     }
 }
 
+pub fn try_spawn(port_idx: u8) -> Result<(), spawner::PortNotConnected> {
+    spawner::try_spawn(port_idx)
+}
+
 async fn task(
     port: Port,
     runner: Arc<Futurelock<command::Sender>>,

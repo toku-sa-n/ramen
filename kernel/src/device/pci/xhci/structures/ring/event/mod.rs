@@ -20,6 +20,7 @@ use x86_64::{
     structures::paging::{PageSize, Size4KiB},
     PhysAddr,
 };
+use xhci::port;
 
 mod segment_table;
 pub mod trb;
@@ -31,6 +32,8 @@ pub async fn task(mut ring: Ring, command_completion_receiver: Arc<Spinlock<Rece
         if let Trb::Completion(trb) = trb {
             debug!("Command completion TRB arrived.");
             command_completion_receiver.lock().receive(trb);
+        } else if let Trb::PortStatusChange(t) = trb {
+            let _ = port::try_spawn(t.port());
         }
     }
 }
