@@ -45,6 +45,10 @@ impl Spawner {
     }
 
     fn spawn(&self, p: Port) {
+        self.add_task_for_port(p);
+    }
+
+    fn add_task_for_port(&self, p: Port) {
         multitask::add(Task::new(super::task(
             p,
             self.sender.clone(),
