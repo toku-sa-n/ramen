@@ -14,7 +14,7 @@ impl UStar {
 
     pub fn list(&self) {
         for m in self.iter() {
-            info!("{}", str::from_utf8(&m.name).unwrap());
+            info!("{}", m.name());
         }
     }
 
@@ -76,6 +76,10 @@ struct Meta {
     _rsvd: [u8; 12],
 }
 impl Meta {
+    fn name(&self) -> &str {
+        str::from_utf8(&self.name).unwrap().trim_matches('\0')
+    }
+
     fn filesize_as_dec(&self) -> usize {
         let mut sz: usize = 0;
 
