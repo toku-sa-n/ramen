@@ -24,7 +24,7 @@ pub fn init(sender: Arc<Futurelock<command::Sender>>, receiver: Arc<Spinlock<Rec
 
 pub fn spawn_all_connected_ports() {
     let s = SPAWNER.try_get().expect("SPAWNER is not initialized.");
-    s.scan_all_ports_and_spawn();
+    s.spawn_all_connected_ports();
 }
 
 pub struct Spawner {
@@ -39,7 +39,7 @@ impl Spawner {
         Self { sender, receiver }
     }
 
-    pub fn scan_all_ports_and_spawn(&self) {
+    pub fn spawn_all_connected_ports(&self) {
         let n = super::max_num();
         for i in 0..n {
             let _ = self.try_spawn(i + 1);
