@@ -45,6 +45,7 @@ use device::{
     keyboard, mouse,
     pci::{ahci, xhci},
 };
+use fs::ustar::Ustar;
 use futures_intrusive::sync::GenericMutex;
 use graphics::{
     screen::{self, desktop::Desktop, layer},
@@ -103,7 +104,9 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     info!("Hello Ramen OS!");
     info!("Vram information: {}", Vram::display());
 
-    fs::ustar::list_files(INITRD_ADDR);
+    // SAFETY: `INITRD_ADDR` is the valid address to UStar data.
+    let ustar = unsafe { Ustar::new(INITRD_ADDR) };
+    ustar.list();
 
     process::init();
 
