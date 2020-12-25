@@ -57,5 +57,9 @@ impl Spawner {
     }
 }
 
+fn mark_as_spawned(p: &Port) {
+    SPAWN_STATUS.lock()[usize::from(p.index)] = true;
+}
+
 #[derive(Debug)]
 struct PortNotConnected;
