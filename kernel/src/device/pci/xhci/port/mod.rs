@@ -78,7 +78,7 @@ async fn task(
             let kbd = class_driver::keyboard::Keyboard::new(eps);
             multitask::add(Task::new_poll(class_driver::keyboard::task(kbd)));
         }
-        _ => {}
+        t => warn!("Unknown device: {:?}", t),
     }
 }
 
