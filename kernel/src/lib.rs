@@ -115,7 +115,7 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
 
 fn wait_until_timer_interrupt_happens() -> ! {
     loop {
-        syscall::enable_interrupt_and_halt()
+        syscalls::enable_interrupt_and_halt()
     }
 }
 

@@ -8,8 +8,6 @@
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use crate::syscall;
-
 use super::task;
 use alloc::collections::BTreeMap;
 use core::task::{Context, Poll, Waker};
@@ -34,11 +32,11 @@ impl Executor {
     }
 
     fn sleep_if_idle() {
-        syscall::disable_interrupt();
+        syscalls::disable_interrupt();
         if task::COLLECTION.lock().woken_task_exists() {
-            syscall::enable_interrupt();
+            syscalls::enable_interrupt();
         } else {
-            syscall::enable_interrupt_and_halt();
+            syscalls::enable_interrupt_and_halt();
         }
     }
 

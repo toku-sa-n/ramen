@@ -1,17 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::syscall;
-
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
-    syscall::disable_interrupt();
+    syscalls::disable_interrupt();
     print_banner();
     if let Some(location) = info.location() {
         print_panic_location(location, info);
     }
 
     loop {
-        syscall::halt();
+        syscalls::halt();
     }
 }
 

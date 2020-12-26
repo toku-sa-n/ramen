@@ -5,7 +5,6 @@ mod common;
 pub mod type_spec;
 
 use self::common::Common;
-use crate::syscall;
 use bar::Bar;
 use core::{convert::TryFrom, ops::Add};
 use type_spec::TypeSpec;
@@ -104,8 +103,8 @@ impl ConfigAddress {
 
     /// SAFETY: `self` must contain the valid config address.
     unsafe fn read(&self) -> u32 {
-        syscall::outl(Self::PORT_CONFIG_ADDR, self.as_u32());
-        syscall::inl(Self::PORT_CONFIG_DATA)
+        syscalls::outl(Self::PORT_CONFIG_ADDR, self.as_u32());
+        syscalls::inl(Self::PORT_CONFIG_DATA)
     }
 }
 
