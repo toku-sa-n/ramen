@@ -5,12 +5,15 @@ mod stack_frame;
 
 use crate::{mem::allocator::page_box::PageBox, tss::TSS};
 use common::constant::INTERRUPT_STACK;
+use conquer_once::spin::OnceCell;
 use core::convert::TryInto;
 use stack_frame::StackFrame;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB},
-    VirtAddr,
+    PhysAddr, VirtAddr,
 };
+
+static KERNEL_PML4: OnceCell<PhysAddr> = OnceCell::uninit();
 
 pub fn init() {
     TSS.lock().interrupt_stack_table[0] = INTERRUPT_STACK;
