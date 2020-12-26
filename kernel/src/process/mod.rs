@@ -9,7 +9,11 @@ use common::constant::INTERRUPT_STACK;
 use conquer_once::spin::OnceCell;
 use creator::Creator;
 use stack_frame::StackFrame;
-use x86_64::{registers::control::Cr3, structures::paging::PhysFrame, VirtAddr};
+use x86_64::{
+    registers::control::Cr3,
+    structures::paging::{PageTable, PhysFrame},
+    VirtAddr,
+};
 
 static KERNEL_PML4: OnceCell<PhysFrame> = OnceCell::uninit();
 
@@ -38,6 +42,7 @@ fn save_kernel_pml4() {
 
 pub struct Process {
     _stack: PageBox<[u8]>,
+    pml4: PageBox<PageTable>,
     stack_frame: PageBox<StackFrame>,
 }
 impl Process {
