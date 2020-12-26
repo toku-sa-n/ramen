@@ -9,12 +9,17 @@ use num_derive::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 
-/// SAFETY: This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
+/// # Safety
+///
+/// This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
+#[must_use]
 pub unsafe fn inl(port: u16) -> u32 {
     general_syscall(Ty::Inl, port.into(), 0).try_into().unwrap()
 }
 
-/// SAFETY: This function is unsafe because writing a value via I/O port may have side effects
+/// # Safety
+///
+/// This function is unsafe because writing a value via I/O port may have side effects
 /// which violate memory safety.
 pub unsafe fn outl(port: u16, value: u32) {
     general_syscall(Ty::Outl, port.into(), value.into());
@@ -40,6 +45,7 @@ pub fn enable_interrupt_and_halt() {
     unsafe { general_syscall(Ty::EnableInterruptAndHalt, 0, 0) };
 }
 
+#[must_use]
 pub fn allocate_pages(pages: NumOfPages<Size4KiB>) -> VirtAddr {
     // SAFETY: This operation is safe as the arguments are propertly passed.
     VirtAddr::new(unsafe {
@@ -58,6 +64,7 @@ pub fn deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) {
     };
 }
 
+#[must_use]
 pub fn map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
     // SAFETY: This operation is safe as the all arguments are propertly passed.
     VirtAddr::new(unsafe {
