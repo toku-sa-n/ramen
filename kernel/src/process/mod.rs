@@ -16,7 +16,7 @@ use x86_64::{
 static KERNEL_PML4: OnceCell<PhysAddr> = OnceCell::uninit();
 
 pub fn init() {
-    TSS.lock().interrupt_stack_table[0] = INTERRUPT_STACK;
+    register_initial_interrupt_stack_table_addr();
 }
 
 pub fn add(p: Process) {
@@ -25,6 +25,10 @@ pub fn add(p: Process) {
 
 pub fn switch() -> VirtAddr {
     manager::switch_process()
+}
+
+fn register_initial_interrupt_stack_table_addr() {
+    TSS.lock().interrupt_stack_table[0] = INTERRUPT_STACK;
 }
 
 pub struct Process {
