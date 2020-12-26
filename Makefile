@@ -122,7 +122,7 @@ $(BUILD_DIR):
 	mkdir $@ -p
 
 clippy:
-	find . -name Cargo.toml -printf '%h\n'|xargs -I {} sh -c "cd {} && cargo clippy -- -D clippy::pedantic"
+	find . -name Cargo.toml -printf '%h\n'|xargs -I {} sh -c "cd {} && cargo clippy -- -D clippy::pedantic -D clippy::all"
 
 clean:
 	$(RM) build
