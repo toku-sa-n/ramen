@@ -26,7 +26,6 @@ impl Creator {
 
         Process {
             _stack: stack,
-
             stack_frame: PageBox::new(StackFrame::new(rip, stack_bottom_addr)),
         }
     }
