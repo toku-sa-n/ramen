@@ -9,13 +9,17 @@ use num_derive::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 
-/// # Safety: This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
+/// # Safety
+///
+/// This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
 #[must_use]
 pub unsafe fn inl(port: u16) -> u32 {
     general_syscall(Ty::Inl, port.into(), 0).try_into().unwrap()
 }
 
-/// # Safety: This function is unsafe because writing a value via I/O port may have side effects
+/// # Safety
+///
+/// This function is unsafe because writing a value via I/O port may have side effects
 /// which violate memory safety.
 pub unsafe fn outl(port: u16, value: u32) {
     general_syscall(Ty::Outl, port.into(), value.into());
