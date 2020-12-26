@@ -1,9 +1,4 @@
-/target
-bootx64/target
-kernel/target
-debug/target
-common/target
-proc_macros/target
+target/
 **/*.rs.bk
 **/Cargo.lock
 tags

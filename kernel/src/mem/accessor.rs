@@ -4,8 +4,6 @@ use core::{marker::PhantomData, mem, ptr};
 use os_units::Bytes;
 use x86_64::{PhysAddr, VirtAddr};
 
-use crate::syscall;
-
 pub struct Accessor<T: ?Sized> {
     virt: VirtAddr,
     bytes: Bytes, // The size of `T` is not always computable. Thus save the bytes of objects.
@@ -145,8 +143,8 @@ impl Mappers {
 
     fn user() -> Self {
         Self {
-            mapper: syscall::map_pages,
-            unmapper: syscall::unmap_pages,
+            mapper: syscalls::map_pages,
+            unmapper: syscalls::unmap_pages,
         }
     }
 

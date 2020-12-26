@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::syscall;
-
 use super::super::paging::pml4::PML4;
 use core::{
     convert::TryFrom,
@@ -145,7 +143,7 @@ impl<T: ?Sized> PageBox<T> {
     }
 
     fn new_zeroed_from_bytes(bytes: Bytes) -> Self {
-        let virt = syscall::allocate_pages(bytes.as_num_of_pages());
+        let virt = syscalls::allocate_pages(bytes.as_num_of_pages());
 
         let mut page_box = Self {
             virt,
@@ -165,6 +163,6 @@ impl<T: ?Sized> PageBox<T> {
 impl<T: ?Sized> Drop for PageBox<T> {
     fn drop(&mut self) {
         let num_of_pages = self.bytes.as_num_of_pages::<Size4KiB>();
-        syscall::deallocate_pages(self.virt, num_of_pages);
+        syscalls::deallocate_pages(self.virt, num_of_pages);
     }
 }
