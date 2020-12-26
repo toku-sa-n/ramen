@@ -9,14 +9,16 @@ use conquer_once::spin::OnceCell;
 use core::convert::TryInto;
 use stack_frame::StackFrame;
 use x86_64::{
-    structures::paging::{PageSize, Size4KiB},
-    PhysAddr, VirtAddr,
+    registers::control::Cr3,
+    structures::paging::{PageSize, PhysFrame, Size4KiB},
+    VirtAddr,
 };
 
-static KERNEL_PML4: OnceCell<PhysAddr> = OnceCell::uninit();
+static KERNEL_PML4: OnceCell<PhysFrame> = OnceCell::uninit();
 
 pub fn init() {
     register_initial_interrupt_stack_table_addr();
+    save_kernel_pml4();
 }
 
 pub fn add(p: Process) {
@@ -29,6 +31,12 @@ pub fn switch() -> VirtAddr {
 
 fn register_initial_interrupt_stack_table_addr() {
     TSS.lock().interrupt_stack_table[0] = INTERRUPT_STACK;
+}
+
+fn save_kernel_pml4() {
+    KERNEL_PML4
+        .try_init_once(|| Cr3::read().0)
+        .expect("`KERNEL_PML4` is already initialized.");
 }
 
 pub struct Process {
