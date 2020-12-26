@@ -122,8 +122,7 @@ $(BUILD_DIR):
 	mkdir $@ -p
 
 clippy:
-	(cd $(KERNEL_DIR) && $(RUSTCC) clippy)
-	(cd $(EFI_DIR) && $(RUSTCC) clippy)
+	find . -name Cargo.toml -printf '%h\n'|xargs -I {} sh -c "cd {} && cargo clippy -- -D clippy::pedantic"
 
 clean:
 	$(RM) build
