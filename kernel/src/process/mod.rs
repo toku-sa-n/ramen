@@ -3,16 +3,12 @@
 mod manager;
 mod stack_frame;
 
-use core::convert::TryInto;
-
-use crate::{gdt::GDT, mem::allocator::page_box::PageBox, tss::TSS};
+use crate::{mem::allocator::page_box::PageBox, tss::TSS};
 use common::constant::INTERRUPT_STACK;
+use core::convert::TryInto;
+use stack_frame::StackFrame;
 use x86_64::{
-    registers::rflags,
-    structures::{
-        idt::InterruptStackFrameValue,
-        paging::{PageSize, Size4KiB},
-    },
+    structures::paging::{PageSize, Size4KiB},
     VirtAddr,
 };
 
@@ -50,44 +46,4 @@ impl Process {
     fn stack_frame_bottom_addr(&self) -> VirtAddr {
         self.stack_frame_top_addr() + self.stack_frame.bytes().as_usize()
     }
-}
-
-#[repr(C)]
-struct StackFrame {
-    regs: GeneralRegisters,
-    interrupt: InterruptStackFrameValue,
-}
-impl StackFrame {
-    fn new(instruction_pointer: VirtAddr, stack_pointer: VirtAddr) -> Self {
-        Self {
-            regs: GeneralRegisters::default(),
-            interrupt: InterruptStackFrameValue {
-                instruction_pointer,
-                code_segment: GDT.user_code.0.into(),
-                cpu_flags: rflags::read().bits(),
-                stack_pointer,
-                stack_segment: GDT.user_data.0.into(),
-            },
-        }
-    }
-}
-
-#[repr(C)]
-#[derive(Default)]
-struct GeneralRegisters {
-    _rbp: u64,
-    _rax: u64,
-    _rbx: u64,
-    _rcx: u64,
-    _rdx: u64,
-    _rsi: u64,
-    _rdi: u64,
-    _r8: u64,
-    _r9: u64,
-    _r10: u64,
-    _r11: u64,
-    _r12: u64,
-    _r13: u64,
-    _r14: u64,
-    _r15: u64,
 }
