@@ -7,13 +7,9 @@ mod stack_frame;
 use crate::{mem::allocator::page_box::PageBox, tss::TSS};
 use common::constant::INTERRUPT_STACK;
 use conquer_once::spin::OnceCell;
-use core::convert::TryInto;
+use creator::Creator;
 use stack_frame::StackFrame;
-use x86_64::{
-    registers::control::Cr3,
-    structures::paging::{PageSize, PhysFrame, Size4KiB},
-    VirtAddr,
-};
+use x86_64::{registers::control::Cr3, structures::paging::PhysFrame, VirtAddr};
 
 static KERNEL_PML4: OnceCell<PhysFrame> = OnceCell::uninit();
 
@@ -46,13 +42,7 @@ pub struct Process {
 }
 impl Process {
     pub fn new(f: fn() -> !) -> Self {
-        let stack = PageBox::new_slice(0, Size4KiB::SIZE.try_into().unwrap());
-        let stack_bottom_addr = stack.virt_addr() + stack.bytes().as_usize();
-        let rip = VirtAddr::new((f as usize).try_into().unwrap());
-        Self {
-            _stack: stack,
-            stack_frame: PageBox::new(StackFrame::new(rip, stack_bottom_addr)),
-        }
+        Creator::new(f).create()
     }
 
     fn stack_frame_top_addr(&self) -> VirtAddr {
