@@ -19,6 +19,7 @@ pub struct Operational {
 impl Operational {
     /// SAFETY: This method is unsafe because if `mmio_base` is not a valid MMIO base address, it
     /// can violate memory safety.
+    #[allow(clippy::too_many_lines)]
     pub unsafe fn new(mmio_base: PhysAddr, capabilities: &Capability) -> Self {
         let operational_base = mmio_base + capabilities.cap_length.read().get();
 
