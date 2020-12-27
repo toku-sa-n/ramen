@@ -55,10 +55,19 @@ bitfield! {
     #[repr(transparent)]
     pub struct StructuralParameters2(u32);
     erst_max, _: 7, 4;
+    max_scratchpad_bufs_hi, _: 25, 20;
+    max_scratchpad_bufs_lo, _: 31, 27;
 }
 impl StructuralParameters2 {
     pub fn powered_erst_max(&self) -> u16 {
         2_u16.pow(self.erst_max())
+    }
+
+    pub fn max_scratchpad_bufs(&self) -> u32 {
+        let h = self.max_scratchpad_bufs_hi();
+        let l = self.max_scratchpad_bufs_lo();
+
+        h << 5 | l
     }
 }
 

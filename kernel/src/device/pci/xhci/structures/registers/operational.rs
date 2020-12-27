@@ -9,6 +9,7 @@ use x86_64::PhysAddr;
 pub struct Operational {
     pub usb_cmd: Accessor<UsbCommandRegister>,
     pub usb_sts: Accessor<UsbStatusRegister>,
+    pub page_size: Accessor<PageSize>,
     pub crcr: Accessor<CommandRingControlRegister>,
     pub dcbaap: Accessor<DeviceContextBaseAddressArrayPointer>,
     pub config: Accessor<ConfigureRegister>,
@@ -18,14 +19,22 @@ pub struct Operational {
 impl Operational {
     /// SAFETY: This method is unsafe because if `mmio_base` is not a valid MMIO base address, it
     /// can violate memory safety.
+    #[allow(clippy::too_many_lines)]
     pub unsafe fn new(mmio_base: PhysAddr, capabilities: &Capability) -> Self {
         let operational_base = mmio_base + capabilities.cap_length.read().get();
 
-        let usb_cmd = Accessor::user(operational_base, Bytes::new(0x00));
-        let usb_sts = Accessor::user(operational_base, Bytes::new(0x04));
-        let crcr = Accessor::user(operational_base, Bytes::new(0x18));
-        let dcbaap = Accessor::user(operational_base, Bytes::new(0x30));
-        let config = Accessor::user(operational_base, Bytes::new(0x38));
+        macro_rules! accessor {
+            ($bytes:expr) => {
+                Accessor::user(operational_base, Bytes::new($bytes))
+            };
+        }
+
+        let usb_cmd = accessor!(0x00);
+        let usb_sts = accessor!(0x04);
+        let page_size = accessor!(0x08);
+        let crcr = accessor!(0x18);
+        let dcbaap = accessor!(0x30);
+        let config = accessor!(0x38);
         let port_registers = Accessor::user_slice(
             operational_base,
             Bytes::new(0x400),
@@ -35,6 +44,7 @@ impl Operational {
         Self {
             usb_cmd,
             usb_sts,
+            page_size,
             crcr,
             dcbaap,
             config,
@@ -58,6 +68,14 @@ bitfield! {
 
     pub hc_halted, _: 0;
     pub controller_not_ready,_:11;
+}
+
+#[repr(transparent)]
+pub struct PageSize(u32);
+impl PageSize {
+    pub fn as_bytes(&self) -> Bytes {
+        Bytes::new(2_usize.pow(self.0 + 12))
+    }
 }
 
 bitfield! {

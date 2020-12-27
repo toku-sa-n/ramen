@@ -18,6 +18,7 @@ use structures::{
     dcbaa,
     registers::Registers,
     ring::{command, event},
+    scratchpad,
 };
 
 static REGISTERS: OnceCell<Spinlock<Registers>> = OnceCell::uninit();
@@ -88,6 +89,7 @@ fn init() -> (
     event_ring.init();
     command_ring.lock().init();
     dcbaa::init();
+    scratchpad::init();
 
     xhc::run();
 
