@@ -9,6 +9,7 @@ use x86_64::PhysAddr;
 pub struct Operational {
     pub usb_cmd: Accessor<UsbCommandRegister>,
     pub usb_sts: Accessor<UsbStatusRegister>,
+    pub page_size: Accessor<PageSize>,
     pub crcr: Accessor<CommandRingControlRegister>,
     pub dcbaap: Accessor<DeviceContextBaseAddressArrayPointer>,
     pub config: Accessor<ConfigureRegister>,
@@ -23,6 +24,7 @@ impl Operational {
 
         let usb_cmd = Accessor::user(operational_base, Bytes::new(0x00));
         let usb_sts = Accessor::user(operational_base, Bytes::new(0x04));
+        let page_size = Accessor::user(operational_base, Bytes::new(0x08));
         let crcr = Accessor::user(operational_base, Bytes::new(0x18));
         let dcbaap = Accessor::user(operational_base, Bytes::new(0x30));
         let config = Accessor::user(operational_base, Bytes::new(0x38));
@@ -35,6 +37,7 @@ impl Operational {
         Self {
             usb_cmd,
             usb_sts,
+            page_size,
             crcr,
             dcbaap,
             config,
@@ -58,6 +61,14 @@ bitfield! {
 
     pub hc_halted, _: 0;
     pub controller_not_ready,_:11;
+}
+
+#[repr(transparent)]
+pub struct PageSize(u32);
+impl PageSize {
+    fn as_bytes(&self) -> Bytes {
+        Bytes::new(2_usize.pow(self.0 + 12))
+    }
 }
 
 bitfield! {
