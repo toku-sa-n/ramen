@@ -11,7 +11,7 @@ pub struct Writer {
 }
 
 impl Writer {
-    pub const fn new(coord: Vec2<i32>, color: RGB8) -> Self {
+    pub fn new(coord: Vec2<i32>, color: RGB8) -> Self {
         Self { coord, color }
     }
 
