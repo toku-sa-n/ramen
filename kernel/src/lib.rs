@@ -96,10 +96,10 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
 
     layer::init();
 
-    screen::log::init().unwrap();
-
     let desktop = Desktop::new();
     desktop.draw();
+
+    screen::log::init().unwrap();
 
     info!("Hello Ramen OS!");
     info!("Vram information: {}", Vram::display());
