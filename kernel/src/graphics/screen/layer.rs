@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::Vram;
 use crate::{graphics::Vram, mem::allocator::page_box::PageBox};
 use conquer_once::spin::OnceCell;
-use core::convert::TryInto;
+use core::{convert::TryInto, ptr};
 use screen_layer::{Layer, Vec2};
 use spinning_top::Spinlock;
+use x86_64::VirtAddr;
 
 pub static CONTROLLER: OnceCell<Spinlock<screen_layer::Controller>> = OnceCell::uninit();
 
@@ -14,6 +14,17 @@ static BUFFER: OnceCell<PageBox<[u8]>> = OnceCell::uninit();
 pub fn init() {
     init_buffer();
     init_controller();
+}
+
+pub fn layer_main() {
+    let src: *const u8 = buffer_addr().as_ptr();
+    let dst = Vram::ptr().as_mut_ptr();
+    let count = Vram::resolution().product() * Vram::bpp() / 8;
+
+    loop {
+        // SAFETY: This operation is safe as `src` and `dst` are aligned and valid.
+        unsafe { ptr::copy(src, dst, count.try_into().unwrap()) }
+    }
 }
 
 pub fn add(l: Layer) -> screen_layer::Id {
@@ -32,7 +43,14 @@ pub fn slide(id: screen_layer::Id, new_top_left: Vec2<isize>) -> Result<(), scre
 }
 
 fn init_buffer() {
-    BUFFER.init_once(|| PageBox::new_slice(0, Vram::resolution().product() * Vram::bpp() / 8))
+    BUFFER.init_once(|| {
+        PageBox::new_slice(
+            0,
+            (Vram::resolution().product() * Vram::bpp() / 8)
+                .try_into()
+                .unwrap(),
+        )
+    })
 }
 
 fn init_controller() {
