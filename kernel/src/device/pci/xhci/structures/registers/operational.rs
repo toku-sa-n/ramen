@@ -73,7 +73,7 @@ bitfield! {
 #[repr(transparent)]
 pub struct PageSize(u32);
 impl PageSize {
-    fn as_bytes(&self) -> Bytes {
+    pub fn as_bytes(&self) -> Bytes {
         Bytes::new(2_usize.pow(self.0 + 12))
     }
 }
