@@ -22,12 +22,18 @@ impl Operational {
     pub unsafe fn new(mmio_base: PhysAddr, capabilities: &Capability) -> Self {
         let operational_base = mmio_base + capabilities.cap_length.read().get();
 
-        let usb_cmd = Accessor::user(operational_base, Bytes::new(0x00));
-        let usb_sts = Accessor::user(operational_base, Bytes::new(0x04));
-        let page_size = Accessor::user(operational_base, Bytes::new(0x08));
-        let crcr = Accessor::user(operational_base, Bytes::new(0x18));
-        let dcbaap = Accessor::user(operational_base, Bytes::new(0x30));
-        let config = Accessor::user(operational_base, Bytes::new(0x38));
+        macro_rules! accessor {
+            ($bytes:expr) => {
+                Accessor::user(operational_base, Bytes::new($bytes))
+            };
+        }
+
+        let usb_cmd = accessor!(0x00);
+        let usb_sts = accessor!(0x04);
+        let page_size = accessor!(0x08);
+        let crcr = accessor!(0x18);
+        let dcbaap = accessor!(0x30);
+        let config = accessor!(0x38);
         let port_registers = Accessor::user_slice(
             operational_base,
             Bytes::new(0x400),
