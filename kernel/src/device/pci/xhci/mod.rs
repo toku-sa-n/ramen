@@ -2,6 +2,7 @@
 
 mod exchanger;
 mod port;
+mod scratchpad;
 mod structures;
 mod xhc;
 
