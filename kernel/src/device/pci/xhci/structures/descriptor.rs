@@ -96,7 +96,7 @@ pub struct Endpoint {
 impl Endpoint {
     pub fn ty(self) -> EndpointType {
         EndpointType::from_u8(if self.attributes == 0 {
-            0
+            4
         } else {
             self.attributes + if self.endpoint_address == 0 { 0 } else { 4 }
         })
