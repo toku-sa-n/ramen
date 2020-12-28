@@ -53,7 +53,7 @@ impl Writer {
             let width: usize = Vram::resolution().x.try_into().unwrap();
             for x in 0..width {
                 for y in 0..last_line_top {
-                    l[y][x] = l[y + usize::try_from(font::FONT_HEIGHT).unwrap()][x];
+                    l[y][x] = l[y + font::FONT_HEIGHT][x];
                 }
 
                 for y in last_line_top..usize::try_from(Vram::resolution().y).unwrap() {
