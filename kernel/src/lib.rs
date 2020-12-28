@@ -38,6 +38,7 @@ mod multitask;
 mod panic;
 mod process;
 mod syscall;
+mod tests;
 mod tss;
 
 use common::{constant::INITRD_ADDR, kernelboot};
@@ -111,6 +112,10 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     process::init();
 
     process::add(Process::new(run_tasks));
+
+    if cfg!(feature = "qemu_test") {
+        process::add(Process::new(tests::main));
+    }
 }
 
 fn wait_until_timer_interrupt_happens() -> ! {
