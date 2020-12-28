@@ -48,15 +48,12 @@ impl Scratchpad {
     }
 
     fn register_with_dcbaa(&self) {
-        let page_size: u64 = Self::page_size().as_usize().try_into().unwrap();
-        dcbaa::register(0, self.arr.phys_addr().align_up(page_size));
+        dcbaa::register(0, self.arr.phys_addr());
     }
 
     fn allocate_buffers(&mut self) {
         for _ in 0..Self::num_of_buffers() {
-            // Allocate the double size of memory, then register the aligned address with the
-            // array.
-            let b = PageBox::new_slice(0, Self::page_size().as_usize() * 2);
+            let b = PageBox::new_slice(0, Self::page_size().as_usize());
             self.bufs.push(b);
         }
     }
