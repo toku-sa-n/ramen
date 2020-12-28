@@ -3,6 +3,7 @@
 use crate::{graphics::Vram, mem::allocator::page_box::PageBox};
 use conquer_once::spin::OnceCell;
 use core::{convert::TryInto, ptr};
+use rgb::RGB8;
 use screen_layer::{Layer, Vec2};
 use spinning_top::Spinlock;
 use x86_64::VirtAddr;
@@ -40,6 +41,14 @@ where
 
 pub fn slide(id: screen_layer::Id, new_top_left: Vec2<isize>) -> Result<(), screen_layer::Error> {
     get_controller().lock().slide_layer(id, new_top_left)
+}
+
+pub fn set_pixel(
+    id: screen_layer::Id,
+    coord: Vec2<isize>,
+    color: Option<RGB8>,
+) -> Result<(), screen_layer::Error> {
+    get_controller().lock().set_pixel(id, coord, color)
 }
 
 fn init_buffer() {
