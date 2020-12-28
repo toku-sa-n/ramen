@@ -17,7 +17,7 @@ pub fn init() {
     init_controller();
 }
 
-pub fn layer_main() -> ! {
+pub fn main() -> ! {
     let src: *const u8 = buffer_addr().as_ptr();
     let dst = Vram::ptr().as_mut_ptr();
     let count = Vram::resolution().product() * Vram::bpp() / 8;
