@@ -64,9 +64,9 @@ impl LocalApic {
     fn set_modes(&mut self) {
         let f = self.frequency.expect("Get the frequency first.");
         info!("Frequency: {}", f);
-        self.lvt_timer.write(u32::from(TIMER_VECTOR) | (1 << 17));
         self.divide_config.write(3);
-        self.initial_count.write(f * 10);
+        self.lvt_timer.write(u32::from(TIMER_VECTOR) | (1 << 17));
+        self.initial_count.write(f);
     }
 }
 

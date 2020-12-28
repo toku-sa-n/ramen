@@ -35,6 +35,7 @@ mod interrupt;
 mod mem;
 mod multitask;
 mod panic;
+mod process;
 mod syscall;
 mod tss;
 
@@ -43,6 +44,7 @@ use device::{
     keyboard, mouse,
     pci::{ahci, xhci},
 };
+use fs::ustar::Ustar;
 use futures_intrusive::sync::GenericMutex;
 use graphics::{
     screen::{self, desktop::Desktop, layer},
@@ -51,6 +53,7 @@ use graphics::{
 use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
+use process::Process;
 use spinning_top::RawSpinlock;
 pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 
@@ -58,8 +61,7 @@ pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 #[start]
 pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
     init(&mut boot_info);
-
-    run_tasks();
+    wait_until_timer_interrupt_happens();
 }
 
 fn init(boot_info: &mut kernelboot::Info) {
@@ -93,18 +95,30 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
 
     layer::init();
 
-    screen::log::init().unwrap();
-
     let desktop = Desktop::new();
     desktop.draw();
+
+    screen::log::init().unwrap();
 
     info!("Hello Ramen OS!");
     info!("Vram information: {}", Vram::display());
 
-    fs::ustar::list_files(INITRD_ADDR);
+    // SAFETY: `INITRD_ADDR` is the valid address to UStar data.
+    let ustar = unsafe { Ustar::new(INITRD_ADDR) };
+    ustar.list();
+
+    process::init();
+
+    process::add(Process::new(run_tasks));
+    process::add(Process::new(layer::main));
 }
 
-#[cfg(not(feature = "qemu_test"))]
+fn wait_until_timer_interrupt_happens() -> ! {
+    loop {
+        syscalls::enable_interrupt_and_halt()
+    }
+}
+
 fn run_tasks() -> ! {
     multitask::add(Task::new(keyboard::task()));
     multitask::add(Task::new(mouse::task()));
@@ -113,15 +127,4 @@ fn run_tasks() -> ! {
 
     let mut executor = Executor::new();
     executor.run();
-}
-
-#[cfg(feature = "qemu_test")]
-fn run_tasks() -> ! {
-    use qemu_exit::QEMUExit;
-    // Currently there is no way to test multitasking. If this OS suppports timer, the situation
-    // may change.
-    //
-    // If you change the value `0xf4` and `33`, don't forget to change the correspond values in
-    // `Makefile`!
-    qemu_exit::X86::new(0xf4, 33).exit_success();
 }

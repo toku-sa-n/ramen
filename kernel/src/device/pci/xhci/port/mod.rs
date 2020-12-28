@@ -22,6 +22,7 @@ mod context;
 mod endpoint;
 mod resetter;
 mod slot;
+mod spawner;
 
 static CURRENT_RESET_PORT: Lazy<Spinlock<ResetPort>> =
     Lazy::new(|| Spinlock::new(ResetPort::new()));
@@ -56,6 +57,10 @@ impl ResetPort {
     }
 }
 
+pub fn try_spawn(port_idx: u8) -> Result<(), spawner::PortNotConnected> {
+    spawner::try_spawn(port_idx)
+}
+
 async fn task(
     port: Port,
     runner: Arc<Futurelock<command::Sender>>,
@@ -73,7 +78,7 @@ async fn task(
             let kbd = class_driver::keyboard::Keyboard::new(eps);
             multitask::add(Task::new_poll(class_driver::keyboard::task(kbd)));
         }
-        _ => {}
+        t => warn!("Unknown device: {:?}", t),
     }
 }
 
@@ -86,7 +91,6 @@ async fn init_port_and_slot(
     reset_waiter.await;
 
     let port_idx = port.index;
-    info!("Resetting port {}", port_idx);
 
     port.reset();
     port.init_context();
@@ -101,24 +105,15 @@ async fn init_port_and_slot(
     endpoint::Collection::new(slot, runner).await
 }
 
-pub fn spawn_tasks(
-    command_runner: &Arc<Futurelock<command::Sender>>,
-    receiver: &Arc<Spinlock<Receiver>>,
+pub fn spawn_all_connected_port_tasks(
+    sender: Arc<Futurelock<command::Sender>>,
+    receiver: Arc<Spinlock<Receiver>>,
 ) {
-    let ports_num = num_of_ports();
-    for i in 0..ports_num {
-        let port = Port::new(i + 1);
-        if port.connected() {
-            multitask::add(Task::new(task(
-                port,
-                command_runner.clone(),
-                receiver.clone(),
-            )));
-        }
-    }
+    spawner::init(sender, receiver);
+    spawner::spawn_all_connected_ports();
 }
 
-fn num_of_ports() -> u8 {
+fn max_num() -> u8 {
     super::handle_registers(|r| {
         let params1 = r.capability.hcs_params_1.read();
         params1.max_ports()
@@ -142,7 +137,9 @@ impl Port {
     }
 
     fn reset(&mut self) {
+        info!("Resetting port {}", self.index);
         Resetter::new(self.index).reset();
+        info!("Port {} is reset.", self.index);
     }
 
     fn init_context(&mut self) {

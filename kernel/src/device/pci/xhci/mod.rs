@@ -18,6 +18,7 @@ use structures::{
     dcbaa,
     registers::Registers,
     ring::{command, event},
+    scratchpad,
 };
 
 static REGISTERS: OnceCell<Spinlock<Registers>> = OnceCell::uninit();
@@ -30,7 +31,7 @@ pub async fn task() {
 
     let (event_ring, runner, command_completion_receiver) = init();
 
-    port::spawn_tasks(&runner, &command_completion_receiver);
+    port::spawn_all_connected_port_tasks(runner.clone(), command_completion_receiver.clone());
 
     multitask::add(Task::new_poll(event::task(
         event_ring,
@@ -88,6 +89,7 @@ fn init() -> (
     event_ring.init();
     command_ring.lock().init();
     dcbaa::init();
+    scratchpad::init();
 
     xhc::run();
 
