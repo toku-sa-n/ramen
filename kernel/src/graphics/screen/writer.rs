@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{font, layer, Vram};
-use core::convert::{TryFrom, TryInto};
+use core::convert::TryFrom;
 use rgb::RGB8;
 use screen_layer::Layer;
 use vek::Vec2;
@@ -36,35 +36,6 @@ impl Writer {
     }
 
     fn break_line(&mut self) {
-        if self.cursor_is_last_line() {
-            self.scroll();
-        } else {
-            self.move_cursor_to_next_line();
-        }
-    }
-
-    fn cursor_is_last_line(&self) -> bool {
-        self.coord.y + i32::try_from(font::FONT_HEIGHT).unwrap() >= Vram::resolution().y
-    }
-
-    fn scroll(&mut self) {
-        layer::edit(self.id, |l| {
-            let last_line_top = usize::try_from(Vram::resolution().y).unwrap() - font::FONT_HEIGHT;
-            let width: usize = Vram::resolution().x.try_into().unwrap();
-            for x in 0..width {
-                for y in 0..last_line_top {
-                    l[y][x] = l[y + font::FONT_HEIGHT][x];
-                }
-
-                for y in last_line_top..usize::try_from(Vram::resolution().y).unwrap() {
-                    l[y][x] = None;
-                }
-            }
-        })
-        .unwrap();
-    }
-
-    fn move_cursor_to_next_line(&mut self) {
         self.coord.x = 0;
         self.coord.y += i32::try_from(font::FONT_HEIGHT).unwrap();
     }
