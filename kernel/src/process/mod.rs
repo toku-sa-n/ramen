@@ -3,12 +3,9 @@
 mod manager;
 mod stack_frame;
 
-use crate::{mem::allocator::page_box::PageBox, tss::TSS};
+use crate::{mem::allocator::page_box::PageBox, tests, tss::TSS};
 use common::constant::INTERRUPT_STACK;
-use core::{
-    convert::TryInto,
-    sync::atomic::{AtomicUsize, Ordering},
-};
+use core::convert::TryInto;
 use stack_frame::StackFrame;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB},
@@ -25,7 +22,7 @@ pub fn add(p: Process) {
 
 pub fn switch() -> VirtAddr {
     if cfg!(feature = "qemu_test") {
-        count_switch();
+        tests::process::count_switch();
     }
     manager::switch_process()
 }
@@ -51,16 +48,5 @@ impl Process {
 
     fn stack_frame_bottom_addr(&self) -> VirtAddr {
         self.stack_frame_top_addr() + self.stack_frame.bytes().as_usize()
-    }
-}
-
-fn count_switch() {
-    const EXIT_GOAL: usize = 100;
-    static COUNTER: AtomicUsize = AtomicUsize::new(0);
-    COUNTER.fetch_add(1, Ordering::Relaxed);
-
-    if COUNTER.load(Ordering::Relaxed) >= EXIT_GOAL {
-        use qemu_exit::QEMUExit;
-        qemu_exit::X86::new(0xf4, 33).exit_success();
     }
 }
