@@ -149,7 +149,7 @@ fn sys_enable_interrupt_and_halt() -> u64 {
 }
 
 fn sys_allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> VirtAddr {
-    allocator::allocate_pages(num_of_pages)
+    allocator::allocate_pages(num_of_pages).unwrap_or_else(VirtAddr::zero)
 }
 
 fn sys_deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) -> u64 {
