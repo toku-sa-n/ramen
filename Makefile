@@ -27,7 +27,7 @@ FAT_IMG			:= $(BUILD_DIR)/fat.img
 INITRD			:= $(BUILD_DIR)/initrd.img
 
 LD				:= ld
-RUSTCC			:= RUSTFLAGS="-D warnings" cargo
+RUSTCC			:= cargo
 RM				:= rm -rf
 VIEWER			:= qemu-system-x86_64
 
