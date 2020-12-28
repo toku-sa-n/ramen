@@ -48,8 +48,7 @@ impl Scratchpad {
     }
 
     fn register_with_dcbaa(&self) {
-        let page_size: u64 = Self::page_size().as_usize().try_into().unwrap();
-        dcbaa::register(0, self.arr.phys_addr().align_up(page_size));
+        dcbaa::register(0, self.arr.phys_addr());
     }
 
     fn allocate_buffers(&mut self) {
@@ -62,8 +61,9 @@ impl Scratchpad {
     }
 
     fn write_buffer_addresses(&mut self) {
+        let page_size: u64 = Self::page_size().as_usize().try_into().unwrap();
         for (x, buf) in self.arr.iter_mut().zip(self.bufs.iter()) {
-            *x = buf.phys_addr();
+            *x = buf.phys_addr().align_up(page_size);
         }
     }
 
