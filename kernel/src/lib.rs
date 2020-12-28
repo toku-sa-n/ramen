@@ -38,6 +38,7 @@ mod multitask;
 mod panic;
 mod process;
 mod syscall;
+mod tests;
 mod tss;
 
 use common::{constant::INITRD_ADDR, kernelboot};
