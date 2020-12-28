@@ -17,11 +17,9 @@ pub mod phys;
 pub mod virt;
 
 pub fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
-    let virt_addr = virt::search_free_addr(num_of_pages).expect("OOM during creating `PageBox`");
-
     let phys_addr = allocate_phys(num_of_pages)?;
 
-    super::map_pages(phys_addr, num_of_pages.as_bytes());
+    let virt_addr = super::map_pages(phys_addr, num_of_pages.as_bytes());
 
     Some(virt_addr)
 }
