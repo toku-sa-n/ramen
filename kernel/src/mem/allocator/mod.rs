@@ -18,13 +18,10 @@ pub mod page_box;
 pub mod phys;
 pub mod virt;
 
-pub fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> VirtAddr {
+pub fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
     let virt_addr = virt::search_free_addr(num_of_pages).expect("OOM during creating `PageBox`");
 
-    let phys_addr = FRAME_MANAGER
-        .lock()
-        .alloc(num_of_pages)
-        .expect("OOM during creating `PageBox");
+    let phys_addr = FRAME_MANAGER.lock().alloc(num_of_pages)?;
 
     for i in 0..u64::try_from(num_of_pages.as_usize()).unwrap() {
         let page = Page::<Size4KiB>::from_start_address(virt_addr + Size4KiB::SIZE * i).unwrap();
@@ -36,7 +33,7 @@ pub fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> VirtAddr {
         unsafe { PML4.lock().map_to(page, frame, flags, f).unwrap().flush() }
     }
 
-    virt_addr
+    Some(virt_addr)
 }
 
 pub fn deallocate_pages(virt: VirtAddr, num_of_pages: NumOfPages<Size4KiB>) {
