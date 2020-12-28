@@ -5,7 +5,7 @@ use os_units::NumOfPages;
 use phys::FRAME_MANAGER;
 use x86_64::{
     structures::paging::{
-        FrameDeallocator, Mapper, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB,
+        Mapper, MapperAllSizes, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB,
     },
     VirtAddr,
 };
@@ -40,11 +40,13 @@ pub fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> VirtAddr {
 }
 
 pub fn deallocate_pages(virt: VirtAddr, num_of_pages: NumOfPages<Size4KiB>) {
-    for i in 0..u64::try_from(num_of_pages.as_usize()).unwrap() {
-        let page = Page::from_start_address(virt + Size4KiB::SIZE * i).unwrap();
+    let phys = PML4.lock().translate_addr(virt).unwrap();
+    FRAME_MANAGER.lock().free(phys);
 
-        let (frame, flush) = PML4.lock().unmap(page).unwrap();
+    for i in 0..u64::try_from(num_of_pages.as_usize()).unwrap() {
+        let page = Page::<Size4KiB>::from_start_address(virt + Size4KiB::SIZE * i).unwrap();
+
+        let (_, flush) = PML4.lock().unmap(page).unwrap();
         flush.flush();
-        unsafe { FRAME_MANAGER.lock().deallocate_frame(frame) }
     }
 }
