@@ -4,7 +4,6 @@
 #![feature(int_bits_const)]
 #![feature(async_closure)]
 #![feature(alloc_error_handler)]
-#![feature(min_const_generics)]
 #![feature(linked_list_remove)]
 #![feature(const_fn)]
 #![feature(wake_trait)]
@@ -108,6 +107,7 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     // SAFETY: `INITRD_ADDR` is the valid address to UStar data.
     let ustar = unsafe { Ustar::new(INITRD_ADDR) };
     ustar.list();
+    ustar.content("build/bootx64.efi");
 
     process::init();
 
