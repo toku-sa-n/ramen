@@ -119,7 +119,6 @@ fn wait_until_timer_interrupt_happens() -> ! {
     }
 }
 
-#[cfg(not(feature = "qemu_test"))]
 fn run_tasks() -> ! {
     multitask::add(Task::new(keyboard::task()));
     multitask::add(Task::new(mouse::task()));
@@ -128,15 +127,4 @@ fn run_tasks() -> ! {
 
     let mut executor = Executor::new();
     executor.run();
-}
-
-#[cfg(feature = "qemu_test")]
-fn run_tasks() -> ! {
-    use qemu_exit::QEMUExit;
-    // Currently there is no way to test multitasking. If this OS suppports timer, the situation
-    // may change.
-    //
-    // If you change the value `0xf4` and `33`, don't forget to change the correspond values in
-    // `Makefile`!
-    qemu_exit::X86::new(0xf4, 33).exit_success();
 }
