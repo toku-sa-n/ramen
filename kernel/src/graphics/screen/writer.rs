@@ -1,22 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{font, layer, Vram};
+use super::{font, Vram};
 use core::convert::TryFrom;
 use rgb::RGB8;
-use screen_layer::Layer;
 use vek::Vec2;
 
 pub struct Writer {
-    id: screen_layer::Id,
     coord: Vec2<i32>,
     color: RGB8,
 }
 
 impl Writer {
-    pub fn new(coord: Vec2<i32>, color: RGB8) -> Self {
-        let l = Layer::new(Vec2::zero(), Vram::resolution().as_());
-        let id = layer::add(l);
-        Self { id, coord, color }
+    pub const fn new(coord: Vec2<i32>, color: RGB8) -> Self {
+        Self { coord, color }
     }
 
     fn print_str(&mut self, str: &str) {
@@ -49,11 +45,12 @@ impl Writer {
     }
 
     fn print_char(&self, font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT]) {
-        for (y, line) in font.iter().enumerate().take(font::FONT_HEIGHT) {
-            for (x, cell) in line.iter().enumerate().take(font::FONT_WIDTH) {
+        for (i, line) in font.iter().enumerate().take(font::FONT_HEIGHT) {
+            for (j, cell) in line.iter().enumerate().take(font::FONT_WIDTH) {
                 if *cell {
-                    let c = self.coord + Vec2::new(x, y).as_();
-                    layer::set_pixel(self.id, c.as_(), Some(self.color)).unwrap();
+                    unsafe {
+                        Vram::set_color(self.coord + Vec2::new(j, i).as_(), self.color);
+                    }
                 }
             }
         }
