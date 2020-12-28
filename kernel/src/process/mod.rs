@@ -24,7 +24,7 @@ pub fn add(p: Process) {
 }
 
 pub fn switch() -> VirtAddr {
-    if cfg!(qemu_test) {
+    if cfg!(feature = "qemu_test") {
         count_switch();
     }
     manager::switch_process()
