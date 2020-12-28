@@ -96,10 +96,10 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
 
     layer::init();
 
+    screen::log::init().unwrap();
+
     let desktop = Desktop::new();
     desktop.draw();
-
-    screen::log::init().unwrap();
 
     info!("Hello Ramen OS!");
     info!("Vram information: {}", Vram::display());
@@ -111,7 +111,6 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     process::init();
 
     process::add(Process::new(run_tasks));
-    process::add(Process::new(layer::main));
 }
 
 fn wait_until_timer_interrupt_happens() -> ! {
