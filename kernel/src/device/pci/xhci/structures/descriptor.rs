@@ -96,11 +96,16 @@ pub struct Endpoint {
 impl Endpoint {
     pub fn ty(self) -> EndpointType {
         EndpointType::from_u8(if self.attributes == 0 {
-            0
+            4
         } else {
-            self.attributes + if self.endpoint_address == 0 { 0 } else { 4 }
+            self.attributes.get_bits(0..=1)
+                + if self.endpoint_address.get_bit(7) {
+                    4
+                } else {
+                    0
+                }
         })
-        .unwrap()
+        .expect("EndpointType must be convertible from `attributes` and `endpoint_address`.")
     }
 
     pub fn doorbell_value(self) -> u32 {
