@@ -14,6 +14,18 @@ pub fn run() {
     });
 }
 
+pub fn ensure_no_error_occurs() {
+    super::handle_registers(|r| {
+        let s = r.operational.usb_sts.read();
+        assert!(!s.hc_halted(), "HC is halted.");
+        assert!(
+            !s.host_system_error(),
+            "An error occured on the host system."
+        );
+        assert!(!s.hc_error(), "An error occured on the xHC.");
+    });
+}
+
 fn get_ownership_from_bios() {
     super::handle_registers(|r| {
         if let Some(ref mut leg_sup_cap) = r.usb_legacy_support_capability {

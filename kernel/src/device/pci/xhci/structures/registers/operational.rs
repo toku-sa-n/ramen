@@ -68,6 +68,8 @@ bitfield! {
 
     pub hc_halted, _: 0;
     pub controller_not_ready,_:11;
+    pub host_system_error, _: 2;
+    pub hc_error, _: 12;
 }
 
 #[repr(transparent)]
