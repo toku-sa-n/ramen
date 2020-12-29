@@ -4,7 +4,7 @@ use core::convert::TryFrom;
 use os_units::NumOfPages;
 use phys::FRAME_MANAGER;
 use x86_64::{
-    structures::paging::{Mapper, MapperAllSizes, Page, PageSize, Size4KiB},
+    structures::paging::{Mapper, Page, PageSize, Size4KiB, Translate},
     PhysAddr, VirtAddr,
 };
 
