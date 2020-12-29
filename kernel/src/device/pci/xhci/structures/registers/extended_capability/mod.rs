@@ -20,7 +20,7 @@ impl List {
         let xecp = p1.xhci_extended_capabilities_pointer();
 
         if xecp > 0 {
-            let head = mmio_base + u64::from(xecp);
+            let head = mmio_base + u64::from(xecp << 2);
 
             Some(Self { head })
         } else {
@@ -44,7 +44,7 @@ impl Iter {
         if offset == 0 {
             None
         } else {
-            Some(self.addr? + u64::from(offset))
+            Some(self.addr? + u64::from(offset << 2))
         }
     }
 
