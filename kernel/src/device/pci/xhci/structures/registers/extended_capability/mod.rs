@@ -40,7 +40,7 @@ struct Iter {
 }
 impl Iter {
     fn next_addr(&self) -> Option<PhysAddr> {
-        let offset = self.header()? >> 8;
+        let offset = (self.header()? >> 8) & 0xff;
         if offset == 0 {
             None
         } else {
