@@ -5,7 +5,7 @@ use common::constant::BYTES_AVAILABLE_RAM;
 use core::convert::TryFrom;
 use os_units::NumOfPages;
 use x86_64::{
-    structures::paging::{MapperAllSizes, PageSize, Size4KiB},
+    structures::paging::{PageSize, Size4KiB, Translate},
     VirtAddr,
 };
 
