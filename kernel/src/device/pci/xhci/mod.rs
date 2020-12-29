@@ -92,6 +92,7 @@ fn init() -> (
     scratchpad::init();
 
     xhc::run();
+    xhc::ensure_no_error_occurs();
 
     (event_ring, sender, receiver)
 }
