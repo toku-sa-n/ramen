@@ -2,6 +2,7 @@
 
 pub mod capability;
 pub mod doorbell;
+pub mod extended_capability;
 pub mod operational;
 pub mod runtime;
 pub mod usb_legacy_support_capability;
