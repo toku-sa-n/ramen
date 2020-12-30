@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{font, layer, Vram};
+use core::convert::{TryFrom, TryInto};
 use rgb::RGB8;
 use screen_layer::Layer;
 use vek::Vec2;
@@ -22,7 +23,7 @@ impl Writer {
     fn print_str(&mut self, str: &str) {
         for c in str.chars() {
             if c == '\n' {
-                self.break_line();
+                self.handle_linebreak();
                 continue;
             }
 
@@ -35,8 +36,43 @@ impl Writer {
         }
     }
 
-    fn break_line(&mut self) {
+    fn handle_linebreak(&mut self) {
+        self.carriage_return();
+        if self.cursor_is_bottom_line() {
+            self.scroll();
+        } else {
+            self.break_line();
+        }
+    }
+
+    fn carriage_return(&mut self) {
         self.coord.x = 0;
+    }
+
+    fn cursor_is_bottom_line(&self) -> bool {
+        self.coord.y + font::FONT_HEIGHT >= Vram::resolution().y
+    }
+
+    fn scroll(&mut self) {
+        layer::edit(self.id, |l| {
+            let before_bottom_line: usize = (Vram::resolution().y - font::FONT_HEIGHT)
+                .try_into()
+                .unwrap();
+
+            for x in 0..usize::try_from(Vram::resolution().x).unwrap() {
+                for y in 0..before_bottom_line {
+                    l[y][x] = l[y + usize::try_from(font::FONT_HEIGHT).unwrap()][x];
+                }
+
+                for y in before_bottom_line..usize::try_from(Vram::resolution().y).unwrap() {
+                    l[y][x] = None;
+                }
+            }
+        })
+        .expect("A layer for this writer does not exist.");
+    }
+
+    fn break_line(&mut self) {
         self.coord.y += font::FONT_HEIGHT;
     }
 
