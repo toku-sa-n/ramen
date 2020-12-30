@@ -32,7 +32,7 @@ impl Writer {
             self.move_cursor_by_one_character();
 
             if self.cursor_is_outside_screen() {
-                self.break_line();
+                self.break_line_or_scroll();
             }
         }
     }
