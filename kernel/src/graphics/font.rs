@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pub const FONT_WIDTH: usize = 8;
-pub const FONT_HEIGHT: usize = 16;
-const NUM_FONTS: usize = 256;
-pub const FONTS: [[[bool; FONT_WIDTH]; FONT_HEIGHT]; NUM_FONTS] = [
+pub const FONT_WIDTH: u32 = 8;
+pub const FONT_HEIGHT: u32 = 16;
+const NUM_FONTS: u32 = 256;
+pub const FONTS: [[[bool; FONT_WIDTH as usize]; FONT_HEIGHT as usize]; NUM_FONTS as usize] = [
     [
         [false, false, false, false, false, false, false, false],
         [false, false, false, false, false, false, false, false],

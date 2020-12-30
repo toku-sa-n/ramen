@@ -8,12 +8,12 @@ use vek::Vec2;
 
 pub struct Writer {
     id: screen_layer::Id,
-    coord: Vec2<i32>,
+    coord: Vec2<u32>,
     color: RGB8,
 }
 
 impl Writer {
-    pub fn new(coord: Vec2<i32>, color: RGB8) -> Self {
+    pub fn new(coord: Vec2<u32>, color: RGB8) -> Self {
         let l = Layer::new(Vec2::zero(), Vram::resolution().as_());
         let id = layer::add(l);
 
@@ -38,20 +38,20 @@ impl Writer {
 
     fn break_line(&mut self) {
         self.coord.x = 0;
-        self.coord.y += i32::try_from(font::FONT_HEIGHT).unwrap();
+        self.coord.y += u32::try_from(font::FONT_HEIGHT).unwrap();
     }
 
     fn move_cursor_by_one_character(&mut self) {
-        self.coord.x += i32::try_from(font::FONT_WIDTH).unwrap();
+        self.coord.x += u32::try_from(font::FONT_WIDTH).unwrap();
     }
 
     fn cursor_is_outside_screen(&self) -> bool {
-        self.coord.x + i32::try_from(font::FONT_WIDTH).unwrap() >= Vram::resolution().x
+        self.coord.x + u32::try_from(font::FONT_WIDTH).unwrap() >= Vram::resolution().x
     }
 
-    fn print_char(&self, font: [[bool; font::FONT_WIDTH]; font::FONT_HEIGHT]) {
-        for (i, line) in font.iter().enumerate().take(font::FONT_HEIGHT) {
-            for (j, cell) in line.iter().enumerate().take(font::FONT_WIDTH) {
+    fn print_char(&self, font: [[bool; font::FONT_WIDTH as usize]; font::FONT_HEIGHT as usize]) {
+        for (i, line) in font.iter().enumerate() {
+            for (j, cell) in line.iter().enumerate() {
                 if *cell {
                     let c = self.coord + Vec2::new(j, i).as_();
                     layer::set_pixel(self.id, c.as_(), Some(self.color))
