@@ -53,9 +53,9 @@ impl Writer {
         for (i, line) in font.iter().enumerate().take(font::FONT_HEIGHT) {
             for (j, cell) in line.iter().enumerate().take(font::FONT_WIDTH) {
                 if *cell {
-                    unsafe {
-                        Vram::set_color(self.coord + Vec2::new(j, i).as_(), self.color);
-                    }
+                    let c = self.coord + Vec2::new(j, i).as_();
+                    layer::set_pixel(self.id, c.as_(), Some(self.color))
+                        .expect("The layer for this writer does not exist");
                 }
             }
         }
