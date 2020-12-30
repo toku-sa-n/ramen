@@ -15,8 +15,8 @@ static VRAM: Lazy<OnceCell<Vram>> = Lazy::new(OnceCell::uninit);
 
 #[derive(Clone)]
 pub struct Vram {
-    bits_per_pixel: i32,
-    resolution: Vec2<i32>,
+    bits_per_pixel: u32,
+    resolution: Vec2<u32>,
     ptr: VirtAddr,
 }
 
@@ -26,7 +26,7 @@ impl Vram {
             .unwrap();
     }
 
-    pub fn resolution() -> &'static Vec2<i32> {
+    pub fn resolution() -> &'static Vec2<u32> {
         &Vram::get().resolution
     }
 
@@ -34,7 +34,7 @@ impl Vram {
         Self::get()
     }
 
-    pub fn bpp() -> i32 {
+    pub fn bpp() -> u32 {
         Vram::get().bits_per_pixel
     }
 
@@ -48,7 +48,7 @@ impl Vram {
         Self::new(vram.bpp(), vram.resolution(), VRAM_ADDR)
     }
 
-    fn new(bits_per_pixel: i32, resolution: Vec2<i32>, ptr: VirtAddr) -> Self {
+    fn new(bits_per_pixel: u32, resolution: Vec2<u32>, ptr: VirtAddr) -> Self {
         Self {
             bits_per_pixel,
             resolution,

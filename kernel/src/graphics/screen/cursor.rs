@@ -7,7 +7,7 @@ use screen_layer::{self, Layer};
 use vek::Vec2;
 
 pub struct Cursor {
-    coord: Vec2<i32>,
+    coord: Vec2<u32>,
     id: screen_layer::Id,
 }
 
@@ -29,7 +29,7 @@ impl Cursor {
     }
 
     pub fn move_offset(&mut self, offset: Vec2<i32>) {
-        let new_coord = self.coord + offset;
+        let new_coord = (self.coord.as_::<i32>() + offset).as_();
         self.coord = new_coord;
         self.fit_in_screen();
         layer::slide(self.id, self.coord.as_()).expect("Layer of mouse cursor should be added.");
@@ -48,9 +48,6 @@ impl Cursor {
     }
 
     fn fit_in_screen(&mut self) {
-        self.coord = Vec2::<i32>::max(
-            Vec2::min(self.coord, *Vram::resolution() - Vec2::one()),
-            Vec2::zero(),
-        );
+        self.coord = Vec2::min(self.coord, *Vram::resolution() - Vec2::one());
     }
 }
