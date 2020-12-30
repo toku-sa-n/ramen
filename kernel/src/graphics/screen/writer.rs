@@ -2,6 +2,7 @@
 
 use super::{font, layer, Vram};
 use core::convert::{TryFrom, TryInto};
+use font::{FONTS, FONT_HEIGHT, FONT_WIDTH};
 use rgb::RGB8;
 use screen_layer::Layer;
 use vek::Vec2;
@@ -27,7 +28,7 @@ impl Writer {
                 continue;
             }
 
-            self.print_char(font::FONTS[c as usize]);
+            self.print_char(FONTS[c as usize]);
             self.move_cursor_by_one_character();
 
             if self.cursor_is_outside_screen() {
@@ -50,18 +51,17 @@ impl Writer {
     }
 
     fn cursor_is_bottom_line(&self) -> bool {
-        self.coord.y + font::FONT_HEIGHT >= Vram::resolution().y
+        self.coord.y + FONT_HEIGHT >= Vram::resolution().y
     }
 
     fn scroll(&mut self) {
         layer::edit(self.id, |l| {
-            let before_bottom_line: usize = (Vram::resolution().y - font::FONT_HEIGHT)
-                .try_into()
-                .unwrap();
+            let before_bottom_line: usize =
+                (Vram::resolution().y - FONT_HEIGHT).try_into().unwrap();
 
             for x in 0..usize::try_from(Vram::resolution().x).unwrap() {
                 for y in 0..before_bottom_line {
-                    l[y][x] = l[y + usize::try_from(font::FONT_HEIGHT).unwrap()][x];
+                    l[y][x] = l[y + usize::try_from(FONT_HEIGHT).unwrap()][x];
                 }
 
                 for y in before_bottom_line..usize::try_from(Vram::resolution().y).unwrap() {
@@ -73,18 +73,18 @@ impl Writer {
     }
 
     fn break_line(&mut self) {
-        self.coord.y += font::FONT_HEIGHT;
+        self.coord.y += FONT_HEIGHT;
     }
 
     fn move_cursor_by_one_character(&mut self) {
-        self.coord.x += font::FONT_WIDTH;
+        self.coord.x += FONT_WIDTH;
     }
 
     fn cursor_is_outside_screen(&self) -> bool {
-        self.coord.x + font::FONT_WIDTH >= Vram::resolution().x
+        self.coord.x + FONT_WIDTH >= Vram::resolution().x
     }
 
-    fn print_char(&self, font: [[bool; font::FONT_WIDTH as usize]; font::FONT_HEIGHT as usize]) {
+    fn print_char(&self, font: [[bool; FONT_WIDTH as usize]; FONT_HEIGHT as usize]) {
         for (i, line) in font.iter().enumerate() {
             for (j, cell) in line.iter().enumerate() {
                 if *cell {
