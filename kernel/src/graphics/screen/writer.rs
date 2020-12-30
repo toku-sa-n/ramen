@@ -23,11 +23,14 @@ impl Writer {
 
     fn print_str(&mut self, str: &str) {
         for c in str.chars() {
-            if c == '\n' {
-                self.break_line_or_scroll();
-                continue;
-            }
+            self.print_char(c);
+        }
+    }
 
+    fn print_char(&mut self, c: char) {
+        if c == '\n' {
+            self.break_line_or_scroll();
+        } else {
             self.write_char_on_layer(FONTS[c as usize]);
             self.move_cursor_by_one_character();
 
