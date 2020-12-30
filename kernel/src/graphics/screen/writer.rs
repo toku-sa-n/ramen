@@ -92,10 +92,10 @@ impl Writer {
     }
 
     fn write_char_on_layer(&self, font: [[bool; FONT_WIDTH as usize]; FONT_HEIGHT as usize]) {
-        for (i, line) in font.iter().enumerate() {
-            for (j, cell) in line.iter().enumerate() {
+        for (y, line) in font.iter().enumerate() {
+            for (x, cell) in line.iter().enumerate() {
                 if *cell {
-                    let c = self.coord + Vec2::new(j, i).as_();
+                    let c = self.coord + Vec2::new(x, y).as_();
                     layer::set_pixel(self.id, c.as_(), Some(self.color))
                         .expect("The layer for this writer does not exist");
                 }
