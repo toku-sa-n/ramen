@@ -14,8 +14,8 @@ pub fn init() {
         .try_init_once(|| {
             Spinlock::new(unsafe {
                 screen_layer::Controller::new(
-                    Vram::resolution().as_(),
-                    Vram::bpp().try_into().unwrap(),
+                    *Vram::resolution(),
+                    Vram::bpp(),
                     Vram::ptr().as_u64().try_into().unwrap(),
                 )
             })

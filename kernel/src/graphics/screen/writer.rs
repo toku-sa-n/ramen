@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{font, layer, Vram};
-use core::convert::TryFrom;
 use rgb::RGB8;
 use screen_layer::Layer;
 use vek::Vec2;
@@ -38,15 +37,15 @@ impl Writer {
 
     fn break_line(&mut self) {
         self.coord.x = 0;
-        self.coord.y += u32::try_from(font::FONT_HEIGHT).unwrap();
+        self.coord.y += font::FONT_HEIGHT;
     }
 
     fn move_cursor_by_one_character(&mut self) {
-        self.coord.x += u32::try_from(font::FONT_WIDTH).unwrap();
+        self.coord.x += font::FONT_WIDTH;
     }
 
     fn cursor_is_outside_screen(&self) -> bool {
-        self.coord.x + u32::try_from(font::FONT_WIDTH).unwrap() >= Vram::resolution().x
+        self.coord.x + font::FONT_WIDTH >= Vram::resolution().x
     }
 
     fn print_char(&self, font: [[bool; font::FONT_WIDTH as usize]; font::FONT_HEIGHT as usize]) {
