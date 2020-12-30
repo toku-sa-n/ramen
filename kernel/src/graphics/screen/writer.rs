@@ -31,12 +31,7 @@ impl Writer {
         if c == '\n' {
             self.break_line_or_scroll();
         } else {
-            self.write_char_on_layer(FONTS[c as usize]);
-            self.move_cursor_by_one_character();
-
-            if self.cursor_is_outside_screen() {
-                self.break_line_or_scroll();
-            }
+            self.print_normal_char(c);
         }
     }
 
@@ -77,6 +72,15 @@ impl Writer {
 
     fn break_line(&mut self) {
         self.coord.y += FONT_HEIGHT;
+    }
+
+    fn print_normal_char(&mut self, c: char) {
+        self.write_char_on_layer(FONTS[c as usize]);
+        self.move_cursor_by_one_character();
+
+        if self.cursor_is_outside_screen() {
+            self.break_line_or_scroll();
+        }
     }
 
     fn move_cursor_by_one_character(&mut self) {
