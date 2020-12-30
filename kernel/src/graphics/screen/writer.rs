@@ -24,7 +24,7 @@ impl Writer {
     fn print_str(&mut self, str: &str) {
         for c in str.chars() {
             if c == '\n' {
-                self.handle_linebreak();
+                self.break_line_or_scroll();
                 continue;
             }
 
@@ -37,7 +37,7 @@ impl Writer {
         }
     }
 
-    fn handle_linebreak(&mut self) {
+    fn break_line_or_scroll(&mut self) {
         self.carriage_return();
         if self.cursor_is_bottom_line() {
             self.scroll();
