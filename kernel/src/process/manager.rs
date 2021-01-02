@@ -82,10 +82,11 @@ impl Manager {
 
         match p._stack {
             Some(ref s) => {
-                let rip = VirtAddr::new((p.f as usize).try_into().unwrap());
-                let rsp = s.virt_addr() + s.bytes().as_usize();
+                let instruction_pointer = VirtAddr::new((p.f as usize).try_into().unwrap());
+                let stack_bottom = s.virt_addr() + s.bytes().as_usize();
 
-                let stack_frame = PageBox::kernel(StackFrame::new(rip, rsp));
+                let stack_frame =
+                    PageBox::kernel(StackFrame::new(instruction_pointer, stack_bottom));
 
                 p.stack_frame = Some(stack_frame);
             }
