@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use super::structures::registers::extended_capability::ExtendedCapability;
+
 pub fn init() {
     get_ownership_from_bios();
     stop_and_reset();
@@ -14,13 +16,28 @@ pub fn run() {
     });
 }
 
+pub fn ensure_no_error_occurs() {
+    super::handle_registers(|r| {
+        let s = r.operational.usb_sts.read();
+        assert!(!s.hc_halted(), "HC is halted.");
+        assert!(
+            !s.host_system_error(),
+            "An error occured on the host system."
+        );
+        assert!(!s.hc_error(), "An error occured on the xHC.");
+    });
+}
+
 fn get_ownership_from_bios() {
     super::handle_registers(|r| {
-        if let Some(ref mut leg_sup_cap) = r.usb_legacy_support_capability {
-            let leg_sup = &mut leg_sup_cap.usb_leg_sup;
-            leg_sup.update(|s| s.os_request_ownership(true));
+        if let Some(caps) = &r.extended_capability {
+            for cap in caps.iter() {
+                if let ExtendedCapability::UsbLegacySupport(mut leg_sup) = cap {
+                    leg_sup.update(|s| s.os_request_ownership(true));
 
-            while leg_sup.read().bios_owns_hc() || !leg_sup.read().os_owns_hc() {}
+                    while leg_sup.read().bios_owns_hc() || !leg_sup.read().os_owns_hc() {}
+                }
+            }
         }
     })
 }

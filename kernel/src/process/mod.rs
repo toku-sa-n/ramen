@@ -4,7 +4,7 @@ mod creator;
 mod manager;
 mod stack_frame;
 
-use crate::{mem::allocator::page_box::PageBox, tss::TSS};
+use crate::{mem::allocator::page_box::PageBox, tests, tss::TSS};
 use common::constant::INTERRUPT_STACK;
 use conquer_once::spin::OnceCell;
 use creator::Creator;
@@ -27,6 +27,9 @@ pub fn add(p: Process) {
 }
 
 pub fn switch() -> VirtAddr {
+    if cfg!(feature = "qemu_test") {
+        tests::process::count_switch();
+    }
     manager::switch_process()
 }
 

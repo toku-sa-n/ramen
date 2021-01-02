@@ -27,23 +27,23 @@ bench = false
 
 [dependencies]
 common = { path = "../common" }
-conquer-once = { version = "0.3.0", default-features = false }
+conquer-once = { version = "0.3.1", default-features = false }
 spinning_top = { version = "0.2.2", features = ["nightly"] }
-qemu-exit = "1.0.0"
-x86_64 = "0.12.0"
-linked_list_allocator = "0.8.0"
+qemu-exit = "1.0.1"
+x86_64 = "0.13.0"
+linked_list_allocator = "0.8.10"
 log = "0.4.11"
-vek = { version = "0.12.0", default-features = false, features = ["libm"] }
+vek = { version = "0.12.1", default-features = false, features = ["libm"] }
 rgb = "0.8.25"
 uefi = "0.7.0"
-crossbeam-queue = { version = "0.3.0", default-features = false, features = ["alloc"] }
-futures-util = { version = "0.3.4", default-features = false, features = ["alloc"] }
-screen_layer = "0.1.0"
-os_units = "0.2.0"
+crossbeam-queue = { version = "0.3.1", default-features = false, features = ["alloc"] }
+futures-util = { version = "0.3.8", default-features = false, features = ["alloc"] }
+screen_layer = "0.3.0"
+os_units = "0.2.6"
 bitfield = "0.13.2"
 bit_field = "0.10.1"
 futures-intrusive = { version = "0.4.0", default-features = false, features = ["alloc"] }
-num-traits = { version = "0.2", default-features = false}
+num-traits = { version = "0.2.14", default-features = false }
 num-derive = "0.3.3"
 acpi = { git = "https://github.com/rust-osdev/acpi.git" }
 derive_builder = "0.9.0"

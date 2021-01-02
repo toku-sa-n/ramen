@@ -4,7 +4,6 @@
 #![feature(int_bits_const)]
 #![feature(async_closure)]
 #![feature(alloc_error_handler)]
-#![feature(min_const_generics)]
 #![feature(linked_list_remove)]
 #![feature(const_fn)]
 #![feature(wake_trait)]
@@ -38,6 +37,7 @@ mod multitask;
 mod panic;
 mod process;
 mod syscall;
+mod tests;
 mod tss;
 
 use common::{constant::INITRD_ADDR, kernelboot};
@@ -110,8 +110,13 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     // SAFETY: `INITRD_ADDR` is the valid address to UStar data.
     let ustar = unsafe { Ustar::new(INITRD_ADDR) };
     ustar.list();
+    ustar.content("build/bootx64.efi");
 
     process::add(Process::new(run_tasks));
+
+    if cfg!(feature = "qemu_test") {
+        process::add(Process::new(tests::main));
+    }
 }
 
 fn wait_until_timer_interrupt_happens() -> ! {
@@ -120,7 +125,6 @@ fn wait_until_timer_interrupt_happens() -> ! {
     }
 }
 
-#[cfg(not(feature = "qemu_test"))]
 fn run_tasks() -> ! {
     multitask::add(Task::new(keyboard::task()));
     multitask::add(Task::new(mouse::task()));
@@ -129,15 +133,4 @@ fn run_tasks() -> ! {
 
     let mut executor = Executor::new();
     executor.run();
-}
-
-#[cfg(feature = "qemu_test")]
-fn run_tasks() -> ! {
-    use qemu_exit::QEMUExit;
-    // Currently there is no way to test multitasking. If this OS suppports timer, the situation
-    // may change.
-    //
-    // If you change the value `0xf4` and `33`, don't forget to change the correspond values in
-    // `Makefile`!
-    qemu_exit::X86::new(0xf4, 33).exit_success();
 }

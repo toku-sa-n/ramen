@@ -78,7 +78,7 @@ async fn task(
             let kbd = class_driver::keyboard::Keyboard::new(eps);
             multitask::add(Task::new_poll(class_driver::keyboard::task(kbd)));
         }
-        _ => {}
+        t => warn!("Unknown device: {:?}", t),
     }
 }
 
@@ -91,7 +91,6 @@ async fn init_port_and_slot(
     reset_waiter.await;
 
     let port_idx = port.index;
-    info!("Resetting port {}", port_idx);
 
     port.reset();
     port.init_context();
@@ -138,7 +137,9 @@ impl Port {
     }
 
     fn reset(&mut self) {
+        info!("Resetting port {}", self.index);
         Resetter::new(self.index).reset();
+        info!("Port {} is reset.", self.index);
     }
 
     fn init_context(&mut self) {

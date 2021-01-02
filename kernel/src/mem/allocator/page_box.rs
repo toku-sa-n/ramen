@@ -11,7 +11,7 @@ use core::{
 };
 use os_units::Bytes;
 use x86_64::{
-    structures::paging::{MapperAllSizes, Size4KiB},
+    structures::paging::{Size4KiB, Translate},
     PhysAddr, VirtAddr,
 };
 

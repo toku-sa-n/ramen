@@ -2,18 +2,17 @@
 
 pub mod capability;
 pub mod doorbell;
+pub mod extended_capability;
 pub mod operational;
 pub mod runtime;
-pub mod usb_legacy_support_capability;
 
 use capability::Capability;
 use operational::Operational;
 use runtime::Runtime;
-use usb_legacy_support_capability::UsbLegacySupportCapability;
 use x86_64::PhysAddr;
 
 pub struct Registers {
-    pub usb_legacy_support_capability: Option<UsbLegacySupportCapability>,
+    pub extended_capability: Option<extended_capability::List>,
     pub capability: Capability,
     pub operational: Operational,
     pub runtime: Runtime,
@@ -23,22 +22,17 @@ impl Registers {
     /// SAFETY: This method is unsafe because if `mmio_base` is not the valid MMIO base address,
     /// it can violate memory safety.
     pub unsafe fn new(mmio_base: PhysAddr) -> Self {
-        let hc_capability_registers = Capability::new(mmio_base);
-        let usb_legacy_support_capability =
-            UsbLegacySupportCapability::new(mmio_base, &hc_capability_registers);
-        let hc_operational = Operational::new(mmio_base, &hc_capability_registers);
-        let runtime_base_registers = Runtime::new(
-            mmio_base,
-            hc_capability_registers.rts_off.read().get() as usize,
-        );
-        let doorbell_array =
-            doorbell::Array::new(mmio_base, hc_capability_registers.db_off.read().get());
+        let capability = Capability::new(mmio_base);
+        let extended_capability = extended_capability::List::new(mmio_base, &capability);
+        let operational = Operational::new(mmio_base, &capability);
+        let runtime = Runtime::new(mmio_base, capability.rts_off.read().get() as usize);
+        let doorbell_array = doorbell::Array::new(mmio_base, capability.db_off.read().get());
 
         Self {
-            usb_legacy_support_capability,
-            capability: hc_capability_registers,
-            operational: hc_operational,
-            runtime: runtime_base_registers,
+            extended_capability,
+            capability,
+            operational,
+            runtime,
             doorbell_array,
         }
     }

@@ -9,8 +9,8 @@ use x86_64::PhysAddr;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct Info {
-    bpp: i32,
-    resolution: Vec2<i32>,
+    bpp: u32,
+    resolution: Vec2<u32>,
     ptr: PhysAddr,
 }
 
@@ -26,12 +26,12 @@ impl Info {
     }
 
     #[must_use]
-    pub fn bpp(&self) -> i32 {
+    pub fn bpp(&self) -> u32 {
         self.bpp
     }
 
     #[must_use]
-    pub fn resolution(&self) -> Vec2<i32> {
+    pub fn resolution(&self) -> Vec2<u32> {
         self.resolution
     }
 
