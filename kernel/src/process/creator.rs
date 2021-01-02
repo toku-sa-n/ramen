@@ -20,7 +20,7 @@ impl Creator {
         Process {
             stack: None,
             f: self.f,
-            pml4,
+            _pml4: pml4,
             pml4_addr,
             stack_frame: None,
         }
