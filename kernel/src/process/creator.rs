@@ -18,7 +18,7 @@ impl Creator {
         let pml4 = Pml4Creator::new().create();
         let pml4_addr = pml4.phys_addr();
         Process {
-            _stack: None,
+            stack: None,
             f: self.f,
             pml4,
             pml4_addr,

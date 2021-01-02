@@ -91,7 +91,7 @@ struct StackCreator<'a> {
 }
 impl<'a> StackCreator<'a> {
     fn new(process: &'a mut Process) -> Self {
-        assert!(process._stack.is_none(), "Stack is already created.");
+        assert!(process.stack.is_none(), "Stack is already created.");
         assert!(
             process.stack_frame.is_none(),
             "Stack frame is already created."
@@ -108,10 +108,10 @@ impl<'a> StackCreator<'a> {
     fn create_stack(&mut self) {
         let p = &mut self.process;
 
-        assert!(p._stack.is_none(), "Stack is already created.");
+        assert!(p.stack.is_none(), "Stack is already created.");
 
         let stack = PageBox::kernel_slice(0, (Size4KiB::SIZE * 5).try_into().unwrap());
-        p._stack = Some(stack);
+        p.stack = Some(stack);
     }
 
     fn create_stack_frame(&mut self) {
@@ -119,7 +119,7 @@ impl<'a> StackCreator<'a> {
 
         assert!(p.stack_frame.is_none(), "Stack frame is already created.");
 
-        match p._stack {
+        match p.stack {
             Some(ref s) => {
                 let instruction_pointer = VirtAddr::new((p.f as usize).try_into().unwrap());
                 let stack_bottom = s.virt_addr() + s.bytes().as_usize();

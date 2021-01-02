@@ -30,7 +30,7 @@ fn register_initial_interrupt_stack_table_addr() {
 }
 
 pub struct Process {
-    _stack: Option<PageBox<[u8]>>,
+    stack: Option<PageBox<[u8]>>,
     f: fn() -> !,
     pml4: PageBox<PageTable>,
     pml4_addr: PhysAddr,
