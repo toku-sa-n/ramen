@@ -56,7 +56,7 @@ struct Raw {
 impl Raw {
     fn new() -> Self {
         Self {
-            raw: PageBox::new_slice([0; 4], NUM_OF_TRBS),
+            raw: PageBox::user_slice([0; 4], NUM_OF_TRBS),
             enq_p: 0,
             c: CycleBit::new(true),
         }
