@@ -9,7 +9,7 @@ use core::{
     ops::{Deref, DerefMut},
     ptr, slice,
 };
-use os_units::Bytes;
+use os_units::{Bytes, NumOfPages};
 use x86_64::{
     structures::paging::{Size4KiB, Translate},
     PhysAddr, VirtAddr,
@@ -164,5 +164,34 @@ impl<T: ?Sized> Drop for PageBox<T> {
     fn drop(&mut self) {
         let num_of_pages = self.bytes.as_num_of_pages::<Size4KiB>();
         syscalls::deallocate_pages(self.virt, num_of_pages);
+    }
+}
+
+struct Allocator {
+    alloc: fn(NumOfPages<Size4KiB>) -> Option<VirtAddr>,
+    dealloc: fn(VirtAddr, NumOfPages<Size4KiB>),
+}
+impl Allocator {
+    fn user() -> Self {
+        Self {
+            alloc: Self::syscalls_allocate_pages,
+            dealloc: syscalls::deallocate_pages,
+        }
+    }
+
+    fn kernel() -> Self {
+        Self {
+            alloc: super::allocate_pages,
+            dealloc: super::deallocate_pages,
+        }
+    }
+
+    fn syscalls_allocate_pages(pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
+        let a = syscalls::allocate_pages(pages);
+        if a.is_null() {
+            None
+        } else {
+            Some(a)
+        }
     }
 }
