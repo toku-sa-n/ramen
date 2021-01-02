@@ -86,6 +86,9 @@ fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
     apic::io::init(&acpi);
 
     timer::init(&acpi);
+
+    // This function reads a value from CR3 register, which needs the kernel privilege level.
+    process::init();
 }
 
 fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
@@ -108,8 +111,6 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     let ustar = unsafe { Ustar::new(INITRD_ADDR) };
     ustar.list();
     ustar.content("build/bootx64.efi");
-
-    process::init();
 
     process::add(Process::new(run_tasks));
 

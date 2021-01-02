@@ -23,8 +23,16 @@ pub struct PageBox<T: ?Sized> {
 }
 impl<T> PageBox<T> {
     pub fn user(x: T) -> Self {
+        Self::new(x, Allocator::user())
+    }
+
+    pub fn kernel(x: T) -> Self {
+        Self::new(x, Allocator::kernel())
+    }
+
+    fn new(x: T, a: Allocator) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>());
-        let mut page_box = Self::from_bytes(bytes, Allocator::user());
+        let mut page_box = Self::from_bytes(bytes, a);
         page_box.write_initial_value(x);
         page_box
     }
@@ -71,8 +79,16 @@ where
     T: Copy + Clone,
 {
     pub fn user_slice(x: T, num_of_elements: usize) -> Self {
+        Self::new_slice(x, num_of_elements, Allocator::user())
+    }
+
+    pub fn kernel_slice(x: T, num_of_elements: usize) -> Self {
+        Self::new_slice(x, num_of_elements, Allocator::kernel())
+    }
+
+    fn new_slice(x: T, num_of_elements: usize, a: Allocator) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>() * num_of_elements);
-        let mut page_box = Self::from_bytes(bytes, Allocator::user());
+        let mut page_box = Self::from_bytes(bytes, a);
         page_box.write_all_elements_with_same_value(x);
         page_box
     }
@@ -179,6 +195,13 @@ impl Allocator {
         Self {
             alloc: Self::syscalls_allocate_pages,
             dealloc: syscalls::deallocate_pages,
+        }
+    }
+
+    fn kernel() -> Self {
+        Self {
+            alloc: super::allocate_pages,
+            dealloc: super::deallocate_pages,
         }
     }
 
