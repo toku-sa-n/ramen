@@ -85,6 +85,13 @@ where
         page_box
     }
 
+    pub fn kernel_slice(x: T, num_of_elements: usize) -> Self {
+        let bytes = Bytes::new(mem::size_of::<T>() * num_of_elements);
+        let mut page_box = Self::from_bytes(bytes, Allocator::kernel());
+        page_box.write_all_elements_with_same_value(x);
+        page_box
+    }
+
     fn write_all_elements_with_same_value(&mut self, x: T)
     where
         T: Copy + Clone,
