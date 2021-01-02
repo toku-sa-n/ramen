@@ -23,15 +23,16 @@ pub struct PageBox<T: ?Sized> {
 }
 impl<T> PageBox<T> {
     pub fn user(x: T) -> Self {
-        let bytes = Bytes::new(mem::size_of::<T>());
-        let mut page_box = Self::from_bytes(bytes, Allocator::user());
-        page_box.write_initial_value(x);
-        page_box
+        Self::new(x, Allocator::user())
     }
 
     pub fn kernel(x: T) -> Self {
+        Self::new(x, Allocator::kernel())
+    }
+
+    fn new(x: T, a: Allocator) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>());
-        let mut page_box = Self::from_bytes(bytes, Allocator::kernel());
+        let mut page_box = Self::from_bytes(bytes, a);
         page_box.write_initial_value(x);
         page_box
     }
