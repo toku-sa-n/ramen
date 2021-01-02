@@ -23,7 +23,7 @@ pub struct PageBox<T: ?Sized> {
 impl<T> PageBox<T> {
     pub fn user(x: T) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>());
-        let mut page_box = Self::new_zeroed_from_bytes(bytes);
+        let mut page_box = Self::user_from_bytes(bytes);
         page_box.write_initial_value(x);
         page_box
     }
@@ -71,7 +71,7 @@ where
 {
     pub fn user_slice(x: T, num_of_elements: usize) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>() * num_of_elements);
-        let mut page_box = Self::new_zeroed_from_bytes(bytes);
+        let mut page_box = Self::user_from_bytes(bytes);
         page_box.write_all_elements_with_same_value(x);
         page_box
     }
@@ -142,7 +142,7 @@ impl<T: ?Sized> PageBox<T> {
         self.bytes
     }
 
-    fn new_zeroed_from_bytes(bytes: Bytes) -> Self {
+    fn user_from_bytes(bytes: Bytes) -> Self {
         let virt = syscalls::allocate_pages(bytes.as_num_of_pages());
 
         let mut page_box = Self {
