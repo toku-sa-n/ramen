@@ -44,9 +44,9 @@ fn save_kernel_pml4() {
 }
 
 pub struct Process {
-    _stack: PageBox<[u8]>,
+    _stack: Option<PageBox<[u8]>>,
     pml4: PageBox<PageTable>,
-    stack_frame: PageBox<StackFrame>,
+    stack_frame: Option<PageBox<StackFrame>>,
 }
 impl Process {
     pub fn new(f: fn() -> !) -> Self {
@@ -54,10 +54,17 @@ impl Process {
     }
 
     fn stack_frame_top_addr(&self) -> VirtAddr {
-        self.stack_frame.virt_addr()
+        self.stack_frame().virt_addr()
     }
 
     fn stack_frame_bottom_addr(&self) -> VirtAddr {
-        self.stack_frame_top_addr() + self.stack_frame.bytes().as_usize()
+        let b = self.stack_frame().bytes();
+        self.stack_frame_top_addr() + b.as_usize()
+    }
+
+    fn stack_frame(&self) -> &PageBox<StackFrame> {
+        self.stack_frame
+            .as_ref()
+            .expect("Stack frame is not created")
     }
 }
