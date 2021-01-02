@@ -60,7 +60,7 @@ impl Manager {
     }
 
     fn prepare_stack(&mut self) {
-        if let None = self.current_process().stack_frame {
+        if self.current_process().stack_frame.is_none() {
             StackCreator::new(self.current_process_mut()).create();
         }
     }
