@@ -182,6 +182,13 @@ impl Allocator {
         }
     }
 
+    fn kernel() -> Self {
+        Self {
+            alloc: super::allocate_pages,
+            dealloc: super::deallocate_pages,
+        }
+    }
+
     fn syscalls_allocate_pages(pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
         let a = syscalls::allocate_pages(pages);
         if a.is_null() {
