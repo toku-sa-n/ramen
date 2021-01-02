@@ -22,7 +22,7 @@ pub struct DeviceContextBaseAddressArray {
 }
 impl<'a> DeviceContextBaseAddressArray {
     fn new() -> Self {
-        let arr = PageBox::new_slice(PhysAddr::zero(), Self::num_of_slots());
+        let arr = PageBox::user_slice(PhysAddr::zero(), Self::num_of_slots());
         Self { arr }
     }
 

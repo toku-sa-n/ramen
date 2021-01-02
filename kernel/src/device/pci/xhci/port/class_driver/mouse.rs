@@ -20,7 +20,7 @@ impl Mouse {
     pub fn new(ep: endpoint::Collection) -> Self {
         Self {
             ep,
-            buf: PageBox::new([0; 4]),
+            buf: PageBox::user([0; 4]),
         }
     }
 

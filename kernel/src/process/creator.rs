@@ -34,7 +34,7 @@ struct Pml4Creator {
 impl Pml4Creator {
     fn new() -> Self {
         Self {
-            pml4: PageBox::new(PageTable::new()),
+            pml4: PageBox::user(PageTable::new()),
         }
     }
 

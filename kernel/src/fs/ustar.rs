@@ -25,7 +25,7 @@ impl Ustar {
         let m_ptr = m as *const Meta;
         let cont_ptr = (m_ptr as usize + mem::size_of::<Meta>()) as *const u8;
 
-        let b = PageBox::new_slice(0, m.filesize_as_dec());
+        let b = PageBox::user_slice(0, m.filesize_as_dec());
 
         // SAFETY: Both the source and the destination pointers are valid and aligned.
         unsafe {
