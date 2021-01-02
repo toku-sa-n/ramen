@@ -61,36 +61,7 @@ impl Manager {
 
     fn prepare_stack(&mut self) {
         if let None = self.current_process().stack_frame {
-            self.create_stack();
-            self.create_stack_frame();
-        }
-    }
-
-    fn create_stack(&mut self) {
-        let p = self.current_process_mut();
-
-        assert!(p._stack.is_none(), "Stack is already created.");
-
-        let stack = PageBox::kernel_slice(0, (Size4KiB::SIZE * 5).try_into().unwrap());
-        p._stack = Some(stack);
-    }
-
-    fn create_stack_frame(&mut self) {
-        let p = self.current_process_mut();
-
-        assert!(p.stack_frame.is_none(), "Stack frame is already created.");
-
-        match p._stack {
-            Some(ref s) => {
-                let instruction_pointer = VirtAddr::new((p.f as usize).try_into().unwrap());
-                let stack_bottom = s.virt_addr() + s.bytes().as_usize();
-
-                let stack_frame =
-                    PageBox::kernel(StackFrame::new(instruction_pointer, stack_bottom));
-
-                p.stack_frame = Some(stack_frame);
-            }
-            None => panic!("Stack is not created."),
+            StackCreator::new(self.current_process_mut()).create();
         }
     }
 
@@ -112,5 +83,53 @@ impl Manager {
 
     fn current_process_mut(&mut self) -> &mut Process {
         &mut self.processes[0]
+    }
+}
+
+struct StackCreator<'a> {
+    process: &'a mut Process,
+}
+impl<'a> StackCreator<'a> {
+    fn new(process: &'a mut Process) -> Self {
+        assert!(process._stack.is_none(), "Stack is already created.");
+        assert!(
+            process.stack_frame.is_none(),
+            "Stack frame is already created."
+        );
+
+        Self { process }
+    }
+
+    fn create(mut self) {
+        self.create_stack();
+        self.create_stack_frame();
+    }
+
+    fn create_stack(&mut self) {
+        let p = &mut self.process;
+
+        assert!(p._stack.is_none(), "Stack is already created.");
+
+        let stack = PageBox::kernel_slice(0, (Size4KiB::SIZE * 5).try_into().unwrap());
+        p._stack = Some(stack);
+    }
+
+    fn create_stack_frame(&mut self) {
+        let p = &mut self.process;
+
+        assert!(p.stack_frame.is_none(), "Stack frame is already created.");
+
+        match p._stack {
+            Some(ref s) => {
+                let instruction_pointer = VirtAddr::new((p.f as usize).try_into().unwrap());
+                let stack_bottom = s.virt_addr() + s.bytes().as_usize();
+
+                let stack_frame =
+                    PageBox::kernel(StackFrame::new(instruction_pointer, stack_bottom));
+
+                p.stack_frame = Some(stack_frame);
+            }
+            None => panic!("Stack is not created."),
+        }
     }
 }
