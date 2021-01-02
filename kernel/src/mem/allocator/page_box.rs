@@ -29,6 +29,13 @@ impl<T> PageBox<T> {
         page_box
     }
 
+    pub fn kernel(x: T) -> Self {
+        let bytes = Bytes::new(mem::size_of::<T>());
+        let mut page_box = Self::from_bytes(bytes, Allocator::kernel());
+        page_box.write_initial_value(x);
+        page_box
+    }
+
     fn write_initial_value(&mut self, x: T) {
         // SAFETY: This operation is safe because the memory `self.virt.as_mut_ptr` points is
         // allocated, and is page-aligned.
