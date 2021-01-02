@@ -1,15 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::convert::TryInto;
-
-use x86_64::{
-    structures::paging::{PageSize, PageTable, PageTableFlags, Size4KiB},
-    VirtAddr,
-};
+use x86_64::structures::paging::{PageTable, PageTableFlags};
 
 use crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4};
 
-use super::{stack_frame::StackFrame, Process};
+use super::Process;
 
 pub struct Creator {
     f: fn() -> !,
@@ -20,9 +15,13 @@ impl Creator {
     }
 
     pub fn create(self) -> Process {
+        let pml4 = Pml4Creator::new().create();
+        let pml4_addr = pml4.phys_addr();
         Process {
             _stack: None,
-            pml4: Pml4Creator::new().create(),
+            f: self.f,
+            pml4,
+            pml4_addr,
             stack_frame: None,
         }
     }
