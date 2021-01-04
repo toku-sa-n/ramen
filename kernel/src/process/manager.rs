@@ -56,7 +56,7 @@ impl Manager {
 
     fn exit(&mut self) -> ! {
         self.mark_current_process_as_exit();
-        self.make_timer_interrupt();
+        Self::make_timer_interrupt();
     }
 
     fn change_current_process(&mut self) {
@@ -117,7 +117,7 @@ impl Manager {
         self.current_process_mut().running = false;
     }
 
-    fn make_timer_interrupt(&self) -> ! {
+    fn make_timer_interrupt() -> ! {
         unsafe {
             asm!("int 0x20", options(noreturn));
         }
