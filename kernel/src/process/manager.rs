@@ -51,9 +51,9 @@ impl Manager {
             self.processes.rotate_left(1);
             if self.current_process().running {
                 break;
-            } else {
-                self.processes.pop_front();
             }
+
+            self.processes.pop_front();
         }
     }
 
