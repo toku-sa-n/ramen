@@ -44,6 +44,10 @@ impl Process {
         Creator::new(f).create()
     }
 
+    fn id(&self) -> Id {
+        self.id
+    }
+
     fn stack_frame_top_addr(&self) -> VirtAddr {
         self.stack_frame().virt_addr()
     }
@@ -66,5 +70,9 @@ impl Id {
     fn new() -> Self {
         static ID: AtomicU64 = AtomicU64::new(0);
         Self(ID.fetch_add(1, Ordering::Relaxed))
+    }
+
+    fn as_u64(&self) -> u64 {
+        self.0
     }
 }

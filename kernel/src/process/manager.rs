@@ -15,7 +15,7 @@ use x86_64::{
 static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
 
 pub fn add(p: Process) {
-    MANAGER.lock().add_process(p);
+    MANAGER.lock().add(p);
 }
 
 pub fn switch() -> VirtAddr {
@@ -23,19 +23,29 @@ pub fn switch() -> VirtAddr {
 }
 
 struct Manager {
-    processes: VecDeque<Process>,
-    pids: BTreeMap<super::Id, Process>,
+    pids: VecDeque<super::Id>,
+    processes: BTreeMap<super::Id, Process>,
 }
 impl Manager {
     fn new() -> Self {
         Self {
-            processes: VecDeque::new(),
-            pids: BTreeMap::new(),
+            pids: VecDeque::new(),
+            processes: BTreeMap::new(),
         }
     }
 
+    fn add(&mut self, p: Process) {
+        self.add_pid(p.id());
+        self.add_process(p);
+    }
+
+    fn add_pid(&mut self, id: super::Id) {
+        self.pids.push_back(id);
+    }
+
     fn add_process(&mut self, p: Process) {
-        self.processes.push_back(p)
+        let id = p.id();
+        self.processes.insert(id, p);
     }
 
     fn switch_process(&mut self) -> VirtAddr {
@@ -47,7 +57,7 @@ impl Manager {
     }
 
     fn change_current_process(&mut self) {
-        self.processes.rotate_left(1);
+        self.pids.rotate_left(1);
     }
 
     fn switch_pml4(&self) {
@@ -78,11 +88,27 @@ impl Manager {
     }
 
     fn current_process(&self) -> &Process {
-        &self.processes[0]
+        let id = self.current_pid();
+        self.processes.get(&id).unwrap_or_else(|| {
+            panic!(
+                "Process of PID {} is not added to process collection",
+                id.as_u64()
+            )
+        })
     }
 
     fn current_process_mut(&mut self) -> &mut Process {
-        &mut self.processes[0]
+        let id = self.current_pid();
+        self.processes.get_mut(&id).unwrap_or_else(|| {
+            panic!(
+                "Process of PID {} id not added to process collection",
+                id.as_u64()
+            )
+        })
+    }
+
+    fn current_pid(&self) -> super::Id {
+        self.pids[0]
     }
 }
 
