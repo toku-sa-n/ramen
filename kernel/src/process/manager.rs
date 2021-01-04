@@ -19,7 +19,7 @@ pub fn add(p: Process) {
 }
 
 pub fn switch() -> VirtAddr {
-    MANAGER.lock().switch_process()
+    MANAGER.lock().switch()
 }
 
 struct Manager {
@@ -48,7 +48,7 @@ impl Manager {
         self.processes.insert(id, p);
     }
 
-    fn switch_process(&mut self) -> VirtAddr {
+    fn switch(&mut self) -> VirtAddr {
         self.change_current_process();
         self.switch_pml4();
         self.prepare_stack();
