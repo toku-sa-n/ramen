@@ -48,8 +48,9 @@ struct GeneralRegisters {
 }
 impl GeneralRegisters {
     fn new(f: *const fn()) -> Self {
-        let mut r = Self::default();
-        r.rdi = f as u64;
-        r
+        Self {
+            rdi: f as u64,
+            ..Self::default()
+        }
     }
 }
