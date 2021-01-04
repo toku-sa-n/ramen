@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::convert::TryInto;
-
-use crate::{mem::allocator::page_box::PageBox, tss::TSS};
-
 use super::{stack_frame::StackFrame, Process};
-use alloc::collections::VecDeque;
+use crate::{mem::allocator::page_box::PageBox, tss::TSS};
+use alloc::collections::{BTreeMap, VecDeque};
 use conquer_once::spin::Lazy;
+use core::convert::TryInto;
 use spinning_top::Spinlock;
 use x86_64::{
     registers::control::Cr3,
@@ -26,11 +24,13 @@ pub fn switch_process() -> VirtAddr {
 
 struct Manager {
     processes: VecDeque<Process>,
+    pids: BTreeMap<super::Id, Process>,
 }
 impl Manager {
     fn new() -> Self {
         Self {
             processes: VecDeque::new(),
+            pids: BTreeMap::new(),
         }
     }
 
