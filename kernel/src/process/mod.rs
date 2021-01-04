@@ -40,14 +40,14 @@ fn register_initial_interrupt_stack_table_addr() {
 
 pub struct Process {
     stack: Option<PageBox<[u8]>>,
-    f: fn() -> !,
+    f: fn(),
     _pml4: PageBox<PageTable>,
     pml4_addr: PhysAddr,
     stack_frame: Option<PageBox<StackFrame>>,
     running: bool,
 }
 impl Process {
-    pub fn new(f: fn() -> !) -> Self {
+    pub fn new(f: fn()) -> Self {
         let pml4 = Pml4Creator::new().create();
         let pml4_addr = pml4.phys_addr();
 

@@ -125,7 +125,7 @@ fn wait_until_timer_interrupt_happens() -> ! {
     }
 }
 
-fn run_tasks() -> ! {
+fn run_tasks() {
     multitask::add(Task::new(keyboard::task()));
     multitask::add(Task::new(mouse::task()));
     multitask::add(Task::new(xhci::task()));
