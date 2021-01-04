@@ -44,6 +44,10 @@ impl Process {
         Creator::new(f).create()
     }
 
+    fn id(&self) -> Id {
+        self.id
+    }
+
     fn stack_frame_top_addr(&self) -> VirtAddr {
         self.stack_frame().virt_addr()
     }
