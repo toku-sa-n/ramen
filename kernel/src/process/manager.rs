@@ -47,7 +47,14 @@ impl Manager {
     }
 
     fn change_current_process(&mut self) {
-        self.processes.rotate_left(1);
+        loop {
+            self.processes.rotate_left(1);
+            if self.current_process().running {
+                break;
+            } else {
+                self.processes.pop_front();
+            }
+        }
     }
 
     fn switch_pml4(&self) {
