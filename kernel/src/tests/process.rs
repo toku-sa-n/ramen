@@ -4,6 +4,8 @@ use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 pub static SWITCH_TEST_SUCCESS: AtomicBool = AtomicBool::new(false);
 
+pub fn do_nothing() {}
+
 pub fn count_switch() {
     const EXIT_GOAL: usize = 100;
     static COUNTER: AtomicUsize = AtomicUsize::new(0);

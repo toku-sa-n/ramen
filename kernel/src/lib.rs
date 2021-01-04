@@ -116,6 +116,7 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
 
     if cfg!(feature = "qemu_test") {
         process::add(Process::new(tests::main));
+        process::add(Process::new(tests::process::do_nothing));
     }
 }
 
