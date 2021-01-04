@@ -23,6 +23,7 @@ impl Creator {
             _pml4: pml4,
             pml4_addr,
             stack_frame: None,
+            running: true,
         }
     }
 }

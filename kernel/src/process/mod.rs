@@ -35,6 +35,7 @@ pub struct Process {
     _pml4: PageBox<PageTable>,
     pml4_addr: PhysAddr,
     stack_frame: Option<PageBox<StackFrame>>,
+    running: bool,
 }
 impl Process {
     pub fn new(f: fn() -> !) -> Self {
