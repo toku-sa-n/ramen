@@ -60,7 +60,7 @@ impl Process {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct Id(u64);
 impl Id {
     fn new() -> Self {

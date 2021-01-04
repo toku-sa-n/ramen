@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
+#![feature(const_btree_new)]
 #![feature(int_bits_const)]
 #![feature(async_closure)]
 #![feature(alloc_error_handler)]
