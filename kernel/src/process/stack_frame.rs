@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use crate::gdt::GDT;
+use core::convert::TryInto;
 use rflags::RFlags;
 use x86_64::{registers::rflags, structures::idt::InterruptStackFrameValue, VirtAddr};
-
-use crate::gdt::GDT;
 
 #[repr(C)]
 pub struct StackFrame {
@@ -11,10 +11,11 @@ pub struct StackFrame {
     interrupt: InterruptStackFrameValue,
 }
 impl StackFrame {
-    pub fn new(instruction_pointer: VirtAddr, stack_pointer: VirtAddr) -> Self {
+    pub fn new(f: *const fn(), stack_pointer: VirtAddr) -> Self {
         let cpu_flags = (rflags::read() | RFlags::INTERRUPT_FLAG).bits();
+        let instruction_pointer = VirtAddr::new((super::loader as usize).try_into().unwrap());
         Self {
-            regs: GeneralRegisters::default(),
+            regs: GeneralRegisters::new(f),
             interrupt: InterruptStackFrameValue {
                 instruction_pointer,
                 code_segment: GDT.user_code.0.into(),
@@ -29,13 +30,12 @@ impl StackFrame {
 #[repr(C)]
 #[derive(Default)]
 struct GeneralRegisters {
-    _rbp: u64,
     _rax: u64,
     _rbx: u64,
     _rcx: u64,
     _rdx: u64,
     _rsi: u64,
-    _rdi: u64,
+    rdi: u64,
     _r8: u64,
     _r9: u64,
     _r10: u64,
@@ -44,4 +44,12 @@ struct GeneralRegisters {
     _r13: u64,
     _r14: u64,
     _r15: u64,
+    _rbp: u64,
+}
+impl GeneralRegisters {
+    fn new(f: *const fn()) -> Self {
+        let mut r = Self::default();
+        r.rdi = f as u64;
+        r
+    }
 }

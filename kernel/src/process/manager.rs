@@ -174,12 +174,8 @@ impl<'a> StackCreator<'a> {
 
         match self.process.stack {
             Some(ref s) => {
-                let instruction_pointer =
-                    VirtAddr::new((self.process.f as usize).try_into().unwrap());
                 let stack_bottom = s.virt_addr() + s.bytes().as_usize();
-
-                let stack_frame =
-                    PageBox::kernel(StackFrame::new(instruction_pointer, stack_bottom));
+                let stack_frame = PageBox::kernel(StackFrame::new(&self.process.f, stack_bottom));
 
                 self.process.stack_frame = Some(stack_frame);
             }

@@ -66,3 +66,11 @@ impl Process {
             .expect("Stack frame is not created")
     }
 }
+
+/// # Safety
+///
+/// `f` must be a valid pointer.
+unsafe fn loader(f: *const fn()) {
+    (*f)();
+    syscalls::exit();
+}
