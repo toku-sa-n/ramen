@@ -14,11 +14,11 @@ use x86_64::{
 
 static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
 
-pub fn add_process(p: Process) {
+pub fn add(p: Process) {
     MANAGER.lock().add_process(p);
 }
 
-pub fn switch_process() -> VirtAddr {
+pub fn switch() -> VirtAddr {
     MANAGER.lock().switch_process()
 }
 

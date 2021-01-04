@@ -17,14 +17,14 @@ pub fn init() {
 }
 
 pub fn add(p: Process) {
-    manager::add_process(p);
+    manager::add(p);
 }
 
 pub fn switch() -> VirtAddr {
     if cfg!(feature = "qemu_test") {
         tests::process::count_switch();
     }
-    manager::switch_process()
+    manager::switch()
 }
 
 fn register_initial_interrupt_stack_table_addr() {
