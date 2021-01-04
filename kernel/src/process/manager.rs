@@ -2,7 +2,10 @@
 
 use core::convert::TryInto;
 
-use crate::{mem::allocator::page_box::PageBox, tss::TSS};
+use crate::{
+    mem::{allocator::page_box::PageBox, paging::pml4::PML4},
+    tss::TSS,
+};
 
 use super::{stack_frame::StackFrame, Process};
 use alloc::collections::VecDeque;
@@ -10,7 +13,7 @@ use conquer_once::spin::Lazy;
 use spinning_top::Spinlock;
 use x86_64::{
     registers::control::Cr3,
-    structures::paging::{PageSize, PhysFrame, Size4KiB},
+    structures::paging::{PageSize, PageTable, PageTableFlags, PhysFrame, Size4KiB},
     VirtAddr,
 };
 
@@ -44,6 +47,7 @@ impl Manager {
 
     fn switch_process(&mut self) -> VirtAddr {
         self.change_current_process();
+        self.create_pml4_if_not_created();
         self.switch_pml4();
         self.prepare_stack();
         self.register_current_stack_frame_with_tss();
@@ -66,9 +70,33 @@ impl Manager {
         }
     }
 
+    fn create_pml4_if_not_created(&mut self) {
+        if !self.pml4_exists() {
+            self.create_pml4();
+        }
+    }
+
+    fn pml4_exists(&self) -> bool {
+        self.current_process().pml4.is_some()
+    }
+
+    fn create_pml4(&mut self) {
+        let proc = self.current_process_mut();
+        assert!(proc.pml4.is_none(), "PML4 is already created.");
+
+        let p = Pml4Creator::new().create();
+        let a = p.phys_addr();
+
+        self.current_process_mut().pml4 = Some(p);
+        self.current_process_mut().pml4_addr = Some(a);
+    }
+
     fn switch_pml4(&self) {
         let (_, f) = Cr3::read();
-        let a = self.current_process().pml4_addr;
+        let a = self
+            .current_process()
+            .pml4_addr
+            .expect("PML4 is not created.");
         let a = PhysFrame::from_start_address(a).expect("PML4 is not aligned properly");
 
         // SAFETY: The PML4 frame is correct one and flags are unchanged.
@@ -157,5 +185,33 @@ impl<'a> StackCreator<'a> {
             }
             None => panic!("Stack is not created."),
         }
+    }
+}
+
+pub struct Pml4Creator {
+    pml4: PageBox<PageTable>,
+}
+impl Pml4Creator {
+    pub fn new() -> Self {
+        Self {
+            pml4: PageBox::kernel(PageTable::new()),
+        }
+    }
+
+    pub fn create(mut self) -> PageBox<PageTable> {
+        self.enable_recursive_paging();
+        self.map_kernel_area();
+        self.pml4
+    }
+
+    fn enable_recursive_paging(&mut self) {
+        let a = self.pml4.phys_addr();
+        let f =
+            PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
+        self.pml4[511].set_addr(a, f);
+    }
+
+    fn map_kernel_area(&mut self) {
+        self.pml4[510] = PML4.lock().level_4_table()[510].clone();
     }
 }

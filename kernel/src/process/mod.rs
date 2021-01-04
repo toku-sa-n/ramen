@@ -3,17 +3,10 @@
 mod manager;
 mod stack_frame;
 
-use crate::{
-    mem::{allocator::page_box::PageBox, paging::pml4::PML4},
-    tests,
-    tss::TSS,
-};
+use crate::{mem::allocator::page_box::PageBox, tests, tss::TSS};
 use common::constant::INTERRUPT_STACK;
 use stack_frame::StackFrame;
-use x86_64::{
-    structures::paging::{PageTable, PageTableFlags},
-    PhysAddr, VirtAddr,
-};
+use x86_64::{structures::paging::PageTable, PhysAddr, VirtAddr};
 
 pub fn init() {
     register_initial_interrupt_stack_table_addr();
@@ -41,21 +34,18 @@ fn register_initial_interrupt_stack_table_addr() {
 pub struct Process {
     stack: Option<PageBox<[u8]>>,
     f: fn(),
-    _pml4: PageBox<PageTable>,
-    pml4_addr: PhysAddr,
+    pml4: Option<PageBox<PageTable>>,
+    pml4_addr: Option<PhysAddr>,
     stack_frame: Option<PageBox<StackFrame>>,
     running: bool,
 }
 impl Process {
     pub fn new(f: fn()) -> Self {
-        let pml4 = Pml4Creator::new().create();
-        let pml4_addr = pml4.phys_addr();
-
         Process {
             stack: None,
             f,
-            _pml4: pml4,
-            pml4_addr,
+            pml4: None,
+            pml4_addr: None,
             stack_frame: None,
             running: true,
         }
@@ -74,33 +64,5 @@ impl Process {
         self.stack_frame
             .as_ref()
             .expect("Stack frame is not created")
-    }
-}
-
-pub struct Pml4Creator {
-    pml4: PageBox<PageTable>,
-}
-impl Pml4Creator {
-    pub fn new() -> Self {
-        Self {
-            pml4: PageBox::user(PageTable::new()),
-        }
-    }
-
-    pub fn create(mut self) -> PageBox<PageTable> {
-        self.enable_recursive_paging();
-        self.map_kernel_area();
-        self.pml4
-    }
-
-    fn enable_recursive_paging(&mut self) {
-        let a = self.pml4.phys_addr();
-        let f =
-            PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
-        self.pml4[511].set_addr(a, f);
-    }
-
-    fn map_kernel_area(&mut self) {
-        self.pml4[510] = PML4.lock().level_4_table()[510].clone();
     }
 }
