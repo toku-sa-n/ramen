@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+mod collections;
 mod creator;
 mod manager;
-mod queue;
 mod stack_frame;
 
 use crate::{mem::allocator::page_box::PageBox, tests, tss::TSS};
