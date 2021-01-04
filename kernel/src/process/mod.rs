@@ -7,6 +7,7 @@ mod stack_frame;
 
 use crate::{mem::allocator::page_box::PageBox, tests, tss::TSS};
 use common::constant::INTERRUPT_STACK;
+use core::sync::atomic::{AtomicU64, Ordering};
 use creator::Creator;
 use stack_frame::StackFrame;
 use x86_64::{structures::paging::PageTable, PhysAddr, VirtAddr};
@@ -55,5 +56,14 @@ impl Process {
         self.stack_frame
             .as_ref()
             .expect("Stack frame is not created")
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct Id(u64);
+impl Id {
+    fn new() -> Self {
+        static ID: AtomicU64 = AtomicU64::new(0);
+        Self(ID.fetch_add(1, Ordering::Relaxed))
     }
 }
