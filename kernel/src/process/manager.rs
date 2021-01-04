@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::convert::TryInto;
-
-use crate::{mem::allocator::page_box::PageBox, tss::TSS};
-
 use super::{stack_frame::StackFrame, Process};
-use alloc::collections::VecDeque;
+use crate::{mem::allocator::page_box::PageBox, tss::TSS};
+use alloc::collections::{BTreeMap, VecDeque};
 use conquer_once::spin::Lazy;
+use core::convert::TryInto;
 use spinning_top::Spinlock;
 use x86_64::{
     registers::control::Cr3,
@@ -16,29 +14,41 @@ use x86_64::{
 
 static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
 
-pub fn add_process(p: Process) {
-    MANAGER.lock().add_process(p);
+pub fn add(p: Process) {
+    MANAGER.lock().add(p);
 }
 
-pub fn switch_process() -> VirtAddr {
-    MANAGER.lock().switch_process()
+pub fn switch() -> VirtAddr {
+    MANAGER.lock().switch()
 }
 
 struct Manager {
-    processes: VecDeque<Process>,
+    pids: VecDeque<super::Id>,
+    processes: BTreeMap<super::Id, Process>,
 }
 impl Manager {
     fn new() -> Self {
         Self {
-            processes: VecDeque::new(),
+            pids: VecDeque::new(),
+            processes: BTreeMap::new(),
         }
     }
 
-    fn add_process(&mut self, p: Process) {
-        self.processes.push_back(p)
+    fn add(&mut self, p: Process) {
+        self.add_pid(p.id());
+        self.add_process(p);
     }
 
-    fn switch_process(&mut self) -> VirtAddr {
+    fn add_pid(&mut self, id: super::Id) {
+        self.pids.push_back(id);
+    }
+
+    fn add_process(&mut self, p: Process) {
+        let id = p.id();
+        self.processes.insert(id, p);
+    }
+
+    fn switch(&mut self) -> VirtAddr {
         self.change_current_process();
         self.switch_pml4();
         self.prepare_stack();
@@ -47,7 +57,7 @@ impl Manager {
     }
 
     fn change_current_process(&mut self) {
-        self.processes.rotate_left(1);
+        self.pids.rotate_left(1);
     }
 
     fn switch_pml4(&self) {
@@ -78,11 +88,27 @@ impl Manager {
     }
 
     fn current_process(&self) -> &Process {
-        &self.processes[0]
+        let id = self.current_pid();
+        self.processes.get(&id).unwrap_or_else(|| {
+            panic!(
+                "Process of PID {} is not added to process collection",
+                id.as_u64()
+            )
+        })
     }
 
     fn current_process_mut(&mut self) -> &mut Process {
-        &mut self.processes[0]
+        let id = self.current_pid();
+        self.processes.get_mut(&id).unwrap_or_else(|| {
+            panic!(
+                "Process of PID {} id not added to process collection",
+                id.as_u64()
+            )
+        })
+    }
+
+    fn current_pid(&self) -> super::Id {
+        self.pids[0]
     }
 }
 
