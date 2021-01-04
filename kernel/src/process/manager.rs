@@ -24,6 +24,10 @@ pub fn switch_process() -> VirtAddr {
     MANAGER.lock().switch_process()
 }
 
+pub fn exit() -> ! {
+    MANAGER.lock().exit();
+}
+
 struct Manager {
     processes: VecDeque<Process>,
 }
@@ -44,6 +48,11 @@ impl Manager {
         self.prepare_stack();
         self.register_current_stack_frame_with_tss();
         self.current_stack_frame_top_addr()
+    }
+
+    fn exit(&mut self) -> ! {
+        self.mark_current_process_as_exit();
+        self.make_timer_interrupt();
     }
 
     fn change_current_process(&mut self) {
@@ -74,6 +83,16 @@ impl Manager {
 
     fn register_current_stack_frame_with_tss(&mut self) {
         TSS.lock().interrupt_stack_table[0] = self.current_stack_frame_bottom_addr();
+    }
+
+    fn mark_current_process_as_exit(&mut self) {
+        self.current_process_mut().running = false;
+    }
+
+    fn make_timer_interrupt(&self) -> ! {
+        unsafe {
+            asm!("int 0x20", options(noreturn));
+        }
     }
 
     fn current_stack_frame_top_addr(&self) -> VirtAddr {

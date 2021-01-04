@@ -86,6 +86,13 @@ pub fn unmap_pages(start: VirtAddr, bytes: Bytes) {
     }
 }
 
+pub fn exit() -> ! {
+    let ty = Ty::Exit as u64;
+    unsafe {
+        asm!("syscall", in("rax") ty, options(noreturn));
+    }
+}
+
 /// SAFETY: This function is unsafe if arguments are invalid.
 unsafe fn general_syscall(ty: Ty, a1: u64, a2: u64) -> u64 {
     let ty = ty as u64;
@@ -110,4 +117,5 @@ pub enum Ty {
     DeallocatePages,
     MapPages,
     UnmapPages,
+    Exit,
 }

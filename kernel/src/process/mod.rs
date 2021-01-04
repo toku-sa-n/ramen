@@ -24,6 +24,10 @@ pub fn switch() -> VirtAddr {
     manager::switch_process()
 }
 
+pub fn exit() -> ! {
+    manager::exit();
+}
+
 fn register_initial_interrupt_stack_table_addr() {
     TSS.lock().interrupt_stack_table[0] = INTERRUPT_STACK;
 }

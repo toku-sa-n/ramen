@@ -13,7 +13,7 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
-use crate::mem::allocator;
+use crate::{mem::allocator, process};
 
 pub fn init() {
     enable();
@@ -93,6 +93,7 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64) -> u64 {
             syscalls::Ty::UnmapPages => {
                 sys_unmap_pages(VirtAddr::new(a1), Bytes::new(a2.try_into().unwrap()))
             }
+            syscalls::Ty::Exit => sys_exit(),
         },
         None => panic!("Unsupported syscall index: {}", idx),
     }
@@ -164,4 +165,8 @@ fn sys_map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
 fn sys_unmap_pages(start: VirtAddr, bytes: Bytes) -> u64 {
     crate::mem::unmap_pages(start, bytes);
     0
+}
+
+fn sys_exit() -> ! {
+    process::exit();
 }
