@@ -4,6 +4,8 @@ mod creator;
 mod manager;
 mod stack_frame;
 
+use core::sync::atomic::{AtomicU64, Ordering};
+
 use crate::{mem::allocator::page_box::PageBox, tests, tss::TSS};
 use common::constant::INTERRUPT_STACK;
 use creator::Creator;
@@ -30,6 +32,7 @@ fn register_initial_interrupt_stack_table_addr() {
 }
 
 pub struct Process {
+    id: Id,
     stack: Option<PageBox<[u8]>>,
     f: fn() -> !,
     _pml4: PageBox<PageTable>,
@@ -54,5 +57,14 @@ impl Process {
         self.stack_frame
             .as_ref()
             .expect("Stack frame is not created")
+    }
+}
+
+#[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq)]
+struct Id(u64);
+impl Id {
+    fn new() -> Self {
+        static ID: AtomicU64 = AtomicU64::new(0);
+        Self(ID.fetch_add(1, Ordering::Relaxed))
     }
 }
