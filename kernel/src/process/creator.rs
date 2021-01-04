@@ -1,44 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4};
 use x86_64::structures::paging::{PageTable, PageTableFlags};
 
-use crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4};
-
-use super::Process;
-
-pub struct Creator {
-    f: fn() -> !,
-}
-impl Creator {
-    pub fn new(f: fn() -> !) -> Self {
-        Self { f }
-    }
-
-    pub fn create(self) -> Process {
-        let pml4 = Pml4Creator::new().create();
-        let pml4_addr = pml4.phys_addr();
-        Process {
-            stack: None,
-            f: self.f,
-            _pml4: pml4,
-            pml4_addr,
-            stack_frame: None,
-            running: true,
-        }
-    }
-}
-
-struct Pml4Creator {
+pub struct Pml4Creator {
     pml4: PageBox<PageTable>,
 }
 impl Pml4Creator {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             pml4: PageBox::user(PageTable::new()),
         }
     }
 
-    fn create(mut self) -> PageBox<PageTable> {
+    pub fn create(mut self) -> PageBox<PageTable> {
         self.enable_recursive_paging();
         self.map_kernel_area();
         self.pml4

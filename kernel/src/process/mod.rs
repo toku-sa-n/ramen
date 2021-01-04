@@ -6,7 +6,6 @@ mod stack_frame;
 
 use crate::{mem::allocator::page_box::PageBox, tests, tss::TSS};
 use common::constant::INTERRUPT_STACK;
-use creator::Creator;
 use stack_frame::StackFrame;
 use x86_64::{structures::paging::PageTable, PhysAddr, VirtAddr};
 
@@ -39,7 +38,17 @@ pub struct Process {
 }
 impl Process {
     pub fn new(f: fn() -> !) -> Self {
-        Creator::new(f).create()
+        let pml4 = creator::Pml4Creator::new().create();
+        let pml4_addr = pml4.phys_addr();
+
+        Process {
+            stack: None,
+            f,
+            _pml4: pml4,
+            pml4_addr,
+            stack_frame: None,
+            running: true,
+        }
     }
 
     fn stack_frame_top_addr(&self) -> VirtAddr {
