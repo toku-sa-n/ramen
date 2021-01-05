@@ -9,7 +9,7 @@ use crate::{
     tss::TSS,
 };
 use common::constant::INTERRUPT_STACK;
-use core::sync::atomic::{AtomicU64, Ordering};
+use core::sync::atomic::{AtomicI32, Ordering};
 use stack_frame::StackFrame;
 use x86_64::{
     structures::paging::{PageTable, PageTableFlags},
@@ -88,14 +88,14 @@ impl Process {
 }
 
 #[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq)]
-struct Id(u64);
+struct Id(i32);
 impl Id {
     fn new() -> Self {
-        static ID: AtomicU64 = AtomicU64::new(0);
+        static ID: AtomicI32 = AtomicI32::new(0);
         Self(ID.fetch_add(1, Ordering::Relaxed))
     }
 
-    fn as_u64(self) -> u64 {
+    fn as_i32(self) -> i32 {
         self.0
     }
 }
