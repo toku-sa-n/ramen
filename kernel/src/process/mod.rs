@@ -12,6 +12,7 @@ use crate::{
 use alloc::collections::VecDeque;
 use common::constant::INTERRUPT_STACK;
 use core::sync::atomic::{AtomicU64, Ordering};
+use message::Message;
 use stack_frame::StackFrame;
 use x86_64::{
     structures::paging::{PageTable, PageTableFlags},
@@ -109,8 +110,6 @@ impl Id {
         self.0
     }
 }
-
-struct Message(pub u64, pub u64, pub u64);
 
 struct Pml4Creator {
     pml4: PageBox<PageTable>,
