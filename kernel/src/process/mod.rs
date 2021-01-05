@@ -44,7 +44,7 @@ pub struct Process {
     stack_frame: Option<PageBox<StackFrame>>,
 }
 impl Process {
-    pub fn new(f: fn() -> !) -> Self {
+    pub fn user(f: fn() -> !) -> Self {
         let pml4 = Pml4Creator::new().create();
         let pml4_addr = pml4.phys_addr();
         Process {
