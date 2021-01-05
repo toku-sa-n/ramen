@@ -46,20 +46,14 @@ pub struct Process {
 }
 impl Process {
     pub fn kernel(f: fn() -> !) -> Self {
-        let pml4 = Pml4Creator::new().create();
-        let pml4_addr = pml4.phys_addr();
-        Process {
-            id: Id::new(),
-            stack: None,
-            f,
-            _pml4: pml4,
-            pml4_addr,
-            stack_frame: None,
-            privilege: Privilege::User,
-        }
+        Self::new(f, Privilege::Kernel)
     }
 
     pub fn user(f: fn() -> !) -> Self {
+        Self::new(f, Privilege::User)
+    }
+
+    fn new(f: fn() -> !, privilege: Privilege) -> Self {
         let pml4 = Pml4Creator::new().create();
         let pml4_addr = pml4.phys_addr();
         Process {
@@ -69,7 +63,7 @@ impl Process {
             _pml4: pml4,
             pml4_addr,
             stack_frame: None,
-            privilege: Privilege::User,
+            privilege,
         }
     }
 
