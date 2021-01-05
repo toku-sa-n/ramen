@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::mem::allocator;
+use crate::{mem::allocator, process};
 use core::convert::TryInto;
 use num_traits::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
@@ -13,6 +13,16 @@ use x86_64::{
     structures::paging::Size4KiB,
     PhysAddr, VirtAddr,
 };
+
+const SYSTEM_CALL_PROCESS_PID: i32 = 0;
+
+pub fn main() -> ! {
+    assert_eq!(process::getpid(), SYSTEM_CALL_PROCESS_PID);
+
+    loop {
+        x86_64::instructions::hlt();
+    }
+}
 
 pub fn init() {
     enable();
