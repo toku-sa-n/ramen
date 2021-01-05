@@ -8,6 +8,7 @@ use crate::{
     tests,
     tss::TSS,
 };
+use alloc::collections::VecDeque;
 use common::constant::INTERRUPT_STACK;
 use core::sync::atomic::{AtomicU64, Ordering};
 use stack_frame::StackFrame;
@@ -43,6 +44,10 @@ pub struct Process {
     pml4_addr: PhysAddr,
     stack_frame: Option<PageBox<StackFrame>>,
     privilege: Privilege,
+
+    pids_trying_to_send_to_this_process: VecDeque<Id>,
+    message_to_send: Option<Message>,
+    message_to_receive: Option<Message>,
 }
 impl Process {
     pub fn kernel(f: fn() -> !) -> Self {
@@ -64,6 +69,10 @@ impl Process {
             pml4_addr,
             stack_frame: None,
             privilege,
+
+            pids_trying_to_send_to_this_process: VecDeque::new(),
+            message_to_send: None,
+            message_to_receive: None,
         }
     }
 
@@ -99,6 +108,8 @@ impl Id {
         self.0
     }
 }
+
+struct Message(pub u64, pub u64, pub u64);
 
 struct Pml4Creator {
     pml4: PageBox<PageTable>,
