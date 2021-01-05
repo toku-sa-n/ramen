@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 mod manager;
+mod message;
 mod stack_frame;
 
 use crate::{
