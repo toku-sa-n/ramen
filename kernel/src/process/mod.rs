@@ -1,16 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod creator;
 mod manager;
 mod stack_frame;
 
-use core::sync::atomic::{AtomicU64, Ordering};
-
-use crate::{mem::allocator::page_box::PageBox, tests, tss::TSS};
+use crate::{
+    mem::{allocator::page_box::PageBox, paging::pml4::PML4},
+    tests,
+    tss::TSS,
+};
 use common::constant::INTERRUPT_STACK;
-use creator::Creator;
+use core::sync::atomic::{AtomicU64, Ordering};
 use stack_frame::StackFrame;
-use x86_64::{structures::paging::PageTable, PhysAddr, VirtAddr};
+use x86_64::{
+    structures::paging::{PageTable, PageTableFlags},
+    PhysAddr, VirtAddr,
+};
 
 pub fn init() {
     register_initial_interrupt_stack_table_addr();
@@ -41,7 +45,16 @@ pub struct Process {
 }
 impl Process {
     pub fn new(f: fn() -> !) -> Self {
-        Creator::new(f).create()
+        let pml4 = Pml4Creator::new().create();
+        let pml4_addr = pml4.phys_addr();
+        Process {
+            id: Id::new(),
+            stack: None,
+            f,
+            _pml4: pml4,
+            pml4_addr,
+            stack_frame: None,
+        }
     }
 
     fn id(&self) -> Id {
@@ -74,5 +87,33 @@ impl Id {
 
     fn as_u64(self) -> u64 {
         self.0
+    }
+}
+
+struct Pml4Creator {
+    pml4: PageBox<PageTable>,
+}
+impl Pml4Creator {
+    fn new() -> Self {
+        Self {
+            pml4: PageBox::user(PageTable::new()),
+        }
+    }
+
+    fn create(mut self) -> PageBox<PageTable> {
+        self.enable_recursive_paging();
+        self.map_kernel_area();
+        self.pml4
+    }
+
+    fn enable_recursive_paging(&mut self) {
+        let a = self.pml4.phys_addr();
+        let f =
+            PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
+        self.pml4[511].set_addr(a, f);
+    }
+
+    fn map_kernel_area(&mut self) {
+        self.pml4[510] = PML4.lock().level_4_table()[510].clone();
     }
 }
