@@ -31,6 +31,10 @@ pub fn switch() -> VirtAddr {
     manager::switch()
 }
 
+pub fn getpid() -> i32 {
+    manager::getpid()
+}
+
 fn register_initial_interrupt_stack_table_addr() {
     TSS.lock().interrupt_stack_table[0] = INTERRUPT_STACK;
 }

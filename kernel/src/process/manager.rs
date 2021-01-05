@@ -22,6 +22,10 @@ pub fn switch() -> VirtAddr {
     MANAGER.lock().switch()
 }
 
+pub(super) fn getpid() -> i32 {
+    MANAGER.lock().getpid()
+}
+
 struct Manager {
     pids: VecDeque<super::Id>,
     processes: BTreeMap<super::Id, Process>,
@@ -54,6 +58,10 @@ impl Manager {
         self.prepare_stack();
         self.register_current_stack_frame_with_tss();
         self.current_stack_frame_top_addr()
+    }
+
+    fn getpid(&self) -> i32 {
+        self.current_process().id.as_i32()
     }
 
     fn change_current_process(&mut self) {
