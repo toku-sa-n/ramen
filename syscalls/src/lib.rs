@@ -86,6 +86,7 @@ pub fn unmap_pages(start: VirtAddr, bytes: Bytes) {
     }
 }
 
+#[must_use]
 pub fn getpid() -> i32 {
     // SAFETY: The system call type is correct, and the remaining arguments are not used.
     unsafe { general_syscall(Ty::GetPid, 0, 0).try_into().unwrap() }
