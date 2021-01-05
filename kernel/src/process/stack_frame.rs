@@ -11,7 +11,7 @@ pub struct StackFrame {
     interrupt: InterruptStackFrameValue,
 }
 impl StackFrame {
-    pub fn new(instruction_pointer: VirtAddr, stack_pointer: VirtAddr) -> Self {
+    pub fn user(instruction_pointer: VirtAddr, stack_pointer: VirtAddr) -> Self {
         let cpu_flags = (rflags::read() | RFlags::INTERRUPT_FLAG).bits();
         Self {
             regs: GeneralRegisters::default(),

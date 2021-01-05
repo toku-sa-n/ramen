@@ -151,7 +151,7 @@ impl<'a> StackCreator<'a> {
                 let stack_bottom = s.virt_addr() + s.bytes().as_usize();
 
                 let stack_frame =
-                    PageBox::kernel(StackFrame::new(instruction_pointer, stack_bottom));
+                    PageBox::kernel(StackFrame::user(instruction_pointer, stack_bottom));
 
                 self.process.stack_frame = Some(stack_frame);
             }
