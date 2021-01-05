@@ -86,6 +86,11 @@ pub fn unmap_pages(start: VirtAddr, bytes: Bytes) {
     }
 }
 
+pub fn getpid() -> i32 {
+    // SAFETY: The system call type is correct, and the remaining arguments are not used.
+    unsafe { general_syscall(Ty::GetPid, 0, 0).try_into().unwrap() }
+}
+
 /// SAFETY: This function is unsafe if arguments are invalid.
 unsafe fn general_syscall(ty: Ty, a1: u64, a2: u64) -> u64 {
     let ty = ty as u64;
@@ -110,4 +115,5 @@ pub enum Ty {
     DeallocatePages,
     MapPages,
     UnmapPages,
+    GetPid,
 }
