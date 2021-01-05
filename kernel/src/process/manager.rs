@@ -14,12 +14,9 @@ use x86_64::{
 
 static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
 
-pub fn main() {
-    add(Process::user(crate::run_tasks));
-
-    if cfg!(feature = "qemu_test") {
-        add(Process::user(tests::main));
-        add(Process::kernel(tests::process::kernel_privilege_test));
+pub(super) fn main() -> ! {
+    loop {
+        x86_64::instructions::hlt();
     }
 }
 
@@ -29,6 +26,10 @@ pub fn add(p: Process) {
 
 pub fn switch() -> VirtAddr {
     MANAGER.lock().switch()
+}
+
+pub(super) fn getpid() -> i32 {
+    MANAGER.lock().getpid()
 }
 
 struct Manager {
@@ -63,6 +64,10 @@ impl Manager {
         self.prepare_stack();
         self.register_current_stack_frame_with_tss();
         self.current_stack_frame_top_addr()
+    }
+
+    fn getpid(&self) -> i32 {
+        self.current_process().id.as_i32()
     }
 
     fn change_current_process(&mut self) {
@@ -101,7 +106,7 @@ impl Manager {
         self.processes.get(&id).unwrap_or_else(|| {
             panic!(
                 "Process of PID {} is not added to process collection",
-                id.as_u64()
+                id.as_i32()
             )
         })
     }
@@ -111,7 +116,7 @@ impl Manager {
         self.processes.get_mut(&id).unwrap_or_else(|| {
             panic!(
                 "Process of PID {} id not added to process collection",
-                id.as_u64()
+                id.as_i32()
             )
         })
     }

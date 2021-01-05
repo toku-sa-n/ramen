@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 mod manager;
+mod message;
 mod stack_frame;
 
 use crate::{
@@ -8,13 +9,19 @@ use crate::{
     tests,
     tss::TSS,
 };
+use alloc::collections::VecDeque;
 use common::constant::INTERRUPT_STACK;
-use core::sync::atomic::{AtomicU64, Ordering};
+use core::sync::atomic::{AtomicI32, Ordering};
+use message::Message;
 use stack_frame::StackFrame;
 use x86_64::{
     structures::paging::{PageTable, PageTableFlags},
     PhysAddr, VirtAddr,
 };
+
+pub fn manager_main() -> ! {
+    manager::main();
+}
 
 pub fn init() {
     register_initial_interrupt_stack_table_addr();
@@ -31,6 +38,10 @@ pub fn switch() -> VirtAddr {
     manager::switch()
 }
 
+pub fn getpid() -> i32 {
+    manager::getpid()
+}
+
 fn register_initial_interrupt_stack_table_addr() {
     TSS.lock().interrupt_stack_table[0] = INTERRUPT_STACK;
 }
@@ -43,6 +54,10 @@ pub struct Process {
     pml4_addr: PhysAddr,
     stack_frame: Option<PageBox<StackFrame>>,
     privilege: Privilege,
+
+    pids_trying_to_send_to_this_process: VecDeque<Id>,
+    message_to_send: Option<Message>,
+    message_to_receive: Option<Message>,
 }
 impl Process {
     pub fn kernel(f: fn() -> !) -> Self {
@@ -64,6 +79,10 @@ impl Process {
             pml4_addr,
             stack_frame: None,
             privilege,
+
+            pids_trying_to_send_to_this_process: VecDeque::new(),
+            message_to_send: None,
+            message_to_receive: None,
         }
     }
 
@@ -87,15 +106,15 @@ impl Process {
     }
 }
 
-#[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq)]
-struct Id(u64);
+#[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq, Debug)]
+struct Id(i32);
 impl Id {
     fn new() -> Self {
-        static ID: AtomicU64 = AtomicU64::new(0);
+        static ID: AtomicI32 = AtomicI32::new(0);
         Self(ID.fetch_add(1, Ordering::Relaxed))
     }
 
-    fn as_u64(self) -> u64 {
+    fn as_i32(self) -> i32 {
         self.0
     }
 }

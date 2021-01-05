@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use crate::mem::allocator;
 use core::convert::TryInto;
 use num_traits::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
@@ -12,8 +13,6 @@ use x86_64::{
     structures::paging::Size4KiB,
     PhysAddr, VirtAddr,
 };
-
-use crate::mem::allocator;
 
 pub fn init() {
     enable();
@@ -93,6 +92,7 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64) -> u64 {
             syscalls::Ty::UnmapPages => {
                 sys_unmap_pages(VirtAddr::new(a1), Bytes::new(a2.try_into().unwrap()))
             }
+            syscalls::Ty::GetPid => sys_getpid().try_into().unwrap(),
         },
         None => panic!("Unsupported syscall index: {}", idx),
     }
@@ -164,4 +164,8 @@ fn sys_map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
 fn sys_unmap_pages(start: VirtAddr, bytes: Bytes) -> u64 {
     crate::mem::unmap_pages(start, bytes);
     0
+}
+
+fn sys_getpid() -> i32 {
+    crate::process::getpid()
 }
