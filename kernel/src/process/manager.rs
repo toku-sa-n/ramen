@@ -14,21 +14,12 @@ use x86_64::{
 
 static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
 
-const PM_PID: super::Id = super::Id(0);
-
 pub fn add(p: Process) {
     MANAGER.lock().add(p);
 }
 
 pub fn switch() -> VirtAddr {
     MANAGER.lock().switch()
-}
-
-pub(super) fn main() -> ! {
-    assert_eq!(getpid(), PM_PID.as_i32());
-    loop {
-        x86_64::instructions::hlt();
-    }
 }
 
 pub(super) fn getpid() -> i32 {

@@ -19,10 +19,6 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
-pub fn manager_main() -> ! {
-    manager::main();
-}
-
 pub fn init() {
     register_initial_interrupt_stack_table_addr();
 }
@@ -106,7 +102,7 @@ impl Process {
     }
 }
 
-#[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq, Debug)]
+#[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq)]
 struct Id(i32);
 impl Id {
     fn new() -> Self {
