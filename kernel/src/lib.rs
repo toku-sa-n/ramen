@@ -112,8 +112,8 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     ustar.list();
     ustar.content("build/bootx64.efi");
 
-    process::add(Process::user(run_tasks));
     process::add(Process::kernel(syscall::main));
+    process::add(Process::user(run_tasks));
 
     if cfg!(feature = "qemu_test") {
         process::add(Process::user(tests::main));
