@@ -14,7 +14,7 @@ pub fn count_switch() {
     }
 }
 
-pub fn kernel_privilege_process() -> ! {
+pub fn kernel_privilege_test() -> ! {
     loop {
         x86_64::instructions::hlt()
     }
