@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use crate::mem::allocator;
 use core::convert::TryInto;
 use num_traits::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
@@ -12,8 +13,6 @@ use x86_64::{
     structures::paging::Size4KiB,
     PhysAddr, VirtAddr,
 };
-
-use crate::mem::allocator;
 
 pub fn init() {
     enable();
