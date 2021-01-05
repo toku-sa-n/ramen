@@ -11,6 +11,20 @@ pub struct StackFrame {
     interrupt: InterruptStackFrameValue,
 }
 impl StackFrame {
+    pub fn kernel(instruction_pointer: VirtAddr, stack_pointer: VirtAddr) -> Self {
+        let cpu_flags = (rflags::read() | RFlags::INTERRUPT_FLAG).bits();
+        Self {
+            regs: GeneralRegisters::default(),
+            interrupt: InterruptStackFrameValue {
+                instruction_pointer,
+                code_segment: GDT.kernel_code.0.into(),
+                cpu_flags,
+                stack_pointer,
+                stack_segment: GDT.kernel_data.0.into(),
+            },
+        }
+    }
+
     pub fn user(instruction_pointer: VirtAddr, stack_pointer: VirtAddr) -> Self {
         let cpu_flags = (rflags::read() | RFlags::INTERRUPT_FLAG).bits();
         Self {
