@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{stack_frame::StackFrame, Privilege, Process};
-use crate::{mem::allocator::page_box::PageBox, tss::TSS};
+use crate::{mem::allocator::page_box::PageBox, tests, tss::TSS};
 use alloc::collections::{BTreeMap, VecDeque};
 use conquer_once::spin::Lazy;
 use core::convert::TryInto;
@@ -13,6 +13,15 @@ use x86_64::{
 };
 
 static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
+
+pub fn main() {
+    add(Process::user(crate::run_tasks));
+
+    if cfg!(feature = "qemu_test") {
+        add(Process::user(tests::main));
+        add(Process::kernel(tests::process::kernel_privilege_test));
+    }
+}
 
 pub fn add(p: Process) {
     MANAGER.lock().add(p);
