@@ -92,7 +92,7 @@ impl Manager {
         self.processes.get(&id).unwrap_or_else(|| {
             panic!(
                 "Process of PID {} is not added to process collection",
-                id.as_u64()
+                id.as_i32()
             )
         })
     }
@@ -102,7 +102,7 @@ impl Manager {
         self.processes.get_mut(&id).unwrap_or_else(|| {
             panic!(
                 "Process of PID {} id not added to process collection",
-                id.as_u64()
+                id.as_i32()
             )
         })
     }
