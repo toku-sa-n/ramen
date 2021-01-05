@@ -15,14 +15,14 @@ pub struct StackFrame {
 }
 impl StackFrame {
     pub fn kernel(instruction_pointer: VirtAddr, stack_pointer: VirtAddr) -> Self {
-        Self::new(instruction_pointer, stack_pointer, Selectors::kernel())
+        Self::new(instruction_pointer, stack_pointer, &Selectors::kernel())
     }
 
     pub fn user(instruction_pointer: VirtAddr, stack_pointer: VirtAddr) -> Self {
-        Self::new(instruction_pointer, stack_pointer, Selectors::user())
+        Self::new(instruction_pointer, stack_pointer, &Selectors::user())
     }
 
-    fn new(instruction_pointer: VirtAddr, stack_pointer: VirtAddr, segs: Selectors) -> Self {
+    fn new(instruction_pointer: VirtAddr, stack_pointer: VirtAddr, segs: &Selectors) -> Self {
         let cpu_flags = (rflags::read() | RFlags::INTERRUPT_FLAG).bits();
         Self {
             regs: GeneralRegisters::default(),
