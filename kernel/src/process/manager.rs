@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{stack_frame::StackFrame, Process};
+use super::{stack_frame::StackFrame, Privilege, Process};
 use crate::{mem::allocator::page_box::PageBox, tss::TSS};
 use alloc::collections::{BTreeMap, VecDeque};
 use conquer_once::spin::Lazy;
@@ -150,8 +150,10 @@ impl<'a> StackCreator<'a> {
                     VirtAddr::new((self.process.f as usize).try_into().unwrap());
                 let stack_bottom = s.virt_addr() + s.bytes().as_usize();
 
-                let stack_frame =
-                    PageBox::kernel(StackFrame::new(instruction_pointer, stack_bottom));
+                let stack_frame = PageBox::kernel(match self.process.privilege {
+                    Privilege::Kernel => StackFrame::kernel(instruction_pointer, stack_bottom),
+                    Privilege::User => StackFrame::user(instruction_pointer, stack_bottom),
+                });
 
                 self.process.stack_frame = Some(stack_frame);
             }

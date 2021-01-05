@@ -42,9 +42,18 @@ pub struct Process {
     _pml4: PageBox<PageTable>,
     pml4_addr: PhysAddr,
     stack_frame: Option<PageBox<StackFrame>>,
+    privilege: Privilege,
 }
 impl Process {
-    pub fn new(f: fn() -> !) -> Self {
+    pub fn kernel(f: fn() -> !) -> Self {
+        Self::new(f, Privilege::Kernel)
+    }
+
+    pub fn user(f: fn() -> !) -> Self {
+        Self::new(f, Privilege::User)
+    }
+
+    fn new(f: fn() -> !, privilege: Privilege) -> Self {
         let pml4 = Pml4Creator::new().create();
         let pml4_addr = pml4.phys_addr();
         Process {
@@ -54,6 +63,7 @@ impl Process {
             _pml4: pml4,
             pml4_addr,
             stack_frame: None,
+            privilege,
         }
     }
 
@@ -116,4 +126,9 @@ impl Pml4Creator {
     fn map_kernel_area(&mut self) {
         self.pml4[510] = PML4.lock().level_4_table()[510].clone();
     }
+}
+
+enum Privilege {
+    Kernel,
+    User,
 }

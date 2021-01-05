@@ -33,8 +33,8 @@ pub static GDT: Lazy<Gdt> = Lazy::new(|| {
 
 pub struct Gdt {
     table: GlobalDescriptorTable,
-    kernel_data: SegmentSelector,
-    kernel_code: SegmentSelector,
+    pub kernel_data: SegmentSelector,
+    pub kernel_code: SegmentSelector,
     pub user_code: SegmentSelector,
     pub user_data: SegmentSelector,
     tss_selector: SegmentSelector,
