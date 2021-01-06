@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{stack_frame::StackFrame, Privilege, Process};
-use crate::{mem::allocator::page_box::PageBox, tss::TSS};
-use alloc::collections::{BTreeMap, VecDeque};
+use super::{collections, collections::woken_pid, stack_frame::StackFrame, Privilege, Process};
+use crate::{mem::allocator::page_box::PageBox, tests, tss::TSS};
+use alloc::collections::VecDeque;
 use conquer_once::spin::Lazy;
 use core::convert::TryInto;
 use spinning_top::Spinlock;
@@ -12,7 +12,6 @@ use x86_64::{
     VirtAddr,
 };
 
-static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
 pub(super) static MESSAGE: Lazy<Spinlock<VecDeque<Process>>> =
     Lazy::new(|| Spinlock::new(VecDeque::new()));
 
@@ -29,109 +28,65 @@ pub fn init() {
 }
 
 fn add(p: Process) {
-    MANAGER.lock().add(p);
+    add_pid(p.id());
+    add_process(p);
+}
+
+fn add_pid(id: super::Id) {
+    woken_pid::add(id);
+}
+
+fn add_process(p: Process) {
+    collections::process::add(p);
 }
 
 pub fn switch() -> VirtAddr {
-    MANAGER.lock().switch()
+    if cfg!(feature = "qemu_test") {
+        tests::process::count_switch();
+    }
+
+    change_current_process();
+    switch_pml4();
+    prepare_stack();
+    register_current_stack_frame_with_tss();
+    current_stack_frame_top_addr()
 }
 
-pub(super) fn getpid() -> i32 {
-    MANAGER.lock().getpid()
+pub(crate) fn getpid() -> i32 {
+    collections::process::handle_running(|p| p.id.as_i32())
 }
 
-struct Manager {
-    pids: VecDeque<super::Id>,
-    processes: BTreeMap<super::Id, Process>,
+fn change_current_process() {
+    woken_pid::change_active_pid();
 }
-impl Manager {
-    fn new() -> Self {
-        Self {
-            pids: VecDeque::new(),
-            processes: BTreeMap::new(),
+
+fn switch_pml4() {
+    let (_, f) = Cr3::read();
+    let a = collections::process::handle_running(|p| p.pml4_addr);
+    let a = PhysFrame::from_start_address(a).expect("PML4 is not aligned properly");
+
+    // SAFETY: The PML4 frame is correct one and flags are unchanged.
+    unsafe { Cr3::write(a, f) }
+}
+
+fn prepare_stack() {
+    collections::process::handle_running_mut(|p| {
+        if p.stack_frame.is_none() {
+            StackCreator::new(p).create()
         }
-    }
+    })
+}
 
-    fn add(&mut self, p: Process) {
-        self.add_pid(p.id());
-        self.add_process(p);
-    }
+fn register_current_stack_frame_with_tss() {
+    TSS.lock().interrupt_stack_table[0] = current_stack_frame_bottom_addr();
+}
 
-    fn add_pid(&mut self, id: super::Id) {
-        self.pids.push_back(id);
-    }
+fn current_stack_frame_top_addr() -> VirtAddr {
+    collections::process::handle_running(Process::stack_frame_top_addr)
+}
 
-    fn add_process(&mut self, p: Process) {
-        let id = p.id();
-        self.processes.insert(id, p);
-    }
-
-    fn switch(&mut self) -> VirtAddr {
-        self.change_current_process();
-        self.switch_pml4();
-        self.prepare_stack();
-        self.register_current_stack_frame_with_tss();
-        self.current_stack_frame_top_addr()
-    }
-
-    fn getpid(&self) -> i32 {
-        self.current_process().id.as_i32()
-    }
-
-    fn change_current_process(&mut self) {
-        self.pids.rotate_left(1);
-    }
-
-    fn switch_pml4(&self) {
-        let (_, f) = Cr3::read();
-        let a = self.current_process().pml4_addr;
-        let a = PhysFrame::from_start_address(a).expect("PML4 is not aligned properly");
-
-        // SAFETY: The PML4 frame is correct one and flags are unchanged.
-        unsafe { Cr3::write(a, f) }
-    }
-
-    fn prepare_stack(&mut self) {
-        if self.current_process().stack_frame.is_none() {
-            StackCreator::new(self.current_process_mut()).create();
-        }
-    }
-
-    fn register_current_stack_frame_with_tss(&mut self) {
-        TSS.lock().interrupt_stack_table[0] = self.current_stack_frame_bottom_addr();
-    }
-
-    fn current_stack_frame_top_addr(&self) -> VirtAddr {
-        self.current_process().stack_frame_top_addr()
-    }
-
-    fn current_stack_frame_bottom_addr(&self) -> VirtAddr {
-        self.current_process().stack_frame_bottom_addr()
-    }
-
-    fn current_process(&self) -> &Process {
-        let id = self.current_pid();
-        self.processes.get(&id).unwrap_or_else(|| {
-            panic!(
-                "Process of PID {} is not added to process collection",
-                id.as_i32()
-            )
-        })
-    }
-
-    fn current_process_mut(&mut self) -> &mut Process {
-        let id = self.current_pid();
-        self.processes.get_mut(&id).unwrap_or_else(|| {
-            panic!(
-                "Process of PID {} id not added to process collection",
-                id.as_i32()
-            )
-        })
-    }
-
-    fn current_pid(&self) -> super::Id {
-        self.pids[0]
-    }
+fn current_stack_frame_bottom_addr() -> VirtAddr {
+    collections::process::handle_running(Process::stack_frame_bottom_addr)
 }
 
 struct StackCreator<'a> {
