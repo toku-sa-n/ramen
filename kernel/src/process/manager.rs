@@ -14,6 +14,11 @@ use x86_64::{
 
 static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
 
+pub fn main() -> ! {
+    info!("Process manager process.");
+    loop {}
+}
+
 pub fn add(p: Process) {
     MANAGER.lock().add(p);
 }
