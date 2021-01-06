@@ -12,7 +12,6 @@ use x86_64::{
     VirtAddr,
 };
 
-static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
 pub(super) static MESSAGE: Lazy<Spinlock<VecDeque<Process>>> =
     Lazy::new(|| Spinlock::new(VecDeque::new()));
 
@@ -29,80 +28,61 @@ pub fn init() {
 }
 
 fn add(p: Process) {
-    MANAGER.lock().add(p);
+    add_pid(p.id());
+    add_process(p);
 }
 
-pub fn switch() -> VirtAddr {
-    MANAGER.lock().switch()
+fn add_pid(id: super::Id) {
+    woken_pid::add(id);
 }
 
-pub(super) fn getpid() -> i32 {
-    MANAGER.lock().getpid()
+fn add_process(p: Process) {
+    collections::process::add(p);
 }
 
-struct Manager;
-impl Manager {
-    fn new() -> Self {
-        Self
-    }
+pub(crate) fn switch() -> VirtAddr {
+    change_current_process();
+    switch_pml4();
+    prepare_stack();
+    register_current_stack_frame_with_tss();
+    current_stack_frame_top_addr()
+}
 
-    fn add(&mut self, p: Process) {
-        self.add_pid(p.id());
-        self.add_process(p);
-    }
+pub(crate) fn getpid() -> i32 {
+    collections::process::handle_running(|p| p.id.as_i32())
+}
 
-    fn add_pid(&mut self, id: super::Id) {
-        woken_pid::add(id);
-    }
+fn change_current_process() {
+    woken_pid::change_active_pid();
+}
 
-    fn add_process(&mut self, p: Process) {
-        collections::process::add(p);
-    }
+fn switch_pml4() {
+    let (_, f) = Cr3::read();
+    let a = collections::process::handle_running(|p| p.pml4_addr);
+    let a = PhysFrame::from_start_address(a).expect("PML4 is not aligned properly");
 
-    fn switch(&mut self) -> VirtAddr {
-        self.change_current_process();
-        self.switch_pml4();
-        self.prepare_stack();
-        self.register_current_stack_frame_with_tss();
-        self.current_stack_frame_top_addr()
-    }
+    // SAFETY: The PML4 frame is correct one and flags are unchanged.
+    unsafe { Cr3::write(a, f) }
+}
 
-    fn getpid(&self) -> i32 {
-        collections::process::handle_running(|p| p.id.as_i32())
-    }
+fn prepare_stack() {
+    collections::process::handle_running_mut(|p| {
+        if p.stack_frame.is_none() {
+            StackCreator::new(p).create()
+        }
+    })
+}
 
-    fn change_current_process(&mut self) {
-        woken_pid::change_active_pid();
-    }
+fn register_current_stack_frame_with_tss() {
+    TSS.lock().interrupt_stack_table[0] = current_stack_frame_bottom_addr();
+}
 
-    fn switch_pml4(&self) {
-        let (_, f) = Cr3::read();
-        let a = collections::process::handle_running(|p| p.pml4_addr);
-        let a = PhysFrame::from_start_address(a).expect("PML4 is not aligned properly");
+fn current_stack_frame_top_addr() -> VirtAddr {
+    collections::process::handle_running(|p| p.stack_frame_top_addr())
+}
 
-        // SAFETY: The PML4 frame is correct one and flags are unchanged.
-        unsafe { Cr3::write(a, f) }
-    }
-
-    fn prepare_stack(&mut self) {
-        collections::process::handle_running_mut(|p| {
-            if p.stack_frame.is_none() {
-                StackCreator::new(p).create()
-            }
-        })
-    }
-
-    fn register_current_stack_frame_with_tss(&mut self) {
-        TSS.lock().interrupt_stack_table[0] = self.current_stack_frame_bottom_addr();
-    }
-
-    fn current_stack_frame_top_addr(&self) -> VirtAddr {
-        collections::process::handle_running(|p| p.stack_frame_top_addr())
-    }
-
-    fn current_stack_frame_bottom_addr(&self) -> VirtAddr {
-        collections::process::handle_running(|p| p.stack_frame_bottom_addr())
-    }
+fn current_stack_frame_bottom_addr() -> VirtAddr {
+    collections::process::handle_running(|p| p.stack_frame_bottom_addr())
 }
 
 struct StackCreator<'a> {
