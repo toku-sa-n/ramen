@@ -3,6 +3,7 @@
 mod collections;
 pub mod manager;
 mod stack_frame;
+mod switch;
 
 use crate::{
     mem::{allocator::page_box::PageBox, paging::pml4::PML4},
