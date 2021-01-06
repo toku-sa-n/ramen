@@ -13,13 +13,22 @@ use x86_64::{
 };
 
 static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
+pub(super) static MESSAGE: Lazy<Spinlock<VecDeque<Process>>> =
+    Lazy::new(|| Spinlock::new(VecDeque::new()));
 
 pub fn main() -> ! {
-    info!("Process manager process.");
-    loop {}
+    loop {
+        while let Some(p) = MESSAGE.lock().pop_front() {
+            add(p);
+        }
+    }
 }
 
-pub fn add(p: Process) {
+pub fn init() {
+    add(Process::user(main));
+}
+
+fn add(p: Process) {
     MANAGER.lock().add(p);
 }
 
