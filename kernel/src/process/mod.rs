@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod manager;
+pub mod manager;
 mod stack_frame;
 
 use crate::{
@@ -18,10 +18,11 @@ use x86_64::{
 
 pub fn init() {
     register_initial_interrupt_stack_table_addr();
+    manager::init();
 }
 
 pub fn add(p: Process) {
-    manager::add(p);
+    manager::MESSAGE.lock().push_back(p);
 }
 
 pub fn switch() -> VirtAddr {
