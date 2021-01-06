@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{collections, collections::woken_pid, stack_frame::StackFrame, Privilege, Process};
-use crate::{mem::allocator::page_box::PageBox, tss::TSS};
+use crate::{mem::allocator::page_box::PageBox, tests, tss::TSS};
 use alloc::collections::VecDeque;
 use conquer_once::spin::Lazy;
 use core::convert::TryInto;
@@ -40,7 +40,11 @@ fn add_process(p: Process) {
     collections::process::add(p);
 }
 
-pub(crate) fn switch() -> VirtAddr {
+pub fn switch() -> VirtAddr {
+    if cfg!(feature = "qemu_test") {
+        tests::process::count_switch();
+    }
+
     change_current_process();
     switch_pml4();
     prepare_stack();

@@ -6,7 +6,6 @@ mod stack_frame;
 
 use crate::{
     mem::{allocator::page_box::PageBox, paging::pml4::PML4},
-    tests,
     tss::TSS,
 };
 use common::constant::INTERRUPT_STACK;
@@ -24,13 +23,6 @@ pub fn init() {
 
 pub fn add(p: Process) {
     manager::MESSAGE.lock().push_back(p);
-}
-
-pub fn switch() -> VirtAddr {
-    if cfg!(feature = "qemu_test") {
-        tests::process::count_switch();
-    }
-    manager::switch()
 }
 
 pub fn getpid() -> i32 {
