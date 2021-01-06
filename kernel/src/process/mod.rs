@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+mod collections;
 pub mod manager;
 mod stack_frame;
 
