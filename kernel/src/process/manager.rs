@@ -78,11 +78,11 @@ fn register_current_stack_frame_with_tss() {
 }
 
 fn current_stack_frame_top_addr() -> VirtAddr {
-    collections::process::handle_running(|p| p.stack_frame_top_addr())
+    collections::process::handle_running(Process::stack_frame_top_addr)
 }
 
 fn current_stack_frame_bottom_addr() -> VirtAddr {
-    collections::process::handle_running(|p| p.stack_frame_bottom_addr())
+    collections::process::handle_running(Process::stack_frame_bottom_addr)
 }
 
 struct StackCreator<'a> {
