@@ -1,4 +1,4 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod process;
-mod woken_pid;
+pub(super) mod process;
+pub(super) mod woken_pid;

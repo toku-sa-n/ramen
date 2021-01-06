@@ -41,6 +41,7 @@ fn register_initial_interrupt_stack_table_addr() {
     TSS.lock().interrupt_stack_table[0] = INTERRUPT_STACK;
 }
 
+#[derive(Debug)]
 pub struct Process {
     id: Id,
     stack: Option<PageBox<[u8]>>,
@@ -93,7 +94,7 @@ impl Process {
     }
 }
 
-#[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq)]
+#[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq, Debug)]
 struct Id(i32);
 impl Id {
     fn new() -> Self {
@@ -134,6 +135,7 @@ impl Pml4Creator {
     }
 }
 
+#[derive(Debug)]
 enum Privilege {
     Kernel,
     User,

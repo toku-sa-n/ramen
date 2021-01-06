@@ -9,6 +9,7 @@ use x86_64::{
 };
 
 #[repr(C)]
+#[derive(Debug)]
 pub struct StackFrame {
     regs: GeneralRegisters,
     interrupt: InterruptStackFrameValue,
@@ -56,7 +57,7 @@ impl Selectors {
 }
 
 #[repr(C)]
-#[derive(Default)]
+#[derive(Default, Debug)]
 struct GeneralRegisters {
     _rbp: u64,
     _rax: u64,

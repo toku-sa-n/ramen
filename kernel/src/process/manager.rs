@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{stack_frame::StackFrame, Privilege, Process};
+use super::{collections, collections::woken_pid, stack_frame::StackFrame, Privilege, Process};
 use crate::{mem::allocator::page_box::PageBox, tss::TSS};
-use alloc::collections::{BTreeMap, VecDeque};
+use alloc::collections::VecDeque;
 use conquer_once::spin::Lazy;
 use core::convert::TryInto;
 use spinning_top::Spinlock;
@@ -40,16 +40,10 @@ pub(super) fn getpid() -> i32 {
     MANAGER.lock().getpid()
 }
 
-struct Manager {
-    pids: VecDeque<super::Id>,
-    processes: BTreeMap<super::Id, Process>,
-}
+struct Manager;
 impl Manager {
     fn new() -> Self {
-        Self {
-            pids: VecDeque::new(),
-            processes: BTreeMap::new(),
-        }
+        Self
     }
 
     fn add(&mut self, p: Process) {
@@ -58,12 +52,11 @@ impl Manager {
     }
 
     fn add_pid(&mut self, id: super::Id) {
-        self.pids.push_back(id);
+        woken_pid::add(id);
     }
 
     fn add_process(&mut self, p: Process) {
-        let id = p.id();
-        self.processes.insert(id, p);
+        collections::process::add(p);
     }
 
     fn switch(&mut self) -> VirtAddr {
@@ -75,16 +68,16 @@ impl Manager {
     }
 
     fn getpid(&self) -> i32 {
-        self.current_process().id.as_i32()
+        collections::process::handle_running(|p| p.id.as_i32())
     }
 
     fn change_current_process(&mut self) {
-        self.pids.rotate_left(1);
+        woken_pid::change_active_pid();
     }
 
     fn switch_pml4(&self) {
         let (_, f) = Cr3::read();
-        let a = self.current_process().pml4_addr;
+        let a = collections::process::handle_running(|p| p.pml4_addr);
         let a = PhysFrame::from_start_address(a).expect("PML4 is not aligned properly");
 
         // SAFETY: The PML4 frame is correct one and flags are unchanged.
@@ -92,9 +85,11 @@ impl Manager {
     }
 
     fn prepare_stack(&mut self) {
-        if self.current_process().stack_frame.is_none() {
-            StackCreator::new(self.current_process_mut()).create();
-        }
+        collections::process::handle_running_mut(|p| {
+            if p.stack_frame.is_none() {
+                StackCreator::new(p).create()
+            }
+        })
     }
 
     fn register_current_stack_frame_with_tss(&mut self) {
@@ -102,35 +97,11 @@ impl Manager {
     }
 
     fn current_stack_frame_top_addr(&self) -> VirtAddr {
-        self.current_process().stack_frame_top_addr()
+        collections::process::handle_running(|p| p.stack_frame_top_addr())
     }
 
     fn current_stack_frame_bottom_addr(&self) -> VirtAddr {
-        self.current_process().stack_frame_bottom_addr()
-    }
-
-    fn current_process(&self) -> &Process {
-        let id = self.current_pid();
-        self.processes.get(&id).unwrap_or_else(|| {
-            panic!(
-                "Process of PID {} is not added to process collection",
-                id.as_i32()
-            )
-        })
-    }
-
-    fn current_process_mut(&mut self) -> &mut Process {
-        let id = self.current_pid();
-        self.processes.get_mut(&id).unwrap_or_else(|| {
-            panic!(
-                "Process of PID {} id not added to process collection",
-                id.as_i32()
-            )
-        })
-    }
-
-    fn current_pid(&self) -> super::Id {
-        self.pids[0]
+        collections::process::handle_running(|p| p.stack_frame_bottom_addr())
     }
 }
 
