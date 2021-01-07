@@ -1,18 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{collections, collections::woken_pid, switch, Process};
+use super::{collections, collections::woken_pid, switch, Privilege, Process};
 use alloc::collections::VecDeque;
 use conquer_once::spin::Lazy;
 use spinning_top::Spinlock;
 pub use switch::switch;
 
-pub(super) static MESSAGE: Lazy<Spinlock<VecDeque<Process>>> =
+pub(super) static MESSAGE: Lazy<Spinlock<VecDeque<(fn() -> !, Privilege)>>> =
     Lazy::new(|| Spinlock::new(VecDeque::new()));
 
 pub fn main() -> ! {
     loop {
-        while let Some(p) = MESSAGE.lock().pop_front() {
-            add(p);
+        while let Some((f, p)) = MESSAGE.lock().pop_front() {
+            match p {
+                Privilege::Kernel => add(Process::kernel(f)),
+                Privilege::User => add(Process::user(f)),
+            }
         }
     }
 }

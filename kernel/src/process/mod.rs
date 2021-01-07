@@ -22,8 +22,8 @@ pub fn init() {
     manager::init();
 }
 
-pub fn add(p: Process) {
-    manager::MESSAGE.lock().push_back(p);
+pub fn add(f: fn() -> !, p: Privilege) {
+    manager::MESSAGE.lock().push_back((f, p));
 }
 
 pub fn getpid() -> i32 {
@@ -129,7 +129,7 @@ impl Pml4Creator {
 }
 
 #[derive(Debug)]
-enum Privilege {
+pub enum Privilege {
     Kernel,
     User,
 }
