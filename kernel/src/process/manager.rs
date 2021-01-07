@@ -43,4 +43,5 @@ pub(crate) fn getpid() -> i32 {
 
 pub(super) enum Message {
     Add(fn() -> !, Privilege),
+    Exit,
 }
