@@ -37,7 +37,7 @@ fn add_process(p: Process) {
     collections::process::add(p);
 }
 
-pub(crate) fn getpid() -> i32 {
+pub fn getpid() -> i32 {
     collections::process::handle_running(|p| p.id.as_i32())
 }
 

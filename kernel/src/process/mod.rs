@@ -27,10 +27,6 @@ pub fn add(f: fn() -> !, p: Privilege) {
     manager::MESSAGE.lock().push_back(Message::Add(f, p));
 }
 
-pub fn getpid() -> i32 {
-    manager::getpid()
-}
-
 fn register_initial_interrupt_stack_table_addr() {
     TSS.lock().interrupt_stack_table[0] = INTERRUPT_STACK;
 }
