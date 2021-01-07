@@ -136,5 +136,6 @@ bitfield! {
      pub port_reset, set_port_reset: 4;
      port_link_state, _: 8, 5;
      port_power, _: 9;
+     pub port_speed, _: 13, 10;
      pub port_reset_changed, _: 21;
 }
