@@ -39,6 +39,10 @@ where
     f(p)
 }
 
+pub(in crate::process) fn remove(id: process::Id) {
+    lock_processes().remove(&id).expect("No such process.");
+}
+
 fn lock_processes() -> SpinlockGuard<'static, BTreeMap<process::Id, Process>> {
     PROCESSES
         .try_lock()

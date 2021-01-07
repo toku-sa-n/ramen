@@ -1,39 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 mod collections;
+mod exit;
 pub mod manager;
 mod stack_frame;
 mod switch;
 
-use crate::{
-    mem::{allocator::page_box::PageBox, paging::pml4::PML4},
-    tss::TSS,
-};
-use common::constant::INTERRUPT_STACK;
+use crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4};
 use core::sync::atomic::{AtomicI32, Ordering};
-use manager::Message;
 use stack_frame::StackFrame;
 use x86_64::{
     structures::paging::{PageTable, PageTableFlags},
     PhysAddr, VirtAddr,
 };
-
-pub fn init() {
-    register_initial_interrupt_stack_table_addr();
-    manager::init();
-}
-
-pub fn add(f: fn() -> !, p: Privilege) {
-    manager::MESSAGE.lock().push_back(Message::Add(f, p));
-}
-
-pub fn getpid() -> i32 {
-    manager::getpid()
-}
-
-fn register_initial_interrupt_stack_table_addr() {
-    TSS.lock().interrupt_stack_table[0] = INTERRUPT_STACK;
-}
 
 #[derive(Debug)]
 pub struct Process {
@@ -88,6 +67,12 @@ impl Process {
     }
 }
 
+#[derive(Debug)]
+pub enum Privilege {
+    Kernel,
+    User,
+}
+
 #[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq, Debug)]
 struct Id(i32);
 impl Id {
@@ -127,10 +112,4 @@ impl Pml4Creator {
     fn map_kernel_area(&mut self) {
         self.pml4[510] = PML4.lock().level_4_table()[510].clone();
     }
-}
-
-#[derive(Debug)]
-pub enum Privilege {
-    Kernel,
-    User,
 }
