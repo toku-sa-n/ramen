@@ -13,18 +13,22 @@ pub fn main() -> ! {
     loop {
         while let Some(Message::Add(f, p)) = MESSAGE.lock().pop_front() {
             match p {
-                Privilege::Kernel => add(Process::kernel(f)),
-                Privilege::User => add(Process::user(f)),
+                Privilege::Kernel => push_process_to_queue(Process::kernel(f)),
+                Privilege::User => push_process_to_queue(Process::user(f)),
             }
         }
     }
 }
 
 pub fn init() {
-    add(Process::user(main));
+    push_process_to_queue(Process::user(main));
 }
 
-fn add(p: Process) {
+pub fn add(f: fn() -> !, p: Privilege) {
+    MESSAGE.lock().push_back(Message::Add(f, p));
+}
+
+fn push_process_to_queue(p: Process) {
     add_pid(p.id());
     add_process(p);
 }
@@ -37,7 +41,7 @@ fn add_process(p: Process) {
     collections::process::add(p);
 }
 
-pub fn getpid() -> i32 {
+pub(crate) fn getpid() -> i32 {
     collections::process::handle_running(|p| p.id.as_i32())
 }
 
