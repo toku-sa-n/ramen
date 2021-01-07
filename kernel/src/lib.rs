@@ -111,7 +111,7 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     ustar.list();
     ustar.content("build/bootx64.efi");
 
-    process::init();
+    process::manager::init();
 
     process::manager::add(run_tasks, Privilege::User);
 
