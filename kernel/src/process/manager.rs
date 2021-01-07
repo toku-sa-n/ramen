@@ -28,6 +28,14 @@ pub fn add(f: fn() -> !, p: Privilege) {
     MESSAGE.lock().push_back(Message::Add(f, p));
 }
 
+pub fn getpid() -> i32 {
+    collections::process::handle_running(|p| p.id.as_i32())
+}
+
+pub(super) enum Message {
+    Add(fn() -> !, Privilege),
+}
+
 fn push_process_to_queue(p: Process) {
     add_pid(p.id());
     add_process(p);
@@ -39,12 +47,4 @@ fn add_pid(id: super::Id) {
 
 fn add_process(p: Process) {
     collections::process::add(p);
-}
-
-pub fn getpid() -> i32 {
-    collections::process::handle_running(|p| p.id.as_i32())
-}
-
-pub(super) enum Message {
-    Add(fn() -> !, Privilege),
 }
