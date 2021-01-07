@@ -11,7 +11,6 @@ use crate::{
 };
 use common::constant::INTERRUPT_STACK;
 use core::sync::atomic::{AtomicI32, Ordering};
-use manager::Message;
 use stack_frame::StackFrame;
 use x86_64::{
     structures::paging::{PageTable, PageTableFlags},
@@ -21,14 +20,6 @@ use x86_64::{
 pub fn init() {
     register_initial_interrupt_stack_table_addr();
     manager::init();
-}
-
-pub fn add(f: fn() -> !, p: Privilege) {
-    manager::MESSAGE.lock().push_back(Message::Add(f, p));
-}
-
-pub fn getpid() -> i32 {
-    manager::getpid()
 }
 
 fn register_initial_interrupt_stack_table_addr() {
@@ -88,6 +79,12 @@ impl Process {
     }
 }
 
+#[derive(Debug)]
+pub enum Privilege {
+    Kernel,
+    User,
+}
+
 #[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq, Debug)]
 struct Id(i32);
 impl Id {
@@ -127,10 +124,4 @@ impl Pml4Creator {
     fn map_kernel_area(&mut self) {
         self.pml4[510] = PML4.lock().level_4_table()[510].clone();
     }
-}
-
-#[derive(Debug)]
-pub enum Privilege {
-    Kernel,
-    User,
 }

@@ -168,5 +168,5 @@ fn sys_unmap_pages(start: VirtAddr, bytes: Bytes) -> u64 {
 }
 
 fn sys_getpid() -> i32 {
-    crate::process::getpid()
+    crate::process::manager::getpid()
 }
