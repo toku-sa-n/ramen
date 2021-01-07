@@ -56,7 +56,7 @@ use graphics::{
 use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
-use process::Process;
+use process::Privilege;
 use spinning_top::RawSpinlock;
 pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 
@@ -113,11 +113,11 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
 
     process::init();
 
-    process::add(Process::user(run_tasks));
+    process::add(run_tasks, Privilege::User);
 
     if cfg!(feature = "qemu_test") {
-        process::add(Process::user(tests::main));
-        process::add(Process::kernel(tests::process::kernel_privilege_test));
+        process::add(tests::main, Privilege::User);
+        process::add(tests::process::kernel_privilege_test, Privilege::Kernel);
     }
 }
 
