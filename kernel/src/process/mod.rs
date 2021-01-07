@@ -11,6 +11,7 @@ use crate::{
 };
 use common::constant::INTERRUPT_STACK;
 use core::sync::atomic::{AtomicI32, Ordering};
+use manager::Message;
 use stack_frame::StackFrame;
 use x86_64::{
     structures::paging::{PageTable, PageTableFlags},
@@ -23,7 +24,7 @@ pub fn init() {
 }
 
 pub fn add(f: fn() -> !, p: Privilege) {
-    manager::MESSAGE.lock().push_back((f, p));
+    manager::MESSAGE.lock().push_back(Message::Add(f, p));
 }
 
 pub fn getpid() -> i32 {
