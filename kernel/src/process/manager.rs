@@ -6,8 +6,7 @@ use conquer_once::spin::Lazy;
 use spinning_top::Spinlock;
 pub use switch::switch;
 
-pub(super) static MESSAGE: Lazy<Spinlock<VecDeque<Message>>> =
-    Lazy::new(|| Spinlock::new(VecDeque::new()));
+static MESSAGE: Lazy<Spinlock<VecDeque<Message>>> = Lazy::new(|| Spinlock::new(VecDeque::new()));
 
 pub fn main() -> ! {
     loop {
