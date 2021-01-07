@@ -119,6 +119,7 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
         process::manager::add(tests::main, Privilege::User);
         process::manager::add(tests::process::kernel_privilege_test, Privilege::Kernel);
         process::manager::add(tests::process::exit_test, Privilege::User);
+        process::manager::add(tests::process::do_nothing, Privilege::User);
     }
 }
 
@@ -128,7 +129,7 @@ fn wait_until_timer_interrupt_happens() -> ! {
     }
 }
 
-fn run_tasks() -> ! {
+fn run_tasks() {
     multitask::add(Task::new(keyboard::task()));
     multitask::add(Task::new(mouse::task()));
     multitask::add(Task::new(xhci::task()));

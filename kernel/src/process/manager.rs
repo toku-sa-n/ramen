@@ -12,7 +12,7 @@ pub use switch::switch;
 
 static MESSAGE: Lazy<Spinlock<VecDeque<Message>>> = Lazy::new(|| Spinlock::new(VecDeque::new()));
 
-pub fn main() -> ! {
+pub fn main() {
     loop {
         while let Some(m) = MESSAGE.lock().pop_front() {
             match m {
@@ -31,7 +31,7 @@ pub fn init() {
     push_process_to_queue(Process::user(main));
 }
 
-pub fn add(f: fn() -> !, p: Privilege) {
+pub fn add(f: fn(), p: Privilege) {
     send_message(Message::Add(f, p));
 }
 
@@ -60,11 +60,12 @@ fn add_process(p: Process) {
     collections::process::add(p);
 }
 
-pub(super) fn loader(f: fn() -> !) -> ! {
-    f()
+pub(super) fn loader(f: fn()) -> ! {
+    f();
+    syscalls::exit();
 }
 
 pub(super) enum Message {
-    Add(fn() -> !, Privilege),
+    Add(fn(), Privilege),
     Exit(super::Id),
 }
