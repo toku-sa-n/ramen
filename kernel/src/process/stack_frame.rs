@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use core::convert::TryInto;
+
 use crate::gdt::GDT;
 use rflags::RFlags;
 use x86_64::{
@@ -25,7 +27,8 @@ impl StackFrame {
 
     fn new(f: fn() -> !, stack_pointer: VirtAddr, segs: &Selectors) -> Self {
         let cpu_flags = (rflags::read() | RFlags::INTERRUPT_FLAG).bits();
-        let instruction_pointer = VirtAddr::new(super::manager::loader as u64);
+        let instruction_pointer =
+            VirtAddr::new((super::manager::loader as usize).try_into().unwrap());
 
         Self {
             regs: GeneralRegisters::new(f),
@@ -80,7 +83,7 @@ struct GeneralRegisters {
 impl GeneralRegisters {
     fn new(f: fn() -> !) -> Self {
         Self {
-            rdi: f as _,
+            rdi: (f as usize).try_into().unwrap(),
             ..Self::default()
         }
     }
