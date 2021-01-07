@@ -79,6 +79,12 @@ impl Process {
     }
 }
 
+#[derive(Debug)]
+pub enum Privilege {
+    Kernel,
+    User,
+}
+
 #[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq, Debug)]
 struct Id(i32);
 impl Id {
@@ -118,10 +124,4 @@ impl Pml4Creator {
     fn map_kernel_area(&mut self) {
         self.pml4[510] = PML4.lock().level_4_table()[510].clone();
     }
-}
-
-#[derive(Debug)]
-pub enum Privilege {
-    Kernel,
-    User,
 }
