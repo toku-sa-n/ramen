@@ -27,7 +27,11 @@ impl Slot {
         Self {
             id,
             cx: cx.clone(),
-            def_ep: endpoint::Default::new(transfer::Sender::new(recv.clone(), dbl_writer), cx),
+            def_ep: endpoint::Default::new(
+                transfer::Sender::new(recv.clone(), dbl_writer),
+                cx,
+                port.index,
+            ),
             recv,
         }
     }
