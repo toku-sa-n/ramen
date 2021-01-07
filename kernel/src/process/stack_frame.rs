@@ -59,7 +59,6 @@ impl Selectors {
 #[repr(C)]
 #[derive(Default, Debug)]
 struct GeneralRegisters {
-    _rbp: u64,
     _rax: u64,
     _rbx: u64,
     _rcx: u64,
@@ -74,4 +73,5 @@ struct GeneralRegisters {
     _r13: u64,
     _r14: u64,
     _r15: u64,
+    _rbp: u64,
 }
