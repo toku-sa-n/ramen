@@ -19,3 +19,7 @@ pub fn kernel_privilege_test() -> ! {
         x86_64::instructions::hlt()
     }
 }
+
+pub fn exit_test() -> ! {
+    syscalls::exit();
+}
