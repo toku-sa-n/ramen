@@ -44,6 +44,10 @@ fn add_process(p: Process) {
     collections::process::add(p);
 }
 
+pub(super) fn loader(f: fn() -> !) -> ! {
+    f()
+}
+
 enum Message {
     Add(fn() -> !, Privilege),
 }
