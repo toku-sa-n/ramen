@@ -50,23 +50,9 @@ impl Sender {
 
     pub async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
         let b = PageBox::user(descriptor::Device::default());
-        let setup = *SetupStage::default()
-            .set_request_type(0b1000_0000)
-            .set_request(Request::GetDescriptor)
-            .set_value(DescTyIdx::new(descriptor::Ty::Device, 0).bits())
-            .set_length(b.bytes().as_usize().try_into().unwrap())
-            .set_trb_transfer_length(8)
-            .set_trt(3);
-        let setup = Trb::Control(Control::Setup(setup));
 
-        let data = *DataStage::default()
-            .set_data_buf(b.phys_addr())
-            .set_transfer_length(b.bytes().as_usize().try_into().unwrap())
-            .set_dir(Direction::In);
-        let data = Trb::Control(Control::Data(data));
-
-        let status = *StatusStage::default().set_ioc(true);
-        let status = Trb::Control(Control::Status(status));
+        let (setup, data, status) =
+            Self::trbs_for_getting_descriptors(&b, DescTyIdx::new(descriptor::Ty::Device, 0));
 
         self.issue_trbs(&[setup, data, status]).await;
         b
@@ -75,23 +61,10 @@ impl Sender {
     pub async fn get_configuration_descriptor(&mut self) -> PageBox<[u8]> {
         let b = PageBox::user_slice(0, 4096);
 
-        let setup = *SetupStage::default()
-            .set_request_type(0b1000_0000)
-            .set_request(Request::GetDescriptor)
-            .set_value(DescTyIdx::new(descriptor::Ty::Configuration, 0).bits())
-            .set_length(b.bytes().as_usize().try_into().unwrap())
-            .set_trb_transfer_length(8)
-            .set_trt(3);
-        let setup = Trb::Control(Control::Setup(setup));
-
-        let data = *DataStage::default()
-            .set_data_buf(b.phys_addr())
-            .set_transfer_length(b.bytes().as_usize().try_into().unwrap())
-            .set_dir(Direction::In);
-        let data = Trb::Control(Control::Data(data));
-
-        let status = *StatusStage::default().set_ioc(true);
-        let status = Trb::Control(Control::Status(status));
+        let (setup, data, status) = Self::trbs_for_getting_descriptors(
+            &b,
+            DescTyIdx::new(descriptor::Ty::Configuration, 0),
+        );
 
         self.issue_trbs(&[setup, data, status]).await;
         debug!("Got TRBs");
@@ -106,6 +79,28 @@ impl Sender {
         let t = Trb::Normal(t);
         debug!("Normal TRB: {:X?}", t);
         self.issue_trbs(&[t]).await;
+    }
+
+    fn trbs_for_getting_descriptors<T: ?Sized>(b: &PageBox<T>, t: DescTyIdx) -> (Trb, Trb, Trb) {
+        let setup = *SetupStage::default()
+            .set_request_type(0b1000_0000)
+            .set_request(Request::GetDescriptor)
+            .set_value(t.bits())
+            .set_length(b.bytes().as_usize().try_into().unwrap())
+            .set_trb_transfer_length(8)
+            .set_trt(3);
+        let setup = Trb::Control(Control::Setup(setup));
+
+        let data = *DataStage::default()
+            .set_data_buf(b.phys_addr())
+            .set_transfer_length(b.bytes().as_usize().try_into().unwrap())
+            .set_dir(Direction::In);
+        let data = Trb::Control(Control::Data(data));
+
+        let status = *StatusStage::default().set_ioc(true);
+        let status = Trb::Control(Control::Status(status));
+
+        (setup, data, status)
     }
 
     async fn issue_trbs(&mut self, ts: &[Trb]) -> Vec<Option<Completion>> {
