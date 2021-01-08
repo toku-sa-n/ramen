@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::super::{CycleBit, Link};
-use crate::add_trb;
+use crate::{add_trb, impl_default_simply_adds_trb_id};
 use bit_field::BitField;
 use core::convert::TryInto;
 use os_units::Bytes;
@@ -60,6 +60,7 @@ impl From<Trb> for [u32; 4] {
 }
 
 add_trb!(Noop, 23);
+impl_default_simply_adds_trb_id!(Noop);
 impl Noop {
     fn new() -> Self {
         let mut t = Self([0; 4]);
@@ -69,6 +70,7 @@ impl Noop {
 }
 
 add_trb!(EnableSlot, 9);
+impl_default_simply_adds_trb_id!(EnableSlot);
 impl EnableSlot {
     pub fn new() -> Self {
         let mut enable_slot = Self([0; 4]);
@@ -76,13 +78,9 @@ impl EnableSlot {
         enable_slot
     }
 }
-impl Default for EnableSlot {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 
 add_trb!(AddressDevice, 11);
+impl_default_simply_adds_trb_id!(AddressDevice);
 impl AddressDevice {
     pub fn new(addr_to_input_context: PhysAddr, slot_id: u8) -> Self {
         let mut trb = Self([0; 4]);
@@ -107,6 +105,7 @@ impl AddressDevice {
 }
 
 add_trb!(ConfigureEndpoint, 12);
+impl_default_simply_adds_trb_id!(ConfigureEndpoint);
 impl ConfigureEndpoint {
     pub fn new(context_addr: PhysAddr, slot_id: u8) -> Self {
         let mut t = Self([0; 4]);

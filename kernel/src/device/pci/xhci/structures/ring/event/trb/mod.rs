@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::add_trb;
+use crate::{add_trb, impl_default_simply_adds_trb_id};
 use bit_field::BitField;
 use completion::Completion;
 use core::convert::{TryFrom, TryInto};
@@ -29,6 +29,7 @@ impl TryFrom<[u32; 4]> for Trb {
 }
 
 add_trb!(PortStatusChange, 34);
+impl_default_simply_adds_trb_id!(PortStatusChange);
 impl PortStatusChange {
     pub fn port(&self) -> u8 {
         self.0[0].get_bits(24..=31).try_into().unwrap()

@@ -3,6 +3,7 @@
 use crate::{
     add_trb,
     device::pci::xhci::structures::{descriptor, ring::CycleBit},
+    impl_default_simply_adds_trb_id,
     mem::allocator::page_box::PageBox,
 };
 use bit_field::BitField;
@@ -100,6 +101,14 @@ impl SetupStage {
         self.0[3].set_bits(16..=17, t.into());
     }
 }
+impl Default for SetupStage {
+    fn default() -> Self {
+        let mut t = Self([0; 4]);
+        t.set_trb_type();
+        t.set_idt();
+        t
+    }
+}
 
 pub struct DescTyIdx {
     ty: descriptor::Ty,
@@ -119,6 +128,7 @@ enum Request {
 }
 
 add_trb!(DataStage, 3);
+impl_default_simply_adds_trb_id!(DataStage);
 impl DataStage {
     fn new<T: ?Sized>(b: &PageBox<T>, d: Direction) -> Self {
         let mut t = Self::null();
@@ -164,6 +174,7 @@ impl From<Direction> for bool {
 }
 
 add_trb!(StatusStage, 4);
+impl_default_simply_adds_trb_id!(StatusStage);
 impl StatusStage {
     fn new() -> Self {
         let mut t = Self::null();
