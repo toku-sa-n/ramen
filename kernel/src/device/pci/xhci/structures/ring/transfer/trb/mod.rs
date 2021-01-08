@@ -28,10 +28,6 @@ impl Trb {
         )
     }
 
-    pub fn new_link(a: PhysAddr) -> Self {
-        Self::Link(Link::new(a))
-    }
-
     pub fn new_normal<T: ?Sized>(b: &PageBox<T>) -> Self {
         Self::Normal(Normal::new(b))
     }

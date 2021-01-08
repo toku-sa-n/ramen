@@ -2,7 +2,10 @@
 
 use super::{
     super::structures::ring::{
-        command::{self, trb::Trb},
+        command::{
+            self,
+            trb::{AddressDevice, ConfigureEndpoint, EnableSlot, Noop, Trb},
+        },
         event::trb::completion::Completion,
     },
     receiver::{ReceiveFuture, Receiver},
@@ -27,23 +30,31 @@ impl Sender {
     }
 
     pub async fn noop(&mut self) {
-        let t = Trb::new_noop();
+        let t = Trb::Noop(Noop::default());
         self.issue_trb(t).await;
         info!("NOOP SUCCEESS");
     }
 
     pub async fn enable_device_slot(&mut self) -> u8 {
-        let t = Trb::new_enable_slot();
+        let t = Trb::EnableSlot(EnableSlot::default());
         self.issue_trb(t).await.slot_id()
     }
 
     pub async fn address_device(&mut self, input_context_addr: PhysAddr, slot_id: u8) {
-        let t = Trb::new_address_device(input_context_addr, slot_id);
+        let t = AddressDevice::default()
+            .set_input_context_ptr(input_context_addr)
+            .set_slot_id(slot_id)
+            .clone();
+        let t = Trb::AddressDevice(t);
         self.issue_trb(t).await;
     }
 
     pub async fn configure_endpoint(&mut self, context_addr: PhysAddr, slot_id: u8) {
-        let t = Trb::new_configure_endpoint(context_addr, slot_id);
+        let t = ConfigureEndpoint::default()
+            .set_context_addr(context_addr)
+            .set_slot_id(slot_id)
+            .clone();
+        let t = Trb::ConfigureEndpoint(t);
         self.issue_trb(t).await;
     }
 

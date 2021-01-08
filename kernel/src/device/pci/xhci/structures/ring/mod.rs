@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::convert::{TryFrom, TryInto};
-use os_units::Bytes;
+use core::convert::TryInto;
 use x86_64::PhysAddr;
 
 pub mod command;
@@ -63,21 +62,16 @@ macro_rules! impl_default_simply_adds_trb_id {
 }
 
 add_trb!(Link, 6);
+impl_default_simply_adds_trb_id!(Link);
 impl Link {
-    const SIZE: Bytes = Bytes::new(16);
+    pub fn set_addr(&mut self, a: PhysAddr) -> &mut Self {
+        assert!(a.is_aligned(16_u64));
 
-    fn new(addr_to_ring: PhysAddr) -> Self {
-        assert!(addr_to_ring.is_aligned(u64::try_from(Self::SIZE.as_usize()).unwrap()));
-        let mut trb = Self([0; 4]);
-        trb.set_trb_type();
-        trb.set_addr(addr_to_ring.as_u64());
-        trb
-    }
-
-    fn set_addr(&mut self, a: u64) {
+        let a = a.as_u64();
         let l = a & 0xffff_ffff;
         let u = a >> 32;
         self.0[0] = l.try_into().unwrap();
         self.0[1] = u.try_into().unwrap();
+        self
     }
 }
