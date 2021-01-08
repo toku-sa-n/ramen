@@ -27,7 +27,7 @@ FAT_IMG			:= $(BUILD_DIR)/fat.img
 INITRD			:= $(BUILD_DIR)/initrd.img
 
 LD				:= ld
-RUSTCC			:= cargo
+RUSTC			:= cargo
 RM				:= rm -rf
 VIEWER			:= qemu-system-x86_64
 
@@ -90,14 +90,14 @@ $(LIB_FILE): $(RUST_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(KERNEL_
 	# FIXME: Currently `cargo` tries to read `$(pwd)/.cargo/config.toml`, not
 	# `$(dirname argument_of_--manifest-path)/.cargo/config.toml`.
 	# See: https://github.com/rust-lang/cargo/issues/2930
-	cd $(KERNEL_DIR) && $(RUSTCC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(TEST_FLAG) $(RUSTCFLAGS)
+	cd $(KERNEL_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(TEST_FLAG) $(RUSTCFLAGS)
 
 %.fd:
 	@echo "$@ not found"
 	exit 1
 
 $(EFI_FILE):$(EFI_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(EFI_DIR)/$(CARGO_TOML)|$(BUILD_DIR)
-	cd $(EFI_DIR) && $(RUSTCC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
+	cd $(EFI_DIR) && $(RUSTC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(INITRD):|$(BUILD_DIR)
 	tar cf $@ $(BUILD_DIR)
@@ -110,5 +110,5 @@ clippy:
 
 clean:
 	$(RM) build
-	$(RUSTCC) clean --manifest-path=$(KERNEL_DIR)/Cargo.toml
-	$(RUSTCC) clean --manifest-path=$(EFI_DIR)/Cargo.toml
+	$(RUSTC) clean --manifest-path=$(KERNEL_DIR)/Cargo.toml
+	$(RUSTC) clean --manifest-path=$(EFI_DIR)/Cargo.toml
