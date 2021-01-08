@@ -18,22 +18,22 @@ use x86_64::{
 pub struct Process {
     id: Id,
     stack: Option<PageBox<[u8]>>,
-    f: fn() -> !,
+    f: fn(),
     _pml4: PageBox<PageTable>,
     pml4_addr: PhysAddr,
     stack_frame: Option<PageBox<StackFrame>>,
     privilege: Privilege,
 }
 impl Process {
-    pub fn kernel(f: fn() -> !) -> Self {
+    pub fn kernel(f: fn()) -> Self {
         Self::new(f, Privilege::Kernel)
     }
 
-    pub fn user(f: fn() -> !) -> Self {
+    pub fn user(f: fn()) -> Self {
         Self::new(f, Privilege::User)
     }
 
-    fn new(f: fn() -> !, privilege: Privilege) -> Self {
+    fn new(f: fn(), privilege: Privilege) -> Self {
         let pml4 = Pml4Creator::new().create();
         let pml4_addr = pml4.phys_addr();
         Process {

@@ -14,12 +14,14 @@ pub fn count_switch() {
     }
 }
 
-pub fn kernel_privilege_test() -> ! {
+pub fn kernel_privilege_test() {
     loop {
         x86_64::instructions::hlt()
     }
 }
 
-pub fn exit_test() -> ! {
+pub fn exit_test() {
     syscalls::exit();
 }
+
+pub fn do_nothing() {}
