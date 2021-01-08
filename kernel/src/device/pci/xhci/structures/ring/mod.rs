@@ -27,11 +27,13 @@ impl From<CycleBit> for bool {
 
 #[macro_export]
 macro_rules! add_trb {
-    ($t:ident) => {
+    ($t:ident,$id:expr) => {
         #[repr(transparent)]
         #[derive(Copy, Clone, Debug)]
         pub struct $t(pub [u32; 4]);
         impl $t {
+            const ID: u8 = $id;
+
             #[allow(dead_code)]
             fn set_cycle_bit(&mut self, c: crate::device::pci::xhci::structures::ring::CycleBit) {
                 use bit_field::BitField;
@@ -39,23 +41,22 @@ macro_rules! add_trb {
             }
 
             #[allow(dead_code)]
-            fn set_trb_type(&mut self, t: u8) {
+            fn set_trb_type(&mut self) {
                 use bit_field::BitField;
-                self.0[3].set_bits(10..=15, t.into());
+                self.0[3].set_bits(10..=15, Self::ID.into());
             }
         }
     };
 }
 
-add_trb!(Link);
+add_trb!(Link, 6);
 impl Link {
-    const ID: u8 = 6;
     const SIZE: Bytes = Bytes::new(16);
 
     fn new(addr_to_ring: PhysAddr) -> Self {
         assert!(addr_to_ring.is_aligned(u64::try_from(Self::SIZE.as_usize()).unwrap()));
         let mut trb = Self([0; 4]);
-        trb.set_trb_type(Self::ID);
+        trb.set_trb_type();
         trb.set_addr(addr_to_ring.as_u64());
         trb
     }
