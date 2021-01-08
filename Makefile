@@ -61,14 +61,14 @@ endif
 run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE) $(FAT_IMG) $(INITRD)
 	$(VIEWER) $(VIEWERFLAGS) -no-shutdown -monitor stdio
 
-test:
+test:$(FAT_IMG)
 	make clean
 	make $(IMG_FILE) TEST_FLAG=--features=qemu_test
 	$(VIEWER) $(VIEWERFLAGS) -nographic; if [[ $$? -eq 33 ]];\
 		then echo "Booting test succeed! ($(TEST_MODE) mode)"; exit 0;\
 		else echo "Booting test failed ($(TEST_MODE) mode)"; exit 1;fi
 
-$(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE) $(INITRD) $(FAT_IMG)
+$(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE) $(INITRD)
 	dd if=/dev/zero of=$@ bs=1k count=28800
 	mformat -i $@ -h 200 -t 500 -s 144::
 	# Cannot replace these mmd and mcopy with `make copy_to_usb` because `mount` needs `sudo`
