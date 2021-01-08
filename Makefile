@@ -126,5 +126,4 @@ clippy:
 
 clean:
 	$(RM) build
-	$(RUSTCC) clean --manifest-path=$(KERNEL_DIR)/Cargo.toml
-	$(RUSTCC) clean --manifest-path=$(EFI_DIR)/Cargo.toml
+	find . -name Cargo.toml -printf '%h\n'|xargs -I {} sh -c "cd {} && cargo clean"
