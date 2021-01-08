@@ -59,22 +59,20 @@ impl From<Trb> for [u32; 4] {
     }
 }
 
-add_trb!(Noop);
+add_trb!(Noop, 23);
 impl Noop {
-    const ID: u8 = 23;
     fn new() -> Self {
         let mut t = Self([0; 4]);
-        t.set_trb_type(Self::ID);
+        t.set_trb_type();
         t
     }
 }
 
-add_trb!(EnableSlot);
+add_trb!(EnableSlot, 9);
 impl EnableSlot {
-    const ID: u8 = 9;
     pub fn new() -> Self {
         let mut enable_slot = Self([0; 4]);
-        enable_slot.set_trb_type(Self::ID);
+        enable_slot.set_trb_type();
         enable_slot
     }
 }
@@ -84,15 +82,14 @@ impl Default for EnableSlot {
     }
 }
 
-add_trb!(AddressDevice);
+add_trb!(AddressDevice, 11);
 impl AddressDevice {
-    const ID: u8 = 11;
     pub fn new(addr_to_input_context: PhysAddr, slot_id: u8) -> Self {
         let mut trb = Self([0; 4]);
 
         assert!(addr_to_input_context.is_aligned(16_u64));
         trb.set_input_context_ptr_as_u64(addr_to_input_context.as_u64());
-        trb.set_trb_type(Self::ID);
+        trb.set_trb_type();
         trb.set_slot_id(slot_id);
         trb
     }
@@ -109,14 +106,13 @@ impl AddressDevice {
     }
 }
 
-add_trb!(ConfigureEndpoint);
+add_trb!(ConfigureEndpoint, 12);
 impl ConfigureEndpoint {
-    const ID: u8 = 12;
     pub fn new(context_addr: PhysAddr, slot_id: u8) -> Self {
         let mut t = Self([0; 4]);
         t.set_context_addr(context_addr);
         t.set_slot_id(slot_id);
-        t.set_trb_type(Self::ID);
+        t.set_trb_type();
         t
     }
 

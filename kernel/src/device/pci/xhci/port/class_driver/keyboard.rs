@@ -12,10 +12,11 @@ const LOWER_ALPHABETS: &str = "abcdefghijklmnopqrstuvwxyz";
 
 static STR: Spinlock<String> = Spinlock::new(String::new());
 
-pub async fn task(mut kbd: Keyboard) {
+pub async fn task(eps: endpoint::Collection) {
+    let mut k = Keyboard::new(eps);
     loop {
-        kbd.get_packet().await;
-        kbd.store_key();
+        k.get_packet().await;
+        k.store_key();
     }
 }
 

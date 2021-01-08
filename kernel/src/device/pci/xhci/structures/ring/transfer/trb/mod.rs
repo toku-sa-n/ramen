@@ -62,16 +62,14 @@ impl From<Trb> for [u32; 4] {
     }
 }
 
-add_trb!(Normal);
+add_trb!(Normal, 1);
 impl Normal {
-    const ID: u8 = 1;
-
     pub fn new<T: ?Sized>(b: &PageBox<T>) -> Self {
         let mut t = Self([0; 4]);
         t.set_buf_ptr(b.phys_addr());
         t.set_transfer_length(b.bytes());
         t.set_ioc(true);
-        t.set_trb_type(Self::ID);
+        t.set_trb_type();
         t
     }
 

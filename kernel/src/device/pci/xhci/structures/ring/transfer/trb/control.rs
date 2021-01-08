@@ -52,10 +52,8 @@ impl From<Control> for [u32; 4] {
     }
 }
 
-add_trb!(SetupStage);
+add_trb!(SetupStage, 2);
 impl SetupStage {
-    const ID: u8 = 2;
-
     fn new_get_descriptor<T: ?Sized>(b: &PageBox<T>, dti: DescTyIdx) -> Self {
         let mut t = Self::null();
         t.set_request_type(0b1000_0000);
@@ -63,7 +61,7 @@ impl SetupStage {
         t.set_value(dti.bits());
         t.set_length(b.bytes().as_usize().try_into().unwrap());
         t.set_trb_transfer_length(8);
-        t.set_trb_type(Self::ID);
+        t.set_trb_type();
         t.set_trt(3);
         t
     }
@@ -120,15 +118,13 @@ enum Request {
     GetDescriptor = 6,
 }
 
-add_trb!(DataStage);
+add_trb!(DataStage, 3);
 impl DataStage {
-    const ID: u8 = 3;
-
     fn new<T: ?Sized>(b: &PageBox<T>, d: Direction) -> Self {
         let mut t = Self::null();
         t.set_data_buf(b.phys_addr());
         t.set_transfer_length(b.bytes().as_usize().try_into().unwrap());
-        t.set_trb_type(Self::ID);
+        t.set_trb_type();
         t.set_dir(d);
         t
     }
@@ -167,14 +163,12 @@ impl From<Direction> for bool {
     }
 }
 
-add_trb!(StatusStage);
+add_trb!(StatusStage, 4);
 impl StatusStage {
-    const ID: u8 = 4;
-
     fn new() -> Self {
         let mut t = Self::null();
         t.set_ioc(true);
-        t.set_trb_type(Self::ID);
+        t.set_trb_type();
         t
     }
 
