@@ -71,12 +71,10 @@ async fn task(
 
     match eps.ty() {
         (3, 1, 2) => {
-            let mouse = class_driver::mouse::Mouse::new(eps);
-            multitask::add(Task::new_poll(class_driver::mouse::task(mouse)));
+            multitask::add(Task::new_poll(class_driver::mouse::task(eps)));
         }
         (3, 1, 1) => {
-            let kbd = class_driver::keyboard::Keyboard::new(eps);
-            multitask::add(Task::new_poll(class_driver::keyboard::task(kbd)));
+            multitask::add(Task::new_poll(class_driver::keyboard::task(eps)));
         }
         (8, _, _) => multitask::add(Task::new(class_driver::mass_storage::task(eps))),
         t => warn!("Unknown device: {:?}", t),
