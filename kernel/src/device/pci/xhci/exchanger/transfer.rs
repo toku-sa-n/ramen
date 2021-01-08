@@ -14,7 +14,7 @@ use crate::{
 use alloc::{sync::Arc, vec::Vec};
 use futures_util::task::AtomicWaker;
 use spinning_top::Spinlock;
-use transfer::trb::{control::DescTyIdx, Trb};
+use transfer::trb::{control::DescTyIdx, Normal, Trb};
 use x86_64::PhysAddr;
 
 pub struct Sender {
@@ -55,7 +55,11 @@ impl Sender {
     }
 
     pub async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
-        let t = Trb::new_normal(&b);
+        let t = *Normal::default()
+            .set_buf_ptr(b.phys_addr())
+            .set_transfer_length(b.bytes())
+            .set_ioc(true);
+        let t = Trb::Normal(t);
         debug!("Normal TRB: {:X?}", t);
         self.issue_trbs(&[t]).await;
     }
