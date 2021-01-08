@@ -49,6 +49,19 @@ macro_rules! add_trb {
     };
 }
 
+#[macro_export]
+macro_rules! impl_default_simply_adds_trb_id {
+    ($t:ident) => {
+        impl Default for $t {
+            fn default() -> Self {
+                let mut t = Self([0; 4]);
+                t.set_trb_type();
+                t
+            }
+        }
+    };
+}
+
 add_trb!(Link, 6);
 impl Link {
     const SIZE: Bytes = Bytes::new(16);

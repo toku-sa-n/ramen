@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::super::{CycleBit, Link};
-use crate::{add_trb, mem::allocator::page_box::PageBox};
+use crate::{add_trb, impl_default_simply_adds_trb_id, mem::allocator::page_box::PageBox};
 use bit_field::BitField;
 use control::{Control, DescTyIdx};
 use core::convert::TryInto;
@@ -63,6 +63,7 @@ impl From<Trb> for [u32; 4] {
 }
 
 add_trb!(Normal, 1);
+impl_default_simply_adds_trb_id!(Normal);
 impl Normal {
     pub fn new<T: ?Sized>(b: &PageBox<T>) -> Self {
         let mut t = Self([0; 4]);
