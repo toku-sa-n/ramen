@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::super::{CycleBit, Link};
-use crate::{add_trb, impl_default_simply_adds_trb_id, mem::allocator::page_box::PageBox};
+use crate::{add_trb, impl_default_simply_adds_trb_id};
 use bit_field::BitField;
-use control::{Control, DescTyIdx};
+use control::Control;
 use core::convert::TryInto;
 use os_units::Bytes;
 use x86_64::PhysAddr;
@@ -18,23 +18,6 @@ pub enum Trb {
 }
 impl Trb {
     pub const SIZE: Bytes = Bytes::new(16);
-
-    pub fn new_get_descriptor<T: ?Sized>(b: &PageBox<T>, dti: DescTyIdx) -> (Self, Self, Self) {
-        let (setup, data, status) = Control::new_get_descriptor(b, dti);
-        (
-            Self::Control(setup),
-            Self::Control(data),
-            Self::Control(status),
-        )
-    }
-
-    pub fn new_link(a: PhysAddr) -> Self {
-        Self::Link(Link::new(a))
-    }
-
-    pub fn new_normal<T: ?Sized>(b: &PageBox<T>) -> Self {
-        Self::Normal(Normal::new(b))
-    }
 
     pub fn set_c(&mut self, c: CycleBit) {
         match self {
@@ -65,29 +48,23 @@ impl From<Trb> for [u32; 4] {
 add_trb!(Normal, 1);
 impl_default_simply_adds_trb_id!(Normal);
 impl Normal {
-    pub fn new<T: ?Sized>(b: &PageBox<T>) -> Self {
-        let mut t = Self([0; 4]);
-        t.set_buf_ptr(b.phys_addr());
-        t.set_transfer_length(b.bytes());
-        t.set_ioc(true);
-        t.set_trb_type();
-        t
-    }
-
-    fn set_buf_ptr(&mut self, p: PhysAddr) {
+    pub fn set_buf_ptr(&mut self, p: PhysAddr) -> &mut Self {
         let l = p.as_u64() & 0xffff_ffff;
         let u = p.as_u64() >> 32;
 
         self.0[0] = l.try_into().unwrap();
         self.0[1] = u.try_into().unwrap();
+        self
     }
 
-    fn set_transfer_length(&mut self, bytes: Bytes) {
+    pub fn set_transfer_length(&mut self, bytes: Bytes) -> &mut Self {
         self.0[2].set_bits(0..=16, bytes.as_usize().try_into().unwrap());
+        self
     }
 
-    fn set_ioc(&mut self, ioc: bool) {
+    pub fn set_ioc(&mut self, ioc: bool) -> &mut Self {
         self.0[3].set_bit(5, ioc);
+        self
     }
 
     fn ioc(&self) -> bool {
