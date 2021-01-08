@@ -41,19 +41,17 @@ impl Sender {
     }
 
     pub async fn address_device(&mut self, input_context_addr: PhysAddr, slot_id: u8) {
-        let t = AddressDevice::default()
+        let t = *AddressDevice::default()
             .set_input_context_ptr(input_context_addr)
-            .set_slot_id(slot_id)
-            .clone();
+            .set_slot_id(slot_id);
         let t = Trb::AddressDevice(t);
         self.issue_trb(t).await;
     }
 
     pub async fn configure_endpoint(&mut self, context_addr: PhysAddr, slot_id: u8) {
-        let t = ConfigureEndpoint::default()
+        let t = *ConfigureEndpoint::default()
             .set_context_addr(context_addr)
-            .set_slot_id(slot_id)
-            .clone();
+            .set_slot_id(slot_id);
         let t = Trb::ConfigureEndpoint(t);
         self.issue_trb(t).await;
     }

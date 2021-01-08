@@ -90,7 +90,7 @@ impl Raw {
 
     fn enq_link(&mut self) {
         // Don't call `enqueue`. It will return an `Err` value as there is no space for link TRB.
-        let t = Link::default().set_addr(self.head_addr()).clone();
+        let t = *Link::default().set_addr(self.head_addr());
         let mut t = Trb::Link(t);
         t.set_c(self.c);
         self.raw[self.enq_p] = t.into();

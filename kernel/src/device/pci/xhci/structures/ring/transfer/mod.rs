@@ -81,7 +81,7 @@ impl Raw {
     }
 
     fn append_link_trb(&mut self) {
-        let t = Link::default().set_addr(self.phys_addr()).clone();
+        let t = *Link::default().set_addr(self.phys_addr());
         let mut t = Trb::Link(t);
         t.set_c(self.c);
         self.ring[self.enq_p] = t.into();
