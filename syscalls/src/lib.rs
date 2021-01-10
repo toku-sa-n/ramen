@@ -53,15 +53,9 @@ pub fn allocate_pages(pages: NumOfPages<Size4KiB>) -> VirtAddr {
     })
 }
 
-pub fn deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) {
+pub fn deallocate_pages(virt: VirtAddr) {
     // SAFETY: This operation is safe as the all arguments are propertly passed.
-    unsafe {
-        general_syscall(
-            Ty::DeallocatePages,
-            virt.as_u64(),
-            pages.as_usize().try_into().unwrap(),
-        )
-    };
+    unsafe { general_syscall(Ty::DeallocatePages, virt.as_u64(), 0) };
 }
 
 #[must_use]

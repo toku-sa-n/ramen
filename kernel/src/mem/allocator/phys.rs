@@ -40,13 +40,17 @@ impl FrameManager {
         None
     }
 
-    pub fn free(&mut self, addr: PhysAddr) {
+    pub fn free(&mut self, addr: PhysAddr) -> Option<NumOfPages<Size4KiB>> {
         for i in 0..self.0.len() {
             if self.0[i].start == addr && !self.0[i].available {
+                let n = self.0[i].num_of_pages;
                 self.0[i].available = true;
-                return self.merge_all_nodes();
+                self.merge_all_nodes();
+                return Some(n);
             }
         }
+
+        None
     }
 
     fn init_static(&mut self, mem_map: &[boot::MemoryDescriptor]) {

@@ -24,18 +24,19 @@ pub fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
     Some(virt_addr)
 }
 
-pub fn deallocate_pages(virt: VirtAddr, num_of_pages: NumOfPages<Size4KiB>) {
-    deallocate_phys(virt);
-    deallocate_virt(virt, num_of_pages);
+pub fn deallocate_pages(virt: VirtAddr) {
+    if let Some(n) = deallocate_phys(virt) {
+        deallocate_virt(virt, n);
+    }
 }
 
 fn allocate_phys(num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
     FRAME_MANAGER.lock().alloc(num_of_pages)
 }
 
-fn deallocate_phys(virt: VirtAddr) {
+fn deallocate_phys(virt: VirtAddr) -> Option<NumOfPages<Size4KiB>> {
     let phys = PML4.lock().translate_addr(virt).unwrap();
-    FRAME_MANAGER.lock().free(phys);
+    FRAME_MANAGER.lock().free(phys)
 }
 
 fn deallocate_virt(virt: VirtAddr, num_of_pages: NumOfPages<Size4KiB>) {

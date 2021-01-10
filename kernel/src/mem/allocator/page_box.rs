@@ -181,14 +181,13 @@ impl<T: ?Sized> PageBox<T> {
 }
 impl<T: ?Sized> Drop for PageBox<T> {
     fn drop(&mut self) {
-        let num_of_pages = self.bytes.as_num_of_pages::<Size4KiB>();
-        (self.allocator.dealloc)(self.virt, num_of_pages);
+        (self.allocator.dealloc)(self.virt);
     }
 }
 
 struct Allocator {
     alloc: fn(NumOfPages<Size4KiB>) -> Option<VirtAddr>,
-    dealloc: fn(VirtAddr, NumOfPages<Size4KiB>),
+    dealloc: fn(VirtAddr),
 }
 impl Allocator {
     fn user() -> Self {
