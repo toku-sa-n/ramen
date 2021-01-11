@@ -45,10 +45,10 @@ impl Writer {
     }
 
     fn print_char(&self, font: [[bool; font::FONT_WIDTH as usize]; font::FONT_HEIGHT as usize]) {
-        for (i, line) in font.iter().enumerate() {
-            for (j, cell) in line.iter().enumerate() {
+        for (y, line) in font.iter().enumerate() {
+            for (x, cell) in line.iter().enumerate() {
                 if *cell {
-                    let c = self.coord + Vec2::new(j, i).as_();
+                    let c = self.coord + Vec2::new(x, y).as_();
                     vram::set_pixel(c, self.color);
                 }
             }
