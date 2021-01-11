@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{font, layer, Vram};
+use super::layer;
+use crate::graphics::{font, Vram};
 use rgb::RGB8;
 use screen_layer::Layer;
 use vek::Vec2;
