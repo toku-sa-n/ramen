@@ -10,7 +10,7 @@ use x86_64::VirtAddr;
 static INFO: Lazy<OnceCell<Info>> = Lazy::new(OnceCell::uninit);
 
 pub fn init(boot_info: &kernelboot::Info) {
-    VRAM.try_init_once(|| Info::new_from_boot_info(boot_info))
+    INFO.try_init_once(|| Info::new_from_boot_info(boot_info))
         .expect("`VRAM` is initialized more than once.");
 }
 
@@ -49,7 +49,7 @@ pub(super) fn set_pixel(coord: Vec2<u32>, color: RGB8) {
 }
 
 fn info() -> &'static Info {
-    VRAM.try_get().expect("`VRAM` is not initialized.")
+    INFO.try_get().expect("`VRAM` is not initialized.")
 }
 
 struct Info {
