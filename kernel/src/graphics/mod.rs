@@ -19,7 +19,6 @@ pub struct Vram {
     resolution: Vec2<u32>,
     ptr: VirtAddr,
 }
-
 impl Vram {
     pub fn init(boot_info: &kernelboot::Info) {
         VRAM.try_init_once(|| Self::new_from_boot_info(boot_info))
