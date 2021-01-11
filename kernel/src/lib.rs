@@ -49,7 +49,7 @@ use device::{
 };
 use fs::ustar::Ustar;
 use futures_intrusive::sync::GenericMutex;
-use graphics::{layer, Vram};
+use graphics::{layer, vram::Vram};
 use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};

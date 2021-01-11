@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::graphics::Vram;
+use super::vram::Vram;
 use conquer_once::spin::OnceCell;
 use core::convert::TryInto;
 use rgb::RGB8;
