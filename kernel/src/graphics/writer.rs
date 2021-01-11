@@ -11,28 +11,63 @@ pub struct Writer {
 }
 
 impl Writer {
-    pub fn new(coord: Vec2<u32>, color: RGB8) -> Self {
-        Self { coord, color }
+    pub fn new(color: RGB8) -> Self {
+        Self {
+            coord: Vec2::zero(),
+            color,
+        }
     }
 
     fn print_str(&mut self, str: &str) {
         for c in str.chars() {
-            if c == '\n' {
-                self.break_line();
-                continue;
-            }
+            self.print_char(c);
+        }
+    }
 
-            self.print_char(font::FONTS[c as usize]);
-            self.move_cursor_by_one_character();
+    fn print_char(&mut self, c: char) {
+        if c == '\n' {
+            self.break_line();
+            return;
+        }
 
-            if self.cursor_is_outside_screen() {
-                self.break_line();
-            }
+        self.write_char_on_screen(font::FONTS[c as usize]);
+        self.move_cursor_by_one_character();
+
+        if self.cursor_is_outside_screen() {
+            self.break_line();
         }
     }
 
     fn break_line(&mut self) {
+        self.carriage_return();
+        self.newline();
+    }
+
+    fn carriage_return(&mut self) {
         self.coord.x = 0;
+    }
+
+    fn newline(&mut self) {
+        if self.cursor_is_at_the_bottom() {
+            vram::scroll_up();
+        } else {
+            self.move_cursor_to_next_line();
+        }
+    }
+
+    fn cursor_is_at_the_bottom(&self) -> bool {
+        self.current_line() == Self::num_lines() - 1
+    }
+
+    fn current_line(&self) -> u32 {
+        self.coord.y / font::FONT_HEIGHT
+    }
+
+    fn num_lines() -> u32 {
+        vram::resolution().y / font::FONT_HEIGHT
+    }
+
+    fn move_cursor_to_next_line(&mut self) {
         self.coord.y += font::FONT_HEIGHT;
     }
 
@@ -44,11 +79,14 @@ impl Writer {
         self.coord.x + font::FONT_WIDTH >= vram::resolution().x
     }
 
-    fn print_char(&self, font: [[bool; font::FONT_WIDTH as usize]; font::FONT_HEIGHT as usize]) {
-        for (i, line) in font.iter().enumerate() {
-            for (j, cell) in line.iter().enumerate() {
+    fn write_char_on_screen(
+        &self,
+        font: [[bool; font::FONT_WIDTH as usize]; font::FONT_HEIGHT as usize],
+    ) {
+        for (y, line) in font.iter().enumerate() {
+            for (x, cell) in line.iter().enumerate() {
                 if *cell {
-                    let c = self.coord + Vec2::new(j, i).as_();
+                    let c = self.coord + Vec2::new(x, y).as_();
                     vram::set_pixel(c, self.color);
                 }
             }

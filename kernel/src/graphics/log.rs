@@ -6,14 +6,13 @@ use core::fmt::Write;
 use log::{Level, LevelFilter, Metadata, Record, SetLoggerError};
 use rgb::RGB8;
 use spinning_top::Spinlock;
-use vek::Vec2;
 
 struct Logger;
 
 static LOGGER: Logger = Logger;
 
 static LOG_WRITER: Lazy<Spinlock<Writer>> =
-    Lazy::new(|| Spinlock::new(Writer::new(Vec2::zero(), RGB8::new(0xff, 0xff, 0xff))));
+    Lazy::new(|| Spinlock::new(Writer::new(RGB8::new(0xff, 0xff, 0xff))));
 
 impl log::Log for Logger {
     fn enabled(&self, metadata: &Metadata) -> bool {
