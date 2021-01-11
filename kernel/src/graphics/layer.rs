@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::vram::Vram;
+use super::vram;
 use conquer_once::spin::OnceCell;
 use core::convert::TryInto;
 use rgb::RGB8;
@@ -14,9 +14,9 @@ pub fn init() {
         .try_init_once(|| {
             Spinlock::new(unsafe {
                 screen_layer::Controller::new(
-                    *Vram::resolution(),
-                    Vram::bpp(),
-                    Vram::ptr().as_u64().try_into().unwrap(),
+                    vram::resolution(),
+                    vram::bpp(),
+                    vram::ptr().as_u64().try_into().unwrap(),
                 )
             })
         })

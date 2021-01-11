@@ -49,7 +49,7 @@ use device::{
 };
 use fs::ustar::Ustar;
 use futures_intrusive::sync::GenericMutex;
-use graphics::{layer, vram::Vram};
+use graphics::{layer, vram};
 use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
@@ -91,14 +91,14 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     syscall::init();
     gdt::enter_usermode();
 
-    Vram::init(&boot_info);
+    vram::init(&boot_info);
 
     layer::init();
 
     graphics::log::init().unwrap();
 
     info!("Hello Ramen OS!");
-    info!("Vram information: {}", Vram::display());
+    vram::print_info();
 
     // SAFETY: `INITRD_ADDR` is the valid address to UStar data.
     let ustar = unsafe { Ustar::new(INITRD_ADDR) };

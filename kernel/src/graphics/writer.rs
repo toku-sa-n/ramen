@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{layer, vram::Vram};
+use super::{layer, vram};
 use crate::graphics::font;
 use rgb::RGB8;
 use screen_layer::Layer;
@@ -14,7 +14,7 @@ pub struct Writer {
 
 impl Writer {
     pub fn new(coord: Vec2<u32>, color: RGB8) -> Self {
-        let l = Layer::new(Vec2::zero(), Vram::resolution().as_());
+        let l = Layer::new(Vec2::zero(), vram::resolution());
         let id = layer::add(l);
 
         Self { id, coord, color }
@@ -46,7 +46,7 @@ impl Writer {
     }
 
     fn cursor_is_outside_screen(&self) -> bool {
-        self.coord.x + font::FONT_WIDTH >= Vram::resolution().x
+        self.coord.x + font::FONT_WIDTH >= vram::resolution().x
     }
 
     fn print_char(&self, font: [[bool; font::FONT_WIDTH as usize]; font::FONT_HEIGHT as usize]) {

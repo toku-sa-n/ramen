@@ -2,38 +2,54 @@
 
 use common::{constant::VRAM_ADDR, kernelboot};
 use conquer_once::spin::{Lazy, OnceCell};
-use core::fmt;
 use screen_layer::Vec2;
 use x86_64::VirtAddr;
 
 static VRAM: Lazy<OnceCell<Vram>> = Lazy::new(OnceCell::uninit);
 
+pub fn init(boot_info: &kernelboot::Info) {
+    VRAM.try_init_once(|| Vram::new_from_boot_info(boot_info))
+        .expect("`VRAM` is initialized more than once.");
+}
+
+pub fn resolution() -> Vec2<u32> {
+    vram().resolution()
+}
+
+pub fn bpp() -> u32 {
+    vram().bpp()
+}
+
+pub fn ptr() -> VirtAddr {
+    vram().ptr()
+}
+
+pub fn print_info() {
+    let r = resolution();
+    info!("{}bpp Resolution: {}x{}", bpp(), r.y, r.y)
+}
+
+fn vram() -> &'static Vram {
+    VRAM.try_get().expect("`VRAM` is not initialized.")
+}
+
 #[derive(Clone)]
-pub struct Vram {
+struct Vram {
     bits_per_pixel: u32,
     resolution: Vec2<u32>,
     ptr: VirtAddr,
 }
 impl Vram {
-    pub fn init(boot_info: &kernelboot::Info) {
-        VRAM.try_init_once(|| Self::new_from_boot_info(boot_info))
-            .unwrap();
+    fn resolution(&self) -> Vec2<u32> {
+        self.resolution
     }
 
-    pub fn resolution() -> &'static Vec2<u32> {
-        &Vram::get().resolution
+    fn bpp(&self) -> u32 {
+        self.bits_per_pixel
     }
 
-    pub fn display() -> impl core::fmt::Display {
-        Self::get()
-    }
-
-    pub fn bpp() -> u32 {
-        Vram::get().bits_per_pixel
-    }
-
-    pub fn ptr() -> VirtAddr {
-        Vram::get().ptr
+    fn ptr(&self) -> VirtAddr {
+        self.ptr
     }
 
     fn new_from_boot_info(boot_info: &kernelboot::Info) -> Self {
@@ -48,18 +64,5 @@ impl Vram {
             resolution,
             ptr,
         }
-    }
-
-    fn get() -> &'static Vram {
-        VRAM.try_get().expect("VRAM not initialized")
-    }
-}
-impl fmt::Display for Vram {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}bpp Resolution: {}x{}",
-            self.bits_per_pixel, self.resolution.x, self.resolution.y
-        )
     }
 }
