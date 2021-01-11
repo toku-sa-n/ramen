@@ -86,7 +86,7 @@ impl Info {
 struct Vram(&'static mut [u8]);
 impl Vram {
     fn new() -> Self {
-        let len = resolution().product() + bpp() / 8;
+        let len = resolution().product() * bpp() / 8;
         let buf =
             unsafe { slice::from_raw_parts_mut(VRAM_ADDR.as_mut_ptr(), len.try_into().unwrap()) };
 
