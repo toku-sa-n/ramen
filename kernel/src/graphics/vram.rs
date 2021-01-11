@@ -88,7 +88,7 @@ impl Info {
     }
 }
 
-pub(super) struct Vram;
+struct Vram;
 impl Vram {
     fn clear(&mut self) {
         let (x, y): (usize, usize) = resolution().as_().into_tuple();
@@ -135,7 +135,7 @@ impl IndexMut<usize> for Vram {
 
 #[repr(C, packed)]
 #[derive(Clone, Copy, Default)]
-pub(super) struct Bgr {
+struct Bgr {
     b: u8,
     g: u8,
     r: u8,
