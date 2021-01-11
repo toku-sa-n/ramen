@@ -7,7 +7,7 @@ use rgb::RGB8;
 use screen_layer::Vec2;
 use x86_64::VirtAddr;
 
-static VRAM: Lazy<OnceCell<Info>> = Lazy::new(OnceCell::uninit);
+static INFO: Lazy<OnceCell<Info>> = Lazy::new(OnceCell::uninit);
 
 pub fn init(boot_info: &kernelboot::Info) {
     VRAM.try_init_once(|| Info::new_from_boot_info(boot_info))
