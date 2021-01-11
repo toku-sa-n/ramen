@@ -37,11 +37,35 @@ impl Writer {
 
     fn break_line(&mut self) {
         self.carriage_return();
-        self.coord.y += font::FONT_HEIGHT;
+        self.newline();
     }
 
     fn carriage_return(&mut self) {
         self.coord.x = 0;
+    }
+
+    fn newline(&mut self) {
+        if self.cursor_is_at_the_bottom() {
+            vram::scroll_up();
+        } else {
+            self.move_cursor_to_next_line();
+        }
+    }
+
+    fn cursor_is_at_the_bottom(&self) -> bool {
+        self.current_line() == self.num_lines() - 1
+    }
+
+    fn current_line(&self) -> u32 {
+        self.coord.y / font::FONT_HEIGHT
+    }
+
+    fn num_lines(&self) -> u32 {
+        vram::resolution().y / font::FONT_HEIGHT
+    }
+
+    fn move_cursor_to_next_line(&mut self) {
+        self.coord.y += font::FONT_HEIGHT;
     }
 
     fn move_cursor_by_one_character(&mut self) {

@@ -2,10 +2,15 @@
 
 use common::{constant::VRAM_ADDR, kernelboot};
 use conquer_once::spin::OnceCell;
-use core::{convert::TryInto, slice};
+use core::{
+    convert::{TryFrom, TryInto},
+    slice,
+};
 use rgb::RGB8;
 use spinning_top::{Spinlock, SpinlockGuard};
 use vek::Vec2;
+
+use super::font::FONT_HEIGHT;
 
 static INFO: OnceCell<Info> = OnceCell::uninit();
 static VRAM: OnceCell<Spinlock<Vram>> = OnceCell::uninit();
@@ -31,6 +36,10 @@ pub fn print_info() {
 
 pub(super) fn set_pixel(coord: Vec2<u32>, color: RGB8) {
     vram().set_pixel(coord, color);
+}
+
+pub(super) fn scroll_up() {
+    vram().scroll_up();
 }
 
 fn init_info(boot_info: &kernelboot::Info) {
@@ -83,10 +92,10 @@ impl Info {
     }
 }
 
-struct Vram(&'static mut [u8]);
+struct Vram(&'static mut [Bgr]);
 impl Vram {
     fn new() -> Self {
-        let len = resolution().product() * bpp() / 8;
+        let len = resolution().product();
         let buf =
             unsafe { slice::from_raw_parts_mut(VRAM_ADDR.as_mut_ptr(), len.try_into().unwrap()) };
 
@@ -95,7 +104,7 @@ impl Vram {
 
     fn clear(&mut self) {
         for c in self.0.iter_mut() {
-            *c = 0;
+            *c = Bgr::default();
         }
     }
 
@@ -106,9 +115,42 @@ impl Vram {
         );
 
         let r = resolution();
-        let index: usize = ((coord.y * r.x + coord.x) * bpp() / 8).try_into().unwrap();
-        self.0[index] = color.b;
-        self.0[index + 1] = color.g;
-        self.0[index + 2] = color.r;
+        let index: usize = (coord.y * r.x + coord.x).try_into().unwrap();
+        self.0[index] = color.into();
+    }
+
+    fn scroll_up(&mut self) {
+        let fh: usize = FONT_HEIGHT.try_into().unwrap();
+        let (w, h): (usize, usize) = resolution().as_().into_tuple();
+        let lc = h / fh;
+        let log_bottom = fh * (lc - 1) * w;
+        let offset = fh * w;
+
+        for i in 0..log_bottom {
+            self.0[i] = self.0[i + offset];
+        }
+
+        for i in log_bottom..self.0.len() {
+            self.0[i] = Bgr::default();
+        }
+    }
+}
+
+#[repr(C, packed)]
+#[derive(Clone, Copy, Default)]
+struct Bgr {
+    b: u8,
+    g: u8,
+    r: u8,
+    _alpha: u8,
+}
+impl From<RGB8> for Bgr {
+    fn from(rgb: RGB8) -> Self {
+        Self {
+            b: rgb.b,
+            g: rgb.g,
+            r: rgb.r,
+            _alpha: 0,
+        }
     }
 }
