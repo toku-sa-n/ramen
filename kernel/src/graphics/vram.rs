@@ -7,23 +7,23 @@ use rgb::RGB8;
 use screen_layer::Vec2;
 use x86_64::VirtAddr;
 
-static VRAM: Lazy<OnceCell<Vram>> = Lazy::new(OnceCell::uninit);
+static VRAM: Lazy<OnceCell<Info>> = Lazy::new(OnceCell::uninit);
 
 pub fn init(boot_info: &kernelboot::Info) {
-    VRAM.try_init_once(|| Vram::new_from_boot_info(boot_info))
+    VRAM.try_init_once(|| Info::new_from_boot_info(boot_info))
         .expect("`VRAM` is initialized more than once.");
 }
 
 pub fn resolution() -> Vec2<u32> {
-    vram().resolution()
+    info().resolution()
 }
 
 pub fn bpp() -> u32 {
-    vram().bpp()
+    info().bpp()
 }
 
 pub fn ptr() -> VirtAddr {
-    vram().ptr()
+    info().ptr()
 }
 
 pub fn print_info() {
@@ -48,16 +48,16 @@ pub(super) fn set_pixel(coord: Vec2<u32>, color: RGB8) {
     }
 }
 
-fn vram() -> &'static Vram {
+fn info() -> &'static Info {
     VRAM.try_get().expect("`VRAM` is not initialized.")
 }
 
-struct Vram {
+struct Info {
     bits_per_pixel: u32,
     resolution: Vec2<u32>,
     ptr: VirtAddr,
 }
-impl Vram {
+impl Info {
     fn resolution(&self) -> Vec2<u32> {
         self.resolution
     }
