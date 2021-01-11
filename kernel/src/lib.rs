@@ -49,7 +49,7 @@ use device::{
 };
 use fs::ustar::Ustar;
 use futures_intrusive::sync::GenericMutex;
-use graphics::{layer, vram};
+use graphics::vram;
 use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
@@ -92,8 +92,6 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     gdt::enter_usermode();
 
     vram::init(&boot_info);
-
-    layer::init();
 
     graphics::log::init().unwrap();
 
