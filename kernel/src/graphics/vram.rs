@@ -2,14 +2,18 @@
 
 use common::{constant::VRAM_ADDR, kernelboot};
 use conquer_once::spin::OnceCell;
-use core::ptr;
+use core::{convert::TryInto, slice};
 use rgb::RGB8;
+use spinning_top::{Spinlock, SpinlockGuard};
 use vek::Vec2;
 
 static INFO: OnceCell<Info> = OnceCell::uninit();
+static VRAM: OnceCell<Spinlock<Vram>> = OnceCell::uninit();
 
 pub fn init(boot_info: &kernelboot::Info) {
     INFO.try_init_once(|| Info::new_from_boot_info(boot_info))
+        .expect("`INFO` is initialized more than once.");
+    VRAM.try_init_once(|| Spinlock::new(Vram::new()))
         .expect("`VRAM` is initialized more than once.");
 }
 
@@ -27,24 +31,16 @@ pub fn print_info() {
 }
 
 pub(super) fn set_pixel(coord: Vec2<u32>, color: RGB8) {
-    assert!(
-        coord.partial_cmplt(&resolution()).reduce_and(),
-        "`coord` is outsid the screen."
-    );
-
-    let r = resolution();
-    let offset = (coord.y * r.x + coord.x) * bpp() / 8;
-    let p = VRAM_ADDR.as_u64() + u64::from(offset);
-
-    unsafe {
-        ptr::write_volatile(p as *mut u8, color.b);
-        ptr::write_volatile((p + 1) as *mut u8, color.g);
-        ptr::write_volatile((p + 2) as *mut u8, color.r);
-    }
+    vram().set_pixel(coord, color);
 }
 
 fn info() -> &'static Info {
-    INFO.try_get().expect("`VRAM` is not initialized.")
+    INFO.try_get().expect("`INFO` is not initialized.")
+}
+
+fn vram() -> SpinlockGuard<'static, Vram> {
+    let v = VRAM.try_get().expect("`VRAM` is not initialized.");
+    v.try_lock().expect("Failed to acquire the lock of `VRAM`.")
 }
 
 struct Info {
@@ -71,5 +67,29 @@ impl Info {
             bits_per_pixel,
             resolution,
         }
+    }
+}
+
+struct Vram(&'static mut [u8]);
+impl Vram {
+    fn new() -> Self {
+        let len = resolution().product() + bpp() / 8;
+        let buf =
+            unsafe { slice::from_raw_parts_mut(VRAM_ADDR.as_mut_ptr(), len.try_into().unwrap()) };
+
+        Self(buf)
+    }
+
+    fn set_pixel(&mut self, coord: Vec2<u32>, color: RGB8) {
+        assert!(
+            coord.partial_cmplt(&resolution()).reduce_and(),
+            "`coord` is outsid the screen."
+        );
+
+        let r = resolution();
+        let index: usize = ((coord.y * r.x + coord.x) * bpp() / 8).try_into().unwrap();
+        self.0[index] = color.b;
+        self.0[index + 1] = color.g;
+        self.0[index + 2] = color.r;
     }
 }
