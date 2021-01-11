@@ -17,17 +17,21 @@ impl Writer {
 
     fn print_str(&mut self, str: &str) {
         for c in str.chars() {
-            if c == '\n' {
-                self.break_line();
-                continue;
-            }
+            self.print_char(c);
+        }
+    }
 
-            self.write_char_on_screen(font::FONTS[c as usize]);
-            self.move_cursor_by_one_character();
+    fn print_char(&mut self, c: char) {
+        if c == '\n' {
+            self.break_line();
+            return;
+        }
 
-            if self.cursor_is_outside_screen() {
-                self.break_line();
-            }
+        self.write_char_on_screen(font::FONTS[c as usize]);
+        self.move_cursor_by_one_character();
+
+        if self.cursor_is_outside_screen() {
+            self.break_line();
         }
     }
 
