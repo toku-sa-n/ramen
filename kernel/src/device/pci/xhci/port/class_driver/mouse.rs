@@ -5,10 +5,11 @@ use crate::{
     mem::allocator::page_box::PageBox,
 };
 
-pub async fn task(mut mouse: Mouse) {
+pub async fn task(eps: endpoint::Collection) {
+    let mut m = Mouse::new(eps);
     loop {
-        mouse.get_packet().await;
-        mouse.print_buf();
+        m.get_packet().await;
+        m.print_buf();
     }
 }
 
@@ -20,7 +21,7 @@ impl Mouse {
     pub fn new(ep: endpoint::Collection) -> Self {
         Self {
             ep,
-            buf: PageBox::new([0; 4]),
+            buf: PageBox::user([0; 4]),
         }
     }
 

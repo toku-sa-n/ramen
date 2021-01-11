@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::CycleBit;
+use super::{CycleBit, Link};
 use crate::mem::allocator::page_box::PageBox;
 use alloc::vec::Vec;
 use trb::Trb;
@@ -35,7 +35,7 @@ struct Raw {
 impl Raw {
     fn new() -> Self {
         Self {
-            ring: PageBox::new_slice([0; 4], SIZE_OF_RING),
+            ring: PageBox::user_slice([0; 4], SIZE_OF_RING),
             enq_p: 0,
             c: CycleBit::new(true),
         }
@@ -81,7 +81,8 @@ impl Raw {
     }
 
     fn append_link_trb(&mut self) {
-        let mut t = Trb::new_link(self.phys_addr());
+        let t = *Link::default().set_addr(self.phys_addr());
+        let mut t = Trb::Link(t);
         t.set_c(self.c);
         self.ring[self.enq_p] = t.into();
     }

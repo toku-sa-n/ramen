@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
+#![feature(option_expect_none)]
 #![feature(int_bits_const)]
+#![feature(const_btree_new)]
 #![feature(async_closure)]
 #![feature(alloc_error_handler)]
 #![feature(linked_list_remove)]
@@ -54,7 +56,7 @@ use graphics::{
 use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
-use process::Process;
+use process::Privilege;
 use spinning_top::RawSpinlock;
 pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 
@@ -109,12 +111,15 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     ustar.list();
     ustar.content("build/bootx64.efi");
 
-    process::init();
+    process::manager::init();
 
-    process::add(Process::new(run_tasks));
+    process::manager::add(run_tasks, Privilege::User);
 
     if cfg!(feature = "qemu_test") {
-        process::add(Process::new(tests::main));
+        process::manager::add(tests::main, Privilege::User);
+        process::manager::add(tests::process::kernel_privilege_test, Privilege::Kernel);
+        process::manager::add(tests::process::exit_test, Privilege::User);
+        process::manager::add(tests::process::do_nothing, Privilege::User);
     }
 }
 
@@ -124,7 +129,7 @@ fn wait_until_timer_interrupt_happens() -> ! {
     }
 }
 
-fn run_tasks() -> ! {
+fn run_tasks() {
     multitask::add(Task::new(keyboard::task()));
     multitask::add(Task::new(mouse::task()));
     multitask::add(Task::new(xhci::task()));

@@ -3,6 +3,7 @@
 use super::Slot;
 use crate::{
     device::pci::xhci::{
+        self,
         exchanger::{command, transfer},
         structures::{
             context::{self, Context},
@@ -101,10 +102,15 @@ impl Endpoint {
 pub struct Default {
     sender: transfer::Sender,
     cx: Arc<Spinlock<Context>>,
+    port_id: u8,
 }
 impl Default {
-    pub fn new(sender: transfer::Sender, cx: Arc<Spinlock<Context>>) -> Self {
-        Self { sender, cx }
+    pub fn new(sender: transfer::Sender, cx: Arc<Spinlock<Context>>, port_id: u8) -> Self {
+        Self {
+            sender,
+            cx,
+            port_id,
+        }
     }
 
     pub async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
@@ -120,11 +126,29 @@ impl Default {
         let ep_0 = &mut cx.input.device_mut().ep_0;
         ep_0.set_endpoint_type(EndpointType::Control);
 
-        // TODO: Support other speeds.
-        ep_0.set_max_packet_size(64);
+        ep_0.set_max_packet_size(self.get_max_packet_size());
         ep_0.set_dequeue_ptr(self.sender.ring_addr());
         ep_0.set_dequeue_cycle_state(CycleBit::new(true));
         ep_0.set_error_count(3);
+    }
+
+    // TODO: This function does not check the actual port speed, instead it uses the normal
+    // correspondence between PSI and the port speed.
+    // The actual port speed is listed on the xHCI supported protocol capability.
+    // Check the capability and fetch the actual port speed. Then return the max packet size.
+    fn get_max_packet_size(&self) -> u16 {
+        let psi = xhci::handle_registers(|r| {
+            let p = r.operational.port_registers.read((self.port_id - 1).into());
+            p.port_sc.port_speed()
+        });
+
+        match psi {
+            1 => unimplemented!("Full speed."), // Full-speed has four candidates: 8, 16, 32, and 64.
+            2 => 8,
+            3 => 64,
+            4 => 512,
+            _ => unimplemented!("PSI: {}", psi),
+        }
     }
 }
 
