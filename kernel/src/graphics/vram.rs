@@ -4,7 +4,7 @@ use common::{constant::VRAM_ADDR, kernelboot};
 use conquer_once::spin::{Lazy, OnceCell};
 use core::ptr;
 use rgb::RGB8;
-use screen_layer::Vec2;
+use vek::Vec2;
 use x86_64::VirtAddr;
 
 static INFO: Lazy<OnceCell<Info>> = Lazy::new(OnceCell::uninit);
