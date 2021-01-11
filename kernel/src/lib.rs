@@ -50,7 +50,7 @@ use device::{
 use fs::ustar::Ustar;
 use futures_intrusive::sync::GenericMutex;
 use graphics::{
-    screen::{self, desktop::Desktop, layer},
+    screen::{self, layer},
     Vram,
 };
 use interrupt::{apic, idt, timer};
@@ -99,9 +99,6 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     layer::init();
 
     screen::log::init().unwrap();
-
-    let desktop = Desktop::new();
-    desktop.draw();
 
     info!("Hello Ramen OS!");
     info!("Vram information: {}", Vram::display());
