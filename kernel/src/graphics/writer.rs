@@ -36,8 +36,12 @@ impl Writer {
     }
 
     fn break_line(&mut self) {
-        self.coord.x = 0;
+        self.carriage_return();
         self.coord.y += font::FONT_HEIGHT;
+    }
+
+    fn carriage_return(&mut self) {
+        self.coord.x = 0;
     }
 
     fn move_cursor_by_one_character(&mut self) {
