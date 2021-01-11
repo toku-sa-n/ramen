@@ -2,6 +2,8 @@
 
 use common::{constant::VRAM_ADDR, kernelboot};
 use conquer_once::spin::{Lazy, OnceCell};
+use core::ptr;
+use rgb::RGB8;
 use screen_layer::Vec2;
 use x86_64::VirtAddr;
 
@@ -27,6 +29,23 @@ pub fn ptr() -> VirtAddr {
 pub fn print_info() {
     let r = resolution();
     info!("{}bpp Resolution: {}x{}", bpp(), r.y, r.y)
+}
+
+pub(super) fn set_pixel(coord: Vec2<u32>, color: RGB8) {
+    assert!(
+        coord.partial_cmplt(&resolution()).reduce_and(),
+        "`coord` is outsid the screen."
+    );
+
+    let r = resolution();
+    let offset = (coord.y * r.x + coord.x) * bpp() / 8;
+    let p = ptr().as_u64() + u64::from(offset);
+
+    unsafe {
+        ptr::write_volatile(p as *mut u8, color.b);
+        ptr::write_volatile((p + 1) as *mut u8, color.g);
+        ptr::write_volatile((p + 2) as *mut u8, color.r);
+    }
 }
 
 fn vram() -> &'static Vram {
