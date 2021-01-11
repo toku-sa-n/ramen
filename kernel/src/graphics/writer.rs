@@ -87,7 +87,7 @@ impl Writer {
             for (x, cell) in line.iter().enumerate() {
                 if *cell {
                     let c = self.coord + Vec2::new(x, y).as_();
-                    vram::set_pixel(c, self.color);
+                    vram::set_color(c.as_(), self.color);
                 }
             }
         }
