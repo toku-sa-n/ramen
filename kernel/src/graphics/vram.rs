@@ -5,7 +5,6 @@ use conquer_once::spin::OnceCell;
 use core::ptr;
 use rgb::RGB8;
 use vek::Vec2;
-use x86_64::VirtAddr;
 
 static INFO: OnceCell<Info> = OnceCell::uninit();
 
@@ -22,10 +21,6 @@ pub fn bpp() -> u32 {
     info().bpp()
 }
 
-pub fn ptr() -> VirtAddr {
-    info().ptr()
-}
-
 pub fn print_info() {
     let r = resolution();
     info!("{}bpp Resolution: {}x{}", bpp(), r.y, r.y)
@@ -39,7 +34,7 @@ pub(super) fn set_pixel(coord: Vec2<u32>, color: RGB8) {
 
     let r = resolution();
     let offset = (coord.y * r.x + coord.x) * bpp() / 8;
-    let p = ptr().as_u64() + u64::from(offset);
+    let p = VRAM_ADDR.as_u64() + u64::from(offset);
 
     unsafe {
         ptr::write_volatile(p as *mut u8, color.b);
@@ -55,7 +50,6 @@ fn info() -> &'static Info {
 struct Info {
     bits_per_pixel: u32,
     resolution: Vec2<u32>,
-    ptr: VirtAddr,
 }
 impl Info {
     fn resolution(&self) -> Vec2<u32> {
@@ -66,21 +60,16 @@ impl Info {
         self.bits_per_pixel
     }
 
-    fn ptr(&self) -> VirtAddr {
-        self.ptr
-    }
-
     fn new_from_boot_info(boot_info: &kernelboot::Info) -> Self {
         let vram = boot_info.vram();
 
-        Self::new(vram.bpp(), vram.resolution(), VRAM_ADDR)
+        Self::new(vram.bpp(), vram.resolution())
     }
 
-    fn new(bits_per_pixel: u32, resolution: Vec2<u32>, ptr: VirtAddr) -> Self {
+    fn new(bits_per_pixel: u32, resolution: Vec2<u32>) -> Self {
         Self {
             bits_per_pixel,
             resolution,
-            ptr,
         }
     }
 }
