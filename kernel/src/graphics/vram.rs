@@ -20,14 +20,6 @@ pub fn init(boot_info: &kernelboot::Info) {
     clear_screen();
 }
 
-pub fn resolution() -> Vec2<u32> {
-    info().resolution()
-}
-
-pub fn bpp() -> u32 {
-    info().bpp()
-}
-
 pub fn print_info() {
     let r = resolution();
     info!("{}bpp Resolution: {}x{}", bpp(), r.y, r.y)
@@ -41,6 +33,14 @@ pub(super) fn set_color(coord: Vec2<usize>, color: RGB8) {
     let (x, y) = coord.into_tuple();
 
     lock()[y][x] = color.into();
+}
+
+pub(super) fn resolution() -> Vec2<u32> {
+    info().resolution()
+}
+
+fn bpp() -> u32 {
+    info().bpp()
 }
 
 fn lock() -> SpinlockGuard<'static, Vram> {
