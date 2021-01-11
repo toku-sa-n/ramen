@@ -56,14 +56,14 @@ impl Writer {
     }
 
     fn cursor_is_at_the_bottom(&self) -> bool {
-        self.current_line() == self.num_lines() - 1
+        self.current_line() == Self::num_lines() - 1
     }
 
     fn current_line(&self) -> u32 {
         self.coord.y / font::FONT_HEIGHT
     }
 
-    fn num_lines(&self) -> u32 {
+    fn num_lines() -> u32 {
         vram::resolution().y / font::FONT_HEIGHT
     }
 
