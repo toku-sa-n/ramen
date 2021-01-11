@@ -22,7 +22,7 @@ impl Writer {
                 continue;
             }
 
-            self.print_char(font::FONTS[c as usize]);
+            self.write_char_on_screen(font::FONTS[c as usize]);
             self.move_cursor_by_one_character();
 
             if self.cursor_is_outside_screen() {
@@ -44,7 +44,10 @@ impl Writer {
         self.coord.x + font::FONT_WIDTH >= vram::resolution().x
     }
 
-    fn print_char(&self, font: [[bool; font::FONT_WIDTH as usize]; font::FONT_HEIGHT as usize]) {
+    fn write_char_on_screen(
+        &self,
+        font: [[bool; font::FONT_WIDTH as usize]; font::FONT_HEIGHT as usize],
+    ) {
         for (y, line) in font.iter().enumerate() {
             for (x, cell) in line.iter().enumerate() {
                 if *cell {
