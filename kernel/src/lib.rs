@@ -49,10 +49,7 @@ use device::{
 };
 use fs::ustar::Ustar;
 use futures_intrusive::sync::GenericMutex;
-use graphics::{
-    screen::{self, layer},
-    Vram,
-};
+use graphics::{layer, Vram};
 use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
@@ -98,7 +95,7 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
 
     layer::init();
 
-    screen::log::init().unwrap();
+    graphics::log::init().unwrap();
 
     info!("Hello Ramen OS!");
     info!("Vram information: {}", Vram::display());

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 pub mod font;
-
-#[macro_use]
-pub mod screen;
+pub mod layer;
+pub mod log;
+pub mod writer;
 
 use common::{constant::VRAM_ADDR, kernelboot};
 use conquer_once::spin::{Lazy, OnceCell};
