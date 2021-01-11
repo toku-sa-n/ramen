@@ -11,8 +11,11 @@ pub struct Writer {
 }
 
 impl Writer {
-    pub fn new(coord: Vec2<u32>, color: RGB8) -> Self {
-        Self { coord, color }
+    pub fn new(color: RGB8) -> Self {
+        Self {
+            coord: Vec2::zero(),
+            color,
+        }
     }
 
     fn print_str(&mut self, str: &str) {

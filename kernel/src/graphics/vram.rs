@@ -2,10 +2,7 @@
 
 use common::{constant::VRAM_ADDR, kernelboot};
 use conquer_once::spin::OnceCell;
-use core::{
-    convert::{TryFrom, TryInto},
-    slice,
-};
+use core::{convert::TryInto, slice};
 use rgb::RGB8;
 use spinning_top::{Spinlock, SpinlockGuard};
 use vek::Vec2;
