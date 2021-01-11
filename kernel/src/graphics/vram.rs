@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use common::{constant::VRAM_ADDR, kernelboot};
-use conquer_once::spin::{Lazy, OnceCell};
+use conquer_once::spin::OnceCell;
 use core::ptr;
 use rgb::RGB8;
 use vek::Vec2;
 use x86_64::VirtAddr;
 
-static INFO: Lazy<OnceCell<Info>> = Lazy::new(OnceCell::uninit);
+static INFO: OnceCell<Info> = OnceCell::uninit();
 
 pub fn init(boot_info: &kernelboot::Info) {
     INFO.try_init_once(|| Info::new_from_boot_info(boot_info))
