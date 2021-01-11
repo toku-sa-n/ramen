@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::CycleBit;
+use super::{CycleBit, Link};
 use crate::{device::pci::xhci, mem::allocator::page_box::PageBox};
 use trb::Trb;
 use x86_64::{
@@ -56,7 +56,7 @@ struct Raw {
 impl Raw {
     fn new() -> Self {
         Self {
-            raw: PageBox::new_slice([0; 4], NUM_OF_TRBS),
+            raw: PageBox::user_slice([0; 4], NUM_OF_TRBS),
             enq_p: 0,
             c: CycleBit::new(true),
         }
@@ -90,7 +90,8 @@ impl Raw {
 
     fn enq_link(&mut self) {
         // Don't call `enqueue`. It will return an `Err` value as there is no space for link TRB.
-        let mut t = Trb::new_link(self.head_addr());
+        let t = *Link::default().set_addr(self.head_addr());
+        let mut t = Trb::Link(t);
         t.set_c(self.c);
         self.raw[self.enq_p] = t.into();
     }

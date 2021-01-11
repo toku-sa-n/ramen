@@ -16,7 +16,7 @@ impl Context {
     pub fn new() -> Self {
         Self {
             input: Input::null(),
-            output_device: PageBox::new(Device::null()),
+            output_device: PageBox::user(Device::null()),
         }
     }
 }
@@ -33,9 +33,9 @@ pub enum Input {
 impl Input {
     pub fn null() -> Self {
         if Self::csz() {
-            Self::Bit64(PageBox::new(InputWithControl64Bit::null()))
+            Self::Bit64(PageBox::user(InputWithControl64Bit::null()))
         } else {
-            Self::Bit32(PageBox::new(InputWithControl32Bit::null()))
+            Self::Bit32(PageBox::user(InputWithControl32Bit::null()))
         }
     }
 

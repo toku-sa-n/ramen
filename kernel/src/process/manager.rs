@@ -1,60 +1,71 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use super::{collections, collections::woken_pid, switch, Privilege, Process};
 use crate::tss::TSS;
-
-use super::Process;
 use alloc::collections::VecDeque;
+use common::constant::INTERRUPT_STACK;
 use conquer_once::spin::Lazy;
 use spinning_top::Spinlock;
-use x86_64::VirtAddr;
 
-static MANAGER: Lazy<Spinlock<Manager>> = Lazy::new(|| Spinlock::new(Manager::new()));
+pub use super::exit::exit;
+pub use switch::switch;
 
-pub fn add_process(p: Process) {
-    MANAGER.lock().add_process(p);
-}
+static MESSAGE: Lazy<Spinlock<VecDeque<Message>>> = Lazy::new(|| Spinlock::new(VecDeque::new()));
 
-pub fn switch_process() -> VirtAddr {
-    MANAGER.lock().switch_process()
-}
-
-struct Manager {
-    processes: VecDeque<Process>,
-}
-impl Manager {
-    fn new() -> Self {
-        Self {
-            processes: VecDeque::new(),
+pub fn main() {
+    loop {
+        while let Some(m) = MESSAGE.lock().pop_front() {
+            match m {
+                Message::Add(f, p) => match p {
+                    Privilege::Kernel => push_process_to_queue(Process::kernel(f)),
+                    Privilege::User => push_process_to_queue(Process::user(f)),
+                },
+                Message::Exit(id) => collections::process::remove(id),
+            }
         }
     }
+}
 
-    fn add_process(&mut self, p: Process) {
-        self.processes.push_back(p)
-    }
+pub fn init() {
+    set_temporary_stack_frame();
+    push_process_to_queue(Process::user(main));
+}
 
-    fn switch_process(&mut self) -> VirtAddr {
-        self.change_current_process();
-        self.register_current_stack_frame_with_tss();
-        self.current_stack_frame_top_addr()
-    }
+pub fn add(f: fn(), p: Privilege) {
+    send_message(Message::Add(f, p));
+}
 
-    fn change_current_process(&mut self) {
-        self.processes.rotate_left(1);
-    }
+pub fn getpid() -> i32 {
+    collections::process::handle_running(|p| p.id.as_i32())
+}
 
-    fn register_current_stack_frame_with_tss(&self) {
-        TSS.lock().interrupt_stack_table[0] = self.current_stack_frame_bottom_addr();
-    }
+pub(super) fn send_message(m: Message) {
+    MESSAGE.lock().push_back(m);
+}
 
-    fn current_stack_frame_top_addr(&self) -> VirtAddr {
-        self.current_process().stack_frame_top_addr()
-    }
+pub(super) fn set_temporary_stack_frame() {
+    TSS.lock().interrupt_stack_table[0] = INTERRUPT_STACK;
+}
 
-    fn current_stack_frame_bottom_addr(&self) -> VirtAddr {
-        self.current_process().stack_frame_bottom_addr()
-    }
+fn push_process_to_queue(p: Process) {
+    add_pid(p.id());
+    add_process(p);
+}
 
-    fn current_process(&self) -> &Process {
-        &self.processes[0]
-    }
+fn add_pid(id: super::Id) {
+    woken_pid::add(id);
+}
+
+fn add_process(p: Process) {
+    collections::process::add(p);
+}
+
+pub(super) fn loader(f: fn()) -> ! {
+    f();
+    syscalls::exit();
+}
+
+pub(super) enum Message {
+    Add(fn(), Privilege),
+    Exit(super::Id),
 }

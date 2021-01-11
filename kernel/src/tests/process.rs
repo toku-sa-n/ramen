@@ -13,3 +13,15 @@ pub fn count_switch() {
         SWITCH_TEST_SUCCESS.fetch_or(true, Ordering::Relaxed);
     }
 }
+
+pub fn kernel_privilege_test() {
+    loop {
+        x86_64::instructions::hlt()
+    }
+}
+
+pub fn exit_test() {
+    syscalls::exit();
+}
+
+pub fn do_nothing() {}

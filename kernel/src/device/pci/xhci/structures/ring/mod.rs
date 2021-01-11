@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::convert::{TryFrom, TryInto};
-use os_units::Bytes;
+use core::convert::TryInto;
 use x86_64::PhysAddr;
 
 pub mod command;
@@ -27,11 +26,13 @@ impl From<CycleBit> for bool {
 
 #[macro_export]
 macro_rules! add_trb {
-    ($t:ident) => {
+    ($t:ident,$id:expr) => {
         #[repr(transparent)]
         #[derive(Copy, Clone, Debug)]
         pub struct $t(pub [u32; 4]);
         impl $t {
+            const ID: u8 = $id;
+
             #[allow(dead_code)]
             fn set_cycle_bit(&mut self, c: crate::device::pci::xhci::structures::ring::CycleBit) {
                 use bit_field::BitField;
@@ -39,31 +40,38 @@ macro_rules! add_trb {
             }
 
             #[allow(dead_code)]
-            fn set_trb_type(&mut self, t: u8) {
+            fn set_trb_type(&mut self) {
                 use bit_field::BitField;
-                self.0[3].set_bits(10..=15, t.into());
+                self.0[3].set_bits(10..=15, Self::ID.into());
             }
         }
     };
 }
 
-add_trb!(Link);
+#[macro_export]
+macro_rules! impl_default_simply_adds_trb_id {
+    ($t:ident) => {
+        impl Default for $t {
+            fn default() -> Self {
+                let mut t = Self([0; 4]);
+                t.set_trb_type();
+                t
+            }
+        }
+    };
+}
+
+add_trb!(Link, 6);
+impl_default_simply_adds_trb_id!(Link);
 impl Link {
-    const ID: u8 = 6;
-    const SIZE: Bytes = Bytes::new(16);
+    pub fn set_addr(&mut self, a: PhysAddr) -> &mut Self {
+        assert!(a.is_aligned(16_u64));
 
-    fn new(addr_to_ring: PhysAddr) -> Self {
-        assert!(addr_to_ring.is_aligned(u64::try_from(Self::SIZE.as_usize()).unwrap()));
-        let mut trb = Self([0; 4]);
-        trb.set_trb_type(Self::ID);
-        trb.set_addr(addr_to_ring.as_u64());
-        trb
-    }
-
-    fn set_addr(&mut self, a: u64) {
+        let a = a.as_u64();
         let l = a & 0xffff_ffff;
         let u = a >> 32;
         self.0[0] = l.try_into().unwrap();
         self.0[1] = u.try_into().unwrap();
+        self
     }
 }
