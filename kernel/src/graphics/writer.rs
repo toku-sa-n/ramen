@@ -1,22 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{font, layer, Vram};
+use super::vram;
+use crate::graphics::font;
 use rgb::RGB8;
-use screen_layer::Layer;
 use vek::Vec2;
 
 pub struct Writer {
-    id: screen_layer::Id,
     coord: Vec2<u32>,
     color: RGB8,
 }
 
 impl Writer {
     pub fn new(coord: Vec2<u32>, color: RGB8) -> Self {
-        let l = Layer::new(Vec2::zero(), Vram::resolution().as_());
-        let id = layer::add(l);
-
-        Self { id, coord, color }
+        Self { coord, color }
     }
 
     fn print_str(&mut self, str: &str) {
@@ -45,7 +41,7 @@ impl Writer {
     }
 
     fn cursor_is_outside_screen(&self) -> bool {
-        self.coord.x + font::FONT_WIDTH >= Vram::resolution().x
+        self.coord.x + font::FONT_WIDTH >= vram::resolution().x
     }
 
     fn print_char(&self, font: [[bool; font::FONT_WIDTH as usize]; font::FONT_HEIGHT as usize]) {
@@ -53,8 +49,7 @@ impl Writer {
             for (j, cell) in line.iter().enumerate() {
                 if *cell {
                     let c = self.coord + Vec2::new(j, i).as_();
-                    layer::set_pixel(self.id, c.as_(), Some(self.color))
-                        .expect("The layer for this writer does not exist");
+                    vram::set_pixel(c, self.color);
                 }
             }
         }
