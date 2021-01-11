@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::graphics::screen::cursor::Cursor;
 use common::constant::{PORT_KEY_CMD, PORT_KEY_DATA};
 use conquer_once::spin::OnceCell;
 use core::{
@@ -26,24 +25,23 @@ pub async fn task() {
     let mut packet_stream = PacketStream;
 
     let mut device = Device::new();
-    let mut cursor = Cursor::new();
 
     while let Some(packet) = packet_stream.next().await {
-        handle_packet(&mut device, &mut cursor, packet);
+        handle_packet(&mut device, packet);
     }
 }
 
-fn handle_packet(device: &mut Device, cursor: &mut Cursor, packet: u8) {
+fn handle_packet(device: &mut Device, packet: u8) {
     device.put_data(packet);
     if device.three_packets_available() {
-        parse_packets(device, cursor);
+        parse_packets(device);
     }
 }
 
-fn parse_packets(device: &mut Device, cursor: &mut Cursor) {
+fn parse_packets(device: &mut Device) {
     device.parse_packets();
     device.print_click_info();
-    cursor.move_offset(device.speed());
+    device.print_speed();
 }
 
 pub fn enqueue_packet(packet: u8) {
@@ -120,6 +118,10 @@ impl Device {
         if self.buttons.right {
             info!("Right button pressed");
         }
+    }
+
+    fn print_speed(&self) {
+        info!("Speed: {}", self.speed());
     }
 }
 
