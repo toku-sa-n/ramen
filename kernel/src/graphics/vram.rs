@@ -11,10 +11,9 @@ static INFO: OnceCell<Info> = OnceCell::uninit();
 static VRAM: OnceCell<Spinlock<Vram>> = OnceCell::uninit();
 
 pub fn init(boot_info: &kernelboot::Info) {
-    INFO.try_init_once(|| Info::new_from_boot_info(boot_info))
-        .expect("`INFO` is initialized more than once.");
-    VRAM.try_init_once(|| Spinlock::new(Vram::new()))
-        .expect("`VRAM` is initialized more than once.");
+    init_info(boot_info);
+    init_vram();
+    clear_screen();
 }
 
 pub fn resolution() -> Vec2<u32> {
@@ -32,6 +31,20 @@ pub fn print_info() {
 
 pub(super) fn set_pixel(coord: Vec2<u32>, color: RGB8) {
     vram().set_pixel(coord, color);
+}
+
+fn init_info(boot_info: &kernelboot::Info) {
+    INFO.try_init_once(|| Info::new_from_boot_info(boot_info))
+        .expect("`INFO` is initialized more than once.");
+}
+
+fn init_vram() {
+    VRAM.try_init_once(|| Spinlock::new(Vram::new()))
+        .expect("`VRAM` is initialized more than once.");
+}
+
+fn clear_screen() {
+    vram().clear();
 }
 
 fn info() -> &'static Info {
@@ -78,6 +91,12 @@ impl Vram {
             unsafe { slice::from_raw_parts_mut(VRAM_ADDR.as_mut_ptr(), len.try_into().unwrap()) };
 
         Self(buf)
+    }
+
+    fn clear(&mut self) {
+        for c in self.0.iter_mut() {
+            *c = 0;
+        }
     }
 
     fn set_pixel(&mut self, coord: Vec2<u32>, color: RGB8) {
