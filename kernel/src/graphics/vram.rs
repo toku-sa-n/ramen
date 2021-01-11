@@ -33,7 +33,6 @@ fn vram() -> &'static Vram {
     VRAM.try_get().expect("`VRAM` is not initialized.")
 }
 
-#[derive(Clone)]
 struct Vram {
     bits_per_pixel: u32,
     resolution: Vec2<u32>,
