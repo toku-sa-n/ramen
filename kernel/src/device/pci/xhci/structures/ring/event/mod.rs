@@ -31,6 +31,7 @@ pub async fn task(mut ring: Ring, command_completion_receiver: Arc<Spinlock<Rece
         info!("TRB: {:?}", trb);
         if let Trb::Completion(trb) = trb {
             debug!("Command completion TRB arrived.");
+            info!("Completion Code: {}", trb.completion_code());
             command_completion_receiver.lock().receive(trb);
         } else if let Trb::PortStatusChange(t) = trb {
             let _ = port::try_spawn(t.port());
