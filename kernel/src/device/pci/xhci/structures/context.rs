@@ -9,13 +9,13 @@ use x86_64::PhysAddr;
 
 pub struct Context {
     pub input: Input,
-    pub output_device: PageBox<Device>,
+    pub output: PageBox<Device>,
 }
 impl Default for Context {
     fn default() -> Self {
         Self {
             input: Input::default(),
-            output_device: PageBox::user(Device::default()),
+            output: PageBox::user(Device::default()),
         }
     }
 }

@@ -99,7 +99,7 @@ impl Slot {
     }
 
     fn register_with_dcbaa(&mut self) {
-        let a = self.cx.lock().output_device.phys_addr();
+        let a = self.cx.lock().output.phys_addr();
         dcbaa::register(self.id.into(), a);
     }
 
