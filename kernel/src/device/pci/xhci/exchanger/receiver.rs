@@ -11,18 +11,12 @@ use futures_util::task::AtomicWaker;
 use spinning_top::Spinlock;
 use x86_64::PhysAddr;
 
+#[derive(Default)]
 pub struct Receiver {
     trbs: BTreeMap<PhysAddr, Option<Completion>>,
     wakers: BTreeMap<PhysAddr, Arc<Spinlock<AtomicWaker>>>,
 }
 impl Receiver {
-    pub fn new() -> Self {
-        Self {
-            trbs: BTreeMap::new(),
-            wakers: BTreeMap::new(),
-        }
-    }
-
     pub fn add_entry(
         &mut self,
         addr_to_trb: PhysAddr,
@@ -81,11 +75,6 @@ impl Receiver {
             Some(trb) => trb,
             None => panic!("No such receiver with TRB address: {:?}", addr_to_trb),
         }
-    }
-}
-impl Default for Receiver {
-    fn default() -> Self {
-        Self::new()
     }
 }
 

@@ -78,7 +78,7 @@ fn init() -> (
 ) {
     let mut event_ring = event::Ring::new();
     let command_ring = Arc::new(Spinlock::new(command::Ring::new()));
-    let receiver = Arc::new(Spinlock::new(Receiver::new()));
+    let receiver = Arc::new(Spinlock::new(Receiver::default()));
     let sender = Arc::new(Futurelock::new(
         Sender::new(command_ring.clone(), receiver.clone()),
         false,
