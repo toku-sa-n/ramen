@@ -34,10 +34,10 @@ impl Collection {
         debug!("Endpoints collected");
         Self {
             eps,
-            cx: slot.cx,
+            cx: slot.context(),
             cmd,
             interface,
-            slot_id: slot.id,
+            slot_id: slot.id(),
         }
     }
 
