@@ -17,6 +17,13 @@ pub struct Receiver {
     wakers: BTreeMap<PhysAddr, Arc<Spinlock<AtomicWaker>>>,
 }
 impl Receiver {
+    pub const fn new() -> Self {
+        Self {
+            trbs: BTreeMap::new(),
+            wakers: BTreeMap::new(),
+        }
+    }
+
     pub fn add_entry(
         &mut self,
         addr_to_trb: PhysAddr,
