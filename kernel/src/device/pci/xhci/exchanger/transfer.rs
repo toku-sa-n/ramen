@@ -2,7 +2,7 @@
 
 use core::convert::TryInto;
 
-use super::receiver::{ReceiveFuture, Receiver};
+use super::receiver::{self, ReceiveFuture};
 use crate::{
     device::pci::xhci::{
         self,
@@ -30,15 +30,13 @@ use x86_64::PhysAddr;
 
 pub struct Sender {
     ring: transfer::Ring,
-    receiver: Arc<Spinlock<Receiver>>,
     doorbell_writer: DoorbellWriter,
     waker: Arc<Spinlock<AtomicWaker>>,
 }
 impl Sender {
-    pub fn new(receiver: Arc<Spinlock<Receiver>>, doorbell_writer: DoorbellWriter) -> Self {
+    pub fn new(doorbell_writer: DoorbellWriter) -> Self {
         Self {
             ring: transfer::Ring::new(),
-            receiver,
             doorbell_writer,
             waker: Arc::new(Spinlock::new(AtomicWaker::new())),
         }
@@ -118,10 +116,7 @@ impl Sender {
 
     fn register_trb(&mut self, t: &Trb, a: PhysAddr) {
         if t.ioc() {
-            self.receiver
-                .lock()
-                .add_entry(a, self.waker.clone())
-                .expect("Sender is already registered.");
+            receiver::add_entry(a, self.waker.clone()).expect("Sender is already registered.");
         }
     }
 
@@ -139,7 +134,7 @@ impl Sender {
 
     async fn get_single_trb(&mut self, t: &Trb, addr: PhysAddr) -> Option<Completion> {
         if t.ioc() {
-            Some(ReceiveFuture::new(addr, self.receiver.clone(), self.waker.clone()).await)
+            Some(ReceiveFuture::new(addr, self.waker.clone()).await)
         } else {
             None
         }

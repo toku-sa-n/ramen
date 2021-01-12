@@ -8,7 +8,7 @@ use super::{
         },
         event::trb::completion::Completion,
     },
-    receiver::{ReceiveFuture, Receiver},
+    receiver::{self, ReceiveFuture},
 };
 use alloc::sync::Arc;
 use futures_util::task::AtomicWaker;
@@ -17,14 +17,12 @@ use x86_64::PhysAddr;
 
 pub struct Sender {
     ring: Arc<Spinlock<command::Ring>>,
-    receiver: Arc<Spinlock<Receiver>>,
     waker: Arc<Spinlock<AtomicWaker>>,
 }
 impl Sender {
-    pub fn new(ring: Arc<Spinlock<command::Ring>>, receiver: Arc<Spinlock<Receiver>>) -> Self {
+    pub fn new(ring: Arc<Spinlock<command::Ring>>) -> Self {
         Self {
             ring,
-            receiver,
             waker: Arc::new(Spinlock::new(AtomicWaker::new())),
         }
     }
@@ -63,13 +61,11 @@ impl Sender {
     }
 
     fn register_with_receiver(&mut self, addr_to_trb: PhysAddr) {
-        self.receiver
-            .lock()
-            .add_entry(addr_to_trb, self.waker.clone())
+        receiver::add_entry(addr_to_trb, self.waker.clone())
             .expect("Sender is already registered.");
     }
 
     async fn get_trb(&mut self, addr_to_trb: PhysAddr) -> Completion {
-        ReceiveFuture::new(addr_to_trb, self.receiver.clone(), self.waker.clone()).await
+        ReceiveFuture::new(addr_to_trb, self.waker.clone()).await
     }
 }
