@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::Port;
-use crate::{
-    device::pci::xhci::exchanger::{command, receiver::Receiver},
-    multitask, Futurelock,
-};
+use crate::{device::pci::xhci::exchanger::command, multitask, Futurelock};
 use alloc::{sync::Arc, vec, vec::Vec};
 use conquer_once::spin::{Lazy, OnceCell};
 use multitask::task::Task;
@@ -14,9 +11,9 @@ static SPAWN_STATUS: Lazy<Spinlock<Vec<bool>>> =
     Lazy::new(|| Spinlock::new(vec![false; super::max_num().into()]));
 static SPAWNER: OnceCell<Spawner> = OnceCell::uninit();
 
-pub fn init(sender: Arc<Futurelock<command::Sender>>, receiver: Arc<Spinlock<Receiver>>) {
+pub fn init(sender: Arc<Futurelock<command::Sender>>) {
     SPAWNER
-        .try_init_once(|| Spawner::new(sender, receiver))
+        .try_init_once(|| Spawner::new(sender))
         .expect("SPAWNER is already initialized.")
 }
 
@@ -34,11 +31,10 @@ fn spawner() -> &'static Spawner {
 
 struct Spawner {
     sender: Arc<Futurelock<command::Sender>>,
-    receiver: Arc<Spinlock<Receiver>>,
 }
 impl Spawner {
-    fn new(sender: Arc<Futurelock<command::Sender>>, receiver: Arc<Spinlock<Receiver>>) -> Self {
-        Self { sender, receiver }
+    fn new(sender: Arc<Futurelock<command::Sender>>) -> Self {
+        Self { sender }
     }
 
     fn spawn_all_connected_ports(&self) {
@@ -64,11 +60,7 @@ impl Spawner {
     }
 
     fn add_task_for_port(&self, p: Port) {
-        multitask::add(Task::new(super::task(
-            p,
-            self.sender.clone(),
-            self.receiver.clone(),
-        )));
+        multitask::add(Task::new(super::task(p, self.sender.clone())));
     }
 }
 

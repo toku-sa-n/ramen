@@ -8,23 +8,41 @@ use core::{
     task::{Context, Poll},
 };
 use futures_util::task::AtomicWaker;
-use spinning_top::Spinlock;
+use spinning_top::{Spinlock, SpinlockGuard};
 use x86_64::PhysAddr;
 
-#[derive(Default)]
-pub struct Receiver {
+static RECEIVER: Spinlock<Receiver> = Spinlock::new(Receiver::new());
+
+pub(in crate::device::pci::xhci) fn add_entry(
+    trb_a: PhysAddr,
+    waker: Arc<Spinlock<AtomicWaker>>,
+) -> Result<(), Error> {
+    lock().add_entry(trb_a, waker)
+}
+
+pub(in crate::device::pci::xhci) fn receive(t: Completion) {
+    lock().receive(t)
+}
+
+fn lock() -> SpinlockGuard<'static, Receiver> {
+    RECEIVER
+        .try_lock()
+        .expect("Failed to acquire the lock of `RECEIVER`.")
+}
+
+struct Receiver {
     trbs: BTreeMap<PhysAddr, Option<Completion>>,
     wakers: BTreeMap<PhysAddr, Arc<Spinlock<AtomicWaker>>>,
 }
 impl Receiver {
-    pub const fn new() -> Self {
+    const fn new() -> Self {
         Self {
             trbs: BTreeMap::new(),
             wakers: BTreeMap::new(),
         }
     }
 
-    pub fn add_entry(
+    fn add_entry(
         &mut self,
         addr_to_trb: PhysAddr,
         waker: Arc<Spinlock<AtomicWaker>>,
@@ -39,7 +57,7 @@ impl Receiver {
         Ok(())
     }
 
-    pub fn receive(&mut self, trb: Completion) {
+    fn receive(&mut self, trb: Completion) {
         if let Err(e) = self.insert_trb_and_wake_runner(trb) {
             panic!("Failed to receive a command completion trb: {:?}", e);
         }
@@ -93,20 +111,11 @@ pub enum Error {
 
 pub struct ReceiveFuture {
     addr_to_trb: PhysAddr,
-    receiver: Arc<Spinlock<Receiver>>,
     waker: Arc<Spinlock<AtomicWaker>>,
 }
 impl ReceiveFuture {
-    pub fn new(
-        addr_to_trb: PhysAddr,
-        receiver: Arc<Spinlock<Receiver>>,
-        waker: Arc<Spinlock<AtomicWaker>>,
-    ) -> Self {
-        Self {
-            addr_to_trb,
-            receiver,
-            waker,
-        }
+    pub fn new(addr_to_trb: PhysAddr, waker: Arc<Spinlock<AtomicWaker>>) -> Self {
+        Self { addr_to_trb, waker }
     }
 }
 impl Future for ReceiveFuture {
@@ -115,12 +124,12 @@ impl Future for ReceiveFuture {
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let waker = self.waker.clone();
         let addr = self.addr_to_trb;
-        let receiver = &mut Pin::into_inner(self).receiver;
+        let mut r = lock();
 
         waker.lock().register(cx.waker());
-        if receiver.lock().trb_arrives(addr) {
+        if r.trb_arrives(addr) {
             waker.lock().take();
-            let trb = receiver.lock().remove_entry(addr).unwrap();
+            let trb = r.remove_entry(addr).unwrap();
             Poll::Ready(trb)
         } else {
             Poll::Pending

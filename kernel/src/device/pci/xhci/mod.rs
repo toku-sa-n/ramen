@@ -12,7 +12,7 @@ use crate::{
 };
 use alloc::sync::Arc;
 use conquer_once::spin::OnceCell;
-use exchanger::{command::Sender, receiver::Receiver};
+use exchanger::command::Sender;
 use spinning_top::Spinlock;
 use structures::{
     dcbaa,
@@ -29,14 +29,11 @@ pub async fn task() {
         return;
     }
 
-    let (event_ring, runner, command_completion_receiver) = init();
+    let (event_ring, runner) = init();
 
-    port::spawn_all_connected_port_tasks(runner.clone(), command_completion_receiver.clone());
+    port::spawn_all_connected_port_tasks(runner.clone());
 
-    multitask::add(Task::new_poll(event::task(
-        event_ring,
-        command_completion_receiver,
-    )));
+    multitask::add(Task::new_poll(event::task(event_ring)));
 
     info!("Issuing the NOOP trb.");
     runner.lock().await.noop().await;
@@ -71,18 +68,10 @@ where
     f(&mut r)
 }
 
-fn init() -> (
-    event::Ring,
-    Arc<Futurelock<Sender>>,
-    Arc<Spinlock<Receiver>>,
-) {
+fn init() -> (event::Ring, Arc<Futurelock<Sender>>) {
     let mut event_ring = event::Ring::new();
     let command_ring = Arc::new(Spinlock::new(command::Ring::new()));
-    let receiver = Arc::new(Spinlock::new(Receiver::default()));
-    let sender = Arc::new(Futurelock::new(
-        Sender::new(command_ring.clone(), receiver.clone()),
-        false,
-    ));
+    let sender = Arc::new(Futurelock::new(Sender::new(command_ring.clone()), false));
 
     xhc::init();
 
@@ -94,7 +83,7 @@ fn init() -> (
     xhc::run();
     xhc::ensure_no_error_occurs();
 
-    (event_ring, sender, receiver)
+    (event_ring, sender)
 }
 
 fn iter_devices() -> impl Iterator<Item = Registers> {
