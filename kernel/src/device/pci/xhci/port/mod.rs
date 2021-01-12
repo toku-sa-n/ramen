@@ -126,7 +126,7 @@ impl Port {
     fn new(index: u8) -> Self {
         Self {
             index,
-            context: Context::new(),
+            context: Context::default(),
         }
     }
 
