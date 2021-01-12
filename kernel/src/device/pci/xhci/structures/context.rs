@@ -3,20 +3,19 @@
 use super::ring::CycleBit;
 use crate::{device::pci::xhci, mem::allocator::page_box::PageBox};
 use bit_field::BitField;
-use bitfield::bitfield;
 use core::convert::{TryFrom, TryInto};
 use num_derive::FromPrimitive;
 use x86_64::PhysAddr;
 
 pub struct Context {
     pub input: Input,
-    pub output_device: PageBox<Device>,
+    pub output: PageBox<Device>,
 }
 impl Default for Context {
     fn default() -> Self {
         Self {
             input: Input::default(),
-            output_device: PageBox::user(Device::default()),
+            output: PageBox::user(Device::default()),
         }
     }
 }
@@ -121,14 +120,16 @@ pub struct Device {
     pub ep_inout: [EndpointOutIn; 15],
 }
 
-pub type Slot = SlotStructure<[u32; 8]>;
-bitfield! {
-    #[repr(transparent)]
-    #[derive(Default)]
-    pub struct SlotStructure([u32]);
+#[derive(Default)]
+pub struct Slot([u32; 8]);
+impl Slot {
+    pub fn set_context_entries(&mut self, e: u8) {
+        self.0[0].set_bits(27..=31, e.into());
+    }
 
-    pub u8, _, set_context_entries: 31, 27;
-    pub u8, _, set_root_hub_port_number: 32+23, 32+16;
+    pub fn set_root_hub_port_number(&mut self, n: u8) {
+        self.0[1].set_bits(16..=23, n.into());
+    }
 }
 
 #[repr(C)]
