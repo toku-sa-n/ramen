@@ -106,6 +106,7 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     process::manager::init();
 
     process::manager::add(run_tasks, Privilege::User);
+    process::manager::add(tsukemen::main, Privilege::User);
 
     if cfg!(feature = "qemu_test") {
         process::manager::add(tests::main, Privilege::User);
