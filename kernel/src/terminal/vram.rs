@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::font::FONT_HEIGHT;
+use super::font::HEIGHT;
 use common::{constant::VRAM_ADDR, kernelboot};
 use conquer_once::spin::OnceCell;
 use core::{
@@ -100,7 +100,7 @@ impl Vram {
     }
 
     fn scroll_up(&mut self) {
-        let fh: usize = FONT_HEIGHT.try_into().unwrap();
+        let fh: usize = HEIGHT.try_into().unwrap();
         let (w, h): (usize, usize) = resolution().as_().into_tuple();
         let lc = h / fh;
         let log_bottom = fh * (lc - 1);

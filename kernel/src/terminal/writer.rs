@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::vram;
-use crate::graphics::font;
+use crate::terminal::font;
 use rgb::RGB8;
 use vek::Vec2;
 
@@ -60,29 +60,26 @@ impl Writer {
     }
 
     fn current_line(&self) -> u32 {
-        self.coord.y / font::FONT_HEIGHT
+        self.coord.y / font::HEIGHT
     }
 
     fn num_lines() -> u32 {
-        vram::resolution().y / font::FONT_HEIGHT
+        vram::resolution().y / font::HEIGHT
     }
 
     fn move_cursor_to_next_line(&mut self) {
-        self.coord.y += font::FONT_HEIGHT;
+        self.coord.y += font::HEIGHT;
     }
 
     fn move_cursor_by_one_character(&mut self) {
-        self.coord.x += font::FONT_WIDTH;
+        self.coord.x += font::WIDTH;
     }
 
     fn cursor_is_outside_screen(&self) -> bool {
-        self.coord.x + font::FONT_WIDTH >= vram::resolution().x
+        self.coord.x + font::WIDTH >= vram::resolution().x
     }
 
-    fn write_char_on_screen(
-        &self,
-        font: [[bool; font::FONT_WIDTH as usize]; font::FONT_HEIGHT as usize],
-    ) {
+    fn write_char_on_screen(&self, font: [[bool; font::WIDTH as usize]; font::HEIGHT as usize]) {
         for (y, line) in font.iter().enumerate() {
             for (x, cell) in line.iter().enumerate() {
                 if *cell {
