@@ -102,11 +102,6 @@ impl Receiver {
         }
     }
 }
-impl Default for Receiver {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 
 #[derive(Debug)]
 pub enum Error {
