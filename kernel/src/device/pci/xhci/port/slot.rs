@@ -3,7 +3,7 @@
 use super::{super::structures::descriptor::Descriptor, endpoint, Port};
 use crate::{
     device::pci::xhci::{
-        exchanger::{command, receiver::Receiver, transfer},
+        exchanger::{command, transfer},
         structures::{context::Context, dcbaa, descriptor},
     },
     mem::allocator::page_box::PageBox,
@@ -18,21 +18,15 @@ pub struct Slot {
     pub id: u8,
     pub cx: Arc<Spinlock<Context>>,
     def_ep: endpoint::Default,
-    recv: Arc<Spinlock<Receiver>>,
 }
 impl Slot {
-    pub fn new(port: Port, id: u8, recv: Arc<Spinlock<Receiver>>) -> Self {
+    pub fn new(port: Port, id: u8) -> Self {
         let cx = Arc::new(Spinlock::new(port.context));
         let dbl_writer = DoorbellWriter::new(id, 1);
         Self {
             id,
             cx: cx.clone(),
-            def_ep: endpoint::Default::new(
-                transfer::Sender::new(recv.clone(), dbl_writer),
-                cx,
-                port.index,
-            ),
-            recv,
+            def_ep: endpoint::Default::new(transfer::Sender::new(dbl_writer), cx, port.index),
         }
     }
 
@@ -83,10 +77,7 @@ impl Slot {
         Endpoint::new(
             ep,
             self.cx.clone(),
-            transfer::Sender::new(
-                self.recv.clone(),
-                DoorbellWriter::new(self.id, ep.doorbell_value()),
-            ),
+            transfer::Sender::new(DoorbellWriter::new(self.id, ep.doorbell_value())),
         )
     }
 

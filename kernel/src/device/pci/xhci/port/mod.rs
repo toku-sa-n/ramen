@@ -3,7 +3,7 @@
 use core::{future::Future, pin::Pin, task::Poll};
 
 use super::{
-    exchanger::{command, receiver::Receiver},
+    exchanger::command,
     structures::{context::Context, registers::operational::PortRegisters},
 };
 use crate::{
@@ -61,12 +61,8 @@ pub fn try_spawn(port_idx: u8) -> Result<(), spawner::PortNotConnected> {
     spawner::try_spawn(port_idx)
 }
 
-async fn task(
-    port: Port,
-    runner: Arc<Futurelock<command::Sender>>,
-    receiver: Arc<Spinlock<Receiver>>,
-) {
-    let mut eps = init_port_and_slot(port, runner, receiver).await;
+async fn task(port: Port, runner: Arc<Futurelock<command::Sender>>) {
+    let mut eps = init_port_and_slot(port, runner).await;
     eps.init().await;
 
     match eps.ty() {
@@ -83,7 +79,6 @@ async fn task(
 async fn init_port_and_slot(
     mut port: Port,
     runner: Arc<Futurelock<command::Sender>>,
-    receiver: Arc<Spinlock<Receiver>>,
 ) -> endpoint::Collection {
     let reset_waiter = ResetWaiterFuture;
     reset_waiter.await;
@@ -95,7 +90,7 @@ async fn init_port_and_slot(
 
     let slot_id = runner.lock().await.enable_device_slot().await;
 
-    let mut slot = Slot::new(port, slot_id, receiver);
+    let mut slot = Slot::new(port, slot_id);
     slot.init(runner.clone()).await;
     debug!("Slot initialized");
     CURRENT_RESET_PORT.lock().complete_reset();
@@ -103,11 +98,8 @@ async fn init_port_and_slot(
     endpoint::Collection::new(slot, runner).await
 }
 
-pub fn spawn_all_connected_port_tasks(
-    sender: Arc<Futurelock<command::Sender>>,
-    receiver: Arc<Spinlock<Receiver>>,
-) {
-    spawner::init(sender, receiver);
+pub fn spawn_all_connected_port_tasks(sender: Arc<Futurelock<command::Sender>>) {
+    spawner::init(sender);
     spawner::spawn_all_connected_ports();
 }
 
