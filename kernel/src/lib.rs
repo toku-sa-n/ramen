@@ -28,7 +28,7 @@ extern crate x86_64;
 extern crate derive_builder;
 
 #[macro_use]
-mod graphics;
+mod terminal;
 mod acpi;
 mod device;
 mod fs;
@@ -49,15 +49,12 @@ use device::{
 };
 use fs::ustar::Ustar;
 use futures_intrusive::sync::GenericMutex;
-use graphics::{
-    screen::{self, desktop::Desktop, layer},
-    Vram,
-};
 use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
 use process::Privilege;
 use spinning_top::RawSpinlock;
+use terminal::vram;
 pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 
 #[no_mangle]
@@ -94,17 +91,12 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     syscall::init();
     gdt::enter_usermode();
 
-    Vram::init(&boot_info);
+    vram::init(&boot_info);
 
-    layer::init();
-
-    screen::log::init().unwrap();
-
-    let desktop = Desktop::new();
-    desktop.draw();
+    terminal::log::init().unwrap();
 
     info!("Hello Ramen OS!");
-    info!("Vram information: {}", Vram::display());
+    vram::print_info();
 
     // SAFETY: `INITRD_ADDR` is the valid address to UStar data.
     let ustar = unsafe { Ustar::new(INITRD_ADDR) };
