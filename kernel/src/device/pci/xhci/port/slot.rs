@@ -15,8 +15,8 @@ use spinning_top::Spinlock;
 use transfer::DoorbellWriter;
 
 pub struct Slot {
-    pub id: u8,
-    pub cx: Arc<Spinlock<Context>>,
+    id: u8,
+    cx: Arc<Spinlock<Context>>,
     def_ep: endpoint::Default,
 }
 impl Slot {
@@ -28,6 +28,14 @@ impl Slot {
             cx: cx.clone(),
             def_ep: endpoint::Default::new(transfer::Sender::new(dbl_writer), cx, port.index),
         }
+    }
+
+    pub fn context(&self) -> Arc<Spinlock<Context>> {
+        self.cx.clone()
+    }
+
+    pub fn id(&self) -> u8 {
+        self.id
     }
 
     pub async fn init(&mut self, runner: Arc<Futurelock<command::Sender>>) {
