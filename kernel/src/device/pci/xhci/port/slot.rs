@@ -129,7 +129,7 @@ impl RawDescriptorParser {
         while self.current < self.len && self.raw[self.current] > 0 {
             match self.parse_first_descriptor() {
                 Ok(t) => v.push(t),
-                Err(e) => warn!("Unrecognized USB descriptor: {:?}", e),
+                Err(e) => debug!("Unrecognized USB descriptor: {:?}", e),
             }
         }
         v
