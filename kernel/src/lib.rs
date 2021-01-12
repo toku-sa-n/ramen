@@ -28,7 +28,7 @@ extern crate x86_64;
 extern crate derive_builder;
 
 #[macro_use]
-mod graphics;
+mod terminal;
 mod acpi;
 mod device;
 mod fs;
@@ -49,12 +49,12 @@ use device::{
 };
 use fs::ustar::Ustar;
 use futures_intrusive::sync::GenericMutex;
-use graphics::vram;
 use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
 use process::Privilege;
 use spinning_top::RawSpinlock;
+use terminal::vram;
 pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 
 #[no_mangle]
@@ -93,7 +93,7 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
 
     vram::init(&boot_info);
 
-    graphics::log::init().unwrap();
+    terminal::log::init().unwrap();
 
     info!("Hello Ramen OS!");
     vram::print_info();
