@@ -1,6 +1,6 @@
-use crate::device::pci::xhci;
-
 // SPDX-License-Identifier: GPL-3.0-or-later
+
+use crate::device::pci::xhci;
 
 pub struct Resetter {
     slot: u8,
