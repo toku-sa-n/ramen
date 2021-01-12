@@ -1,17 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::{future::Future, pin::Pin, task::Poll};
-
 use super::{
-    exchanger::command,
+    exchanger,
     structures::{context::Context, registers::operational::PortRegisters},
 };
-use crate::{
-    multitask::{self, task::Task},
-    Futurelock,
-};
-use alloc::{collections::VecDeque, sync::Arc};
+use crate::multitask::{self, task::Task};
+use alloc::collections::VecDeque;
 use conquer_once::spin::Lazy;
+use core::{future::Future, pin::Pin, task::Poll};
 use futures_util::task::AtomicWaker;
 use resetter::Resetter;
 use slot::Slot;
@@ -61,8 +57,8 @@ pub fn try_spawn(port_idx: u8) -> Result<(), spawner::PortNotConnected> {
     spawner::try_spawn(port_idx)
 }
 
-async fn task(port: Port, runner: Arc<Futurelock<command::Sender>>) {
-    let mut eps = init_port_and_slot(port, runner).await;
+async fn task(port: Port) {
+    let mut eps = init_port_and_slot(port).await;
     eps.init().await;
 
     match eps.ty() {
@@ -76,10 +72,7 @@ async fn task(port: Port, runner: Arc<Futurelock<command::Sender>>) {
     }
 }
 
-async fn init_port_and_slot(
-    mut port: Port,
-    runner: Arc<Futurelock<command::Sender>>,
-) -> endpoint::Collection {
+async fn init_port_and_slot(mut port: Port) -> endpoint::Collection {
     let reset_waiter = ResetWaiterFuture;
     reset_waiter.await;
 
@@ -88,18 +81,17 @@ async fn init_port_and_slot(
     port.reset();
     port.init_context();
 
-    let slot_id = runner.lock().await.enable_device_slot().await;
+    let slot_id = exchanger::command::enable_device_slot().await;
 
     let mut slot = Slot::new(port, slot_id);
-    slot.init(runner.clone()).await;
+    slot.init().await;
     debug!("Slot initialized");
     CURRENT_RESET_PORT.lock().complete_reset();
     info!("Port {} reset completed.", port_idx);
-    endpoint::Collection::new(slot, runner).await
+    endpoint::Collection::new(slot).await
 }
 
-pub fn spawn_all_connected_port_tasks(sender: Arc<Futurelock<command::Sender>>) {
-    spawner::init(sender);
+pub fn spawn_all_connected_port_tasks() {
     spawner::spawn_all_connected_ports();
 }
 

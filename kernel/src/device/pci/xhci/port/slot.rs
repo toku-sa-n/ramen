@@ -3,11 +3,10 @@
 use super::{super::structures::descriptor::Descriptor, endpoint, Port};
 use crate::{
     device::pci::xhci::{
-        exchanger::{command, transfer},
+        exchanger::{self, transfer},
         structures::{context::Context, dcbaa, descriptor},
     },
     mem::allocator::page_box::PageBox,
-    Futurelock,
 };
 use alloc::{sync::Arc, vec::Vec};
 use endpoint::Endpoint;
@@ -38,10 +37,10 @@ impl Slot {
         self.id
     }
 
-    pub async fn init(&mut self, runner: Arc<Futurelock<command::Sender>>) {
+    pub async fn init(&mut self) {
         self.init_default_ep();
         self.register_with_dcbaa();
-        self.issue_address_device(runner).await;
+        self.issue_address_device().await;
     }
 
     pub async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
@@ -102,9 +101,9 @@ impl Slot {
         dcbaa::register(self.id.into(), a);
     }
 
-    async fn issue_address_device(&mut self, runner: Arc<Futurelock<command::Sender>>) {
+    async fn issue_address_device(&mut self) {
         let cx_addr = self.cx.lock().input.phys_addr();
-        runner.lock().await.address_device(cx_addr, self.id).await;
+        exchanger::command::address_device(cx_addr, self.id).await;
     }
 }
 

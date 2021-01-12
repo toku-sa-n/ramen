@@ -6,13 +6,9 @@ mod structures;
 mod xhc;
 
 use super::config::bar;
-use crate::{
-    multitask::{self, task::Task},
-    Futurelock,
-};
+use crate::multitask::{self, task::Task};
 use alloc::sync::Arc;
 use conquer_once::spin::OnceCell;
-use exchanger::command::Sender;
 use spinning_top::Spinlock;
 use structures::{
     dcbaa,
@@ -29,14 +25,14 @@ pub async fn task() {
         return;
     }
 
-    let (event_ring, runner) = init();
+    let event_ring = init();
 
-    port::spawn_all_connected_port_tasks(runner.clone());
+    port::spawn_all_connected_port_tasks();
 
     multitask::add(Task::new_poll(event::task(event_ring)));
 
     info!("Issuing the NOOP trb.");
-    runner.lock().await.noop().await;
+    exchanger::command::noop().await;
 }
 
 fn init_registers() -> Result<(), XhcNotFound> {
@@ -68,10 +64,9 @@ where
     f(&mut r)
 }
 
-fn init() -> (event::Ring, Arc<Futurelock<Sender>>) {
+fn init() -> event::Ring {
     let mut event_ring = event::Ring::new();
     let command_ring = Arc::new(Spinlock::new(command::Ring::new()));
-    let sender = Arc::new(Futurelock::new(Sender::new(command_ring.clone()), false));
 
     xhc::init();
 
@@ -79,11 +74,12 @@ fn init() -> (event::Ring, Arc<Futurelock<Sender>>) {
     command_ring.lock().init();
     dcbaa::init();
     scratchpad::init();
+    exchanger::command::init(command_ring);
 
     xhc::run();
     xhc::ensure_no_error_occurs();
 
-    (event_ring, sender)
+    event_ring
 }
 
 fn iter_devices() -> impl Iterator<Item = Registers> {
