@@ -29,14 +29,11 @@ pub async fn task() {
         return;
     }
 
-    let (event_ring, runner, command_completion_receiver) = init();
+    let (event_ring, runner, receiver) = init();
 
-    port::spawn_all_connected_port_tasks(runner.clone(), command_completion_receiver.clone());
+    port::spawn_all_connected_port_tasks(runner.clone(), receiver.clone());
 
-    multitask::add(Task::new_poll(event::task(
-        event_ring,
-        command_completion_receiver,
-    )));
+    multitask::add(Task::new_poll(event::task(event_ring, receiver)));
 
     info!("Issuing the NOOP trb.");
     runner.lock().await.noop().await;
