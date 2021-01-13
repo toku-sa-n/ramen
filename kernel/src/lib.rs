@@ -48,7 +48,7 @@ use device::{
     pci::{ahci, xhci},
 };
 use fs::ustar::Ustar;
-use futures_intrusive::sync::GenericMutex;
+use futures_intrusive::sync::{GenericMutex, GenericMutexGuard};
 use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
@@ -56,6 +56,7 @@ use process::Privilege;
 use spinning_top::RawSpinlock;
 use terminal::vram;
 pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
+pub type FuturelockGuard<'a, T> = GenericMutexGuard<'a, RawSpinlock, T>;
 
 #[no_mangle]
 #[start]
@@ -112,7 +113,10 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
         process::manager::add(tests::main, Privilege::User);
         process::manager::add(tests::process::kernel_privilege_test, Privilege::Kernel);
         process::manager::add(tests::process::exit_test, Privilege::User);
-        process::manager::add(tests::process::do_nothing, Privilege::User);
+
+        for _ in 0..100 {
+            process::manager::add(tests::process::do_nothing, Privilege::User);
+        }
     }
 }
 
