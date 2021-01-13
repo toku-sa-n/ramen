@@ -5,7 +5,7 @@ use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 pub static SWITCH_TEST_SUCCESS: AtomicBool = AtomicBool::new(false);
 
 pub fn count_switch() {
-    const EXIT_GOAL: usize = 100;
+    const EXIT_GOAL: usize = 1000;
     static COUNTER: AtomicUsize = AtomicUsize::new(0);
     COUNTER.fetch_add(1, Ordering::Relaxed);
 
