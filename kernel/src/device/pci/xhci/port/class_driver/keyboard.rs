@@ -28,7 +28,7 @@ impl Keyboard {
     pub fn new(ep: endpoint::Collection) -> Self {
         Self {
             ep,
-            buf: PageBox::user([0; 8]),
+            buf: PageBox::new([0; 8]),
         }
     }
 

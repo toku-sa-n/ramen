@@ -22,13 +22,9 @@ pub struct PageBox<T: ?Sized> {
     _marker: PhantomData<T>,
 }
 impl<T> PageBox<T> {
-    pub fn user(x: T) -> Self {
-        Self::new(x, Allocator::user())
-    }
-
-    fn new(x: T, a: Allocator) -> Self {
+    pub fn new(x: T) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>());
-        let mut page_box = Self::from_bytes(bytes, a);
+        let mut page_box = Self::from_bytes(bytes, Allocator::user());
         page_box.write_initial_value(x);
         page_box
     }
@@ -74,13 +70,9 @@ impl<T> PageBox<[T]>
 where
     T: Copy + Clone,
 {
-    pub fn user_slice(x: T, num_of_elements: usize) -> Self {
-        Self::new_slice(x, num_of_elements, Allocator::user())
-    }
-
-    fn new_slice(x: T, num_of_elements: usize, a: Allocator) -> Self {
+    pub fn new_slice(x: T, num_of_elements: usize) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>() * num_of_elements);
-        let mut page_box = Self::from_bytes(bytes, a);
+        let mut page_box = Self::from_bytes(bytes, Allocator::user());
         page_box.write_all_elements_with_same_value(x);
         page_box
     }

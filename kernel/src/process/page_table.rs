@@ -52,7 +52,7 @@ impl Collection {
     }
 
     fn create(parent: &mut PageTable, i: PageTableIndex) -> PageBox<PageTable> {
-        let t = PageBox::user(PageTable::new());
+        let t = PageBox::new(PageTable::new());
         Self::map_transition(parent, &t, i);
         t
     }
@@ -100,7 +100,7 @@ impl Pml4Creator {
 impl Default for Pml4Creator {
     fn default() -> Self {
         Self {
-            pml4: PageBox::user(PageTable::new()),
+            pml4: PageBox::new(PageTable::new()),
         }
     }
 }
