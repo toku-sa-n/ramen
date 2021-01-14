@@ -98,6 +98,7 @@ pub fn exit() -> ! {
 }
 
 /// This method will return a null address if the address is not mapped.
+#[must_use]
 pub fn translate_address(a: VirtAddr) -> PhysAddr {
     // SAFETY: Parameters are passed properly.
     PhysAddr::new(unsafe { general_syscall(Ty::TranslateAddress, a.as_u64(), 0) })
