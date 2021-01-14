@@ -9,7 +9,7 @@ use core::{
     ops::{Deref, DerefMut},
     ptr, slice,
 };
-use os_units::{Bytes, NumOfPages};
+use os_units::Bytes;
 use x86_64::{
     structures::paging::{Size4KiB, Translate},
     PhysAddr, VirtAddr,
@@ -18,13 +18,12 @@ use x86_64::{
 pub struct PageBox<T: ?Sized> {
     virt: VirtAddr,
     bytes: Bytes,
-    allocator: Allocator,
     _marker: PhantomData<T>,
 }
 impl<T> PageBox<T> {
     pub fn new(x: T) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>());
-        let mut page_box = Self::from_bytes(bytes, Allocator::user());
+        let mut page_box = Self::from_bytes(bytes);
         page_box.write_initial_value(x);
         page_box
     }
@@ -72,7 +71,7 @@ where
 {
     pub fn new_slice(x: T, num_of_elements: usize) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>() * num_of_elements);
-        let mut page_box = Self::from_bytes(bytes, Allocator::user());
+        let mut page_box = Self::from_bytes(bytes);
         page_box.write_all_elements_with_same_value(x);
         page_box
     }
@@ -143,14 +142,16 @@ impl<T: ?Sized> PageBox<T> {
         self.bytes
     }
 
-    fn from_bytes(bytes: Bytes, allocator: Allocator) -> Self {
-        let virt =
-            (allocator.alloc)(bytes.as_num_of_pages()).expect("OOM during creating a new page box");
+    fn from_bytes(bytes: Bytes) -> Self {
+        let virt = syscalls::allocate_pages(bytes.as_num_of_pages());
+
+        if virt.is_null() {
+            panic!("Failed to allocate pages.");
+        }
 
         let mut page_box = Self {
             virt,
             bytes,
-            allocator,
             _marker: PhantomData,
         };
         page_box.write_all_bytes_with_zero();
@@ -166,28 +167,6 @@ impl<T: ?Sized> PageBox<T> {
 impl<T: ?Sized> Drop for PageBox<T> {
     fn drop(&mut self) {
         let num_of_pages = self.bytes.as_num_of_pages::<Size4KiB>();
-        (self.allocator.dealloc)(self.virt, num_of_pages);
-    }
-}
-
-struct Allocator {
-    alloc: fn(NumOfPages<Size4KiB>) -> Option<VirtAddr>,
-    dealloc: fn(VirtAddr, NumOfPages<Size4KiB>),
-}
-impl Allocator {
-    fn user() -> Self {
-        Self {
-            alloc: Self::syscalls_allocate_pages,
-            dealloc: syscalls::deallocate_pages,
-        }
-    }
-
-    fn syscalls_allocate_pages(pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
-        let a = syscalls::allocate_pages(pages);
-        if a.is_null() {
-            None
-        } else {
-            Some(a)
-        }
+        syscalls::deallocate_pages(self.virt, num_of_pages);
     }
 }
