@@ -26,10 +26,6 @@ impl<T> PageBox<T> {
         Self::new(x, Allocator::user())
     }
 
-    pub fn kernel(x: T) -> Self {
-        Self::new(x, Allocator::kernel())
-    }
-
     fn new(x: T, a: Allocator) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>());
         let mut page_box = Self::from_bytes(bytes, a);
@@ -80,10 +76,6 @@ where
 {
     pub fn user_slice(x: T, num_of_elements: usize) -> Self {
         Self::new_slice(x, num_of_elements, Allocator::user())
-    }
-
-    pub fn kernel_slice(x: T, num_of_elements: usize) -> Self {
-        Self::new_slice(x, num_of_elements, Allocator::kernel())
     }
 
     fn new_slice(x: T, num_of_elements: usize, a: Allocator) -> Self {
@@ -195,13 +187,6 @@ impl Allocator {
         Self {
             alloc: Self::syscalls_allocate_pages,
             dealloc: syscalls::deallocate_pages,
-        }
-    }
-
-    fn kernel() -> Self {
-        Self {
-            alloc: super::allocate_pages,
-            dealloc: super::deallocate_pages,
         }
     }
 
