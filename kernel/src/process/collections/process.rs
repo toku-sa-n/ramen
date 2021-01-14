@@ -27,18 +27,6 @@ where
     f(p)
 }
 
-pub(in crate::process) fn handle_running_mut<T, U>(f: T) -> U
-where
-    T: Fn(&mut Process) -> U,
-{
-    let id = woken_pid::active_pid();
-    let mut l = lock_processes();
-    let p = l
-        .get_mut(&id)
-        .unwrap_or_else(|| panic!("Process of PID {} does not exist.", id.as_i32()));
-    f(p)
-}
-
 pub(in crate::process) fn remove(id: process::Id) {
     lock_processes().remove(&id).expect("No such process.");
 }
