@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::mem::allocator::page_box::PageBox;
+use page_box::PageBox;
 use x86_64::PhysAddr;
 
 // This is a temporary implementation.

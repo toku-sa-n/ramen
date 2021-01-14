@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::super::paging::pml4::PML4;
+#![no_std]
+
 use core::{
     convert::TryFrom,
     fmt,
@@ -10,10 +11,7 @@ use core::{
     ptr, slice,
 };
 use os_units::Bytes;
-use x86_64::{
-    structures::paging::{Size4KiB, Translate},
-    PhysAddr, VirtAddr,
-};
+use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 
 pub struct PageBox<T: ?Sized> {
     virt: VirtAddr,
@@ -135,7 +133,13 @@ impl<T: ?Sized> PageBox<T> {
     }
 
     pub fn phys_addr(&self) -> PhysAddr {
-        PML4.lock().translate_addr(self.virt).unwrap()
+        let a = syscalls::translate_address(self.virt);
+
+        if a.is_null() {
+            panic!("Address: {:?} is not mapped.", self.virt);
+        }
+
+        a
     }
 
     pub fn bytes(&self) -> Bytes {

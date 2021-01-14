@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::dcbaa;
-use crate::{device::pci::xhci, mem::allocator::page_box::PageBox};
+use crate::device::pci::xhci;
 use alloc::vec::Vec;
 use conquer_once::spin::OnceCell;
 use core::convert::TryInto;
 use os_units::Bytes;
+use page_box::PageBox;
 use x86_64::PhysAddr;
 
 static SCRATCHPAD: OnceCell<Scratchpad> = OnceCell::uninit();

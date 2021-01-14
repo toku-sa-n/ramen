@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4};
+use crate::mem::paging::pml4::PML4;
 use alloc::collections::BTreeMap;
 use core::convert::TryFrom;
+use page_box::PageBox;
 use x86_64::{
     structures::paging::{
         Page, PageSize, PageTable, PageTableFlags, PageTableIndex, PhysFrame, Size4KiB,

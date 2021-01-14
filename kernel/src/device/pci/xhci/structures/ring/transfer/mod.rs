@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{CycleBit, Link};
-use crate::mem::allocator::page_box::PageBox;
 use alloc::vec::Vec;
+use page_box::PageBox;
 use trb::Trb;
 use x86_64::PhysAddr;
 

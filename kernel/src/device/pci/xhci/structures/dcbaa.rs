@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{device::pci::xhci, mem::allocator::page_box::PageBox};
+use crate::device::pci::xhci;
 use conquer_once::spin::Lazy;
 use core::ops::{Index, IndexMut};
+use page_box::PageBox;
 use spinning_top::Spinlock;
 use x86_64::PhysAddr;
 

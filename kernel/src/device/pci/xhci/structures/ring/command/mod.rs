@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{CycleBit, Link};
-use crate::{device::pci::xhci, mem::allocator::page_box::PageBox};
+use crate::device::pci::xhci;
+use page_box::PageBox;
 use trb::Trb;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB},

@@ -1,26 +1,23 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::convert::TryInto;
-
 use super::receiver::{self, ReceiveFuture};
-use crate::{
-    device::pci::xhci::{
-        self,
-        structures::{
-            descriptor,
-            ring::{
-                event::trb::completion::Completion,
-                transfer::{
-                    self,
-                    trb::control::{Control, Direction, Request},
-                },
+use crate::device::pci::xhci::{
+    self,
+    structures::{
+        descriptor,
+        ring::{
+            event::trb::completion::Completion,
+            transfer::{
+                self,
+                trb::control::{Control, Direction, Request},
             },
         },
     },
-    mem::allocator::page_box::PageBox,
 };
 use alloc::{sync::Arc, vec::Vec};
+use core::convert::TryInto;
 use futures_util::task::AtomicWaker;
+use page_box::PageBox;
 use spinning_top::Spinlock;
 use transfer::trb::{
     control::{DataStage, DescTyIdx, SetupStage, StatusStage},

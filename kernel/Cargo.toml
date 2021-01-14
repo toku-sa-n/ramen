@@ -42,3 +42,4 @@ acpi = "2.2.0"
 derive_builder = "0.9.0"
 syscalls = { path = "../syscalls" }
 tsukemen = { path = "../apps/tsukemen" }
+page_box = { path = "../page_box" }

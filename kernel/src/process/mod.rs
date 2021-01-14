@@ -7,11 +7,11 @@ mod page_table;
 mod stack_frame;
 mod switch;
 
-use crate::mem::allocator::page_box::PageBox;
 use core::{
     convert::TryInto,
     sync::atomic::{AtomicI32, Ordering},
 };
+use page_box::PageBox;
 use stack_frame::StackFrame;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB},
