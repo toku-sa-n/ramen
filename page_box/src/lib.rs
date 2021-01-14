@@ -62,6 +62,14 @@ where
         fmt::Debug::fmt(&**self, f)
     }
 }
+impl<T> Default for PageBox<T>
+where
+    T: Default,
+{
+    fn default() -> Self {
+        Self::new(T::default())
+    }
+}
 
 impl<T> PageBox<[T]>
 where
@@ -128,10 +136,12 @@ where
 }
 
 impl<T: ?Sized> PageBox<T> {
+    #[must_use]
     pub fn virt_addr(&self) -> VirtAddr {
         self.virt
     }
 
+    #[must_use]
     pub fn phys_addr(&self) -> PhysAddr {
         let a = syscalls::translate_address(self.virt);
 
@@ -142,6 +152,7 @@ impl<T: ?Sized> PageBox<T> {
         a
     }
 
+    #[must_use]
     pub fn bytes(&self) -> Bytes {
         self.bytes
     }
