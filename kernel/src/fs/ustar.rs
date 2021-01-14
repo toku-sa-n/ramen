@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use core::{mem, ptr, str};
+use page_box::PageBox;
 use x86_64::VirtAddr;
-
-use crate::mem::allocator::page_box::PageBox;
 
 pub struct Ustar {
     addr: VirtAddr,

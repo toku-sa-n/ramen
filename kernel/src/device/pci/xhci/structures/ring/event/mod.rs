@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::CycleBit;
-use crate::{
-    device::pci::xhci::{self, exchanger::receiver},
-    mem::allocator::page_box::PageBox,
-};
+use crate::device::pci::xhci::{self, exchanger::receiver};
 use alloc::vec::Vec;
 use bit_field::BitField;
 use core::{
@@ -13,6 +10,7 @@ use core::{
     task::{Context, Poll},
 };
 use futures_util::{stream::Stream, StreamExt};
+use page_box::PageBox;
 use segment_table::SegmentTable;
 use trb::Trb;
 use x86_64::{

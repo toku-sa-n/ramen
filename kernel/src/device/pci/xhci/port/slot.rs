@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{super::structures::descriptor::Descriptor, endpoint, Port};
-use crate::{
-    device::pci::xhci::{
-        exchanger::{self, transfer},
-        structures::{context::Context, dcbaa, descriptor},
-    },
-    mem::allocator::page_box::PageBox,
+use crate::device::pci::xhci::{
+    exchanger::{self, transfer},
+    structures::{context::Context, dcbaa, descriptor},
 };
 use alloc::{sync::Arc, vec::Vec};
 use endpoint::Endpoint;
+use page_box::PageBox;
 use spinning_top::Spinlock;
 use transfer::DoorbellWriter;
 
