@@ -21,10 +21,10 @@ use x86_64::{
 #[derive(Debug)]
 pub struct Process {
     id: Id,
-    stack: PageBox<[u8]>,
     f: fn(),
     tables: page_table::Collection,
     pml4_addr: PhysAddr,
+    stack: PageBox<[u8]>,
     stack_frame: PageBox<StackFrame>,
     privilege: Privilege,
 }
@@ -54,10 +54,10 @@ impl Process {
 
         Process {
             id: Id::new(),
-            stack,
             f,
             tables,
             pml4_addr,
+            stack,
             stack_frame,
             privilege,
         }
