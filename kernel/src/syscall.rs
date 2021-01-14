@@ -9,11 +9,14 @@ use x86_64::{
         port::{PortReadOnly, PortWriteOnly},
     },
     registers::model_specific::{Efer, EferFlags, LStar},
-    structures::paging::Size4KiB,
+    structures::paging::{Size4KiB, Translate},
     PhysAddr, VirtAddr,
 };
 
-use crate::{mem::allocator, process};
+use crate::{
+    mem::{allocator, paging::pml4::PML4},
+    process,
+};
 
 pub fn init() {
     enable();
@@ -95,6 +98,7 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64) -> u64 {
             }
             syscalls::Ty::GetPid => sys_getpid().try_into().unwrap(),
             syscalls::Ty::Exit => sys_exit(),
+            syscalls::Ty::TranslateAddress => sys_translate_address(VirtAddr::new(a1)).as_u64(),
         },
         None => panic!("Unsupported syscall index: {}", idx),
     }
@@ -174,4 +178,8 @@ fn sys_getpid() -> i32 {
 
 fn sys_exit() -> ! {
     process::manager::exit();
+}
+
+fn sys_translate_address(v: VirtAddr) -> PhysAddr {
+    PML4.lock().translate_addr(v).unwrap_or(PhysAddr::zero())
 }
