@@ -2,10 +2,10 @@
 
 use super::CycleBit;
 use crate::{
-    device::pci::xhci::{self, exchanger::receiver::Receiver},
+    device::pci::xhci::{self, exchanger::receiver},
     mem::allocator::page_box::PageBox,
 };
-use alloc::{sync::Arc, vec::Vec};
+use alloc::vec::Vec;
 use bit_field::BitField;
 use core::{
     convert::TryInto,
@@ -14,7 +14,6 @@ use core::{
 };
 use futures_util::{stream::Stream, StreamExt};
 use segment_table::SegmentTable;
-use spinning_top::Spinlock;
 use trb::Trb;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB},
@@ -25,13 +24,14 @@ use xhci::port;
 mod segment_table;
 pub mod trb;
 
-pub async fn task(mut ring: Ring, command_completion_receiver: Arc<Spinlock<Receiver>>) {
+pub async fn task(mut ring: Ring) {
     debug!("This is the Event ring task.");
     while let Some(trb) = ring.next().await {
         info!("TRB: {:?}", trb);
         if let Trb::Completion(trb) = trb {
             debug!("Command completion TRB arrived.");
-            command_completion_receiver.lock().receive(trb);
+            info!("Completion Code: {}", trb.completion_code());
+            receiver::receive(trb);
         } else if let Trb::PortStatusChange(t) = trb {
             let _ = port::try_spawn(t.port());
         }

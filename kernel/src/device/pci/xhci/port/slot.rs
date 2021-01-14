@@ -3,11 +3,10 @@
 use super::{super::structures::descriptor::Descriptor, endpoint, Port};
 use crate::{
     device::pci::xhci::{
-        exchanger::{command, receiver::Receiver, transfer},
+        exchanger::{self, transfer},
         structures::{context::Context, dcbaa, descriptor},
     },
     mem::allocator::page_box::PageBox,
-    Futurelock,
 };
 use alloc::{sync::Arc, vec::Vec};
 use endpoint::Endpoint;
@@ -15,31 +14,33 @@ use spinning_top::Spinlock;
 use transfer::DoorbellWriter;
 
 pub struct Slot {
-    pub id: u8,
-    pub cx: Arc<Spinlock<Context>>,
+    id: u8,
+    cx: Arc<Spinlock<Context>>,
     def_ep: endpoint::Default,
-    recv: Arc<Spinlock<Receiver>>,
 }
 impl Slot {
-    pub fn new(port: Port, id: u8, recv: Arc<Spinlock<Receiver>>) -> Self {
+    pub fn new(port: Port, id: u8) -> Self {
         let cx = Arc::new(Spinlock::new(port.context));
         let dbl_writer = DoorbellWriter::new(id, 1);
         Self {
             id,
             cx: cx.clone(),
-            def_ep: endpoint::Default::new(
-                transfer::Sender::new(recv.clone(), dbl_writer),
-                cx,
-                port.index,
-            ),
-            recv,
+            def_ep: endpoint::Default::new(transfer::Sender::new(dbl_writer), cx, port.index),
         }
     }
 
-    pub async fn init(&mut self, runner: Arc<Futurelock<command::Sender>>) {
+    pub fn context(&self) -> Arc<Spinlock<Context>> {
+        self.cx.clone()
+    }
+
+    pub fn id(&self) -> u8 {
+        self.id
+    }
+
+    pub async fn init(&mut self) {
         self.init_default_ep();
         self.register_with_dcbaa();
-        self.issue_address_device(runner).await;
+        self.issue_address_device().await;
     }
 
     pub async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
@@ -83,10 +84,7 @@ impl Slot {
         Endpoint::new(
             ep,
             self.cx.clone(),
-            transfer::Sender::new(
-                self.recv.clone(),
-                DoorbellWriter::new(self.id, ep.doorbell_value()),
-            ),
+            transfer::Sender::new(DoorbellWriter::new(self.id, ep.doorbell_value())),
         )
     }
 
@@ -99,13 +97,13 @@ impl Slot {
     }
 
     fn register_with_dcbaa(&mut self) {
-        let a = self.cx.lock().output_device.phys_addr();
+        let a = self.cx.lock().output.phys_addr();
         dcbaa::register(self.id.into(), a);
     }
 
-    async fn issue_address_device(&mut self, runner: Arc<Futurelock<command::Sender>>) {
+    async fn issue_address_device(&mut self) {
         let cx_addr = self.cx.lock().input.phys_addr();
-        runner.lock().await.address_device(cx_addr, self.id).await;
+        exchanger::command::address_device(cx_addr, self.id).await;
     }
 }
 
@@ -129,7 +127,7 @@ impl RawDescriptorParser {
         while self.current < self.len && self.raw[self.current] > 0 {
             match self.parse_first_descriptor() {
                 Ok(t) => v.push(t),
-                Err(e) => warn!("Unrecognized USB descriptor: {:?}", e),
+                Err(e) => debug!("Unrecognized USB descriptor: {:?}", e),
             }
         }
         v

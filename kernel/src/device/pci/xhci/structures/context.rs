@@ -3,26 +3,20 @@
 use super::ring::CycleBit;
 use crate::{device::pci::xhci, mem::allocator::page_box::PageBox};
 use bit_field::BitField;
-use bitfield::bitfield;
 use core::convert::{TryFrom, TryInto};
 use num_derive::FromPrimitive;
 use x86_64::PhysAddr;
 
 pub struct Context {
     pub input: Input,
-    pub output_device: PageBox<Device>,
-}
-impl Context {
-    pub fn new() -> Self {
-        Self {
-            input: Input::null(),
-            output_device: PageBox::user(Device::null()),
-        }
-    }
+    pub output: PageBox<Device>,
 }
 impl Default for Context {
     fn default() -> Self {
-        Self::new()
+        Self {
+            input: Input::default(),
+            output: PageBox::user(Device::default()),
+        }
     }
 }
 
@@ -31,14 +25,6 @@ pub enum Input {
     Bit64(PageBox<InputWithControl64Bit>),
 }
 impl Input {
-    pub fn null() -> Self {
-        if Self::csz() {
-            Self::Bit64(PageBox::user(InputWithControl64Bit::null()))
-        } else {
-            Self::Bit32(PageBox::user(InputWithControl32Bit::null()))
-        }
-    }
-
     pub fn control_mut(&mut self) -> &mut dyn InputControl {
         match self {
             Self::Bit32(b32) => &mut b32.control,
@@ -67,33 +53,28 @@ impl Input {
         })
     }
 }
+impl Default for Input {
+    fn default() -> Self {
+        if Self::csz() {
+            Self::Bit64(PageBox::user(InputWithControl64Bit::default()))
+        } else {
+            Self::Bit32(PageBox::user(InputWithControl32Bit::default()))
+        }
+    }
+}
 
 #[repr(C)]
+#[derive(Default)]
 pub struct InputWithControl32Bit {
     control: InputControl32Bit,
     device: Device,
 }
-impl InputWithControl32Bit {
-    fn null() -> Self {
-        Self {
-            control: InputControl32Bit::null(),
-            device: Device::null(),
-        }
-    }
-}
 
 #[repr(C)]
+#[derive(Default)]
 pub struct InputWithControl64Bit {
     control: InputControl64Bit,
     device: Device,
-}
-impl InputWithControl64Bit {
-    fn null() -> Self {
-        Self {
-            control: InputControl64Bit::null(),
-            device: Device::null(),
-        }
-    }
 }
 
 pub trait InputControl {
@@ -102,12 +83,8 @@ pub trait InputControl {
 }
 
 #[repr(transparent)]
+#[derive(Default)]
 pub struct InputControl32Bit([u32; 8]);
-impl InputControl32Bit {
-    fn null() -> Self {
-        Self([0; 8])
-    }
-}
 impl InputControl for InputControl32Bit {
     fn set_aflag(&mut self, index: usize) {
         assert!(index < 32);
@@ -121,12 +98,8 @@ impl InputControl for InputControl32Bit {
 }
 
 #[repr(transparent)]
+#[derive(Default)]
 pub struct InputControl64Bit([u64; 8]);
-impl InputControl64Bit {
-    fn null() -> Self {
-        Self([0; 8])
-    }
-}
 impl InputControl for InputControl64Bit {
     fn set_aflag(&mut self, index: usize) {
         assert!(index < 64);
@@ -140,52 +113,34 @@ impl InputControl for InputControl64Bit {
 }
 
 #[repr(C)]
+#[derive(Default)]
 pub struct Device {
     pub slot: Slot,
     pub ep_0: Endpoint,
     pub ep_inout: [EndpointOutIn; 15],
 }
-impl Device {
-    pub fn null() -> Self {
-        Self {
-            slot: Slot::null(),
-            ep_0: Endpoint::null(),
-            ep_inout: [EndpointOutIn::null(); 15],
-        }
-    }
-}
 
-pub type Slot = SlotStructure<[u32; 8]>;
-bitfield! {
-    #[repr(transparent)]
-    pub struct SlotStructure([u32]);
-
-    pub u8, _, set_context_entries: 31, 27;
-    pub u8, _, set_root_hub_port_number: 32+23, 32+16;
-}
+#[derive(Default)]
+pub struct Slot([u32; 8]);
 impl Slot {
-    fn null() -> Self {
-        Self([0; 8])
+    pub fn set_context_entries(&mut self, e: u8) {
+        self.0[0].set_bits(27..=31, e.into());
+    }
+
+    pub fn set_root_hub_port_number(&mut self, n: u8) {
+        self.0[1].set_bits(16..=23, n.into());
     }
 }
 
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 pub struct EndpointOutIn {
     pub out: Endpoint,
     pub input: Endpoint,
 }
-impl EndpointOutIn {
-    fn null() -> Self {
-        Self {
-            out: Endpoint::null(),
-            input: Endpoint::null(),
-        }
-    }
-}
 
 #[repr(transparent)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct Endpoint([u32; 8]);
 impl Endpoint {
     pub fn set_endpoint_type(&mut self, ty: EndpointType) {
@@ -227,10 +182,6 @@ impl Endpoint {
 
     pub fn set_error_count(&mut self, c: u8) {
         self.0[1].set_bits(1..=2, c.into());
-    }
-
-    fn null() -> Self {
-        Self([0; 8])
     }
 }
 

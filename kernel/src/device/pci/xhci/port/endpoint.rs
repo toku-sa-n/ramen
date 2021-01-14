@@ -4,7 +4,7 @@ use super::Slot;
 use crate::{
     device::pci::xhci::{
         self,
-        exchanger::{command, transfer},
+        exchanger::{self, transfer},
         structures::{
             context::{self, Context},
             descriptor,
@@ -12,7 +12,6 @@ use crate::{
         },
     },
     mem::allocator::page_box::PageBox,
-    Futurelock,
 };
 use alloc::{sync::Arc, vec::Vec};
 use bit_field::BitField;
@@ -23,21 +22,19 @@ use spinning_top::Spinlock;
 pub struct Collection {
     eps: Vec<Endpoint>,
     cx: Arc<Spinlock<Context>>,
-    cmd: Arc<Futurelock<command::Sender>>,
     interface: descriptor::Interface,
     slot_id: u8,
 }
 impl Collection {
-    pub async fn new(mut slot: Slot, cmd: Arc<Futurelock<command::Sender>>) -> Self {
+    pub async fn new(mut slot: Slot) -> Self {
         let eps = slot.endpoints().await;
         let interface = slot.interface_descriptor().await;
         debug!("Endpoints collected");
         Self {
             eps,
-            cx: slot.cx,
-            cmd,
+            cx: slot.context(),
             interface,
-            slot_id: slot.id,
+            slot_id: slot.id(),
         }
     }
 
@@ -58,9 +55,8 @@ impl Collection {
     }
 
     async fn issue_configure_eps(&mut self) {
-        let mut cmd = self.cmd.lock().await;
         let cx_addr = self.cx.lock().input.phys_addr();
-        cmd.configure_endpoint(cx_addr, self.slot_id).await;
+        exchanger::command::configure_endpoint(cx_addr, self.slot_id).await;
     }
 }
 impl<'a> IntoIterator for &'a mut Collection {

@@ -24,6 +24,13 @@ impl Completion {
             Self::Transfer(t) => t.trb_addr(),
         }
     }
+
+    pub(in crate::device::pci::xhci) fn completion_code(&self) -> u8 {
+        match self {
+            Self::Command(c) => c.completion_code(),
+            Self::Transfer(t) => t.completion_code(),
+        }
+    }
 }
 impl TryFrom<[u32; 4]> for Completion {
     type Error = super::Error;
@@ -38,10 +45,8 @@ impl TryFrom<[u32; 4]> for Completion {
     }
 }
 
-add_trb!(CommandCompletion);
+add_trb!(CommandCompletion, 33);
 impl CommandCompletion {
-    const ID: u8 = 33;
-
     pub fn slot_id(&self) -> u8 {
         self.0[3].get_bits(24..=31).try_into().unwrap()
     }
@@ -52,16 +57,22 @@ impl CommandCompletion {
 
         PhysAddr::new(u << 32 | l)
     }
+
+    fn completion_code(&self) -> u8 {
+        self.0[2].get_bits(24..=31).try_into().unwrap()
+    }
 }
 
-add_trb!(TransferEvent);
+add_trb!(TransferEvent, 32);
 impl TransferEvent {
-    const ID: u8 = 32;
-
     fn trb_addr(&self) -> PhysAddr {
         let l: u64 = self.0[0].into();
         let u: u64 = self.0[1].into();
 
         PhysAddr::new(u << 32 | l)
+    }
+
+    fn completion_code(&self) -> u8 {
+        self.0[2].get_bits(24..=31).try_into().unwrap()
     }
 }

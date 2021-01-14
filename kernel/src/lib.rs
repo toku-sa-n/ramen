@@ -28,7 +28,7 @@ extern crate x86_64;
 extern crate derive_builder;
 
 #[macro_use]
-mod graphics;
+mod terminal;
 mod acpi;
 mod device;
 mod fs;
@@ -48,17 +48,15 @@ use device::{
     pci::{ahci, xhci},
 };
 use fs::ustar::Ustar;
-use futures_intrusive::sync::GenericMutex;
-use graphics::{
-    screen::{self, desktop::Desktop, layer},
-    Vram,
-};
+use futures_intrusive::sync::{GenericMutex, GenericMutexGuard};
 use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
 use process::Privilege;
 use spinning_top::RawSpinlock;
+use terminal::vram;
 pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
+pub type FuturelockGuard<'a, T> = GenericMutexGuard<'a, RawSpinlock, T>;
 
 #[no_mangle]
 #[start]
@@ -94,17 +92,12 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     syscall::init();
     gdt::enter_usermode();
 
-    Vram::init(&boot_info);
+    vram::init(&boot_info);
 
-    layer::init();
-
-    screen::log::init().unwrap();
-
-    let desktop = Desktop::new();
-    desktop.draw();
+    terminal::log::init().unwrap();
 
     info!("Hello Ramen OS!");
-    info!("Vram information: {}", Vram::display());
+    vram::print_info();
 
     // SAFETY: `INITRD_ADDR` is the valid address to UStar data.
     let ustar = unsafe { Ustar::new(INITRD_ADDR) };
@@ -114,11 +107,16 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     process::manager::init();
 
     process::manager::add(run_tasks, Privilege::User);
+    process::manager::add(tsukemen::main, Privilege::User);
 
     if cfg!(feature = "qemu_test") {
         process::manager::add(tests::main, Privilege::User);
         process::manager::add(tests::process::kernel_privilege_test, Privilege::Kernel);
         process::manager::add(tests::process::exit_test, Privilege::User);
+
+        for _ in 0..100 {
+            process::manager::add(tests::process::do_nothing, Privilege::User);
+        }
     }
 }
 
@@ -128,7 +126,7 @@ fn wait_until_timer_interrupt_happens() -> ! {
     }
 }
 
-fn run_tasks() -> ! {
+fn run_tasks() {
     multitask::add(Task::new(keyboard::task()));
     multitask::add(Task::new(mouse::task()));
     multitask::add(Task::new(xhci::task()));

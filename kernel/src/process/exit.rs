@@ -20,17 +20,9 @@ macro_rules! change_stack {
 
 pub fn exit() -> ! {
     change_stack!();
-    free_stack();
     manager::set_temporary_stack_frame();
     send_exit_message();
     cause_timer_interrupt();
-}
-
-fn free_stack() {
-    collections::process::handle_running_mut(|p| {
-        p.stack = None;
-        p.stack_frame = None;
-    });
 }
 
 fn send_exit_message() {
