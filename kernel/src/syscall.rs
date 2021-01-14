@@ -181,5 +181,5 @@ fn sys_exit() -> ! {
 }
 
 fn sys_translate_address(v: VirtAddr) -> PhysAddr {
-    PML4.lock().translate_addr(v).unwrap_or(PhysAddr::zero())
+    PML4.lock().translate_addr(v).unwrap_or_else(PhysAddr::zero)
 }
