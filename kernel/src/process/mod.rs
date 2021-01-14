@@ -3,28 +3,34 @@
 mod collections;
 mod exit;
 pub mod manager;
+mod page_table;
 mod stack_frame;
 mod switch;
 
-use crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4};
-use core::sync::atomic::{AtomicI32, Ordering};
+use crate::mem::allocator::page_box::PageBox;
+use core::{
+    convert::TryInto,
+    sync::atomic::{AtomicI32, Ordering},
+};
 use stack_frame::StackFrame;
 use x86_64::{
-    structures::paging::{PageTable, PageTableFlags},
+    structures::paging::{PageSize, Size4KiB},
     PhysAddr, VirtAddr,
 };
 
 #[derive(Debug)]
 pub struct Process {
     id: Id,
-    stack: Option<PageBox<[u8]>>,
+    stack: PageBox<[u8]>,
     f: fn(),
-    _pml4: PageBox<PageTable>,
+    tables: page_table::Collection,
     pml4_addr: PhysAddr,
-    stack_frame: Option<PageBox<StackFrame>>,
+    stack_frame: PageBox<StackFrame>,
     privilege: Privilege,
 }
 impl Process {
+    const STACK_SIZE: u64 = Size4KiB::SIZE * 12;
+
     pub fn kernel(f: fn()) -> Self {
         Self::new(f, Privilege::Kernel)
     }
@@ -34,15 +40,25 @@ impl Process {
     }
 
     fn new(f: fn(), privilege: Privilege) -> Self {
-        let pml4 = Pml4Creator::new().create();
-        let pml4_addr = pml4.phys_addr();
+        let mut tables = page_table::Collection::default();
+        let stack = PageBox::user_slice(0, Self::STACK_SIZE.try_into().unwrap());
+        let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
+        let stack_frame = PageBox::user(match privilege {
+            Privilege::Kernel => StackFrame::kernel(f, stack_bottom),
+            Privilege::User => StackFrame::user(f, stack_bottom),
+        });
+        tables.map_page_box(&stack);
+        tables.map_page_box(&stack_frame);
+
+        let pml4_addr = tables.pml4_addr();
+
         Process {
             id: Id::new(),
-            stack: None,
+            stack,
             f,
-            _pml4: pml4,
+            tables,
             pml4_addr,
-            stack_frame: None,
+            stack_frame,
             privilege,
         }
     }
@@ -52,18 +68,12 @@ impl Process {
     }
 
     fn stack_frame_top_addr(&self) -> VirtAddr {
-        self.stack_frame().virt_addr()
+        self.stack_frame.virt_addr()
     }
 
     fn stack_frame_bottom_addr(&self) -> VirtAddr {
-        let b = self.stack_frame().bytes();
+        let b = self.stack_frame.bytes();
         self.stack_frame_top_addr() + b.as_usize()
-    }
-
-    fn stack_frame(&self) -> &PageBox<StackFrame> {
-        self.stack_frame
-            .as_ref()
-            .expect("Stack frame is not created")
     }
 }
 
@@ -83,33 +93,5 @@ impl Id {
 
     fn as_i32(self) -> i32 {
         self.0
-    }
-}
-
-struct Pml4Creator {
-    pml4: PageBox<PageTable>,
-}
-impl Pml4Creator {
-    fn new() -> Self {
-        Self {
-            pml4: PageBox::user(PageTable::new()),
-        }
-    }
-
-    fn create(mut self) -> PageBox<PageTable> {
-        self.enable_recursive_paging();
-        self.map_kernel_area();
-        self.pml4
-    }
-
-    fn enable_recursive_paging(&mut self) {
-        let a = self.pml4.phys_addr();
-        let f =
-            PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
-        self.pml4[511].set_addr(a, f);
-    }
-
-    fn map_kernel_area(&mut self) {
-        self.pml4[510] = PML4.lock().level_4_table()[510].clone();
     }
 }
