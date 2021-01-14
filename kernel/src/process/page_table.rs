@@ -3,12 +3,11 @@
 use crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4};
 use alloc::collections::BTreeMap;
 use core::convert::TryFrom;
-use os_units::NumOfPages;
 use x86_64::{
     structures::paging::{
         Page, PageSize, PageTable, PageTableFlags, PageTableIndex, PhysFrame, Size4KiB,
     },
-    PhysAddr, VirtAddr,
+    PhysAddr,
 };
 
 #[derive(Debug)]
@@ -24,17 +23,11 @@ impl Collection {
     }
 
     pub(super) fn map_page_box<T: ?Sized>(&mut self, b: &PageBox<T>) {
-        self.map_pages_page_aligned(b.virt_addr(), b.phys_addr(), b.bytes().as_num_of_pages());
-    }
-
-    fn map_pages_page_aligned(&mut self, v: VirtAddr, p: PhysAddr, n: NumOfPages<Size4KiB>) {
-        assert!(v.is_aligned(Size4KiB::SIZE), "`v` is not page-aligned.");
-        assert!(p.is_aligned(Size4KiB::SIZE), "`p` is not page-aligned.");
-
-        for i in 0..n.as_usize() {
+        for i in 0..b.bytes().as_num_of_pages::<Size4KiB>().as_usize() {
             let off = Size4KiB::SIZE * u64::try_from(i).unwrap();
-            let v = Page::from_start_address(v + off).expect("Page is not aligned.");
-            let p = PhysFrame::from_start_address(p + off).expect("Frame is not aligned.");
+            let v = Page::from_start_address(b.virt_addr() + off).expect("Page is not aligned.");
+            let p =
+                PhysFrame::from_start_address(b.phys_addr() + off).expect("Frame is not aligned.");
             self.map(v, p);
         }
     }
