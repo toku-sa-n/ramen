@@ -117,7 +117,7 @@ impl Raw {
     fn new_rings() -> Vec<PageBox<[[u32; 4]]>> {
         let mut v = Vec::new();
         for _ in 0..Self::max_num_of_erst() {
-            v.push(PageBox::user_slice([0; 4], MAX_NUM_OF_TRB_IN_QUEUE.into()));
+            v.push(PageBox::new_slice([0; 4], MAX_NUM_OF_TRB_IN_QUEUE.into()));
         }
 
         v
