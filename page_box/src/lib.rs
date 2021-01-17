@@ -164,18 +164,10 @@ impl<T: ?Sized> PageBox<T> {
             panic!("Failed to allocate pages.");
         }
 
-        let mut page_box = Self {
+        Self {
             virt,
             bytes,
             _marker: PhantomData,
-        };
-        page_box.write_all_bytes_with_zero();
-        page_box
-    }
-
-    fn write_all_bytes_with_zero(&mut self) {
-        unsafe {
-            core::ptr::write_bytes(self.virt.as_mut_ptr::<u8>(), 0, self.bytes.as_usize());
         }
     }
 }
