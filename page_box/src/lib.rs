@@ -139,6 +139,20 @@ where
         fmt::Debug::fmt(&**self, f)
     }
 }
+impl<T> Clone for PageBox<[T]>
+where
+    T: Clone,
+{
+    fn clone(&self) -> Self {
+        let mut b = Self::new_slice(self[0].clone(), self.len());
+
+        for (dst, src) in b.iter_mut().zip(self.iter()) {
+            *dst = src.clone();
+        }
+
+        b
+    }
+}
 
 impl<T: ?Sized> PageBox<T> {
     #[must_use]
