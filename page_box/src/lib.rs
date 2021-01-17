@@ -70,6 +70,14 @@ where
         Self::new(T::default())
     }
 }
+impl<T> Clone for PageBox<T>
+where
+    T: Clone,
+{
+    fn clone(&self) -> Self {
+        Self::new((&**self).clone())
+    }
+}
 
 impl<T> PageBox<[T]>
 where
