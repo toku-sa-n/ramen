@@ -81,7 +81,7 @@ where
 
 impl<T> PageBox<[T]>
 where
-    T: Copy + Clone,
+    T: Clone,
 {
     pub fn new_slice(x: T, num_of_elements: usize) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>() * num_of_elements);
@@ -90,16 +90,13 @@ where
         page_box
     }
 
-    fn write_all_elements_with_same_value(&mut self, x: T)
-    where
-        T: Copy + Clone,
-    {
+    fn write_all_elements_with_same_value(&mut self, x: T) {
         for i in 0..self.len() {
             let ptr: usize = usize::try_from(self.virt.as_u64()).unwrap() + mem::size_of::<T>() * i;
 
             // SAFETY: This operation is safe. The memory ptr points is allocated and is aligned
             // because the first elements is page-aligned.
-            unsafe { ptr::write(ptr as *mut T, x) }
+            unsafe { ptr::write(ptr as *mut T, x.clone()) }
         }
     }
 
@@ -109,7 +106,7 @@ where
 }
 impl<T> Deref for PageBox<[T]>
 where
-    T: Copy + Clone,
+    T: Clone,
 {
     type Target = [T];
     fn deref(&self) -> &Self::Target {
@@ -118,7 +115,7 @@ where
 }
 impl<T> DerefMut for PageBox<[T]>
 where
-    T: Copy + Clone,
+    T: Clone,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { slice::from_raw_parts_mut(self.virt.as_mut_ptr(), self.num_of_elements()) }
@@ -126,7 +123,7 @@ where
 }
 impl<T> fmt::Display for PageBox<[T]>
 where
-    T: Copy + Clone,
+    T: Clone,
     [T]: fmt::Display,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -135,7 +132,7 @@ where
 }
 impl<T> fmt::Debug for PageBox<[T]>
 where
-    T: Copy + Clone,
+    T: Clone,
     [T]: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
