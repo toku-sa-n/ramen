@@ -1,0 +1,15 @@
+[package]
+name = "terminal"
+version = "0.1.0"
+authors = ["toku-sa-n <tokusan441@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+common = { path = "../common" }
+conquer-once = { version = "0.3.2", default-features = false }
+log = "0.4.13"
+rgb = "0.8.25"
+spinning_top = { version = "0.2.2", features = ["nightly"] }
+vek = { version = "0.13.0", default-features = false, features = ["libm"] }

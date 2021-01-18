@@ -8,6 +8,7 @@ use core::{
     ops::{Index, IndexMut},
     slice,
 };
+use log::info;
 use rgb::RGB8;
 use spinning_top::{Spinlock, SpinlockGuard};
 use vek::Vec2;

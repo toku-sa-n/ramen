@@ -27,8 +27,6 @@ extern crate x86_64;
 #[macro_use]
 extern crate derive_builder;
 
-#[macro_use]
-mod terminal;
 mod acpi;
 mod device;
 mod fs;
