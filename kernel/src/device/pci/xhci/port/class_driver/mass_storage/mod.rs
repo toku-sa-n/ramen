@@ -3,14 +3,15 @@
 mod scsi;
 
 use crate::device::pci::xhci::{port::endpoint, structures::context::EndpointType};
+use core::convert::TryFrom;
 use page_box::PageBox;
-use scsi::{CommandBlockWrapper, CommandBlockWrapperHeaderBuilder, CommandDataBlock};
+use scsi::{CommandBlockWrapper, CommandBlockWrapperHeaderBuilder, CommandDataBlock, Inquiry};
 
 pub async fn task(eps: endpoint::Collection) {
     let mut m = MassStorage::new(eps);
     info!("This is the task of USB Mass Storage.");
     let b = m.inquiry().await;
-    info!("Buffer: {:?}", b);
+    info!("Inquiry Command: {:?}", b);
 }
 
 struct MassStorage {
@@ -21,7 +22,7 @@ impl MassStorage {
         Self { eps }
     }
 
-    async fn inquiry(&mut self) -> PageBox<[u8; 36]> {
+    async fn inquiry(&mut self) -> Result<Inquiry, scsi::Invalid> {
         let b = PageBox::new([0_u8; 36]);
         let header = CommandBlockWrapperHeaderBuilder::default()
             .transfer_length(36)
@@ -45,6 +46,6 @@ impl MassStorage {
             }
         }
 
-        b
+        Inquiry::try_from(*b)
     }
 }
