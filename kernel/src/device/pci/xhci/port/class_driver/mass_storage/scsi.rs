@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #[repr(C, packed)]
-struct CommandBlockWrapper {
+pub(super) struct CommandBlockWrapper {
     header: CommandBlockWrapperHeader,
     data: CommandDataBlock,
 }
 impl CommandBlockWrapper {
-    fn new(header: CommandBlockWrapperHeader, data: CommandDataBlock) -> Self {
+    pub(super) fn new(header: CommandBlockWrapperHeader, data: CommandDataBlock) -> Self {
         Self { header, data }
     }
 }
@@ -14,7 +14,7 @@ impl CommandBlockWrapper {
 #[repr(C, packed)]
 #[derive(Builder)]
 #[builder(no_std)]
-struct CommandBlockWrapperHeader {
+pub(super) struct CommandBlockWrapperHeader {
     #[builder(default = "CommandBlockWrapperHeader::SIGNATURE")]
     signature: u32,
     #[builder(default = "0")]
@@ -30,9 +30,9 @@ impl CommandBlockWrapperHeader {
 
 #[repr(transparent)]
 #[derive(Default)]
-struct CommandDataBlock([u8; 16]);
+pub(super) struct CommandDataBlock([u8; 16]);
 impl CommandDataBlock {
-    fn inquiry() -> Self {
+    pub(super) fn inquiry() -> Self {
         let mut b = Self::default();
         b.0[0] = 0x12;
         b.0[4] = 0x24;
