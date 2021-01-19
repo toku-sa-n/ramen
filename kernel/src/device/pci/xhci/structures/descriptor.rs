@@ -24,15 +24,15 @@ impl Descriptor {
                 // SAFETY: This operation is safe because the length of `raw` is equivalent to the
                 // one of the descriptor.
                 Ty::Device => Ok(Self::Device(unsafe {
-                    ptr::read(raw as *const [u8] as *const _)
+                    ptr::read((raw as *const [u8]).cast())
                 })),
                 Ty::Configuration => Ok(Self::Configuration),
                 Ty::Str => Ok(Self::Str),
                 Ty::Interface => Ok(Self::Interface(unsafe {
-                    ptr::read(raw as *const [u8] as *const _)
+                    ptr::read((raw as *const [u8]).cast())
                 })),
                 Ty::Endpoint => Ok(Self::Endpoint(unsafe {
-                    ptr::read(raw as *const [u8] as *const _)
+                    ptr::read((raw as *const [u8]).cast())
                 })),
                 Ty::Hid => Ok(Self::Hid),
             },
