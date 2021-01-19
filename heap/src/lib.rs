@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+// A workaround. Remove this line to check what happens.
+#![allow(clippy::too_many_arguments)]
+
 use conquer_once::spin::OnceCell;
 use core::convert::TryInto;
 use linked_list_allocator::LockedHeap;
