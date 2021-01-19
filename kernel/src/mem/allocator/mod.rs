@@ -12,7 +12,6 @@ use super::paging::pml4::PML4;
 
 pub mod acpi;
 pub mod heap;
-pub mod page_box;
 pub mod phys;
 pub mod virt;
 

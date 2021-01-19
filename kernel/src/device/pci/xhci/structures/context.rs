@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::ring::CycleBit;
-use crate::{device::pci::xhci, mem::allocator::page_box::PageBox};
+use crate::device::pci::xhci;
 use bit_field::BitField;
 use core::convert::{TryFrom, TryInto};
 use num_derive::FromPrimitive;
+use page_box::PageBox;
 use x86_64::PhysAddr;
 
 pub struct Context {
@@ -15,7 +16,7 @@ impl Default for Context {
     fn default() -> Self {
         Self {
             input: Input::default(),
-            output: PageBox::user(Device::default()),
+            output: PageBox::new(Device::default()),
         }
     }
 }
@@ -56,9 +57,9 @@ impl Input {
 impl Default for Input {
     fn default() -> Self {
         if Self::csz() {
-            Self::Bit64(PageBox::user(InputWithControl64Bit::default()))
+            Self::Bit64(PageBox::new(InputWithControl64Bit::default()))
         } else {
-            Self::Bit32(PageBox::user(InputWithControl32Bit::default()))
+            Self::Bit32(PageBox::new(InputWithControl32Bit::default()))
         }
     }
 }

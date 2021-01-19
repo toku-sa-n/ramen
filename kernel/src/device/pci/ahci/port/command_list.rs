@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::Registers;
-use crate::mem::allocator::page_box::PageBox;
 use alloc::vec::Vec;
 use bitfield::bitfield;
 use core::convert::TryInto;
+use page_box::PageBox;
 use x86_64::PhysAddr;
 
 const NUM_OF_PRDT: usize = 8;
@@ -15,7 +15,7 @@ pub struct CommandList {
 }
 impl CommandList {
     pub fn new(registers: &Registers) -> Self {
-        let headers = PageBox::user_slice(
+        let headers = PageBox::new_slice(
             Header::null(),
             Self::num_of_command_slots_supported(registers),
         );
@@ -32,7 +32,7 @@ impl CommandList {
     fn new_tables(registers: &Registers) -> Vec<PageBox<Table>> {
         let mut tables = Vec::new();
         for _ in 0..Self::num_of_command_slots_supported(registers) {
-            tables.push(PageBox::user(Table::null()));
+            tables.push(PageBox::new(Table::null()));
         }
         tables
     }

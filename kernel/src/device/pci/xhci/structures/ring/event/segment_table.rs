@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::mem::allocator::page_box::PageBox;
 use core::{
     ops::{Index, IndexMut},
     slice,
 };
+use page_box::PageBox;
 use x86_64::PhysAddr;
 
 pub struct SegmentTable(PageBox<[Entry]>);
 impl SegmentTable {
     pub fn new(len: usize) -> Self {
-        Self(PageBox::user_slice(Entry::null(), len))
+        Self(PageBox::new_slice(Entry::null(), len))
     }
 
     pub fn phys_addr(&self) -> PhysAddr {

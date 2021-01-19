@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pub mod font;
+#![no_std]
+
+mod font;
 pub mod log;
 pub mod vram;
-pub mod writer;
+mod writer;

@@ -97,6 +97,13 @@ pub fn exit() -> ! {
     unsafe { asm!("syscall", in("rax") ty, options(noreturn)) }
 }
 
+/// This method will return a null address if the address is not mapped.
+#[must_use]
+pub fn translate_address(a: VirtAddr) -> PhysAddr {
+    // SAFETY: Parameters are passed properly.
+    PhysAddr::new(unsafe { general_syscall(Ty::TranslateAddress, a.as_u64(), 0) })
+}
+
 /// SAFETY: This function is unsafe if arguments are invalid.
 unsafe fn general_syscall(ty: Ty, a1: u64, a2: u64) -> u64 {
     let ty = ty as u64;
@@ -123,4 +130,5 @@ pub enum Ty {
     UnmapPages,
     GetPid,
     Exit,
+    TranslateAddress,
 }

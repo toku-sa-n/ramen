@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4};
+use crate::mem::paging::pml4::PML4;
 use alloc::collections::BTreeMap;
 use core::convert::TryFrom;
+use page_box::PageBox;
 use x86_64::{
     structures::paging::{
         Page, PageSize, PageTable, PageTableFlags, PageTableIndex, PhysFrame, Size4KiB,
@@ -52,7 +53,7 @@ impl Collection {
     }
 
     fn create(parent: &mut PageTable, i: PageTableIndex) -> PageBox<PageTable> {
-        let t = PageBox::user(PageTable::new());
+        let t = PageBox::new(PageTable::new());
         Self::map_transition(parent, &t, i);
         t
     }
@@ -100,7 +101,7 @@ impl Pml4Creator {
 impl Default for Pml4Creator {
     fn default() -> Self {
         Self {
-            pml4: PageBox::user(PageTable::new()),
+            pml4: PageBox::new(PageTable::new()),
         }
     }
 }

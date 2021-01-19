@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{CycleBit, Link};
-use crate::mem::allocator::page_box::PageBox;
 use alloc::vec::Vec;
+use page_box::PageBox;
 use trb::Trb;
 use x86_64::PhysAddr;
 
@@ -35,7 +35,7 @@ struct Raw {
 impl Raw {
     fn new() -> Self {
         Self {
-            ring: PageBox::user_slice([0; 4], SIZE_OF_RING),
+            ring: PageBox::new_slice([0; 4], SIZE_OF_RING),
             enq_p: 0,
             c: CycleBit::new(true),
         }

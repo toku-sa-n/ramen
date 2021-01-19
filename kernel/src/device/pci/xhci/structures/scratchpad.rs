@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::dcbaa;
-use crate::{device::pci::xhci, mem::allocator::page_box::PageBox};
+use crate::device::pci::xhci;
 use alloc::vec::Vec;
 use conquer_once::spin::OnceCell;
 use core::convert::TryInto;
 use os_units::Bytes;
+use page_box::PageBox;
 use x86_64::PhysAddr;
 
 static SCRATCHPAD: OnceCell<Scratchpad> = OnceCell::uninit();
@@ -33,7 +34,7 @@ impl Scratchpad {
         let len: usize = Self::num_of_buffers().try_into().unwrap();
 
         Self {
-            arr: PageBox::user_slice(PhysAddr::zero(), len),
+            arr: PageBox::new_slice(PhysAddr::zero(), len),
             bufs: Vec::new(),
         }
     }
@@ -55,7 +56,7 @@ impl Scratchpad {
         for _ in 0..Self::num_of_buffers() {
             // Allocate the double size of memory, then register the aligned address with the
             // array.
-            let b = PageBox::user_slice(0, Self::page_size().as_usize() * 2);
+            let b = PageBox::new_slice(0, Self::page_size().as_usize() * 2);
             self.bufs.push(b);
         }
     }

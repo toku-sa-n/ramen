@@ -1,26 +1,23 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::convert::TryInto;
-
 use super::receiver::{self, ReceiveFuture};
-use crate::{
-    device::pci::xhci::{
-        self,
-        structures::{
-            descriptor,
-            ring::{
-                event::trb::completion::Completion,
-                transfer::{
-                    self,
-                    trb::control::{Control, Direction, Request},
-                },
+use crate::device::pci::xhci::{
+    self,
+    structures::{
+        descriptor,
+        ring::{
+            event::trb::completion::Completion,
+            transfer::{
+                self,
+                trb::control::{Control, Direction, Request},
             },
         },
     },
-    mem::allocator::page_box::PageBox,
 };
 use alloc::{sync::Arc, vec::Vec};
+use core::convert::TryInto;
 use futures_util::task::AtomicWaker;
+use page_box::PageBox;
 use spinning_top::Spinlock;
 use transfer::trb::{
     control::{DataStage, DescTyIdx, SetupStage, StatusStage},
@@ -47,7 +44,7 @@ impl Sender {
     }
 
     pub async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
-        let b = PageBox::user(descriptor::Device::default());
+        let b = PageBox::new(descriptor::Device::default());
 
         let (setup, data, status) =
             Self::trbs_for_getting_descriptors(&b, DescTyIdx::new(descriptor::Ty::Device, 0));
@@ -57,7 +54,7 @@ impl Sender {
     }
 
     pub async fn get_configuration_descriptor(&mut self) -> PageBox<[u8]> {
-        let b = PageBox::user_slice(0, 4096);
+        let b = PageBox::new_slice(0, 4096);
 
         let (setup, data, status) = Self::trbs_for_getting_descriptors(
             &b,

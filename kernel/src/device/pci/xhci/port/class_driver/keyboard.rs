@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use crate::device::pci::xhci::{port::endpoint, structures::context::EndpointType};
 use alloc::string::String;
+use page_box::PageBox;
 use spinning_top::Spinlock;
-
-use crate::{
-    device::pci::xhci::{port::endpoint, structures::context::EndpointType},
-    mem::allocator::page_box::PageBox,
-};
 
 const LOWER_ALPHABETS: &str = "abcdefghijklmnopqrstuvwxyz";
 
@@ -28,7 +25,7 @@ impl Keyboard {
     pub fn new(ep: endpoint::Collection) -> Self {
         Self {
             ep,
-            buf: PageBox::user([0; 8]),
+            buf: PageBox::new([0; 8]),
         }
     }
 

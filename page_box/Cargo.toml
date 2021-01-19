@@ -1,0 +1,12 @@
+[package]
+name = "page_box"
+version = "0.1.0"
+authors = ["toku-sa-n <tokusan441@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+os_units = "0.2.7"
+syscalls = { path = "../syscalls" }
+x86_64 = "0.13.1"

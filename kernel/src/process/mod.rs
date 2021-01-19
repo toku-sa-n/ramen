@@ -7,11 +7,11 @@ mod page_table;
 mod stack_frame;
 mod switch;
 
-use crate::mem::allocator::page_box::PageBox;
 use core::{
     convert::TryInto,
     sync::atomic::{AtomicI32, Ordering},
 };
+use page_box::PageBox;
 use stack_frame::StackFrame;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB},
@@ -41,9 +41,9 @@ impl Process {
 
     fn new(f: fn(), privilege: Privilege) -> Self {
         let mut tables = page_table::Collection::default();
-        let stack = PageBox::user_slice(0, Self::STACK_SIZE.try_into().unwrap());
+        let stack = PageBox::new_slice(0, Self::STACK_SIZE.try_into().unwrap());
         let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
-        let stack_frame = PageBox::user(match privilege {
+        let stack_frame = PageBox::new(match privilege {
             Privilege::Kernel => StackFrame::kernel(f, stack_bottom),
             Privilege::User => StackFrame::user(f, stack_bottom),
         });

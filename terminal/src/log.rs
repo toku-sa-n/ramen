@@ -28,6 +28,9 @@ impl log::Log for Logger {
     fn flush(&self) {}
 }
 
+/// # Errors
+///
+/// This function may return an error from `log::set_logger` function.
 pub fn init() -> Result<(), SetLoggerError> {
     log::set_logger(&LOGGER).map(|()| log::set_max_level(LevelFilter::Info))
 }

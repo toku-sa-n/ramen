@@ -1,22 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::Slot;
-use crate::{
-    device::pci::xhci::{
-        self,
-        exchanger::{self, transfer},
-        structures::{
-            context::{self, Context},
-            descriptor,
-            ring::CycleBit,
-        },
+use crate::device::pci::xhci::{
+    self,
+    exchanger::{self, transfer},
+    structures::{
+        context::{self, Context},
+        descriptor,
+        ring::CycleBit,
     },
-    mem::allocator::page_box::PageBox,
 };
 use alloc::{sync::Arc, vec::Vec};
 use bit_field::BitField;
 use context::EndpointType;
 use core::slice;
+use page_box::PageBox;
 use spinning_top::Spinlock;
 
 pub struct Collection {

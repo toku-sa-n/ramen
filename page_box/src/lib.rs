@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::super::paging::pml4::PML4;
+#![no_std]
+
 use core::{
     convert::TryFrom,
     fmt,
@@ -9,30 +10,18 @@ use core::{
     ops::{Deref, DerefMut},
     ptr, slice,
 };
-use os_units::{Bytes, NumOfPages};
-use x86_64::{
-    structures::paging::{Size4KiB, Translate},
-    PhysAddr, VirtAddr,
-};
+use os_units::Bytes;
+use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 
 pub struct PageBox<T: ?Sized> {
     virt: VirtAddr,
     bytes: Bytes,
-    allocator: Allocator,
     _marker: PhantomData<T>,
 }
 impl<T> PageBox<T> {
-    pub fn user(x: T) -> Self {
-        Self::new(x, Allocator::user())
-    }
-
-    pub fn kernel(x: T) -> Self {
-        Self::new(x, Allocator::kernel())
-    }
-
-    fn new(x: T, a: Allocator) -> Self {
+    pub fn new(x: T) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>());
-        let mut page_box = Self::from_bytes(bytes, a);
+        let mut page_box = Self::from_bytes(bytes);
         page_box.write_initial_value(x);
         page_box
     }
@@ -73,36 +62,41 @@ where
         fmt::Debug::fmt(&**self, f)
     }
 }
+impl<T> Default for PageBox<T>
+where
+    T: Default,
+{
+    fn default() -> Self {
+        Self::new(T::default())
+    }
+}
+impl<T> Clone for PageBox<T>
+where
+    T: Clone,
+{
+    fn clone(&self) -> Self {
+        Self::new((&**self).clone())
+    }
+}
 
 impl<T> PageBox<[T]>
 where
-    T: Copy + Clone,
+    T: Clone,
 {
-    pub fn user_slice(x: T, num_of_elements: usize) -> Self {
-        Self::new_slice(x, num_of_elements, Allocator::user())
-    }
-
-    pub fn kernel_slice(x: T, num_of_elements: usize) -> Self {
-        Self::new_slice(x, num_of_elements, Allocator::kernel())
-    }
-
-    fn new_slice(x: T, num_of_elements: usize, a: Allocator) -> Self {
+    pub fn new_slice(x: T, num_of_elements: usize) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>() * num_of_elements);
-        let mut page_box = Self::from_bytes(bytes, a);
+        let mut page_box = Self::from_bytes(bytes);
         page_box.write_all_elements_with_same_value(x);
         page_box
     }
 
-    fn write_all_elements_with_same_value(&mut self, x: T)
-    where
-        T: Copy + Clone,
-    {
+    fn write_all_elements_with_same_value(&mut self, x: T) {
         for i in 0..self.len() {
             let ptr: usize = usize::try_from(self.virt.as_u64()).unwrap() + mem::size_of::<T>() * i;
 
             // SAFETY: This operation is safe. The memory ptr points is allocated and is aligned
             // because the first elements is page-aligned.
-            unsafe { ptr::write(ptr as *mut T, x) }
+            unsafe { ptr::write(ptr as *mut T, x.clone()) }
         }
     }
 
@@ -112,7 +106,7 @@ where
 }
 impl<T> Deref for PageBox<[T]>
 where
-    T: Copy + Clone,
+    T: Clone,
 {
     type Target = [T];
     fn deref(&self) -> &Self::Target {
@@ -121,7 +115,7 @@ where
 }
 impl<T> DerefMut for PageBox<[T]>
 where
-    T: Copy + Clone,
+    T: Clone,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { slice::from_raw_parts_mut(self.virt.as_mut_ptr(), self.num_of_elements()) }
@@ -129,7 +123,7 @@ where
 }
 impl<T> fmt::Display for PageBox<[T]>
 where
-    T: Copy + Clone,
+    T: Clone,
     [T]: fmt::Display,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -138,79 +132,67 @@ where
 }
 impl<T> fmt::Debug for PageBox<[T]>
 where
-    T: Copy + Clone,
+    T: Clone,
     [T]: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(&**self, f)
     }
 }
+impl<T> Clone for PageBox<[T]>
+where
+    T: Clone,
+{
+    fn clone(&self) -> Self {
+        let mut b = Self::new_slice(self[0].clone(), self.len());
+
+        for (dst, src) in b.iter_mut().zip(self.iter()) {
+            *dst = src.clone();
+        }
+
+        b
+    }
+}
 
 impl<T: ?Sized> PageBox<T> {
+    #[must_use]
     pub fn virt_addr(&self) -> VirtAddr {
         self.virt
     }
 
+    #[must_use]
     pub fn phys_addr(&self) -> PhysAddr {
-        PML4.lock().translate_addr(self.virt).unwrap()
+        let a = syscalls::translate_address(self.virt);
+
+        if a.is_null() {
+            panic!("Address: {:?} is not mapped.", self.virt);
+        }
+
+        a
     }
 
+    #[must_use]
     pub fn bytes(&self) -> Bytes {
         self.bytes
     }
 
-    fn from_bytes(bytes: Bytes, allocator: Allocator) -> Self {
-        let virt =
-            (allocator.alloc)(bytes.as_num_of_pages()).expect("OOM during creating a new page box");
+    fn from_bytes(bytes: Bytes) -> Self {
+        let virt = syscalls::allocate_pages(bytes.as_num_of_pages());
 
-        let mut page_box = Self {
+        if virt.is_null() {
+            panic!("Failed to allocate pages.");
+        }
+
+        Self {
             virt,
             bytes,
-            allocator,
             _marker: PhantomData,
-        };
-        page_box.write_all_bytes_with_zero();
-        page_box
-    }
-
-    fn write_all_bytes_with_zero(&mut self) {
-        unsafe {
-            core::ptr::write_bytes(self.virt.as_mut_ptr::<u8>(), 0, self.bytes.as_usize());
         }
     }
 }
 impl<T: ?Sized> Drop for PageBox<T> {
     fn drop(&mut self) {
         let num_of_pages = self.bytes.as_num_of_pages::<Size4KiB>();
-        (self.allocator.dealloc)(self.virt, num_of_pages);
-    }
-}
-
-struct Allocator {
-    alloc: fn(NumOfPages<Size4KiB>) -> Option<VirtAddr>,
-    dealloc: fn(VirtAddr, NumOfPages<Size4KiB>),
-}
-impl Allocator {
-    fn user() -> Self {
-        Self {
-            alloc: Self::syscalls_allocate_pages,
-            dealloc: syscalls::deallocate_pages,
-        }
-    }
-
-    fn kernel() -> Self {
-        Self {
-            alloc: super::allocate_pages,
-            dealloc: super::deallocate_pages,
-        }
-    }
-
-    fn syscalls_allocate_pages(pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
-        let a = syscalls::allocate_pages(pages);
-        if a.is_null() {
-            None
-        } else {
-            Some(a)
-        }
+        syscalls::deallocate_pages(self.virt, num_of_pages);
     }
 }

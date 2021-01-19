@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::CycleBit;
-use crate::{
-    device::pci::xhci::{self, exchanger::receiver},
-    mem::allocator::page_box::PageBox,
-};
+use crate::device::pci::xhci::{self, exchanger::receiver};
 use alloc::vec::Vec;
 use bit_field::BitField;
 use core::{
@@ -13,6 +10,7 @@ use core::{
     task::{Context, Poll},
 };
 use futures_util::{stream::Stream, StreamExt};
+use page_box::PageBox;
 use segment_table::SegmentTable;
 use trb::Trb;
 use x86_64::{
@@ -117,7 +115,7 @@ impl Raw {
     fn new_rings() -> Vec<PageBox<[[u32; 4]]>> {
         let mut v = Vec::new();
         for _ in 0..Self::max_num_of_erst() {
-            v.push(PageBox::user_slice([0; 4], MAX_NUM_OF_TRB_IN_QUEUE.into()));
+            v.push(PageBox::new_slice([0; 4], MAX_NUM_OF_TRB_IN_QUEUE.into()));
         }
 
         v
