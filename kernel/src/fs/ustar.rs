@@ -27,13 +27,7 @@ impl Ustar {
         let b = PageBox::new_slice(0, m.filesize_as_dec());
 
         // SAFETY: Both the source and the destination pointers are valid and aligned.
-        unsafe {
-            ptr::copy(
-                cont_ptr,
-                b.virt_addr().as_mut_ptr() as *mut u8,
-                m.filesize_as_dec(),
-            )
-        }
+        unsafe { ptr::copy(cont_ptr, b.virt_addr().as_mut_ptr(), m.filesize_as_dec()) }
         Some(b)
     }
 
@@ -55,8 +49,7 @@ impl Iter {
     fn correct_magic_number(&self) -> bool {
         // SAFETY: This operation is safe as `self.p` is a valid address.
         unsafe {
-            ptr::read_unaligned((self.p + 257_u64).as_ptr() as *const [u8; 5])
-                == *"ustar".as_bytes()
+            ptr::read_unaligned((self.p + 257_u64).as_ptr::<[u8; 5]>()) == *"ustar".as_bytes()
         }
     }
 }
