@@ -26,7 +26,7 @@ impl MassStorage {
     }
 
     async fn inquiry(&mut self) -> Result<Inquiry, scsi::Invalid> {
-        let mut b = PageBox::new(CommandStatus::<RawInquiry>::default());
+        let mut b = PageBox::from(CommandStatus::<RawInquiry>::default());
         let header = CommandBlockWrapperHeaderBuilder::default()
             .transfer_length(36)
             .flags(0x80)
@@ -35,7 +35,7 @@ impl MassStorage {
             .build()
             .expect("Failed to build an inquiry command block wrapper.");
         let data = CommandDataBlock::inquiry();
-        let mut wrapper = PageBox::new(CommandBlockWrapper::new(header, data));
+        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data));
 
         self.send_scsi_command(&mut wrapper, &mut b).await;
 
@@ -54,22 +54,16 @@ impl MassStorage {
     }
 
     async fn send_command_block_wrapper(&mut self, c: &mut PageBox<CommandBlockWrapper>) {
-        for ep in &mut self.eps {
-            if ep.ty() == EndpointType::BulkOut {
-                return ep.issue_normal_trb(&c).await;
-            }
-        }
-
-        unreachable!("MSD class must have at least one Bulk Out endpoint.");
+        self.eps
+            .issue_normal_trb(c, EndpointType::BulkOut)
+            .await
+            .expect("Failed to send a SCSI command.");
     }
 
     async fn receive_command_status<T: Copy>(&mut self, c: &mut PageBox<CommandStatus<T>>) {
-        for ep in &mut self.eps {
-            if ep.ty() == EndpointType::BulkIn {
-                return ep.issue_normal_trb(&c).await;
-            }
-        }
-
-        unreachable!("MSD class must have at least one Bulk In endpoint.");
+        self.eps
+            .issue_normal_trb(c, EndpointType::BulkIn)
+            .await
+            .expect("Failed to receive a SCSI status");
     }
 }
