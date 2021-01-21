@@ -44,7 +44,7 @@ impl Sender {
     }
 
     pub async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
-        let b = PageBox::new(descriptor::Device::default());
+        let b = PageBox::from(descriptor::Device::default());
 
         let (setup, data, status) =
             Self::trbs_for_getting_descriptors(&b, DescTyIdx::new(descriptor::Ty::Device, 0));

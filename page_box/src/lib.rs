@@ -19,13 +19,6 @@ pub struct PageBox<T: ?Sized> {
     _marker: PhantomData<T>,
 }
 impl<T> PageBox<T> {
-    pub fn new(x: T) -> Self {
-        let bytes = Bytes::new(mem::size_of::<T>());
-        let mut page_box = Self::from_bytes(bytes);
-        page_box.write_initial_value(x);
-        page_box
-    }
-
     fn write_initial_value(&mut self, x: T) {
         // SAFETY: This operation is safe because the memory `self.virt.as_mut_ptr` points is
         // allocated, and is page-aligned.
@@ -67,7 +60,7 @@ where
     T: Default,
 {
     fn default() -> Self {
-        Self::new(T::default())
+        Self::from(T::default())
     }
 }
 impl<T> Clone for PageBox<T>
@@ -75,7 +68,15 @@ where
     T: Clone,
 {
     fn clone(&self) -> Self {
-        Self::new((&**self).clone())
+        Self::from((&**self).clone())
+    }
+}
+impl<T> From<T> for PageBox<T> {
+    fn from(x: T) -> Self {
+        let bytes = Bytes::new(mem::size_of::<T>());
+        let mut page_box = Self::from_bytes(bytes);
+        page_box.write_initial_value(x);
+        page_box
     }
 }
 

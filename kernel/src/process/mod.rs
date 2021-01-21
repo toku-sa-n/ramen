@@ -43,7 +43,7 @@ impl Process {
         let mut tables = page_table::Collection::default();
         let stack = PageBox::new_slice(0, Self::STACK_SIZE.try_into().unwrap());
         let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
-        let stack_frame = PageBox::new(match privilege {
+        let stack_frame = PageBox::from(match privilege {
             Privilege::Kernel => StackFrame::kernel(f, stack_bottom),
             Privilege::User => StackFrame::user(f, stack_bottom),
         });
