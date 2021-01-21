@@ -47,7 +47,7 @@ impl Info {
 
     pub fn set(self) {
         unsafe {
-            ptr::write(INIT_RSP.as_mut_ptr() as _, self);
+            ptr::write(INIT_RSP.as_mut_ptr::<Self>(), self);
         }
     }
 
