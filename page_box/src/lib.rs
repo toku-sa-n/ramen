@@ -153,6 +153,17 @@ where
         b
     }
 }
+impl<T: Copy> From<&[T]> for PageBox<[T]> {
+    fn from(s: &[T]) -> Self {
+        let b = Self::new_slice(s[0], s.len());
+
+        unsafe {
+            ptr::copy_nonoverlapping(s.as_ptr(), b.virt_addr().as_mut_ptr(), s.len());
+        }
+
+        b
+    }
+}
 
 impl<T: ?Sized> PageBox<T> {
     #[must_use]
