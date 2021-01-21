@@ -53,7 +53,7 @@ impl Collection {
     }
 
     fn create(parent: &mut PageTable, i: PageTableIndex) -> PageBox<PageTable> {
-        let t = PageBox::new(PageTable::new());
+        let t = PageBox::from(PageTable::new());
         Self::map_transition(parent, &t, i);
         t
     }
@@ -77,6 +77,7 @@ impl Default for Collection {
     }
 }
 
+#[derive(Default)]
 struct Pml4Creator {
     pml4: PageBox<PageTable>,
 }
@@ -96,12 +97,5 @@ impl Pml4Creator {
 
     fn map_kernel_area(&mut self) {
         self.pml4[510] = PML4.lock().level_4_table()[510].clone();
-    }
-}
-impl Default for Pml4Creator {
-    fn default() -> Self {
-        Self {
-            pml4: PageBox::new(PageTable::new()),
-        }
     }
 }

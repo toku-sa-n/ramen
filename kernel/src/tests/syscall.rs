@@ -7,6 +7,6 @@ pub(super) fn main() {
 }
 
 fn test_translate_address() {
-    let p = PageBox::new(0_i32);
+    let p = PageBox::from(0_i32);
     assert_eq!(p.phys_addr(), syscalls::translate_address(p.virt_addr()));
 }
