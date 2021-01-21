@@ -34,11 +34,10 @@ impl Keyboard {
     }
 
     async fn issue_normal_trb(&mut self) {
-        for e in &mut self.ep {
-            if e.ty() == EndpointType::InterruptIn {
-                e.issue_normal_trb(&self.buf).await;
-            }
-        }
+        self.ep
+            .issue_normal_trb(&self.buf, EndpointType::InterruptIn)
+            .await
+            .expect("Failed to send a Normal TRB");
     }
 
     fn store_key(&self) {

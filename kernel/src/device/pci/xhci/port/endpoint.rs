@@ -46,6 +46,20 @@ impl Collection {
         self.interface.ty()
     }
 
+    pub(in crate::device::pci::xhci) async fn issue_normal_trb<T>(
+        &mut self,
+        b: &PageBox<T>,
+        ty: EndpointType,
+    ) -> Result<(), Error> {
+        for ep in &mut self.eps {
+            if ep.ty() == ty {
+                return Ok(ep.issue_normal_trb(b).await);
+            }
+        }
+
+        Err(Error::NoSuchEndpoint(ty))
+    }
+
     fn enable_eps(&mut self) {
         for ep in &mut self.eps {
             ep.init_context();
@@ -84,12 +98,12 @@ impl Endpoint {
         ContextInitializer::new(&self.desc, &mut self.cx.lock(), &self.sender).init();
     }
 
-    pub async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
-        self.sender.issue_normal_trb(b).await
-    }
-
     pub fn ty(&self) -> EndpointType {
         self.desc.ty()
+    }
+
+    async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
+        self.sender.issue_normal_trb(b).await
     }
 }
 
@@ -210,4 +224,9 @@ impl<'a> ContextInitializer<'a> {
             &mut context_inout.out
         }
     }
+}
+
+#[derive(Debug)]
+pub(in crate::device::pci::xhci) enum Error {
+    NoSuchEndpoint(EndpointType),
 }
