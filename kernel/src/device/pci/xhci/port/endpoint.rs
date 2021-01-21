@@ -53,7 +53,8 @@ impl Collection {
     ) -> Result<(), Error> {
         for ep in &mut self.eps {
             if ep.ty() == ty {
-                return Ok(ep.issue_normal_trb(b).await);
+                ep.issue_normal_trb(b).await;
+                return Ok(());
             }
         }
 
