@@ -21,7 +21,7 @@ fn test_page_box_clone() {
 
 fn test_page_box_from_slice() {
     let s: &[i32] = &[3, 3, 4];
-    let b = PageBox::from(s);
+    let b = PageBox::<[i32]>::from(s);
 
     assert_eq!(*b, *s);
 }
