@@ -16,7 +16,7 @@ impl Default for Context {
     fn default() -> Self {
         Self {
             input: Input::default(),
-            output: PageBox::new(Device::default()),
+            output: Device::default().into(),
         }
     }
 }
@@ -57,9 +57,9 @@ impl Input {
 impl Default for Input {
     fn default() -> Self {
         if Self::csz() {
-            Self::Bit64(PageBox::new(InputWithControl64Bit::default()))
+            Self::Bit64(InputWithControl64Bit::default().into())
         } else {
-            Self::Bit32(PageBox::new(InputWithControl32Bit::default()))
+            Self::Bit32(InputWithControl32Bit::default().into())
         }
     }
 }

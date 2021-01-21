@@ -7,7 +7,7 @@ pub(super) fn main() {
 }
 
 fn test_page_box_clone() {
-    let b = PageBox::new(3);
+    let b = PageBox::from(3);
     let b2 = b.clone();
 
     assert_eq!(*b, *b2);

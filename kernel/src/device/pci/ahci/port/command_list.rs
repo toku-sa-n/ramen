@@ -32,7 +32,7 @@ impl CommandList {
     fn new_tables(registers: &Registers) -> Vec<PageBox<Table>> {
         let mut tables = Vec::new();
         for _ in 0..Self::num_of_command_slots_supported(registers) {
-            tables.push(PageBox::new(Table::null()));
+            tables.push(Table::null().into());
         }
         tables
     }

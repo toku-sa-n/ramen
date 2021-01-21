@@ -7,7 +7,7 @@ use x86_64::PhysAddr;
 pub struct ReceivedFis(PageBox<u32>);
 impl ReceivedFis {
     pub fn new() -> Self {
-        Self(PageBox::new(0))
+        Self(0.into())
     }
 
     pub fn phys_addr(&self) -> PhysAddr {
