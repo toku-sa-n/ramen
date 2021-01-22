@@ -99,7 +99,7 @@ pub fn spawn_all_connected_port_tasks() {
 fn max_num() -> u8 {
     super::handle_registers(|r| {
         let params1 = r.capability.hcs_params_1.read();
-        params1.max_ports()
+        params1.number_of_ports()
     })
 }
 

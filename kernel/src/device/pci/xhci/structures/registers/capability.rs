@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::mem::accessor::Accessor;
-use bitfield::bitfield;
 use os_units::Bytes;
 use x86_64::PhysAddr;
+use xhci::registers::capability::{
+    CapabilityParameters1, CapabilityRegistersLength, DoorbellOffset, RuntimeRegisterSpaceOffset,
+    StructuralParameters1, StructuralParameters2,
+};
 
 pub struct Capability {
-    pub cap_length: Accessor<Len>,
+    pub cap_length: Accessor<CapabilityRegistersLength>,
     pub hcs_params_1: Accessor<StructuralParameters1>,
     pub hcs_params_2: Accessor<StructuralParameters2>,
-    pub hc_cp_params_1: Accessor<HCCapabilityParameters1>,
+    pub hc_cp_params_1: Accessor<CapabilityParameters1>,
     pub db_off: Accessor<DoorbellOffset>,
     pub rts_off: Accessor<RuntimeRegisterSpaceOffset>,
 }
@@ -33,63 +36,5 @@ impl Capability {
             db_off,
             rts_off,
         }
-    }
-}
-
-#[repr(transparent)]
-pub struct Len(u8);
-impl Len {
-    pub fn get(&self) -> usize {
-        self.0 as _
-    }
-}
-
-bitfield! {
-    #[repr(transparent)]
-    pub struct StructuralParameters1(u32);
-    pub u8, max_slots, _: 7, 0;
-    pub u8, max_ports, _: 31, 24;
-}
-
-bitfield! {
-    #[repr(transparent)]
-    pub struct StructuralParameters2(u32);
-    erst_max, _: 7, 4;
-    max_scratchpad_bufs_hi, _: 25, 20;
-    max_scratchpad_bufs_lo, _: 31, 27;
-}
-impl StructuralParameters2 {
-    pub fn powered_erst_max(&self) -> u16 {
-        2_u16.pow(self.erst_max())
-    }
-
-    pub fn max_scratchpad_bufs(&self) -> u32 {
-        let h = self.max_scratchpad_bufs_hi();
-        let l = self.max_scratchpad_bufs_lo();
-
-        h << 5 | l
-    }
-}
-
-bitfield! {
-    #[repr(transparent)]
-    pub struct HCCapabilityParameters1(u32);
-    pub csz, _: 2;
-    pub xhci_extended_capabilities_pointer,_: 31,16;
-}
-
-#[repr(transparent)]
-pub struct DoorbellOffset(u32);
-impl DoorbellOffset {
-    pub fn get(&self) -> u32 {
-        self.0
-    }
-}
-
-#[repr(transparent)]
-pub struct RuntimeRegisterSpaceOffset(u32);
-impl RuntimeRegisterSpaceOffset {
-    pub fn get(&self) -> u32 {
-        self.0 & !0x1f
     }
 }
