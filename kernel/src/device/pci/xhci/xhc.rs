@@ -24,7 +24,7 @@ pub fn ensure_no_error_occurs() {
             !s.host_system_error(),
             "An error occured on the host system."
         );
-        assert!(!s.hc_error(), "An error occured on the xHC.");
+        assert!(!s.host_controller_error(), "An error occured on the xHC.");
     });
 }
 
@@ -71,14 +71,14 @@ fn reset() {
 fn start_resetting() {
     super::handle_registers(|r| {
         let c = &mut r.operational.usb_cmd;
-        c.update(|c| c.set_hc_reset(true));
+        c.update(|c| c.set_host_controller_reset(true));
     })
 }
 
 fn wait_until_reset_completed() {
     super::handle_registers(|r| {
         let c = &r.operational.usb_cmd;
-        while c.read().hc_reset() {}
+        while c.read().host_controller_reset() {}
     })
 }
 
@@ -100,6 +100,6 @@ fn set_num_of_enabled_slots() {
 fn num_of_device_slots() -> u8 {
     super::handle_registers(|r| {
         let p = &r.capability.hcs_params_1;
-        p.read().max_slots()
+        p.read().number_of_device_slots()
     })
 }
