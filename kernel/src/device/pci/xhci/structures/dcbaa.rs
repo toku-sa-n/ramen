@@ -34,14 +34,18 @@ impl<'a> DeviceContextBaseAddressArray {
     fn num_of_slots() -> usize {
         xhci::handle_registers(|r| {
             let p = &r.capability.hcs_params_1;
-            (p.read().max_slots() + 1).into()
+            (p.read().number_of_device_slots() + 1).into()
         })
     }
 
     fn register_address_to_xhci_register(&self) {
         xhci::handle_registers(|r| {
             let p = &mut r.operational.dcbaap;
-            p.update(|dcbaap| dcbaap.set(self.phys_addr()));
+            p.update(|dcbaap| {
+                dcbaap.set(self.phys_addr().as_u64()).expect(
+                    "The Device Context Base Address Array Base Pointer is not aligned correctly.",
+                )
+            });
         })
     }
 

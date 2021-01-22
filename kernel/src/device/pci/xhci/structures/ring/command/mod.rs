@@ -131,7 +131,7 @@ impl<'a> Initializer<'a> {
             // Do not split this closure to avoid read-modify-write bug. Reading fields may return
             // 0, this will cause writing 0 to fields.
             c.update(|c| {
-                c.set_ptr(a);
+                c.set_command_ring_pointer(a.as_u64());
                 c.set_ring_cycle_state(true);
                 info!("CRCR: {:X?}", c);
             });
