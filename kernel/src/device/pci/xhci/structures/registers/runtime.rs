@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::mem::accessor::Accessor;
-use bitfield::bitfield;
 use os_units::Bytes;
 use x86_64::PhysAddr;
 use xhci::registers::runtime::{
@@ -29,19 +28,4 @@ impl<'a> Runtime {
             erd_p,
         }
     }
-}
-
-bitfield! {
-    #[repr(transparent)]
-     struct InterruptManagementRegister(u32);
-
-     interrupt_pending,set_interrupt_pending: 0;
-     interrupt_enable, set_interrupt_status: 1;
-}
-
-bitfield! {
-    #[repr(transparent)]
-    struct InterruptModerationRegister(u32);
-
-    interrupt_moderation_interval, set_interrupt_interval: 15, 0;
 }
