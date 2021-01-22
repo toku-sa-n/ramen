@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::mem::accessor::Accessor;
-use bitfield::bitfield;
 use os_units::Bytes;
 use x86_64::PhysAddr;
+use xhci::registers::runtime::{
+    EventRingDequeuePointerRegister, EventRingSegmentTableBaseAddressRegister,
+    EventRingSegmentTableSizeRegister,
+};
 
 pub struct Runtime {
     pub erst_sz: Accessor<EventRingSegmentTableSizeRegister>,
@@ -24,49 +27,5 @@ impl<'a> Runtime {
             erst_ba,
             erd_p,
         }
-    }
-}
-
-bitfield! {
-    #[repr(transparent)]
-     struct InterruptManagementRegister(u32);
-
-     interrupt_pending,set_interrupt_pending: 0;
-     interrupt_enable, set_interrupt_status: 1;
-}
-
-bitfield! {
-    #[repr(transparent)]
-    struct InterruptModerationRegister(u32);
-
-    interrupt_moderation_interval, set_interrupt_interval: 15, 0;
-}
-
-#[repr(transparent)]
-#[derive(Debug)]
-pub struct EventRingSegmentTableSizeRegister(u32);
-impl EventRingSegmentTableSizeRegister {
-    pub fn set(&mut self, val: u16) {
-        self.0 = u32::from(val)
-    }
-}
-
-#[repr(transparent)]
-#[derive(Debug)]
-pub struct EventRingSegmentTableBaseAddressRegister(u64);
-impl EventRingSegmentTableBaseAddressRegister {
-    pub fn set(&mut self, addr: PhysAddr) {
-        let addr = addr.as_u64();
-        assert!(addr.trailing_zeros() >= 6);
-        self.0 = addr
-    }
-}
-
-#[repr(transparent)]
-pub struct EventRingDequeuePointerRegister(u64);
-impl EventRingDequeuePointerRegister {
-    pub fn set(&mut self, addr: PhysAddr) {
-        assert!(addr.as_u64().trailing_zeros() >= 4);
-        self.0 = addr.as_u64();
     }
 }

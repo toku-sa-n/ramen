@@ -2,16 +2,19 @@
 
 use super::capability::Capability;
 use crate::mem::accessor::Accessor;
-use bitfield::bitfield;
 use os_units::Bytes;
 use x86_64::PhysAddr;
+use xhci::registers::operational::{
+    CommandRingControlRegister, ConfigureRegister, DeviceContextBaseAddressArrayPointerRegister,
+    PageSizeRegister, PortStatusAndControlRegister, UsbCommandRegister, UsbStatusRegister,
+};
 
 pub struct Operational {
     pub usb_cmd: Accessor<UsbCommandRegister>,
     pub usb_sts: Accessor<UsbStatusRegister>,
-    pub page_size: Accessor<PageSize>,
+    pub page_size: Accessor<PageSizeRegister>,
     pub crcr: Accessor<CommandRingControlRegister>,
-    pub dcbaap: Accessor<DeviceContextBaseAddressArrayPointer>,
+    pub dcbaap: Accessor<DeviceContextBaseAddressArrayPointerRegister>,
     pub config: Accessor<ConfigureRegister>,
     pub port_registers: Accessor<[PortRegisters]>,
 }
@@ -21,7 +24,7 @@ impl Operational {
     /// can violate memory safety.
     #[allow(clippy::too_many_lines)]
     pub unsafe fn new(mmio_base: PhysAddr, capabilities: &Capability) -> Self {
-        let operational_base = mmio_base + capabilities.cap_length.read().get();
+        let operational_base = mmio_base + u64::from(capabilities.cap_length.read().get());
 
         macro_rules! accessor {
             ($bytes:expr) => {
@@ -38,7 +41,7 @@ impl Operational {
         let port_registers = Accessor::user_slice(
             operational_base,
             Bytes::new(0x400),
-            capabilities.hcs_params_1.read().max_ports().into(),
+            capabilities.hcs_params_1.read().number_of_ports().into(),
         );
 
         Self {
@@ -53,89 +56,10 @@ impl Operational {
     }
 }
 
-bitfield! {
-    #[repr(transparent)]
-    pub struct UsbCommandRegister(u32);
-
-    pub _ ,set_run_stop: 0;
-    pub hc_reset,set_hc_reset: 1;
-    interrupt_enable,set_interrupt_enable: 2;
-}
-
-bitfield! {
-    #[repr(transparent)]
-    pub struct UsbStatusRegister(u32);
-
-    pub hc_halted, _: 0;
-    pub controller_not_ready,_:11;
-    pub host_system_error, _: 2;
-    pub hc_error, _: 12;
-}
-
-#[repr(transparent)]
-pub struct PageSize(u32);
-impl PageSize {
-    pub fn as_bytes(&self) -> Bytes {
-        Bytes::new(2_usize.pow(self.0 + 12))
-    }
-}
-
-bitfield! {
-    #[repr(transparent)]
-    pub struct CommandRingControlRegister(u64);
-    impl Debug;
-    pub _, set_ring_cycle_state: 0;
-    command_ring_running, _: 3;
-    _, set_pointer:63,6;
-}
-impl CommandRingControlRegister {
-    pub fn set_ptr(&mut self, ptr: PhysAddr) {
-        assert!(ptr.is_aligned(64_u64));
-        assert!(!self.command_ring_running());
-        let ptr = ptr.as_u64() >> 6;
-
-        self.set_pointer(ptr);
-    }
-}
-
-#[repr(transparent)]
-pub struct DeviceContextBaseAddressArrayPointer(u64);
-impl DeviceContextBaseAddressArrayPointer {
-    pub fn set(&mut self, ptr: PhysAddr) {
-        assert!(
-            ptr.as_u64().trailing_zeros() >= 6,
-            "Wrong address: {:?}",
-            ptr
-        );
-
-        self.0 = ptr.as_u64();
-    }
-}
-
-bitfield! {
-    #[repr(transparent)]
-     pub struct ConfigureRegister(u32);
-
-     pub u8, _ ,set_max_device_slots_enabled:7,0;
-}
-
 #[derive(Debug)]
 pub struct PortRegisters {
     pub port_sc: PortStatusAndControlRegister,
     _port_pmsc: u32,
     _port_li: u32,
     _port_hlpmc: u32,
-}
-
-bitfield! {
-    #[repr(transparent)]
-     pub  struct PortStatusAndControlRegister(u32);
-     impl Debug;
-     pub current_connect_status, _: 0;
-     port_enabled_disabled, _: 1;
-     pub port_reset, set_port_reset: 4;
-     port_link_state, _: 8, 5;
-     port_power, _: 9;
-     pub port_speed, _: 13, 10;
-     pub port_reset_changed, _: 21;
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::CycleBit;
-use crate::device::pci::xhci::{self, exchanger::receiver};
+use crate::device::pci::xhci::{self, exchanger::receiver, port};
 use alloc::vec::Vec;
 use bit_field::BitField;
 use core::{
@@ -17,7 +17,6 @@ use x86_64::{
     structures::paging::{PageSize, Size4KiB},
     PhysAddr,
 };
-use xhci::port;
 
 mod segment_table;
 pub mod trb;
@@ -47,7 +46,7 @@ impl<'a> Ring {
     pub fn new() -> Self {
         let max_num_of_erst = xhci::handle_registers(|r| {
             let p2 = r.capability.hcs_params_2.read();
-            p2.powered_erst_max()
+            p2.event_ring_segment_table_max()
         });
 
         Self {
@@ -124,7 +123,7 @@ impl Raw {
     fn max_num_of_erst() -> u16 {
         xhci::handle_registers(|r| {
             let p = r.capability.hcs_params_2.read();
-            p.powered_erst_max()
+            p.event_ring_segment_table_max()
         })
     }
 
@@ -180,7 +179,10 @@ impl Raw {
     fn update_deq_p_with_xhci(&self) {
         xhci::handle_registers(|r| {
             let p = &mut r.runtime.erd_p;
-            p.update(|p| p.set(self.next_trb_addr()));
+            p.update(|p| {
+                p.set_event_ring_dequeue_pointer(self.next_trb_addr().as_u64())
+                    .expect("The Event Ring Dequeue Pointer is not aligned correctly.")
+            });
         });
     }
 
@@ -228,7 +230,10 @@ impl<'a> SegTblInitializer<'a> {
             let a = self.tbl_addr();
             let b = &mut r.runtime.erst_ba;
 
-            b.update(|b| b.set(a));
+            b.update(|b| {
+                b.set(a.as_u64())
+                    .expect("The Event Ring Segment Table Base Address is not aligned correctly.")
+            });
         });
     }
 
