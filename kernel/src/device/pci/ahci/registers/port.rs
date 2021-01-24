@@ -1,21 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{generic::Generic, AchiBaseAddr};
-use crate::mem::accessor::Accessor;
+use crate::mem::accessor::Single;
 use bitfield::bitfield;
-use os_units::Bytes;
 use x86_64::PhysAddr;
 
 pub struct Registers {
-    pub clb: Accessor<PortxCommandListBaseAddress>,
-    pub fb: Accessor<PortxFisBaseAddress>,
-    pub cmd: Accessor<PortxCommandAndStatus>,
-    pub tfd: Accessor<PortxTaskFileData>,
-    pub sig: Accessor<PortxSignature>,
-    pub ssts: Accessor<PortxSerialAtaStatus>,
-    pub serr: Accessor<PortxSerialAtaError>,
-    pub sact: Accessor<PortxSerialAtaActive>,
-    pub ci: Accessor<PortxCommandIssue>,
+    pub clb: Single<PortxCommandListBaseAddress>,
+    pub fb: Single<PortxFisBaseAddress>,
+    pub cmd: Single<PortxCommandAndStatus>,
+    pub tfd: Single<PortxTaskFileData>,
+    pub sig: Single<PortxSignature>,
+    pub ssts: Single<PortxSerialAtaStatus>,
+    pub serr: Single<PortxSerialAtaError>,
+    pub sact: Single<PortxSerialAtaActive>,
+    pub ci: Single<PortxCommandIssue>,
 }
 impl Registers {
     /// SAFETY: This method is unsafe because if `abar` is not a valid AHCI base address, it can
@@ -39,7 +38,8 @@ impl Registers {
 
         macro_rules! new_accessor {
             ($offset:expr) => {
-                Accessor::user(base_addr, Bytes::new($offset))
+                crate::mem::accessor::user(base_addr + $offset as usize)
+                    .expect("Address is not aligned.")
             };
         }
 
@@ -63,6 +63,7 @@ impl Registers {
 
 bitfield! {
     #[repr(transparent)]
+    #[derive(Copy,Clone)]
     pub struct PortxCommandAndStatus(u32);
     impl Debug;
     pub start_bit, set_start_bit: 0;
@@ -72,9 +73,11 @@ bitfield! {
 }
 
 #[repr(transparent)]
+#[derive(Copy, Clone)]
 pub struct PortxSerialAtaError(pub u32);
 
 #[repr(transparent)]
+#[derive(Copy, Clone)]
 pub struct PortxCommandListBaseAddress(u64);
 impl PortxCommandListBaseAddress {
     pub fn set(&mut self, addr: PhysAddr) {
@@ -85,6 +88,7 @@ impl PortxCommandListBaseAddress {
 
 bitfield! {
     #[repr(transparent)]
+    #[derive(Copy,Clone)]
     pub struct PortxTaskFileData(u32);
     impl Debug;
     pub busy, _: 14;
@@ -92,6 +96,7 @@ bitfield! {
 }
 
 #[repr(transparent)]
+#[derive(Copy, Clone)]
 pub struct PortxSignature(u32);
 impl PortxSignature {
     pub fn get(&self) -> u32 {
@@ -101,6 +106,7 @@ impl PortxSignature {
 
 bitfield! {
     #[repr(transparent)]
+    #[derive(Copy,Clone)]
     pub struct PortxSerialAtaStatus(u32);
     impl Debug;
     pub device_detection, _: 3, 0;
@@ -108,6 +114,7 @@ bitfield! {
 }
 
 #[repr(transparent)]
+#[derive(Copy, Clone)]
 pub struct PortxFisBaseAddress(u64);
 impl PortxFisBaseAddress {
     pub fn set(&mut self, addr: PhysAddr) {
@@ -117,6 +124,7 @@ impl PortxFisBaseAddress {
 }
 
 #[repr(transparent)]
+#[derive(Copy, Clone)]
 pub struct PortxSerialAtaActive(u32);
 impl PortxSerialAtaActive {
     pub fn get(&self) -> u32 {
@@ -125,6 +133,7 @@ impl PortxSerialAtaActive {
 }
 
 #[repr(transparent)]
+#[derive(Copy, Clone)]
 pub struct PortxCommandIssue(u32);
 impl PortxCommandIssue {
     pub fn get(&self) -> u32 {

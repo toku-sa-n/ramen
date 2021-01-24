@@ -1,27 +1,28 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::mem::accessor::Accessor;
-use core::convert::TryInto;
-use os_units::Bytes;
+use crate::mem::accessor::Array as ArrayAccessor;
+use core::convert::TryFrom;
 use x86_64::PhysAddr;
 
 const NUM_OF_REGISTERS: usize = 256;
 
-pub struct Array(Accessor<[u32]>);
+pub struct Array(ArrayAccessor<u32>);
 impl Array {
     /// Safety: `mmio_base` must be a valid address to the top of the doorbell registers.
     pub unsafe fn new(mmio_base: PhysAddr, db_off: u32) -> Self {
-        Self(Accessor::user_slice(
-            mmio_base,
-            Bytes::new(db_off.try_into().unwrap()),
-            NUM_OF_REGISTERS,
-        ))
+        Self(
+            crate::mem::accessor::user_array(
+                mmio_base + usize::try_from(db_off).unwrap(),
+                NUM_OF_REGISTERS,
+            )
+            .expect("Address is not aligned"),
+        )
     }
 
     pub fn update<T>(&mut self, index: usize, f: T)
     where
         T: Fn(&mut u32),
     {
-        self.0.update(index, f)
+        self.0.update_at(index, f)
     }
 }

@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::pic;
-use crate::mem::{accessor::Accessor, allocator};
+use crate::mem::{accessor::Single, allocator};
 use acpi::{platform::IoApic, AcpiTables, InterruptModel};
 use bit_field::BitField;
 use core::convert::TryInto;
-use os_units::Bytes;
 use x86_64::PhysAddr;
 
 /// Currently this OS does not support multiple I/O APIC.
 
 struct Registers {
-    addr: Accessor<u32>,
-    data: Accessor<u32>,
+    addr: Single<u32>,
+    data: Single<u32>,
 }
 impl Registers {
     const DEST_BASE: u8 = 0x10;
@@ -28,8 +27,9 @@ impl Registers {
         let io_apic_base = PhysAddr::new(io_apics[0].address.into());
 
         Self {
-            addr: Accessor::kernel(io_apic_base, Bytes::new(0)),
-            data: Accessor::kernel(io_apic_base, Bytes::new(0x10)),
+            addr: crate::mem::accessor::kernel(io_apic_base).expect("Address is not aligned."),
+            data: crate::mem::accessor::kernel(io_apic_base + 0x10_usize)
+                .expect("Address is not aligned."),
         }
     }
 
