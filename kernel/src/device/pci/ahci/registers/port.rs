@@ -99,7 +99,7 @@ bitfield! {
 #[derive(Copy, Clone)]
 pub struct PortxSignature(u32);
 impl PortxSignature {
-    pub fn get(&self) -> u32 {
+    pub fn get(self) -> u32 {
         self.0
     }
 }
