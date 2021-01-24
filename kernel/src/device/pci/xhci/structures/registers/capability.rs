@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::mem::accessor::Accessor;
-use os_units::Bytes;
+use crate::mem::accessor::Single;
 use x86_64::PhysAddr;
 use xhci::registers::capability::{
     CapabilityParameters1, CapabilityRegistersLength, DoorbellOffset, RuntimeRegisterSpaceOffset,
@@ -9,24 +8,29 @@ use xhci::registers::capability::{
 };
 
 pub struct Capability {
-    pub cap_length: Accessor<CapabilityRegistersLength>,
-    pub hcs_params_1: Accessor<StructuralParameters1>,
-    pub hcs_params_2: Accessor<StructuralParameters2>,
-    pub hc_cp_params_1: Accessor<CapabilityParameters1>,
-    pub db_off: Accessor<DoorbellOffset>,
-    pub rts_off: Accessor<RuntimeRegisterSpaceOffset>,
+    pub cap_length: Single<CapabilityRegistersLength>,
+    pub hcs_params_1: Single<StructuralParameters1>,
+    pub hcs_params_2: Single<StructuralParameters2>,
+    pub hc_cp_params_1: Single<CapabilityParameters1>,
+    pub db_off: Single<DoorbellOffset>,
+    pub rts_off: Single<RuntimeRegisterSpaceOffset>,
 }
 
 impl Capability {
     /// SAFETY: This method is unsafe because if `mmio_base` is not the valid MMIO base address, it
     /// can violate memory safety.
     pub unsafe fn new(mmio_base: PhysAddr) -> Self {
-        let cap_length = Accessor::user(mmio_base, Bytes::new(0));
-        let hcs_params_1 = Accessor::user(mmio_base, Bytes::new(0x04));
-        let hcs_params_2 = Accessor::user(mmio_base, Bytes::new(0x08));
-        let hc_cp_params_1 = Accessor::user(mmio_base, Bytes::new(0x10));
-        let db_off = Accessor::user(mmio_base, Bytes::new(0x14));
-        let rts_off = Accessor::user(mmio_base, Bytes::new(0x18));
+        let cap_length = crate::mem::accessor::user(mmio_base).expect("Address is not aligned.");
+        let hcs_params_1 =
+            crate::mem::accessor::user(mmio_base + 0x04_usize).expect("Address is not aligned.");
+        let hcs_params_2 =
+            crate::mem::accessor::user(mmio_base + 0x08_usize).expect("Address is not aligned.");
+        let hc_cp_params_1 =
+            crate::mem::accessor::user(mmio_base + 0x10_usize).expect("Address is not aligned.");
+        let db_off =
+            crate::mem::accessor::user(mmio_base + 0x14_usize).expect("Address is not aligned.");
+        let rts_off =
+            crate::mem::accessor::user(mmio_base + 0x18_usize).expect("Address is not aligned.");
 
         Self {
             cap_length,

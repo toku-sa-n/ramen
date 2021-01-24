@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::capability::Capability;
-use crate::mem::accessor::Accessor;
+use crate::mem::accessor::Single;
 use core::convert::TryInto;
-use os_units::Bytes;
 use x86_64::PhysAddr;
 use xhci::extended_capabilities::usb_legacy_support_capability::UsbLegacySupportCapability;
 
@@ -51,7 +50,8 @@ impl Iter {
 
     fn header(&self) -> Option<u32> {
         // SAFETY: This is safe because `self.addr` points to the head of an extended capability.
-        let a: Accessor<u32> = unsafe { Accessor::user(self.addr?, Bytes::zero()) };
+        let a: Single<u32> =
+            unsafe { crate::mem::accessor::user(self.addr?).expect("Address is not aligned") };
         Some(a.read())
     }
 }
@@ -63,7 +63,7 @@ impl Iterator for Iter {
         let next_addr = self.next_addr();
 
         let item = if let Some(1) = self.id() {
-            let a = unsafe { Accessor::user(a, Bytes::zero()) };
+            let a = unsafe { crate::mem::accessor::user(a).expect("Address is not aligned.") };
             ExtendedCapability::UsbLegacySupport(a)
         } else {
             ExtendedCapability::UnImplemented
@@ -76,6 +76,6 @@ impl Iterator for Iter {
 }
 
 pub enum ExtendedCapability {
-    UsbLegacySupport(Accessor<UsbLegacySupportCapability>),
+    UsbLegacySupport(Single<UsbLegacySupportCapability>),
     UnImplemented,
 }
