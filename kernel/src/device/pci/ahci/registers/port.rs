@@ -127,7 +127,7 @@ impl PortxFisBaseAddress {
 #[derive(Copy, Clone)]
 pub struct PortxSerialAtaActive(u32);
 impl PortxSerialAtaActive {
-    pub fn get(&self) -> u32 {
+    pub fn get(self) -> u32 {
         self.0
     }
 }
@@ -136,7 +136,7 @@ impl PortxSerialAtaActive {
 #[derive(Copy, Clone)]
 pub struct PortxCommandIssue(u32);
 impl PortxCommandIssue {
-    pub fn get(&self) -> u32 {
+    pub fn get(self) -> u32 {
         self.0
     }
 }
