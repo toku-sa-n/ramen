@@ -110,13 +110,11 @@ impl DestinationMode {
 #[derive(Clone)]
 enum Polarity {
     HighIsActive = 0,
-    LowIsActive = 1,
 }
 impl Polarity {
     fn as_bool(&self) -> bool {
         match self {
             Self::HighIsActive => false,
-            Self::LowIsActive => true,
         }
     }
 }
@@ -124,13 +122,11 @@ impl Polarity {
 #[derive(Clone)]
 enum TriggerMode {
     Edge = 0,
-    Level = 1,
 }
 impl TriggerMode {
     fn as_bool(&self) -> bool {
         match self {
             Self::Edge => false,
-            Self::Level => true,
         }
     }
 }
