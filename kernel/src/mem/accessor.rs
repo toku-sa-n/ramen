@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use accessor::{error::Error, mapper::Mapper};
-use core::convert::TryInto;
+use core::{convert::TryInto, num::NonZeroUsize};
 use os_units::Bytes;
 use x86_64::{PhysAddr, VirtAddr};
 
@@ -49,13 +49,16 @@ impl Mappers {
     }
 }
 impl Mapper for Mappers {
-    unsafe fn map(&mut self, phys_start: usize, bytes: usize) -> usize {
-        (self.mapper)(
-            PhysAddr::new(phys_start.try_into().unwrap()),
-            Bytes::new(bytes),
+    unsafe fn map(&mut self, phys_start: usize, bytes: usize) -> NonZeroUsize {
+        NonZeroUsize::new(
+            (self.mapper)(
+                PhysAddr::new(phys_start.try_into().unwrap()),
+                Bytes::new(bytes),
+            )
+            .as_u64()
+            .try_into()
+            .unwrap(),
         )
-        .as_u64()
-        .try_into()
         .unwrap()
     }
 
