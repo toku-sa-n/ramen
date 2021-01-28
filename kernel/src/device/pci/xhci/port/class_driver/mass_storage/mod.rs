@@ -3,7 +3,6 @@
 mod scsi;
 
 use crate::device::pci::xhci::{port::endpoint, structures::context::EndpointType};
-use core::convert::TryFrom;
 use page_box::PageBox;
 use scsi::{
     CommandBlockWrapper, CommandBlockWrapperHeaderBuilder, CommandDataBlock, CommandStatus,
@@ -51,6 +50,7 @@ impl MassStorage {
     ) {
         self.send_command_block_wrapper(c).await;
         self.receive_command_status(recv).await;
+        recv.check_corruption();
     }
 
     async fn send_command_block_wrapper(&mut self, c: &mut PageBox<CommandBlockWrapper>) {

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::convert::{TryFrom, TryInto};
+use core::convert::TryFrom;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 
@@ -64,6 +64,10 @@ where
         self.wrapper
     }
 
+    pub(super) fn check_corruption(&self) {
+        self.wrapper().check_corruption();
+    }
+
     // Because of the blanket implementation, `impl<T,U> TryFrom<CommandStatus<U>> for
     // CommandStatus<T> where T:TryFrom<U>` cannot be implemented.
     pub(super) fn try_into<U>(self) -> Result<CommandStatus<U>, <U as TryFrom<T>>::Error>
@@ -109,6 +113,15 @@ pub(super) struct CommandStatusWrapper {
     status: u8,
 }
 impl CommandStatusWrapper {
+    pub(super) fn check_corruption(&self) {
+        const USBC: u32 = 0x43425355;
+        let signature = self.signature;
+
+        assert_eq!(
+            signature, USBC,
+            "The signature of the Command Status Wrapper is wrong."
+        );
+    }
     pub(super) fn status(&self) -> Result<Status, Invalid> {
         FromPrimitive::from_u8(self.status).ok_or(Invalid::Status(self.status))
     }
