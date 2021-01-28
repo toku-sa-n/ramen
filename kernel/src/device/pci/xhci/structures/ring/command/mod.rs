@@ -38,8 +38,7 @@ impl Ring {
 
     fn notify_command_is_sent() {
         xhci::handle_registers(|r| {
-            let d = &mut r.doorbell_array;
-            d.update(0, |reg| *reg = 0)
+            r.doorbell.update_at(0, |r| r.set_doorbell_target(0));
         })
     }
 }
@@ -126,15 +125,13 @@ impl<'a> Initializer<'a> {
     fn init(&mut self) {
         xhci::handle_registers(|r| {
             let a = self.ring.phys_addr();
-            let c = &mut r.operational.crcr;
 
             // Do not split this closure to avoid read-modify-write bug. Reading fields may return
             // 0, this will cause writing 0 to fields.
-            c.update(|c| {
+            r.operational.crcr.update(|c| {
                 c.set_command_ring_pointer(a.as_u64())
-                    .expect("The Command Ring Pointer is not aligned properly.");
+                    .expect("The Command Ring Pointer is not aligned correctly.");
                 c.set_ring_cycle_state(true);
-                info!("CRCR: {:X?}", c);
             });
         })
     }

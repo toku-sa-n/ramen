@@ -5,22 +5,31 @@ mod port;
 mod structures;
 mod xhc;
 
+use core::convert::TryInto;
+
 use super::config::bar;
-use crate::multitask::{self, task::Task};
+use crate::{
+    mem::accessor::Mappers,
+    multitask::{self, task::Task},
+};
 use alloc::sync::Arc;
 use conquer_once::spin::OnceCell;
+use extended_capabilities::ExtendedCapability;
 use spinning_top::Spinlock;
 use structures::{
     dcbaa,
-    registers::Registers,
     ring::{command, event},
     scratchpad,
 };
+use x86_64::PhysAddr;
+use xhci::{extended_capabilities, registers::Registers};
 
-static REGISTERS: OnceCell<Spinlock<Registers>> = OnceCell::uninit();
+static REGISTERS: OnceCell<Spinlock<Registers<Mappers>>> = OnceCell::uninit();
+static EXTENDED_CAPABILITIES: OnceCell<Spinlock<Option<extended_capabilities::List<Mappers>>>> =
+    OnceCell::uninit();
 
 pub async fn task() {
-    if init_registers().is_err() {
+    if init_statics().is_err() {
         warn!("xHC not found.");
         return;
     }
@@ -35,14 +44,50 @@ pub async fn task() {
     exchanger::command::noop().await;
 }
 
-fn init_registers() -> Result<(), XhcNotFound> {
+fn init_statics() -> Result<(), XhcNotFound> {
     match iter_devices().next() {
-        Some(r) => {
-            REGISTERS.init_once(|| Spinlock::new(r));
+        Some(a) => {
+            init_registers(a);
+            init_extended_capabilities(a);
             Ok(())
         }
         None => Err(XhcNotFound),
     }
+}
+
+fn init_registers(mmio_base: PhysAddr) {
+    REGISTERS
+        .try_init_once(|| {
+            Spinlock::new(
+                // SAFETY: The address is the correct one and the Registers are accessed only through
+                // this static.
+                unsafe {
+                    Registers::new(mmio_base.as_u64().try_into().unwrap(), Mappers::user())
+                        .expect("The MMIO base address of the xHC is not aligned correctly.")
+                },
+            )
+        })
+        .expect("Failed to initialize `REGISTERS`.")
+}
+
+fn init_extended_capabilities(mmio_base: PhysAddr) {
+    let hccparams1 = handle_registers(|r| r.capability.hccparams1.read());
+
+    EXTENDED_CAPABILITIES
+        .try_init_once(|| {
+            Spinlock::new(
+                // SAFETY: The address is the correct one and the Extended Capabilities are accessed only through
+                // this static.
+                unsafe {
+                    extended_capabilities::List::new(
+                        mmio_base.as_u64().try_into().unwrap(),
+                        hccparams1,
+                        Mappers::user(),
+                    )
+                },
+            )
+        })
+        .expect("Failed to initialize `EXTENDED_CAPABILITIES`.");
 }
 
 #[derive(Debug)]
@@ -58,10 +103,23 @@ struct XhcNotFound;
 /// deadlocks.
 fn handle_registers<T, U>(f: T) -> U
 where
-    T: Fn(&mut Registers) -> U,
+    T: Fn(&mut Registers<Mappers>) -> U,
 {
     let mut r = REGISTERS.try_get().unwrap().lock();
     f(&mut r)
+}
+
+fn iter_extended_capabilities() -> Option<
+    impl Iterator<Item = Result<ExtendedCapability<Mappers>, extended_capabilities::NotSupportedId>>,
+> {
+    Some(
+        EXTENDED_CAPABILITIES
+            .try_get()
+            .expect("`EXTENDED_CAPABILITIES` is not initialized.`")
+            .lock()
+            .as_mut()?
+            .into_iter(),
+    )
 }
 
 fn init() -> event::Ring {
@@ -82,12 +140,10 @@ fn init() -> event::Ring {
     event_ring
 }
 
-fn iter_devices() -> impl Iterator<Item = Registers> {
+fn iter_devices() -> impl Iterator<Item = PhysAddr> {
     super::iter_devices().filter_map(|device| {
         if device.is_xhci() {
-            // SAFETY: This operation is safe because MMIO base address is generated from the 0th
-            // BAR.
-            Some(unsafe { Registers::new(device.base_address(bar::Index::new(0))) })
+            Some(device.base_address(bar::Index::new(0)))
         } else {
             None
         }

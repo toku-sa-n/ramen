@@ -48,10 +48,7 @@ impl Input {
     }
 
     fn csz() -> bool {
-        xhci::handle_registers(|r| {
-            let p1 = r.capability.hc_cp_params_1.read();
-            p1.context_size()
-        })
+        xhci::handle_registers(|r| r.capability.hccparams1.read().context_size())
     }
 }
 impl Default for Input {

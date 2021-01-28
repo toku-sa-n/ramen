@@ -147,11 +147,10 @@ impl Default {
     // Check the capability and fetch the actual port speed. Then return the max packet size.
     fn get_max_packet_size(&self) -> u16 {
         let psi = xhci::handle_registers(|r| {
-            let p = r
-                .operational
-                .port_registers
-                .read_at((self.port_id - 1).into());
-            p.port_sc.port_speed()
+            r.port_register_set
+                .read_at((self.port_id - 1).into())
+                .portsc
+                .port_speed()
         });
 
         match psi {
