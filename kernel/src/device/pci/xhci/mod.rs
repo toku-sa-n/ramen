@@ -143,8 +143,6 @@ fn init() -> event::Ring {
 fn iter_devices() -> impl Iterator<Item = PhysAddr> {
     super::iter_devices().filter_map(|device| {
         if device.is_xhci() {
-            // SAFETY: This operation is safe because MMIO base address is generated from the 0th
-            // BAR.
             Some(device.base_address(bar::Index::new(0)))
         } else {
             None
