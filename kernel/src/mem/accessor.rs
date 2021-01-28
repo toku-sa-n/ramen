@@ -6,20 +6,12 @@ use os_units::Bytes;
 use x86_64::{PhysAddr, VirtAddr};
 
 pub type Single<T> = accessor::Single<T, Mappers>;
-pub type Array<T> = accessor::Array<T, Mappers>;
 
 pub unsafe fn user<T>(phys_base: PhysAddr) -> Result<Single<T>, Error>
 where
     T: Copy,
 {
     accessor::Single::new(phys_base.as_u64().try_into().unwrap(), Mappers::user())
-}
-
-pub unsafe fn user_array<T>(phys_base: PhysAddr, len: usize) -> Result<Array<T>, Error>
-where
-    T: Copy,
-{
-    accessor::Array::new(phys_base.as_u64().try_into().unwrap(), len, Mappers::user())
 }
 
 pub unsafe fn kernel<T>(phys_base: PhysAddr) -> Result<Single<T>, Error>
