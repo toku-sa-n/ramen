@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+mod channel;
+
 use core::convert::TryFrom;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
