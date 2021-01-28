@@ -29,6 +29,7 @@ where
     accessor::Single::new(phys_base.as_u64().try_into().unwrap(), Mappers::kernel())
 }
 
+#[derive(Copy, Clone)]
 pub struct Mappers {
     mapper: fn(PhysAddr, Bytes) -> VirtAddr,
     unmapper: fn(VirtAddr, Bytes),
@@ -41,7 +42,7 @@ impl Mappers {
         }
     }
 
-    fn user() -> Self {
+    pub fn user() -> Self {
         Self {
             mapper: syscalls::map_pages,
             unmapper: syscalls::unmap_pages,

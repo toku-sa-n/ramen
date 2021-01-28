@@ -69,10 +69,10 @@ impl Scratchpad {
     }
 
     fn num_of_buffers() -> u32 {
-        xhci::handle_registers(|r| r.capability.hcs_params_2.read().max_scratchpad_buffers())
+        xhci::handle_registers(|r| r.capability.hcsparams2.read().max_scratchpad_buffers())
     }
 
     fn page_size() -> Bytes {
-        Bytes::new(xhci::handle_registers(|r| r.operational.page_size.read().get()).into())
+        Bytes::new(xhci::handle_registers(|r| r.operational.pagesize.read().get()).into())
     }
 }

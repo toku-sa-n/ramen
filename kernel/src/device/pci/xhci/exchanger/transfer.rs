@@ -149,8 +149,9 @@ impl DoorbellWriter {
 
     pub fn write(&mut self) {
         xhci::handle_registers(|r| {
-            let d = &mut r.doorbell_array;
-            d.update(self.slot_id.into(), |d| *d = self.val);
+            r.doorbell.update_at(self.slot_id.into(), |d| {
+                d.set_doorbell_target(self.val.try_into().unwrap())
+            })
         });
     }
 }
