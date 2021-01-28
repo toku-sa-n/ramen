@@ -1,6 +1,7 @@
-use xhci::extended_capabilities::ExtendedCapability;
-
 // SPDX-License-Identifier: GPL-3.0-or-later
+
+use super::structures::registers;
+use xhci::extended_capabilities::ExtendedCapability;
 
 pub fn init() {
     get_ownership_from_bios();
@@ -9,7 +10,7 @@ pub fn init() {
 }
 
 pub fn run() {
-    super::handle_registers(|r| {
+    registers::handle(|r| {
         let o = &mut r.operational;
         o.usbcmd.update(|u| u.set_run_stop(true));
         while o.usbsts.read().hc_halted() {}
@@ -17,7 +18,7 @@ pub fn run() {
 }
 
 pub fn ensure_no_error_occurs() {
-    super::handle_registers(|r| {
+    registers::handle(|r| {
         let s = r.operational.usbsts.read();
         assert!(!s.hc_halted(), "HC is halted.");
         assert!(
@@ -47,13 +48,13 @@ fn stop_and_reset() {
 }
 
 fn stop() {
-    super::handle_registers(|r| {
+    registers::handle(|r| {
         r.operational.usbcmd.update(|u| u.set_run_stop(false));
     })
 }
 
 fn wait_until_halt() {
-    super::handle_registers(|r| while !r.operational.usbsts.read().hc_halted() {})
+    registers::handle(|r| while !r.operational.usbsts.read().hc_halted() {})
 }
 
 fn reset() {
@@ -63,7 +64,7 @@ fn reset() {
 }
 
 fn start_resetting() {
-    super::handle_registers(|r| {
+    registers::handle(|r| {
         r.operational
             .usbcmd
             .update(|u| u.set_host_controller_reset(true))
@@ -71,7 +72,7 @@ fn start_resetting() {
 }
 
 fn wait_until_reset_completed() {
-    super::handle_registers(
+    registers::handle(
         |r| {
             while r.operational.usbcmd.read().host_controller_reset() {}
         },
@@ -79,7 +80,7 @@ fn wait_until_reset_completed() {
 }
 
 fn wait_until_ready() {
-    super::handle_registers(
+    registers::handle(
         |r| {
             while r.operational.usbsts.read().controller_not_ready() {}
         },
@@ -88,7 +89,7 @@ fn wait_until_ready() {
 
 fn set_num_of_enabled_slots() {
     let n = num_of_device_slots();
-    super::handle_registers(|r| {
+    registers::handle(|r| {
         r.operational
             .config
             .update(|c| c.set_max_device_slots_enabled(n));
@@ -96,5 +97,5 @@ fn set_num_of_enabled_slots() {
 }
 
 fn num_of_device_slots() -> u8 {
-    super::handle_registers(|r| r.capability.hcsparams1.read().number_of_device_slots())
+    registers::handle(|r| r.capability.hcsparams1.read().number_of_device_slots())
 }

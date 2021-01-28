@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::ring::CycleBit;
-use crate::device::pci::xhci;
+use crate::device::pci::xhci::registers;
 use bit_field::BitField;
 use core::convert::{TryFrom, TryInto};
 use num_derive::FromPrimitive;
@@ -48,7 +48,7 @@ impl Input {
     }
 
     fn csz() -> bool {
-        xhci::handle_registers(|r| r.capability.hccparams1.read().context_size())
+        registers::handle(|r| r.capability.hccparams1.read().context_size())
     }
 }
 impl Default for Input {

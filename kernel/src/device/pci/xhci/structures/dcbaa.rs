@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::device::pci::xhci;
+use super::registers;
 use conquer_once::spin::Lazy;
 use core::ops::{Index, IndexMut};
 use page_box::PageBox;
@@ -32,12 +32,11 @@ impl<'a> DeviceContextBaseAddressArray {
     }
 
     fn num_of_slots() -> usize {
-        xhci::handle_registers(|r| r.capability.hcsparams1.read().number_of_device_slots() + 1)
-            .into()
+        registers::handle(|r| r.capability.hcsparams1.read().number_of_device_slots() + 1).into()
     }
 
     fn register_address_to_xhci_register(&self) {
-        xhci::handle_registers(|r| {
+        registers::handle(|r| {
             r.operational.dcbaap.update(|d| {
                 d.set(self.phys_addr().as_u64()).expect(
                     "The Device Context Base Address Array Base Pointer is not aligned correctly.",

@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{exchanger, structures::context::Context};
+use super::{
+    exchanger,
+    structures::{context::Context, registers},
+};
 use crate::multitask::{self, task::Task};
 use alloc::collections::VecDeque;
 use conquer_once::spin::Lazy;
@@ -94,7 +97,7 @@ pub fn spawn_all_connected_port_tasks() {
 }
 
 fn max_num() -> u8 {
-    super::handle_registers(|r| r.capability.hcsparams1.read().number_of_ports())
+    registers::handle(|r| r.capability.hcsparams1.read().number_of_ports())
 }
 
 pub struct Port {
@@ -124,7 +127,7 @@ impl Port {
     }
 
     fn read_port_rg(&self) -> PortRegisterSet {
-        super::handle_registers(|r| r.port_register_set.read_at((self.index - 1).into()))
+        registers::handle(|r| r.port_register_set.read_at((self.index - 1).into()))
     }
 }
 

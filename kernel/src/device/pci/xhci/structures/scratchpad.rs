@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::dcbaa;
-use crate::device::pci::xhci;
+use crate::device::pci::xhci::registers;
 use alloc::vec::Vec;
 use conquer_once::spin::OnceCell;
 use core::convert::TryInto;
@@ -69,10 +69,10 @@ impl Scratchpad {
     }
 
     fn num_of_buffers() -> u32 {
-        xhci::handle_registers(|r| r.capability.hcsparams2.read().max_scratchpad_buffers())
+        registers::handle(|r| r.capability.hcsparams2.read().max_scratchpad_buffers())
     }
 
     fn page_size() -> Bytes {
-        Bytes::new(xhci::handle_registers(|r| r.operational.pagesize.read().get()).into())
+        Bytes::new(registers::handle(|r| r.operational.pagesize.read().get()).into())
     }
 }
