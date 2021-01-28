@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use crate::mem::{accessor::Single, allocator};
 use acpi::{platform::address::AddressSpace, AcpiTables};
 use core::convert::TryInto;
-use os_units::Bytes;
 use x86_64::{instructions::port::PortReadOnly, PhysAddr};
-
-use crate::mem::{accessor::Accessor, allocator};
 
 const LVT_TIMER: PhysAddr = PhysAddr::new_truncate(0xfee0_0320);
 const INITIAL_COUNT: PhysAddr = PhysAddr::new_truncate(0xfee0_0380);
@@ -19,20 +17,24 @@ pub fn init(table: &AcpiTables<allocator::acpi::Mapper>) {
 }
 
 struct LocalApic {
-    lvt_timer: Accessor<u32>,
-    initial_count: Accessor<u32>,
-    current_count: Accessor<u32>,
-    divide_config: Accessor<u32>,
+    lvt_timer: Single<u32>,
+    initial_count: Single<u32>,
+    current_count: Single<u32>,
+    divide_config: Single<u32>,
     pm: AcpiPm,
     frequency: Option<u32>,
 }
 impl LocalApic {
     fn new(table: &AcpiTables<allocator::acpi::Mapper>) -> Self {
         // SAFETY: These operations are safe because the addresses are the correct ones.
-        let lvt_timer = unsafe { Accessor::<u32>::kernel(LVT_TIMER, Bytes::new(0)) };
-        let initial_count = unsafe { Accessor::<u32>::kernel(INITIAL_COUNT, Bytes::new(0)) };
-        let current_count = unsafe { Accessor::<u32>::kernel(CURRENT_COUNT, Bytes::new(0)) };
-        let divide_config = unsafe { Accessor::<u32>::kernel(DIVIDE_CONFIG, Bytes::new(0)) };
+        let lvt_timer = unsafe { crate::mem::accessor::kernel::<u32>(LVT_TIMER) }
+            .expect("Address is not aligned.");
+        let initial_count = unsafe { crate::mem::accessor::kernel::<u32>(INITIAL_COUNT) }
+            .expect("Address is not aligned.");
+        let current_count = unsafe { crate::mem::accessor::kernel::<u32>(CURRENT_COUNT) }
+            .expect("Address is not aligned.");
+        let divide_config = unsafe { crate::mem::accessor::kernel::<u32>(DIVIDE_CONFIG) }
+            .expect("Address is not aligned.");
         let pm = AcpiPm::new(table);
 
         Self {
@@ -142,14 +144,15 @@ impl IoReader {
 }
 
 struct MemoryReader {
-    addr: Accessor<u32>,
+    addr: Single<u32>,
 }
 impl MemoryReader {
     fn new(table: &AcpiTables<allocator::acpi::Mapper>) -> Self {
         let b = table.platform_info().unwrap().pm_timer.unwrap().base;
         Self {
             // SAFETY: This operation is safe as the address is generated from `AcpiTables`.
-            addr: unsafe { Accessor::kernel(PhysAddr::new(b.address), Bytes::new(0)) },
+            addr: unsafe { crate::mem::accessor::kernel(PhysAddr::new(b.address)) }
+                .expect("Address is not aligned."),
         }
     }
 

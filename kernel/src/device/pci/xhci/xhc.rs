@@ -33,9 +33,11 @@ fn get_ownership_from_bios() {
         if let Some(caps) = &r.extended_capability {
             for cap in caps.iter() {
                 if let ExtendedCapability::UsbLegacySupport(mut leg_sup) = cap {
-                    leg_sup.update(|s| s.os_request_ownership(true));
+                    leg_sup.update(|s| s.set_hc_os_owned_semaphore(true));
 
-                    while leg_sup.read().bios_owns_hc() || !leg_sup.read().os_owns_hc() {}
+                    while leg_sup.read().hc_bios_owned_semaphore()
+                        || !leg_sup.read().hc_os_owned_semaphore()
+                    {}
                 }
             }
         }

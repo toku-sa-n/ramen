@@ -132,7 +132,7 @@ impl Port {
     fn read_port_rg(&self) -> PortRegisters {
         super::handle_registers(|r| {
             let port_rg = &r.operational.port_registers;
-            port_rg.read((self.index - 1).into())
+            port_rg.read_at((self.index - 1).into())
         })
     }
 }

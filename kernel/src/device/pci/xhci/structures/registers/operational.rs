@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::capability::Capability;
-use crate::mem::accessor::Accessor;
-use os_units::Bytes;
+use crate::mem::accessor::{Array, Single};
 use x86_64::PhysAddr;
 use xhci::registers::operational::{
     CommandRingControlRegister, ConfigureRegister, DeviceContextBaseAddressArrayPointerRegister,
@@ -10,13 +9,13 @@ use xhci::registers::operational::{
 };
 
 pub struct Operational {
-    pub usb_cmd: Accessor<UsbCommandRegister>,
-    pub usb_sts: Accessor<UsbStatusRegister>,
-    pub page_size: Accessor<PageSizeRegister>,
-    pub crcr: Accessor<CommandRingControlRegister>,
-    pub dcbaap: Accessor<DeviceContextBaseAddressArrayPointerRegister>,
-    pub config: Accessor<ConfigureRegister>,
-    pub port_registers: Accessor<[PortRegisters]>,
+    pub usb_cmd: Single<UsbCommandRegister>,
+    pub usb_sts: Single<UsbStatusRegister>,
+    pub page_size: Single<PageSizeRegister>,
+    pub crcr: Single<CommandRingControlRegister>,
+    pub dcbaap: Single<DeviceContextBaseAddressArrayPointerRegister>,
+    pub config: Single<ConfigureRegister>,
+    pub port_registers: Array<PortRegisters>,
 }
 
 impl Operational {
@@ -28,7 +27,8 @@ impl Operational {
 
         macro_rules! accessor {
             ($bytes:expr) => {
-                Accessor::user(operational_base, Bytes::new($bytes))
+                crate::mem::accessor::user(operational_base + $bytes as usize)
+                    .expect("Address is not aligned.")
             };
         }
 
@@ -38,11 +38,11 @@ impl Operational {
         let crcr = accessor!(0x18);
         let dcbaap = accessor!(0x30);
         let config = accessor!(0x38);
-        let port_registers = Accessor::user_slice(
-            operational_base,
-            Bytes::new(0x400),
+        let port_registers = crate::mem::accessor::user_array(
+            operational_base + 0x400_usize,
             capabilities.hcs_params_1.read().number_of_ports().into(),
-        );
+        )
+        .expect("Address is not aligned.");
 
         Self {
             usb_cmd,
@@ -56,7 +56,7 @@ impl Operational {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct PortRegisters {
     pub port_sc: PortStatusAndControlRegister,
     _port_pmsc: u32,

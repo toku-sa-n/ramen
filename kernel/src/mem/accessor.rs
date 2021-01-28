@@ -1,137 +1,37 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::{marker::PhantomData, mem, ptr};
+use accessor::{error::Error, mapper::Mapper};
+use core::{convert::TryInto, num::NonZeroUsize};
 use os_units::Bytes;
 use x86_64::{PhysAddr, VirtAddr};
 
-pub struct Accessor<T: ?Sized> {
-    virt: VirtAddr,
-    bytes: Bytes, // The size of `T` is not always computable. Thus save the bytes of objects.
-    _marker: PhantomData<T>,
-    mappers: Mappers,
-}
-impl<T> Accessor<T> {
-    /// SAFETY: This method is unsafe because it can create multiple mutable references to the same
-    /// object.
-    pub unsafe fn kernel(phys_base: PhysAddr, offset: Bytes) -> Self {
-        Self::new(&EffectiveAddr::new(phys_base, offset), Mappers::kernel())
-    }
+pub type Single<T> = accessor::Single<T, Mappers>;
+pub type Array<T> = accessor::Array<T, Mappers>;
 
-    /// SAFETY: This method is unsafe because it can create multiple mutable references to the same
-    /// object.
-    pub unsafe fn user(phys_base: PhysAddr, offset: Bytes) -> Self {
-        Self::new(&EffectiveAddr::new(phys_base, offset), Mappers::user())
-    }
-
-    /// SAFETY: This method is unsafe because it can create multiple mutable references to the same
-    /// object.
-    unsafe fn new(effective: &EffectiveAddr, mappers: Mappers) -> Self {
-        let phys_base = effective.calculate();
-        let bytes = Bytes::new(mem::size_of::<T>());
-        let virt = mappers.map(phys_base, bytes);
-
-        Self {
-            virt,
-            bytes,
-            _marker: PhantomData,
-            mappers,
-        }
-    }
-
-    pub fn read(&self) -> T {
-        unsafe { ptr::read_volatile(self.virt.as_ptr()) }
-    }
-
-    pub fn write(&mut self, val: T) {
-        unsafe { ptr::write_volatile(self.virt.as_mut_ptr(), val) }
-    }
-
-    pub fn update<U>(&mut self, f: U)
-    where
-        U: Fn(&mut T),
-    {
-        let mut val = self.read();
-        f(&mut val);
-        self.write(val);
-    }
+pub unsafe fn user<T>(phys_base: PhysAddr) -> Result<Single<T>, Error>
+where
+    T: Copy,
+{
+    accessor::Single::new(phys_base.as_u64().try_into().unwrap(), Mappers::user())
 }
 
-impl<T> Accessor<[T]> {
-    /// # Safety: This method is unsafe because it can create multiple mutable references to the
-    /// same object.
-    pub unsafe fn user_slice(phys_base: PhysAddr, offset: Bytes, len: usize) -> Self {
-        Self::new_slice(&EffectiveAddr::new(phys_base, offset), len, Mappers::user())
-    }
-
-    pub fn read(&self, index: usize) -> T {
-        assert!(index < self.len());
-        unsafe { ptr::read_volatile(self.addr_to_elem(index).as_ptr()) }
-    }
-
-    pub fn write(&mut self, index: usize, val: T) {
-        assert!(index < self.len());
-        unsafe { ptr::write_volatile(self.addr_to_elem(index).as_mut_ptr(), val) }
-    }
-
-    pub fn update<U>(&mut self, index: usize, f: U)
-    where
-        U: Fn(&mut T),
-    {
-        let mut val = self.read(index);
-        f(&mut val);
-        self.write(index, val);
-    }
-
-    /// SAFETY: This method is unsafe because it can create multiple mutable references to the same
-    /// object.
-    fn new_slice(effective: &EffectiveAddr, len: usize, mappers: Mappers) -> Self {
-        let phys_base = effective.calculate();
-        let bytes = Bytes::new(mem::size_of::<T>() * len);
-        let virt = mappers.map(phys_base, bytes);
-
-        Self {
-            virt,
-            bytes,
-            _marker: PhantomData,
-            mappers,
-        }
-    }
-
-    fn addr_to_elem(&self, index: usize) -> VirtAddr {
-        self.virt + mem::size_of::<T>() * index
-    }
-
-    fn len(&self) -> usize {
-        self.bytes.as_usize() / mem::size_of::<T>()
-    }
+pub unsafe fn user_array<T>(phys_base: PhysAddr, len: usize) -> Result<Array<T>, Error>
+where
+    T: Copy,
+{
+    accessor::Array::new(phys_base.as_u64().try_into().unwrap(), len, Mappers::user())
 }
 
-impl<T: ?Sized> Drop for Accessor<T> {
-    fn drop(&mut self) {
-        self.mappers.unmap(self.virt, self.bytes);
-    }
+pub unsafe fn kernel<T>(phys_base: PhysAddr) -> Result<Single<T>, Error>
+where
+    T: Copy,
+{
+    accessor::Single::new(phys_base.as_u64().try_into().unwrap(), Mappers::kernel())
 }
 
-struct EffectiveAddr {
-    base: PhysAddr,
-    offset: Bytes,
-}
-impl EffectiveAddr {
-    fn new(base: PhysAddr, offset: Bytes) -> Self {
-        Self { base, offset }
-    }
-
-    fn calculate(&self) -> PhysAddr {
-        self.base + self.offset.as_usize()
-    }
-}
-
-type Mapper = fn(PhysAddr, Bytes) -> VirtAddr;
-type Unmapper = fn(VirtAddr, Bytes);
-
-struct Mappers {
-    mapper: Mapper,
-    unmapper: Unmapper,
+pub struct Mappers {
+    mapper: fn(PhysAddr, Bytes) -> VirtAddr,
+    unmapper: fn(VirtAddr, Bytes),
 }
 impl Mappers {
     fn kernel() -> Self {
@@ -147,12 +47,25 @@ impl Mappers {
             unmapper: syscalls::unmap_pages,
         }
     }
-
-    fn map(&self, p: PhysAddr, b: Bytes) -> VirtAddr {
-        (self.mapper)(p, b)
+}
+impl Mapper for Mappers {
+    unsafe fn map(&mut self, phys_start: usize, bytes: usize) -> NonZeroUsize {
+        NonZeroUsize::new(
+            (self.mapper)(
+                PhysAddr::new(phys_start.try_into().unwrap()),
+                Bytes::new(bytes),
+            )
+            .as_u64()
+            .try_into()
+            .unwrap(),
+        )
+        .unwrap()
     }
 
-    fn unmap(&self, v: VirtAddr, b: Bytes) {
-        (self.unmapper)(v, b)
+    fn unmap(&mut self, virt_start: usize, bytes: usize) {
+        (self.unmapper)(
+            VirtAddr::new(virt_start.try_into().unwrap()),
+            Bytes::new(bytes),
+        )
     }
 }
