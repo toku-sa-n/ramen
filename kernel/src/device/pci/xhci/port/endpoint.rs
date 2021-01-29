@@ -2,11 +2,10 @@
 
 use super::Slot;
 use crate::device::pci::xhci::{
-    self,
     exchanger::{self, transfer},
     structures::{
         context::{self, Context},
-        descriptor,
+        descriptor, registers,
         ring::CycleBit,
     },
 };
@@ -146,7 +145,7 @@ impl Default {
     // The actual port speed is listed on the xHCI supported protocol capability.
     // Check the capability and fetch the actual port speed. Then return the max packet size.
     fn get_max_packet_size(&self) -> u16 {
-        let psi = xhci::handle_registers(|r| {
+        let psi = registers::handle(|r| {
             r.port_register_set
                 .read_at((self.port_id - 1).into())
                 .portsc

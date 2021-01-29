@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::CycleBit;
-use crate::device::pci::xhci::{self, exchanger::receiver, port};
+use crate::device::pci::xhci::{exchanger::receiver, port, structures::registers};
 use alloc::vec::Vec;
 use bit_field::BitField;
 use core::{
@@ -44,7 +44,7 @@ pub struct Ring {
 }
 impl<'a> Ring {
     pub fn new() -> Self {
-        let max_num_of_erst = xhci::handle_registers(|r| {
+        let max_num_of_erst = registers::handle(|r| {
             r.capability
                 .hcsparams2
                 .read()
@@ -123,7 +123,7 @@ impl Raw {
     }
 
     fn max_num_of_erst() -> u16 {
-        xhci::handle_registers(|r| {
+        registers::handle(|r| {
             r.capability
                 .hcsparams2
                 .read()
@@ -181,7 +181,7 @@ impl Raw {
     }
 
     fn update_deq_p_with_xhci(&self) {
-        xhci::handle_registers(|r| {
+        registers::handle(|r| {
             r.interrupt_register_set.update_at(0, |r| {
                 r.erdp
                     .set_event_ring_dequeue_pointer(self.next_trb_addr().as_u64())
@@ -221,7 +221,7 @@ impl<'a> SegTblInitializer<'a> {
     }
 
     fn register_tbl_sz(&mut self) {
-        xhci::handle_registers(|r| {
+        registers::handle(|r| {
             let l = self.tbl_len();
 
             r.interrupt_register_set
@@ -230,7 +230,7 @@ impl<'a> SegTblInitializer<'a> {
     }
 
     fn enable_event_ring(&mut self) {
-        xhci::handle_registers(|r| {
+        registers::handle(|r| {
             let a = self.tbl_addr();
             r.interrupt_register_set.update_at(0, |r| {
                 r.erstba

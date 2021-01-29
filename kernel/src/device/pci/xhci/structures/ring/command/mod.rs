@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{CycleBit, Link};
-use crate::device::pci::xhci;
+use crate::device::pci::xhci::registers;
 use page_box::PageBox;
 use trb::Trb;
 use x86_64::{
@@ -37,7 +37,7 @@ impl Ring {
     }
 
     fn notify_command_is_sent() {
-        xhci::handle_registers(|r| {
+        registers::handle(|r| {
             r.doorbell.update_at(0, |r| r.set_doorbell_target(0));
         })
     }
@@ -123,7 +123,7 @@ impl<'a> Initializer<'a> {
     }
 
     fn init(&mut self) {
-        xhci::handle_registers(|r| {
+        registers::handle(|r| {
             let a = self.ring.phys_addr();
 
             // Do not split this closure to avoid read-modify-write bug. Reading fields may return
