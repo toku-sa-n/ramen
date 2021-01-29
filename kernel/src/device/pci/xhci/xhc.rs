@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::structures::registers;
+use super::structures::{extended_capabilities, registers};
 use xhci::extended_capabilities::ExtendedCapability;
 
 pub fn init() {
@@ -30,7 +30,7 @@ pub fn ensure_no_error_occurs() {
 }
 
 fn get_ownership_from_bios() {
-    if let Some(iter) = super::iter_extended_capabilities() {
+    if let Some(iter) = extended_capabilities::iter() {
         for c in iter.filter_map(Result::ok) {
             if let ExtendedCapability::UsbLegacySupportCapability(mut l) = c {
                 l.update(|s| s.set_hc_os_owned_semaphore(true));
