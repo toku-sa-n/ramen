@@ -27,7 +27,7 @@ impl Slot {
         }
     }
 
-    pub fn context(&self) -> Arc<Spinlock<Context>> {
+    pub(in crate::device::pci::xhci) fn context(&self) -> Arc<Spinlock<Context>> {
         self.cx.clone()
     }
 
@@ -70,7 +70,7 @@ impl Slot {
                     None
                 }
             })
-            .unwrap()
+        .unwrap()
     }
 
     pub async fn get_configuration_descriptors(&mut self) -> Vec<Descriptor> {
@@ -100,6 +100,7 @@ impl Slot {
     }
 
     async fn issue_address_device(&mut self) {
+        info!("Issuing an Address Device Command");
         let cx_addr = self.cx.lock().input.phys_addr();
         exchanger::command::address_device(cx_addr, self.id).await;
     }

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::device::pci::xhci::{port::endpoint, structures::context::EndpointType};
+use crate::device::pci::xhci::port::endpoint;
 use page_box::PageBox;
+use xhci::context::EndpointType;
 
 pub async fn task(eps: endpoint::Collection) {
     let mut m = Mouse::new(eps);
