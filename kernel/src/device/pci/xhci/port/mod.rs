@@ -22,7 +22,7 @@ mod slot;
 mod spawner;
 
 static CURRENT_RESET_PORT: Lazy<Spinlock<ResetPort>> =
-Lazy::new(|| Spinlock::new(ResetPort::new()));
+    Lazy::new(|| Spinlock::new(ResetPort::new()));
 
 struct ResetPort {
     resetting: bool,

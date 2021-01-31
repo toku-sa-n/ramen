@@ -70,7 +70,7 @@ impl Slot {
                     None
                 }
             })
-        .unwrap()
+            .unwrap()
     }
 
     pub async fn get_configuration_descriptors(&mut self) -> Vec<Descriptor> {
