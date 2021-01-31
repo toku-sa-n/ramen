@@ -147,7 +147,7 @@ impl MemoryReader {
         let b = table.platform_info().unwrap().pm_timer.unwrap().base;
         Self {
             // SAFETY: This operation is safe as the address is generated from `AcpiTables`.
-            addr: unsafe { crate::mem::accessor::kernel(PhysAddr::new(b.address)) }
+            addr: unsafe { crate::mem::accessor::kernel(PhysAddr::new(b.address)) },
         }
     }
 

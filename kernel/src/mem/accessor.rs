@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use accessor::{ mapper::Mapper};
+use accessor::mapper::Mapper;
 use core::{convert::TryInto, num::NonZeroUsize};
 use os_units::Bytes;
 use x86_64::{PhysAddr, VirtAddr};
 
 pub type Single<T> = accessor::Single<T, Mappers>;
 
-pub unsafe fn user<T>(phys_base: PhysAddr) ->Single<T>
+pub unsafe fn user<T>(phys_base: PhysAddr) -> Single<T>
 where
     T: Copy,
 {
     accessor::Single::new(phys_base.as_u64().try_into().unwrap(), Mappers::user())
 }
 
-pub unsafe fn kernel<T>(phys_base: PhysAddr) ->Single<T>
+pub unsafe fn kernel<T>(phys_base: PhysAddr) -> Single<T>
 where
     T: Copy,
 {
@@ -52,7 +52,7 @@ impl Mapper for Mappers {
             .try_into()
             .unwrap(),
         )
-            .unwrap()
+        .unwrap()
     }
 
     fn unmap(&mut self, virt_start: usize, bytes: usize) {
