@@ -185,7 +185,6 @@ impl Raw {
             r.interrupt_register_set.update_at(0, |r| {
                 r.erdp
                     .set_event_ring_dequeue_pointer(self.next_trb_addr().as_u64())
-                    .expect("The Event Ring Dequeue Pointer is not aligned correctly.")
             })
         });
     }
@@ -232,11 +231,8 @@ impl<'a> SegTblInitializer<'a> {
     fn enable_event_ring(&mut self) {
         registers::handle(|r| {
             let a = self.tbl_addr();
-            r.interrupt_register_set.update_at(0, |r| {
-                r.erstba
-                    .set(a.as_u64())
-                    .expect("The Event Ring Segment Table Base Address is not aligned correctly.")
-            })
+            r.interrupt_register_set
+                .update_at(0, |r| r.erstba.set(a.as_u64()))
         });
     }
 

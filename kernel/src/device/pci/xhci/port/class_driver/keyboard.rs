@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::device::pci::xhci::{port::endpoint, structures::context::EndpointType};
+use crate::device::pci::xhci::port::endpoint;
 use alloc::string::String;
 use page_box::PageBox;
 use spinning_top::Spinlock;
+use xhci::context::EndpointType;
 
 const LOWER_ALPHABETS: &str = "abcdefghijklmnopqrstuvwxyz";
 

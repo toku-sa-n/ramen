@@ -3,18 +3,14 @@
 use super::Slot;
 use crate::device::pci::xhci::{
     exchanger::{self, transfer},
-    structures::{
-        context::{self, Context},
-        descriptor, registers,
-        ring::CycleBit,
-    },
+    structures::{context::Context, descriptor, registers},
 };
 use alloc::{sync::Arc, vec::Vec};
 use bit_field::BitField;
-use context::EndpointType;
 use core::slice;
 use page_box::PageBox;
 use spinning_top::Spinlock;
+use xhci::context::{EndpointHandler, EndpointType};
 
 pub struct Collection {
     eps: Vec<Endpoint>,
@@ -86,7 +82,7 @@ pub struct Endpoint {
     sender: transfer::Sender,
 }
 impl Endpoint {
-    pub fn new(
+    pub(in crate::device::pci::xhci) fn new(
         desc: descriptor::Endpoint,
         cx: Arc<Spinlock<Context>>,
         sender: transfer::Sender,
@@ -113,7 +109,11 @@ pub struct Default {
     port_id: u8,
 }
 impl Default {
-    pub fn new(sender: transfer::Sender, cx: Arc<Spinlock<Context>>, port_id: u8) -> Self {
+    pub(in crate::device::pci::xhci) fn new(
+        sender: transfer::Sender,
+        cx: Arc<Spinlock<Context>>,
+        port_id: u8,
+    ) -> Self {
         Self {
             sender,
             cx,
@@ -131,12 +131,12 @@ impl Default {
 
     pub fn init_context(&mut self) {
         let mut cx = self.cx.lock();
-        let ep_0 = &mut cx.input.device_mut().ep_0;
+        let ep_0 = cx.input.device_mut().endpoint0_mut();
         ep_0.set_endpoint_type(EndpointType::Control);
 
         ep_0.set_max_packet_size(self.get_max_packet_size());
-        ep_0.set_dequeue_ptr(self.sender.ring_addr());
-        ep_0.set_dequeue_cycle_state(CycleBit::new(true));
+        ep_0.set_transfer_ring_dequeue_pointer(self.sender.ring_addr().as_u64());
+        ep_0.set_dequeue_cycle_state(true);
         ep_0.set_error_count(3);
     }
 
@@ -208,22 +208,22 @@ impl<'a> ContextInitializer<'a> {
         c.set_endpoint_type(ep_ty);
         c.set_max_packet_size(max_packet_size);
         c.set_max_burst_size(0);
-        c.set_dequeue_cycle_state(CycleBit::new(true));
+        c.set_dequeue_cycle_state(true);
         c.set_max_primary_streams(0);
         c.set_mult(0);
         c.set_error_count(3);
         c.set_interval(interval);
-        c.set_dequeue_ptr(ring_addr);
+        c.set_transfer_ring_dequeue_pointer(ring_addr.as_u64());
     }
 
-    fn ep_context(&mut self) -> &mut context::Endpoint {
-        let ep_idx: usize = self.ep.endpoint_address.get_bits(0..=3).into();
-        let out_input = self.ep.endpoint_address.get_bit(7);
-        let context_inout = &mut self.context.input.device_mut().ep_inout[ep_idx - 1];
-        if out_input {
-            &mut context_inout.input
+    fn ep_context(&mut self) -> &mut dyn EndpointHandler {
+        let ep_i: usize = self.ep.endpoint_address.get_bits(0..=3).into();
+        let is_input = self.ep.endpoint_address.get_bit(7);
+        let context_inout = self.context.input.device_mut().endpoints_mut(ep_i);
+        if is_input {
+            context_inout.input_mut()
         } else {
-            &mut context_inout.out
+            context_inout.output_mut()
         }
     }
 }

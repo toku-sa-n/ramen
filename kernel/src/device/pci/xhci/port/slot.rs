@@ -27,7 +27,7 @@ impl Slot {
         }
     }
 
-    pub fn context(&self) -> Arc<Spinlock<Context>> {
+    pub(in crate::device::pci::xhci) fn context(&self) -> Arc<Spinlock<Context>> {
         self.cx.clone()
     }
 

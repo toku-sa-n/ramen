@@ -37,11 +37,9 @@ impl<'a> DeviceContextBaseAddressArray {
 
     fn register_address_to_xhci_register(&self) {
         registers::handle(|r| {
-            r.operational.dcbaap.update(|d| {
-                d.set(self.phys_addr().as_u64()).expect(
-                    "The Device Context Base Address Array Base Pointer is not aligned correctly.",
-                )
-            })
+            r.operational
+                .dcbaap
+                .update(|d| d.set(self.phys_addr().as_u64()))
         })
     }
 

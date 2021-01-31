@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::ring::CycleBit;
-use crate::device::pci::xhci::registers;
-use bit_field::BitField;
-use core::convert::{TryFrom, TryInto};
-use num_derive::FromPrimitive;
 use page_box::PageBox;
 use x86_64::PhysAddr;
+use xhci::context::{byte32, byte64, DeviceHandler, InputControlHandler, InputHandler};
 
-pub struct Context {
+use super::registers;
+
+pub(in crate::device::pci::xhci) struct Context {
     pub input: Input,
     pub output: PageBox<Device>,
 }
@@ -22,174 +20,55 @@ impl Default for Context {
 }
 
 pub enum Input {
-    Bit32(PageBox<InputWithControl32Bit>),
-    Bit64(PageBox<InputWithControl64Bit>),
+    Byte64(PageBox<byte64::Input>),
+    Byte32(PageBox<byte32::Input>),
 }
 impl Input {
-    pub fn control_mut(&mut self) -> &mut dyn InputControl {
+    pub fn control_mut(&mut self) -> &mut dyn InputControlHandler {
         match self {
-            Self::Bit32(b32) => &mut b32.control,
-            Self::Bit64(b64) => &mut b64.control,
+            Self::Byte32(b32) => b32.control_mut(),
+            Self::Byte64(b64) => b64.control_mut(),
         }
     }
 
-    pub fn device_mut(&mut self) -> &mut Device {
+    pub fn device_mut(&mut self) -> &mut dyn DeviceHandler {
         match self {
-            Self::Bit32(b32) => &mut b32.device,
-            Self::Bit64(b64) => &mut b64.device,
+            Self::Byte32(b32) => b32.device_mut(),
+            Self::Byte64(b64) => b64.device_mut(),
         }
     }
 
     pub fn phys_addr(&self) -> PhysAddr {
         match self {
-            Self::Bit32(b32) => b32.phys_addr(),
-            Self::Bit64(b64) => b64.phys_addr(),
+            Self::Byte32(b32) => b32.phys_addr(),
+            Self::Byte64(b64) => b64.phys_addr(),
         }
-    }
-
-    fn csz() -> bool {
-        registers::handle(|r| r.capability.hccparams1.read().context_size())
     }
 }
 impl Default for Input {
     fn default() -> Self {
-        if Self::csz() {
-            Self::Bit64(InputWithControl64Bit::default().into())
+        if csz() {
+            Self::Byte64(byte64::Input::default().into())
         } else {
-            Self::Bit32(InputWithControl32Bit::default().into())
+            Self::Byte32(byte32::Input::default().into())
         }
     }
 }
 
-#[repr(C)]
-#[derive(Default)]
-pub struct InputWithControl32Bit {
-    control: InputControl32Bit,
-    device: Device,
+pub(in crate::device::pci::xhci) enum Device {
+    Byte64(PageBox<byte64::Device>),
+    Byte32(PageBox<byte32::Device>),
 }
-
-#[repr(C)]
-#[derive(Default)]
-pub struct InputWithControl64Bit {
-    control: InputControl64Bit,
-    device: Device,
-}
-
-pub trait InputControl {
-    fn set_aflag(&mut self, i: usize);
-    fn clear_aflag(&mut self, i: usize);
-}
-
-#[repr(transparent)]
-#[derive(Default)]
-pub struct InputControl32Bit([u32; 8]);
-impl InputControl for InputControl32Bit {
-    fn set_aflag(&mut self, index: usize) {
-        assert!(index < 32);
-        self.0[1] |= 1 << index;
-    }
-
-    fn clear_aflag(&mut self, i: usize) {
-        assert!(i < 32);
-        self.0[1].set_bit(i, false);
+impl Default for Device {
+    fn default() -> Self {
+        if csz() {
+            Self::Byte64(byte64::Device::default().into())
+        } else {
+            Self::Byte32(byte32::Device::default().into())
+        }
     }
 }
 
-#[repr(transparent)]
-#[derive(Default)]
-pub struct InputControl64Bit([u64; 8]);
-impl InputControl for InputControl64Bit {
-    fn set_aflag(&mut self, index: usize) {
-        assert!(index < 64);
-        self.0[1] |= 1 << index;
-    }
-
-    fn clear_aflag(&mut self, i: usize) {
-        assert!(i < 64);
-        self.0[1].set_bit(i, false);
-    }
-}
-
-#[repr(C)]
-#[derive(Default)]
-pub struct Device {
-    pub slot: Slot,
-    pub ep_0: Endpoint,
-    pub ep_inout: [EndpointOutIn; 15],
-}
-
-#[derive(Default)]
-pub struct Slot([u32; 8]);
-impl Slot {
-    pub fn set_context_entries(&mut self, e: u8) {
-        self.0[0].set_bits(27..=31, e.into());
-    }
-
-    pub fn set_root_hub_port_number(&mut self, n: u8) {
-        self.0[1].set_bits(16..=23, n.into());
-    }
-}
-
-#[repr(C)]
-#[derive(Copy, Clone, Default)]
-pub struct EndpointOutIn {
-    pub out: Endpoint,
-    pub input: Endpoint,
-}
-
-#[repr(transparent)]
-#[derive(Copy, Clone, Debug, Default)]
-pub struct Endpoint([u32; 8]);
-impl Endpoint {
-    pub fn set_endpoint_type(&mut self, ty: EndpointType) {
-        self.0[1].set_bits(3..=5, ty as _);
-    }
-
-    pub fn set_max_burst_size(&mut self, sz: u8) {
-        self.0[1].set_bits(8..=15, sz.into());
-    }
-
-    pub fn set_interval(&mut self, int: u8) {
-        self.0[0].set_bits(16..=23, int.into());
-    }
-
-    pub fn set_max_primary_streams(&mut self, s: u8) {
-        self.0[0].set_bits(10..=14, s.into());
-    }
-
-    pub fn set_mult(&mut self, m: u8) {
-        self.0[0].set_bits(8..=9, m.into());
-    }
-
-    pub fn set_dequeue_ptr(&mut self, a: PhysAddr) {
-        assert!(a.is_aligned(16_u64));
-        let l = a.as_u64() & 0xffff_ffff;
-        let u = a.as_u64() >> 32;
-
-        self.0[2] = u32::try_from(l).unwrap() | self.0[2].get_bit(0) as u32;
-        self.0[3] = u.try_into().unwrap();
-    }
-
-    pub fn set_max_packet_size(&mut self, sz: u16) {
-        self.0[1].set_bits(16..=31, sz.into());
-    }
-
-    pub fn set_dequeue_cycle_state(&mut self, c: CycleBit) {
-        self.0[2].set_bit(0, c.into());
-    }
-
-    pub fn set_error_count(&mut self, c: u8) {
-        self.0[1].set_bits(1..=2, c.into());
-    }
-}
-
-#[derive(PartialEq, Eq, Debug, FromPrimitive)]
-pub enum EndpointType {
-    IsochronousOut = 1,
-    BulkOut = 2,
-    InterruptOut = 3,
-    Control = 4,
-    IsochronousIn = 5,
-    BulkIn = 6,
-    InterruptIn = 7,
+fn csz() -> bool {
+    registers::handle(|r| r.capability.hccparams1.read().context_size())
 }
