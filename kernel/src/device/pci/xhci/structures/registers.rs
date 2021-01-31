@@ -15,10 +15,7 @@ pub(in crate::device::pci::xhci) fn init(mmio_base: PhysAddr) {
             Spinlock::new(
                 // SAFETY: The address is the correct one and the Registers are accessed only through
                 // this static.
-                unsafe {
-                    Registers::new(mmio_base.as_u64().try_into().unwrap(), Mappers::user())
-                        .expect("The MMIO base address of the xHC is not aligned correctly.")
-                },
+                unsafe { Registers::new(mmio_base.as_u64().try_into().unwrap(), Mappers::user()) },
             )
         })
         .expect("Failed to initialize `REGISTERS`.")

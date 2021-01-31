@@ -27,9 +27,8 @@ impl Registers {
         let io_apic_base = PhysAddr::new(io_apics[0].address.into());
 
         Self {
-            addr: crate::mem::accessor::kernel(io_apic_base).expect("Address is not aligned."),
-            data: crate::mem::accessor::kernel(io_apic_base + 0x10_usize)
-                .expect("Address is not aligned."),
+            addr: crate::mem::accessor::kernel(io_apic_base),
+            data: crate::mem::accessor::kernel(io_apic_base + 0x10_usize),
         }
     }
 

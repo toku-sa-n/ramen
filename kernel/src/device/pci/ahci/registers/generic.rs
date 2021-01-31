@@ -17,10 +17,10 @@ impl Generic {
     pub unsafe fn new(abar: AchiBaseAddr) -> Self {
         let abar = PhysAddr::from(abar);
 
-        let cap = crate::mem::accessor::user(abar).expect("Address is not aligned.");
-        let ghc = crate::mem::accessor::user(abar + 0x04_usize).expect("Address is not aligned.");
-        let pi = crate::mem::accessor::user(abar + 0x0c_usize).expect("Address is not aligned.");
-        let bohc = crate::mem::accessor::user(abar + 0x28_usize).expect("Address is not aligned.");
+        let cap = crate::mem::accessor::user(abar);
+        let ghc = crate::mem::accessor::user(abar + 0x04_usize);
+        let pi = crate::mem::accessor::user(abar + 0x0c_usize);
+        let bohc = crate::mem::accessor::user(abar + 0x28_usize);
 
         Self { cap, ghc, pi, bohc }
     }

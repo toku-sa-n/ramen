@@ -7,7 +7,6 @@ const REGISTER_BASE: PhysAddr = PhysAddr::new_truncate(0xfee0_0000);
 pub fn end_of_interrupt() {
     // SAFETY: This operation is safe because `REGISTER_BASE` is the valid address to the Local APIC
     // registers.
-    let mut r = unsafe { crate::mem::accessor::kernel::<u32>(REGISTER_BASE + 0xb0_usize) }
-        .expect("Address is not aligned.");
+    let mut r = unsafe { crate::mem::accessor::kernel::<u32>(REGISTER_BASE + 0xb0_usize) };
     r.write(0);
 }
