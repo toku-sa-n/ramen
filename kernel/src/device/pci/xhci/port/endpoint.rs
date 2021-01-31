@@ -131,7 +131,7 @@ impl Default {
 
     pub fn init_context(&mut self) {
         let mut cx = self.cx.lock();
-        let ep_0 = &mut cx.input.device_mut().endpoint0_mut();
+        let ep_0 = cx.input.device_mut().endpoint0_mut();
         ep_0.set_endpoint_type(EndpointType::Control);
 
         ep_0.set_max_packet_size(self.get_max_packet_size());
