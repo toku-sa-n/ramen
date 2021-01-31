@@ -22,7 +22,7 @@ mod slot;
 mod spawner;
 
 static CURRENT_RESET_PORT: Lazy<Spinlock<ResetPort>> =
-    Lazy::new(|| Spinlock::new(ResetPort::new()));
+Lazy::new(|| Spinlock::new(ResetPort::new()));
 
 struct ResetPort {
     resetting: bool,
@@ -86,7 +86,7 @@ async fn init_port_and_slot(mut port: Port) -> endpoint::Collection {
 
     let mut slot = Slot::new(port, slot_id);
     slot.init().await;
-    info!("Slot initialized");
+    debug!("Slot initialized");
     CURRENT_RESET_PORT.lock().complete_reset();
     info!("Port {} reset completed.", port_idx);
     endpoint::Collection::new(slot).await
