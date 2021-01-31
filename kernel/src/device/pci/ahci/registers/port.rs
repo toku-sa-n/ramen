@@ -39,7 +39,6 @@ impl Registers {
         macro_rules! new_accessor {
             ($offset:expr) => {
                 crate::mem::accessor::user(base_addr + $offset as usize)
-                    .expect("Address is not aligned.")
             };
         }
 

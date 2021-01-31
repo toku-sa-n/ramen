@@ -17,11 +17,10 @@ pub(in crate::device::pci::xhci) fn init(mmio_base: PhysAddr) {
                 // this static.
                 unsafe {
                     Registers::new(mmio_base.as_u64().try_into().unwrap(), Mappers::user())
-                        .expect("The MMIO base address of the xHC is not aligned correctly.")
                 },
             )
         })
-        .expect("Failed to initialize `REGISTERS`.")
+    .expect("Failed to initialize `REGISTERS`.")
 }
 
 /// Handle xHCI registers.
@@ -35,7 +34,7 @@ pub(in crate::device::pci::xhci) fn init(mmio_base: PhysAddr) {
 pub(in crate::device::pci::xhci) fn handle<T, U>(f: T) -> U
 where
     T: Fn(&mut Registers<Mappers>) -> U,
-{
-    let mut r = REGISTERS.try_get().unwrap().lock();
-    f(&mut r)
-}
+    {
+        let mut r = REGISTERS.try_get().unwrap().lock();
+        f(&mut r)
+    }

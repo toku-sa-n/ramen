@@ -27,14 +27,10 @@ struct LocalApic {
 impl LocalApic {
     fn new(table: &AcpiTables<allocator::acpi::Mapper>) -> Self {
         // SAFETY: These operations are safe because the addresses are the correct ones.
-        let lvt_timer = unsafe { crate::mem::accessor::kernel::<u32>(LVT_TIMER) }
-            .expect("Address is not aligned.");
-        let initial_count = unsafe { crate::mem::accessor::kernel::<u32>(INITIAL_COUNT) }
-            .expect("Address is not aligned.");
-        let current_count = unsafe { crate::mem::accessor::kernel::<u32>(CURRENT_COUNT) }
-            .expect("Address is not aligned.");
-        let divide_config = unsafe { crate::mem::accessor::kernel::<u32>(DIVIDE_CONFIG) }
-            .expect("Address is not aligned.");
+        let lvt_timer = unsafe { crate::mem::accessor::kernel::<u32>(LVT_TIMER) };
+        let initial_count = unsafe { crate::mem::accessor::kernel::<u32>(INITIAL_COUNT) };
+        let current_count = unsafe { crate::mem::accessor::kernel::<u32>(CURRENT_COUNT) };
+        let divide_config = unsafe { crate::mem::accessor::kernel::<u32>(DIVIDE_CONFIG) };
         let pm = AcpiPm::new(table);
 
         Self {
@@ -152,7 +148,6 @@ impl MemoryReader {
         Self {
             // SAFETY: This operation is safe as the address is generated from `AcpiTables`.
             addr: unsafe { crate::mem::accessor::kernel(PhysAddr::new(b.address)) }
-                .expect("Address is not aligned."),
         }
     }
 
