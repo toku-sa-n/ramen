@@ -44,6 +44,12 @@ impl CommandDataBlock {
         b.0[4] = 0x24;
         b
     }
+
+    pub(super) fn read_capacity() -> Self {
+        let mut b = Self::default();
+        b.0[0] = 0x25;
+        b
+    }
 }
 
 #[repr(C, packed)]
