@@ -21,17 +21,17 @@ bench = false
 
 [dependencies]
 common = { path = "../common" }
-conquer-once = { version = "0.3.1", default-features = false }
+conquer-once = { version = "0.3.2", default-features = false }
 spinning_top = { version = "0.2.2", features = ["nightly"] }
 qemu-exit = "1.0.2"
 x86_64 = "0.13.1"
 linked_list_allocator = "0.8.11"
-log = "0.4.11"
-vek = { version = "0.13.0", default-features = false, features = ["libm"] }
+log = "0.4.14"
+vek = { version = "0.13.1", default-features = false, features = ["libm"] }
 rgb = "0.8.25"
 uefi = "0.7.0"
 crossbeam-queue = { version = "0.3.1", default-features = false, features = ["alloc"] }
-futures-util = { version = "0.3.8", default-features = false, features = ["alloc"] }
+futures-util = { version = "0.3.12", default-features = false, features = ["alloc"] }
 os_units = "0.2.7"
 bitfield = "0.13.2"
 bit_field = "0.10.1"
@@ -44,5 +44,5 @@ syscalls = { path = "../syscalls" }
 tsukemen = { path = "../apps/tsukemen" }
 page_box = { path = "../page_box" }
 terminal = { path = "../terminal" }
-xhci = "0.2.5"
-accessor = "0.2.0"
+xhci = "0.4.0"
+accessor = "0.3.0"

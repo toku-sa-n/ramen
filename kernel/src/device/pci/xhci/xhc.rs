@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::structures::registers::extended_capability::ExtendedCapability;
+use super::structures::{extended_capabilities, registers};
+use xhci::extended_capabilities::ExtendedCapability;
 
 pub fn init() {
     get_ownership_from_bios();
@@ -9,16 +10,16 @@ pub fn init() {
 }
 
 pub fn run() {
-    super::handle_registers(|r| {
+    registers::handle(|r| {
         let o = &mut r.operational;
-        o.usb_cmd.update(|o| o.set_run_stop(true));
-        while o.usb_sts.read().hc_halted() {}
+        o.usbcmd.update(|u| u.set_run_stop(true));
+        while o.usbsts.read().hc_halted() {}
     });
 }
 
 pub fn ensure_no_error_occurs() {
-    super::handle_registers(|r| {
-        let s = r.operational.usb_sts.read();
+    registers::handle(|r| {
+        let s = r.operational.usbsts.read();
         assert!(!s.hc_halted(), "HC is halted.");
         assert!(
             !s.host_system_error(),
@@ -29,19 +30,15 @@ pub fn ensure_no_error_occurs() {
 }
 
 fn get_ownership_from_bios() {
-    super::handle_registers(|r| {
-        if let Some(caps) = &r.extended_capability {
-            for cap in caps.iter() {
-                if let ExtendedCapability::UsbLegacySupport(mut leg_sup) = cap {
-                    leg_sup.update(|s| s.set_hc_os_owned_semaphore(true));
+    if let Some(iter) = extended_capabilities::iter() {
+        for c in iter.filter_map(Result::ok) {
+            if let ExtendedCapability::UsbLegacySupportCapability(mut l) = c {
+                l.update(|s| s.set_hc_os_owned_semaphore(true));
 
-                    while leg_sup.read().hc_bios_owned_semaphore()
-                        || !leg_sup.read().hc_os_owned_semaphore()
-                    {}
-                }
+                while l.read().hc_bios_owned_semaphore() || !l.read().hc_os_owned_semaphore() {}
             }
         }
-    })
+    }
 }
 
 fn stop_and_reset() {
@@ -51,17 +48,13 @@ fn stop_and_reset() {
 }
 
 fn stop() {
-    super::handle_registers(|r| {
-        let c = &mut r.operational.usb_cmd;
-        c.update(|c| c.set_run_stop(false));
+    registers::handle(|r| {
+        r.operational.usbcmd.update(|u| u.set_run_stop(false));
     })
 }
 
 fn wait_until_halt() {
-    super::handle_registers(|r| {
-        let s = &r.operational.usb_sts;
-        while !s.read().hc_halted() {}
-    })
+    registers::handle(|r| while !r.operational.usbsts.read().hc_halted() {})
 }
 
 fn reset() {
@@ -71,37 +64,38 @@ fn reset() {
 }
 
 fn start_resetting() {
-    super::handle_registers(|r| {
-        let c = &mut r.operational.usb_cmd;
-        c.update(|c| c.set_host_controller_reset(true));
+    registers::handle(|r| {
+        r.operational
+            .usbcmd
+            .update(|u| u.set_host_controller_reset(true))
     })
 }
 
 fn wait_until_reset_completed() {
-    super::handle_registers(|r| {
-        let c = &r.operational.usb_cmd;
-        while c.read().host_controller_reset() {}
-    })
+    registers::handle(
+        |r| {
+            while r.operational.usbcmd.read().host_controller_reset() {}
+        },
+    )
 }
 
 fn wait_until_ready() {
-    super::handle_registers(|r| {
-        let s = &r.operational.usb_sts;
-        while s.read().controller_not_ready() {}
-    })
+    registers::handle(
+        |r| {
+            while r.operational.usbsts.read().controller_not_ready() {}
+        },
+    )
 }
 
 fn set_num_of_enabled_slots() {
     let n = num_of_device_slots();
-    super::handle_registers(|r| {
-        let c = &mut r.operational.config;
-        c.update(|c| c.set_max_device_slots_enabled(n))
+    registers::handle(|r| {
+        r.operational
+            .config
+            .update(|c| c.set_max_device_slots_enabled(n));
     })
 }
 
 fn num_of_device_slots() -> u8 {
-    super::handle_registers(|r| {
-        let p = &r.capability.hcs_params_1;
-        p.read().number_of_device_slots()
-    })
+    registers::handle(|r| r.capability.hcsparams1.read().number_of_device_slots())
 }

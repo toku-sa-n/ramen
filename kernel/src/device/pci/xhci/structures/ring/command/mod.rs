@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{CycleBit, Link};
-use crate::device::pci::xhci;
+use crate::device::pci::xhci::registers;
 use page_box::PageBox;
 use trb::Trb;
 use x86_64::{
@@ -37,9 +37,8 @@ impl Ring {
     }
 
     fn notify_command_is_sent() {
-        xhci::handle_registers(|r| {
-            let d = &mut r.doorbell_array;
-            d.update(0, |reg| *reg = 0)
+        registers::handle(|r| {
+            r.doorbell.update_at(0, |r| r.set_doorbell_target(0));
         })
     }
 }
@@ -124,17 +123,14 @@ impl<'a> Initializer<'a> {
     }
 
     fn init(&mut self) {
-        xhci::handle_registers(|r| {
+        registers::handle(|r| {
             let a = self.ring.phys_addr();
-            let c = &mut r.operational.crcr;
 
             // Do not split this closure to avoid read-modify-write bug. Reading fields may return
             // 0, this will cause writing 0 to fields.
-            c.update(|c| {
-                c.set_command_ring_pointer(a.as_u64())
-                    .expect("The Command Ring Pointer is not aligned properly.");
+            r.operational.crcr.update(|c| {
+                c.set_command_ring_pointer(a.as_u64());
                 c.set_ring_cycle_state(true);
-                info!("CRCR: {:X?}", c);
             });
         })
     }

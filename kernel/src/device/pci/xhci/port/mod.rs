@@ -2,7 +2,7 @@
 
 use super::{
     exchanger,
-    structures::{context::Context, registers::operational::PortRegisters},
+    structures::{context::Context, registers},
 };
 use crate::multitask::{self, task::Task};
 use alloc::collections::VecDeque;
@@ -12,6 +12,7 @@ use futures_util::task::AtomicWaker;
 use resetter::Resetter;
 use slot::Slot;
 use spinning_top::Spinlock;
+use xhci::registers::operational::PortRegisterSet;
 
 mod class_driver;
 mod context;
@@ -97,10 +98,7 @@ pub fn spawn_all_connected_port_tasks() {
 }
 
 fn max_num() -> u8 {
-    super::handle_registers(|r| {
-        let params1 = r.capability.hcs_params_1.read();
-        params1.number_of_ports()
-    })
+    registers::handle(|r| r.capability.hcsparams1.read().number_of_ports())
 }
 
 pub struct Port {
@@ -116,7 +114,7 @@ impl Port {
     }
 
     fn connected(&self) -> bool {
-        self.read_port_rg().port_sc.current_connect_status()
+        self.read_port_rg().portsc.current_connect_status()
     }
 
     fn reset(&mut self) {
@@ -129,11 +127,8 @@ impl Port {
         context::Initializer::new(&mut self.context, self.index).init();
     }
 
-    fn read_port_rg(&self) -> PortRegisters {
-        super::handle_registers(|r| {
-            let port_rg = &r.operational.port_registers;
-            port_rg.read_at((self.index - 1).into())
-        })
+    fn read_port_rg(&self) -> PortRegisterSet {
+        registers::handle(|r| r.port_register_set.read_at((self.index - 1).into()))
     }
 }
 

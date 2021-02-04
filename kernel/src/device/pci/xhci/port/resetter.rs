@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::device::pci::xhci;
+use crate::device::pci::xhci::registers;
 
 pub struct Resetter {
     slot: u8,
@@ -16,18 +16,18 @@ impl Resetter {
     }
 
     fn start_resetting(&mut self) {
-        xhci::handle_registers(|r| {
-            let p = &mut r.operational.port_registers;
-            p.update_at((self.slot - 1).into(), |r| r.port_sc.set_port_reset(true))
+        registers::handle(|r| {
+            r.port_register_set
+                .update_at((self.slot - 1).into(), |r| r.portsc.set_port_reset(true))
         });
     }
 
     fn wait_until_reset_is_completed(&self) {
-        xhci::handle_registers(|r| {
-            let p = &r.operational.port_registers;
-            while !p
+        registers::handle(|r| {
+            while !r
+                .port_register_set
                 .read_at((self.slot - 1).into())
-                .port_sc
+                .portsc
                 .port_reset_changed()
             {}
         });

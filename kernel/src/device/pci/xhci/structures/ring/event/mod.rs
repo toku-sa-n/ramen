@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::CycleBit;
-use crate::device::pci::xhci::{self, exchanger::receiver, port};
+use crate::device::pci::xhci::{exchanger::receiver, port, structures::registers};
 use alloc::vec::Vec;
 use bit_field::BitField;
 use core::{
@@ -44,9 +44,11 @@ pub struct Ring {
 }
 impl<'a> Ring {
     pub fn new() -> Self {
-        let max_num_of_erst = xhci::handle_registers(|r| {
-            let p2 = r.capability.hcs_params_2.read();
-            p2.event_ring_segment_table_max()
+        let max_num_of_erst = registers::handle(|r| {
+            r.capability
+                .hcsparams2
+                .read()
+                .event_ring_segment_table_max()
         });
 
         Self {
@@ -121,9 +123,11 @@ impl Raw {
     }
 
     fn max_num_of_erst() -> u16 {
-        xhci::handle_registers(|r| {
-            let p = r.capability.hcs_params_2.read();
-            p.event_ring_segment_table_max()
+        registers::handle(|r| {
+            r.capability
+                .hcsparams2
+                .read()
+                .event_ring_segment_table_max()
         })
     }
 
@@ -177,12 +181,11 @@ impl Raw {
     }
 
     fn update_deq_p_with_xhci(&self) {
-        xhci::handle_registers(|r| {
-            let p = &mut r.runtime.erd_p;
-            p.update(|p| {
-                p.set_event_ring_dequeue_pointer(self.next_trb_addr().as_u64())
-                    .expect("The Event Ring Dequeue Pointer is not aligned correctly.")
-            });
+        registers::handle(|r| {
+            r.interrupt_register_set.update_at(0, |r| {
+                r.erdp
+                    .set_event_ring_dequeue_pointer(self.next_trb_addr().as_u64())
+            })
         });
     }
 
@@ -217,23 +220,19 @@ impl<'a> SegTblInitializer<'a> {
     }
 
     fn register_tbl_sz(&mut self) {
-        xhci::handle_registers(|r| {
+        registers::handle(|r| {
             let l = self.tbl_len();
-            let s = &mut r.runtime.erst_sz;
 
-            s.update(|s| s.set(l.try_into().unwrap()));
+            r.interrupt_register_set
+                .update_at(0, |r| r.erstsz.set(l.try_into().unwrap()))
         })
     }
 
     fn enable_event_ring(&mut self) {
-        xhci::handle_registers(|r| {
+        registers::handle(|r| {
             let a = self.tbl_addr();
-            let b = &mut r.runtime.erst_ba;
-
-            b.update(|b| {
-                b.set(a.as_u64())
-                    .expect("The Event Ring Segment Table Base Address is not aligned correctly.")
-            });
+            r.interrupt_register_set
+                .update_at(0, |r| r.erstba.set(a.as_u64()))
         });
     }
 

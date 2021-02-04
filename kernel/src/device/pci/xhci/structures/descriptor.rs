@@ -4,8 +4,7 @@ use bit_field::BitField;
 use core::ptr;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
-
-use super::context::EndpointType;
+use xhci::context::EndpointType;
 
 #[derive(Debug)]
 pub enum Descriptor {

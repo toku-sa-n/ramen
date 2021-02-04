@@ -2,7 +2,7 @@
 
 use crate::device::pci::xhci::structures::context::Context;
 
-pub struct Initializer<'a> {
+pub(in crate::device::pci::xhci) struct Initializer<'a> {
     context: &'a mut Context,
     port_id: u8,
 }
@@ -23,7 +23,7 @@ impl<'a> Initializer<'a> {
     }
 
     fn init_input_slot(&mut self) {
-        let slot = &mut self.context.input.device_mut().slot;
+        let slot = self.context.input.device_mut().slot_mut();
         slot.set_context_entries(1);
         slot.set_root_hub_port_number(self.port_id);
     }

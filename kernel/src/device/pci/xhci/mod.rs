@@ -8,19 +8,16 @@ mod xhc;
 use super::config::bar;
 use crate::multitask::{self, task::Task};
 use alloc::sync::Arc;
-use conquer_once::spin::OnceCell;
 use spinning_top::Spinlock;
 use structures::{
-    dcbaa,
-    registers::Registers,
+    dcbaa, extended_capabilities, registers,
     ring::{command, event},
     scratchpad,
 };
-
-static REGISTERS: OnceCell<Spinlock<Registers>> = OnceCell::uninit();
+use x86_64::PhysAddr;
 
 pub async fn task() {
-    if init_registers().is_err() {
+    if init_statics().is_err() {
         warn!("xHC not found.");
         return;
     }
@@ -35,10 +32,11 @@ pub async fn task() {
     exchanger::command::noop().await;
 }
 
-fn init_registers() -> Result<(), XhcNotFound> {
+fn init_statics() -> Result<(), XhcNotFound> {
     match iter_devices().next() {
-        Some(r) => {
-            REGISTERS.init_once(|| Spinlock::new(r));
+        Some(a) => {
+            registers::init(a);
+            extended_capabilities::init(a);
             Ok(())
         }
         None => Err(XhcNotFound),
@@ -47,22 +45,6 @@ fn init_registers() -> Result<(), XhcNotFound> {
 
 #[derive(Debug)]
 struct XhcNotFound;
-
-/// Handle xHCI registers.
-///
-/// To avoid deadlocking, this method takes a closure. Caller is supposed not to call this method
-/// inside the closure, otherwise a deadlock will happen.
-///
-/// Alternative implementation is to define a method which returns `impl Deref<Target =
-/// Registers>`, but this will expand the scope of the mutex guard, increasing the possibility of
-/// deadlocks.
-fn handle_registers<T, U>(f: T) -> U
-where
-    T: Fn(&mut Registers) -> U,
-{
-    let mut r = REGISTERS.try_get().unwrap().lock();
-    f(&mut r)
-}
 
 fn init() -> event::Ring {
     let mut event_ring = event::Ring::new();
@@ -82,12 +64,10 @@ fn init() -> event::Ring {
     event_ring
 }
 
-fn iter_devices() -> impl Iterator<Item = Registers> {
+fn iter_devices() -> impl Iterator<Item = PhysAddr> {
     super::iter_devices().filter_map(|device| {
         if device.is_xhci() {
-            // SAFETY: This operation is safe because MMIO base address is generated from the 0th
-            // BAR.
-            Some(unsafe { Registers::new(device.base_address(bar::Index::new(0))) })
+            Some(device.base_address(bar::Index::new(0)))
         } else {
             None
         }
