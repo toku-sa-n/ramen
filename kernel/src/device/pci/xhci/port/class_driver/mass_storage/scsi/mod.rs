@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 mod channel;
+pub(super) mod response;
 
-use core::convert::TryFrom;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 
@@ -31,7 +31,7 @@ pub(super) struct CommandBlockWrapperHeader {
     command_len: u8,
 }
 impl CommandBlockWrapperHeader {
-    const SIGNATURE: u32 = 0x43425355;
+    const SIGNATURE: u32 = 0x4342_5355;
 }
 
 #[repr(transparent)]
@@ -47,66 +47,6 @@ impl CommandDataBlock {
 }
 
 #[repr(C, packed)]
-pub(super) struct CommandStatus<T>
-where
-    T: Copy,
-{
-    status: T,
-    wrapper: CommandStatusWrapper,
-}
-impl<T> CommandStatus<T>
-where
-    T: Copy,
-{
-    pub(super) fn status(self) -> T {
-        self.status
-    }
-
-    pub(super) fn wrapper(self) -> CommandStatusWrapper {
-        self.wrapper
-    }
-
-    pub(super) fn check_corruption(&self) {
-        self.wrapper().check_corruption();
-    }
-
-    // Because of the blanket implementation, `impl<T,U> TryFrom<CommandStatus<U>> for
-    // CommandStatus<T> where T:TryFrom<U>` cannot be implemented.
-    pub(super) fn try_into<U>(self) -> Result<CommandStatus<U>, <U as TryFrom<T>>::Error>
-    where
-        U: TryFrom<T> + Copy,
-    {
-        Ok(CommandStatus {
-            status: U::try_from(self.status)?,
-            wrapper: self.wrapper,
-        })
-    }
-}
-impl<T> Default for CommandStatus<T>
-where
-    T: Copy + Default,
-{
-    fn default() -> Self {
-        Self {
-            status: T::default(),
-            wrapper: CommandStatusWrapper::default(),
-        }
-    }
-}
-impl<T> Clone for CommandStatus<T>
-where
-    T: Copy,
-{
-    fn clone(&self) -> Self {
-        CommandStatus {
-            status: self.status,
-            wrapper: self.wrapper,
-        }
-    }
-}
-impl<T> Copy for CommandStatus<T> where T: Copy {}
-
-#[repr(C, packed)]
 #[derive(Copy, Clone, Default)]
 pub(super) struct CommandStatusWrapper {
     signature: u32,
@@ -116,11 +56,11 @@ pub(super) struct CommandStatusWrapper {
 }
 impl CommandStatusWrapper {
     pub(super) fn check_corruption(&self) {
-        const USBC: u32 = 0x43425355;
+        const USBS: u32 = 0x5342_5355;
         let signature = self.signature;
 
         assert_eq!(
-            signature, USBC,
+            signature, USBS,
             "The signature of the Command Status Wrapper is wrong."
         );
     }
@@ -136,39 +76,6 @@ pub(super) enum Status {
 impl Default for Status {
     fn default() -> Self {
         Self::Good
-    }
-}
-
-#[repr(transparent)]
-#[derive(Copy, Clone, Debug)]
-pub(super) struct Inquiry([u8; 36]);
-impl TryFrom<RawInquiry> for Inquiry {
-    type Error = Invalid;
-
-    fn try_from(value: RawInquiry) -> Result<Self, Self::Error> {
-        let value = value.0;
-        let peripheral_device_type = value[0] & 0b1_1111;
-        let peripheral_qualifier = value[0] >> 5;
-        let response_data_format = value[3] & 0b1111;
-
-        if ![0x00, 0x05].contains(&peripheral_device_type) {
-            Err(Invalid::PeripheralDeviceType(peripheral_device_type))
-        } else if peripheral_qualifier != 0 {
-            Err(Invalid::PeripheralQualifier(peripheral_qualifier))
-        } else if ![0x01, 0x02].contains(&response_data_format) {
-            Err(Invalid::ResponseDataFormat(response_data_format))
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-#[repr(transparent)]
-#[derive(Copy, Clone)]
-pub(super) struct RawInquiry([u8; 36]);
-impl Default for RawInquiry {
-    fn default() -> Self {
-        Self([0; 36])
     }
 }
 

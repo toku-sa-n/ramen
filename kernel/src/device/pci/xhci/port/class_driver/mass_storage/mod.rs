@@ -2,12 +2,13 @@
 
 mod scsi;
 
-use crate::device::pci::xhci::{port::endpoint, structures::context::EndpointType};
+use crate::device::pci::xhci::port::endpoint;
 use page_box::PageBox;
 use scsi::{
-    CommandBlockWrapper, CommandBlockWrapperHeaderBuilder, CommandDataBlock, CommandStatus,
-    Inquiry, RawInquiry,
+    response::Inquiry, CommandBlockWrapper, CommandBlockWrapperHeaderBuilder, CommandDataBlock,
+    CommandStatusWrapper,
 };
+use xhci::context::EndpointType;
 
 pub async fn task(eps: endpoint::Collection) {
     let mut m = MassStorage::new(eps);
@@ -25,7 +26,6 @@ impl MassStorage {
     }
 
     async fn inquiry(&mut self) -> Result<Inquiry, scsi::Invalid> {
-        let mut b = PageBox::from(CommandStatus::<RawInquiry>::default());
         let header = CommandBlockWrapperHeaderBuilder::default()
             .transfer_length(36)
             .flags(0x80)
@@ -36,21 +36,23 @@ impl MassStorage {
         let data = CommandDataBlock::inquiry();
         let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data));
 
-        self.send_scsi_command(&mut wrapper, &mut b).await;
+        let (response, status): (PageBox<Inquiry>, _) = self.send_scsi_command(&mut wrapper).await;
 
-        info!("Status: {:?}", b.wrapper().status());
-        let b: CommandStatus<Inquiry> = b.try_into()?.clone();
-        Ok(b.status())
+        status.check_corruption();
+        Ok(*response)
     }
 
-    async fn send_scsi_command<T: Copy>(
+    async fn send_scsi_command<T>(
         &mut self,
         c: &mut PageBox<CommandBlockWrapper>,
-        recv: &mut PageBox<CommandStatus<T>>,
-    ) {
+    ) -> (PageBox<T>, PageBox<CommandStatusWrapper>)
+    where
+        T: Default,
+    {
         self.send_command_block_wrapper(c).await;
-        self.receive_command_status(recv).await;
-        recv.check_corruption();
+        let response = self.receive_command_response().await;
+        let status = self.receive_command_status().await;
+        (response, status)
     }
 
     async fn send_command_block_wrapper(&mut self, c: &mut PageBox<CommandBlockWrapper>) {
@@ -60,10 +62,24 @@ impl MassStorage {
             .expect("Failed to send a SCSI command.");
     }
 
-    async fn receive_command_status<T: Copy>(&mut self, c: &mut PageBox<CommandStatus<T>>) {
+    async fn receive_command_response<T>(&mut self) -> PageBox<T>
+    where
+        T: Default,
+    {
+        let c = PageBox::default();
         self.eps
-            .issue_normal_trb(c, EndpointType::BulkIn)
+            .issue_normal_trb(&c, EndpointType::BulkIn)
             .await
-            .expect("Failed to receive a SCSI status");
+            .expect("Failed to receive a SCSI command reponse.");
+        c
+    }
+
+    async fn receive_command_status(&mut self) -> PageBox<CommandStatusWrapper> {
+        let b = PageBox::default();
+        self.eps
+            .issue_normal_trb(&b, EndpointType::BulkIn)
+            .await
+            .expect("Failed to receive a SCSI status.");
+        b
     }
 }
