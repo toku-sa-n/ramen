@@ -12,3 +12,12 @@ impl Default for Inquiry {
 #[derive(Copy, Clone, Debug, Default)]
 #[repr(transparent)]
 pub(in crate::device::pci::xhci) struct ReadCapacity([u8; 8]);
+
+#[derive(Copy, Clone, Debug)]
+#[repr(transparent)]
+pub(in crate::device::pci::xhci) struct Read10([u8; 32768]);
+impl Default for Read10 {
+    fn default() -> Self {
+        Self([0; 32768])
+    }
+}

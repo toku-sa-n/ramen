@@ -5,7 +5,7 @@ mod scsi;
 use crate::device::pci::xhci::port::endpoint;
 use page_box::PageBox;
 use scsi::{
-    response::{Inquiry, ReadCapacity},
+    response::{Inquiry, Read10, ReadCapacity},
     CommandBlockWrapper, CommandBlockWrapperHeaderBuilder, CommandDataBlock, CommandStatusWrapper,
 };
 use xhci::context::EndpointType;
@@ -18,6 +18,9 @@ pub async fn task(eps: endpoint::Collection) {
 
     let b = m.read_capacity().await;
     info!("Read Capacity: {:?}", b);
+
+    let b = m.read10().await;
+    info!("Buf: {:X?}", b);
 }
 
 struct MassStorage {
@@ -61,6 +64,23 @@ impl MassStorage {
 
         status.check_corruption();
         Ok(*response)
+    }
+
+    async fn read10(&mut self) -> Result<PageBox<Read10>, scsi::Invalid> {
+        let header = CommandBlockWrapperHeaderBuilder::default()
+            .transfer_length(0x8000)
+            .flags(0x80)
+            .lun(0)
+            .command_len(0x0a)
+            .build()
+            .expect("Failed to build a read 10 command block wrapper.");
+        let data = CommandDataBlock::read10();
+        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data));
+
+        let (response, status): (PageBox<Read10>, _) = self.send_scsi_command(&mut wrapper).await;
+
+        status.check_corruption();
+        Ok(response)
     }
 
     async fn send_scsi_command<T>(

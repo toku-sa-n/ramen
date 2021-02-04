@@ -50,6 +50,13 @@ impl CommandDataBlock {
         b.0[0] = 0x25;
         b
     }
+
+    pub(super) fn read10() -> Self {
+        let mut b = Self::default();
+        b.0[0] = 0x28;
+        b.0[8] = 0x40;
+        b
+    }
 }
 
 #[repr(C, packed)]
