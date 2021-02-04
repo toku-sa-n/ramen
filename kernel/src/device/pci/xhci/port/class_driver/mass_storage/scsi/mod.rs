@@ -23,7 +23,7 @@ impl CommandBlockWrapper {
 pub(super) struct CommandBlockWrapperHeader {
     #[builder(default = "CommandBlockWrapperHeader::SIGNATURE")]
     signature: u32,
-    #[builder(default = "334")]
+    #[builder(default = "0")]
     tag: u32,
     transfer_length: u32,
     flags: u8,
@@ -42,13 +42,6 @@ impl CommandDataBlock {
         let mut b = Self::default();
         b.0[0] = 0x12;
         b.0[4] = 0x24;
-        b
-    }
-
-    pub(super) fn read_format_capacities() -> Self {
-        let mut b = Self::default();
-        b.0[0] = 0x23;
-        b.0[8] = 0xfc;
         b
     }
 }
@@ -70,14 +63,7 @@ impl CommandStatusWrapper {
             signature, USBS,
             "The signature of the Command Status Wrapper is wrong."
         );
-
-        info!("Tag: {}", self.tag);
-
-        if let Err(Invalid::Status(s)) = self.status() {
-            panic!("Error code {:?}", s);
-        }
     }
-
     pub(super) fn status(&self) -> Result<Status, Invalid> {
         FromPrimitive::from_u8(self.status).ok_or(Invalid::Status(self.status))
     }

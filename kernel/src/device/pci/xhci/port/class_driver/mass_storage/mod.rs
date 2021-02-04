@@ -5,8 +5,8 @@ mod scsi;
 use crate::device::pci::xhci::port::endpoint;
 use page_box::PageBox;
 use scsi::{
-    response::{Inquiry, ReadFormatCapacities},
-    CommandBlockWrapper, CommandBlockWrapperHeaderBuilder, CommandDataBlock, CommandStatusWrapper,
+    response::Inquiry, CommandBlockWrapper, CommandBlockWrapperHeaderBuilder, CommandDataBlock,
+    CommandStatusWrapper,
 };
 use xhci::context::EndpointType;
 
@@ -15,12 +15,6 @@ pub async fn task(eps: endpoint::Collection) {
     info!("This is the task of USB Mass Storage.");
     let b = m.inquiry().await;
     info!("Inquiry Command: {:?}", b);
-    let b = m
-        .read_format_capacities()
-        .await
-        .expect("Failed to send a read format capacities command.");
-    info!("Len: {}", b.header.list_len);
-    info!("{:?}", b);
 }
 
 struct MassStorage {
@@ -43,24 +37,6 @@ impl MassStorage {
         let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data));
 
         let (response, status): (PageBox<Inquiry>, _) = self.send_scsi_command(&mut wrapper).await;
-
-        status.check_corruption();
-        Ok(*response)
-    }
-
-    async fn read_format_capacities(&mut self) -> Result<ReadFormatCapacities, scsi::Invalid> {
-        let header = CommandBlockWrapperHeaderBuilder::default()
-            .transfer_length(0xfc)
-            .flags(0x80)
-            .lun(0)
-            .command_len(0x0a)
-            .build()
-            .expect("Failed to build a read format capacities command block wrapper.");
-        let data = CommandDataBlock::read_format_capacities();
-        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data));
-
-        let (response, status): (PageBox<ReadFormatCapacities>, _) =
-            self.send_scsi_command(&mut wrapper).await;
 
         status.check_corruption();
         Ok(*response)
