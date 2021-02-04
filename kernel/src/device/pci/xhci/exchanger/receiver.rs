@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::device::pci::xhci::structures::ring::event::trb::completion::Completion;
 use alloc::{collections::BTreeMap, sync::Arc};
 use core::{
     future::Future,
@@ -10,6 +9,7 @@ use core::{
 use futures_util::task::AtomicWaker;
 use spinning_top::{Spinlock, SpinlockGuard};
 use x86_64::PhysAddr;
+use xhci::ring::trb::event;
 
 static RECEIVER: Spinlock<Receiver> = Spinlock::new(Receiver::new());
 
@@ -20,7 +20,7 @@ pub(in crate::device::pci::xhci) fn add_entry(
     lock().add_entry(trb_a, waker)
 }
 
-pub(in crate::device::pci::xhci) fn receive(t: Completion) {
+pub(in crate::device::pci::xhci) fn receive(t: event::Allowed) {
     lock().receive(t)
 }
 
@@ -31,7 +31,7 @@ fn lock() -> SpinlockGuard<'static, Receiver> {
 }
 
 struct Receiver {
-    trbs: BTreeMap<PhysAddr, Option<Completion>>,
+    trbs: BTreeMap<PhysAddr, Option<event::Allowed>>,
     wakers: BTreeMap<PhysAddr, Arc<Spinlock<AtomicWaker>>>,
 }
 impl Receiver {
@@ -57,21 +57,21 @@ impl Receiver {
         Ok(())
     }
 
-    fn receive(&mut self, trb: Completion) {
+    fn receive(&mut self, trb: event::Allowed) {
         if let Err(e) = self.insert_trb_and_wake_runner(trb) {
             panic!("Failed to receive a command completion trb: {:?}", e);
         }
     }
 
-    fn insert_trb_and_wake_runner(&mut self, trb: Completion) -> Result<(), Error> {
-        let addr_to_trb = trb.addr();
+    fn insert_trb_and_wake_runner(&mut self, trb: event::Allowed) -> Result<(), Error> {
+        let addr_to_trb = Self::trb_addr(trb);
         self.insert_trb(trb)?;
         self.wake_runner(addr_to_trb)?;
         Ok(())
     }
 
-    fn insert_trb(&mut self, trb: Completion) -> Result<(), Error> {
-        let addr_to_trb = trb.addr();
+    fn insert_trb(&mut self, trb: event::Allowed) -> Result<(), Error> {
+        let addr_to_trb = Self::trb_addr(trb);
         *self
             .trbs
             .get_mut(&addr_to_trb)
@@ -95,11 +95,19 @@ impl Receiver {
         }
     }
 
-    fn remove_entry(&mut self, addr_to_trb: PhysAddr) -> Option<Completion> {
+    fn remove_entry(&mut self, addr_to_trb: PhysAddr) -> Option<event::Allowed> {
         match self.trbs.remove(&addr_to_trb) {
             Some(trb) => trb,
             None => panic!("No such receiver with TRB address: {:?}", addr_to_trb),
         }
+    }
+
+    fn trb_addr(t: event::Allowed) -> PhysAddr {
+        PhysAddr::new(match t {
+            event::Allowed::TransferEvent(e) => e.trb_pointer(),
+            event::Allowed::CommandCompletion(c) => c.command_trb_pointer(),
+            _ => todo!(),
+        })
     }
 }
 
@@ -119,7 +127,7 @@ impl ReceiveFuture {
     }
 }
 impl Future for ReceiveFuture {
-    type Output = Completion;
+    type Output = event::Allowed;
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let waker = self.waker.clone();
