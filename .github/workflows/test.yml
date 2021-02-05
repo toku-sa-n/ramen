@@ -38,7 +38,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install nasm mtools qemu ovmf
+        sudo apt-get install nasm mtools qemu-system-x86 ovmf
 
     - name: Copy OVMF_*
       run: cp /usr/share/OVMF/OVMF_* .
