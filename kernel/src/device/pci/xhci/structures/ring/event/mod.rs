@@ -12,31 +12,30 @@ use core::{
 use futures_util::{stream::Stream, StreamExt};
 use page_box::PageBox;
 use segment_table::SegmentTable;
-use trb::Trb;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB},
     PhysAddr,
 };
+use xhci::ring::{trb, trb::event};
 
 mod segment_table;
-pub mod trb;
 
 pub async fn task(mut ring: Ring) {
     debug!("This is the Event ring task.");
     while let Some(trb) = ring.next().await {
         info!("TRB: {:?}", trb);
-        if let Trb::Completion(trb) = trb {
-            debug!("Command completion TRB arrived.");
-            info!("Completion Code: {}", trb.completion_code());
+        if let event::Allowed::CommandCompletion(_) = trb {
             receiver::receive(trb);
-        } else if let Trb::PortStatusChange(t) = trb {
-            let _ = port::try_spawn(t.port());
+        } else if let event::Allowed::TransferEvent(_) = trb {
+            receiver::receive(trb);
+        } else if let event::Allowed::PortStatusChange(p) = trb {
+            let _ = port::try_spawn(p.port_id());
         }
     }
 }
 
 #[allow(clippy::cast_possible_truncation)]
-const MAX_NUM_OF_TRB_IN_QUEUE: u16 = Size4KiB::SIZE as u16 / Trb::SIZE.as_usize() as u16;
+const MAX_NUM_OF_TRB_IN_QUEUE: u16 = Size4KiB::SIZE as u16 / trb::BYTES as u16;
 
 pub struct Ring {
     segment_table: SegmentTable,
@@ -74,7 +73,7 @@ impl<'a> Ring {
         SegTblInitializer::new(self).init();
     }
 
-    fn try_dequeue(&mut self) -> Option<Trb> {
+    fn try_dequeue(&mut self) -> Option<event::Allowed> {
         self.raw.try_dequeue()
     }
 
@@ -87,7 +86,7 @@ impl<'a> Ring {
     }
 }
 impl<'a> Stream for Ring {
-    type Item = Trb;
+    type Item = event::Allowed;
 
     fn poll_next(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         Pin::into_inner(self)
@@ -131,7 +130,7 @@ impl Raw {
         })
     }
 
-    fn try_dequeue(&mut self) -> Option<Trb> {
+    fn try_dequeue(&mut self) -> Option<event::Allowed> {
         if self.empty() {
             None
         } else {
@@ -148,13 +147,13 @@ impl Raw {
         CycleBit::new(t[3].get_bit(0))
     }
 
-    fn dequeue(&mut self) -> Option<Trb> {
+    fn dequeue(&mut self) -> Option<event::Allowed> {
         let t = self.get_next_trb().ok();
         self.increment();
         t
     }
 
-    fn get_next_trb(&self) -> Result<Trb, trb::Error> {
+    fn get_next_trb(&self) -> Result<event::Allowed, [u32; 4]> {
         let r = self.rings[self.deq_p_seg][self.deq_p_trb];
         let t = r.try_into();
         if t.is_err() {
@@ -190,7 +189,7 @@ impl Raw {
     }
 
     fn next_trb_addr(&self) -> PhysAddr {
-        self.rings[self.deq_p_seg].phys_addr() + Trb::SIZE.as_usize() * self.deq_p_trb
+        self.rings[self.deq_p_seg].phys_addr() + trb::BYTES * self.deq_p_trb
     }
 
     fn head_addrs(&self) -> Vec<PhysAddr> {

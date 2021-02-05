@@ -44,5 +44,5 @@ syscalls = { path = "../syscalls" }
 tsukemen = { path = "../apps/tsukemen" }
 page_box = { path = "../page_box" }
 terminal = { path = "../terminal" }
-xhci = "0.4.0"
+xhci = "0.4.1"
 accessor = "0.3.0"

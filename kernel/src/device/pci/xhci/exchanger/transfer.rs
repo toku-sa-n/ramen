@@ -1,26 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::receiver::{self, ReceiveFuture};
-use crate::device::pci::xhci::structures::{
-    descriptor, registers,
-    ring::{
-        event::trb::completion::Completion,
-        transfer::{
-            self,
-            trb::control::{Control, Direction, Request},
-        },
-    },
-};
+use crate::device::pci::xhci::structures::{descriptor, registers, ring::transfer};
 use alloc::{sync::Arc, vec::Vec};
 use core::convert::TryInto;
 use futures_util::task::AtomicWaker;
 use page_box::PageBox;
 use spinning_top::Spinlock;
-use transfer::trb::{
-    control::{DataStage, DescTyIdx, SetupStage, StatusStage},
-    Normal, Trb,
-};
 use x86_64::PhysAddr;
+use xhci::ring::trb::{
+    event, transfer as transfer_trb,
+    transfer::{Direction, Normal, TransferType},
+};
 
 pub struct Sender {
     ring: transfer::Ring,
@@ -65,51 +56,58 @@ impl Sender {
 
     pub async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
         let t = *Normal::default()
-            .set_buf_ptr(b.phys_addr())
-            .set_transfer_length(b.bytes())
-            .set_ioc(true);
-        let t = Trb::Normal(t);
+            .set_data_buffer_pointer(b.phys_addr().as_u64())
+            .set_trb_transfer_length(b.bytes().as_usize().try_into().unwrap())
+            .set_interrupt_on_completion(true);
+        let t = transfer_trb::Allowed::Normal(t);
         debug!("Normal TRB: {:X?}", t);
         self.issue_trbs(&[t]).await;
     }
 
-    fn trbs_for_getting_descriptors<T: ?Sized>(b: &PageBox<T>, t: DescTyIdx) -> (Trb, Trb, Trb) {
-        let setup = *SetupStage::default()
+    fn trbs_for_getting_descriptors<T: ?Sized>(
+        b: &PageBox<T>,
+        t: DescTyIdx,
+    ) -> (
+        transfer_trb::Allowed,
+        transfer_trb::Allowed,
+        transfer_trb::Allowed,
+    ) {
+        let setup = *transfer_trb::SetupStage::default()
             .set_request_type(0b1000_0000)
-            .set_request(Request::GetDescriptor)
+            .set_request(Request::GetDescriptor as u8)
             .set_value(t.bits())
             .set_length(b.bytes().as_usize().try_into().unwrap())
             .set_trb_transfer_length(8)
-            .set_trt(3);
-        let setup = Trb::Control(Control::Setup(setup));
+            .set_transfer_type(TransferType::In);
+        let setup = transfer_trb::Allowed::SetupStage(setup);
 
-        let data = *DataStage::default()
-            .set_data_buf(b.phys_addr())
-            .set_transfer_length(b.bytes().as_usize().try_into().unwrap())
-            .set_dir(Direction::In);
-        let data = Trb::Control(Control::Data(data));
+        let data = *transfer_trb::DataStage::default()
+            .set_data_buffer_pointer(b.phys_addr().as_u64())
+            .set_trb_transfer_length(b.bytes().as_usize().try_into().unwrap())
+            .set_direction(Direction::In);
+        let data = transfer_trb::Allowed::DataStage(data);
 
-        let status = *StatusStage::default().set_ioc(true);
-        let status = Trb::Control(Control::Status(status));
+        let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion(true);
+        let status = transfer_trb::Allowed::StatusStage(status);
 
         (setup, data, status)
     }
 
-    async fn issue_trbs(&mut self, ts: &[Trb]) -> Vec<Option<Completion>> {
+    async fn issue_trbs(&mut self, ts: &[transfer_trb::Allowed]) -> Vec<Option<event::Allowed>> {
         let addrs = self.ring.enqueue(ts);
         self.register_with_receiver(ts, &addrs);
         self.write_to_doorbell();
         self.get_trb(ts, &addrs).await
     }
 
-    fn register_with_receiver(&mut self, ts: &[Trb], addrs: &[PhysAddr]) {
+    fn register_with_receiver(&mut self, ts: &[transfer_trb::Allowed], addrs: &[PhysAddr]) {
         for (t, addr) in ts.iter().zip(addrs) {
             self.register_trb(t, *addr);
         }
     }
 
-    fn register_trb(&mut self, t: &Trb, a: PhysAddr) {
-        if t.ioc() {
+    fn register_trb(&mut self, t: &transfer_trb::Allowed, a: PhysAddr) {
+        if t.interrupt_on_completion() {
             receiver::add_entry(a, self.waker.clone()).expect("Sender is already registered.");
         }
     }
@@ -118,7 +116,11 @@ impl Sender {
         self.doorbell_writer.write();
     }
 
-    async fn get_trb(&mut self, ts: &[Trb], addrs: &[PhysAddr]) -> Vec<Option<Completion>> {
+    async fn get_trb(
+        &mut self,
+        ts: &[transfer_trb::Allowed],
+        addrs: &[PhysAddr],
+    ) -> Vec<Option<event::Allowed>> {
         let mut v = Vec::new();
         for (t, a) in ts.iter().zip(addrs) {
             v.push(self.get_single_trb(t, *a).await);
@@ -126,8 +128,12 @@ impl Sender {
         v
     }
 
-    async fn get_single_trb(&mut self, t: &Trb, addr: PhysAddr) -> Option<Completion> {
-        if t.ioc() {
+    async fn get_single_trb(
+        &mut self,
+        t: &transfer_trb::Allowed,
+        addr: PhysAddr,
+    ) -> Option<event::Allowed> {
+        if t.interrupt_on_completion() {
             Some(ReceiveFuture::new(addr, self.waker.clone()).await)
         } else {
             None
@@ -151,4 +157,21 @@ impl DoorbellWriter {
             })
         });
     }
+}
+
+pub struct DescTyIdx {
+    ty: descriptor::Ty,
+    i: u8,
+}
+impl DescTyIdx {
+    pub fn new(ty: descriptor::Ty, i: u8) -> Self {
+        Self { ty, i }
+    }
+    pub fn bits(self) -> u16 {
+        (self.ty as u16) << 8 | u16::from(self.i)
+    }
+}
+
+enum Request {
+    GetDescriptor = 6,
 }
