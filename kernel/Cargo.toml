@@ -24,10 +24,10 @@ common = { path = "../common" }
 conquer-once = { version = "0.3.2", default-features = false }
 spinning_top = { version = "0.2.2", features = ["nightly"] }
 qemu-exit = "1.0.2"
-x86_64 = "0.13.1"
+x86_64 = "0.13.2"
 linked_list_allocator = "0.8.11"
 log = "0.4.14"
-vek = { version = "0.13.1", default-features = false, features = ["libm"] }
+vek = { version = "0.14.0", default-features = false, features = ["libm"] }
 rgb = "0.8.25"
 uefi = "0.7.0"
 crossbeam-queue = { version = "0.3.1", default-features = false, features = ["alloc"] }
@@ -44,5 +44,5 @@ syscalls = { path = "../syscalls" }
 tsukemen = { path = "../apps/tsukemen" }
 page_box = { path = "../page_box" }
 terminal = { path = "../terminal" }
-xhci = "0.4.0"
+xhci = "0.4.1"
 accessor = "0.3.0"

@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{CycleBit, Link};
+use super::CycleBit;
 use crate::device::pci::xhci::registers;
 use page_box::PageBox;
-use trb::Trb;
+use trb::Link;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB},
     PhysAddr,
 };
-
-pub mod trb;
+use xhci::ring::{trb, trb::command};
 
 #[allow(clippy::cast_possible_truncation)]
-const NUM_OF_TRBS: usize = Size4KiB::SIZE as usize / Trb::SIZE.as_usize();
+const NUM_OF_TRBS: usize = Size4KiB::SIZE as usize / trb::BYTES;
 
 pub struct Ring {
     raw: Raw,
@@ -26,7 +25,7 @@ impl Ring {
         Initializer::new(self).init();
     }
 
-    pub fn enqueue(&mut self, trb: Trb) -> PhysAddr {
+    pub fn enqueue(&mut self, trb: command::Allowed) -> PhysAddr {
         let a = self.raw.enqueue(trb);
         Self::notify_command_is_sent();
         a
@@ -62,18 +61,18 @@ impl Raw {
         }
     }
 
-    fn enqueue(&mut self, mut trb: Trb) -> PhysAddr {
-        trb.set_c(self.c);
+    fn enqueue(&mut self, mut trb: command::Allowed) -> PhysAddr {
+        trb.set_cycle_bit(self.c.into());
         self.write_trb(trb);
         let trb_a = self.enq_addr();
         self.increment();
         trb_a
     }
 
-    fn write_trb(&mut self, trb: Trb) {
+    fn write_trb(&mut self, trb: command::Allowed) {
         // TODO: Write four 32-bit values. This way of writing is described in the spec, although
         // I cannot find which section has the description.
-        self.raw[self.enq_p] = trb.into();
+        self.raw[self.enq_p] = trb.into_raw();
     }
 
     fn increment(&mut self) {
@@ -90,10 +89,10 @@ impl Raw {
 
     fn enq_link(&mut self) {
         // Don't call `enqueue`. It will return an `Err` value as there is no space for link TRB.
-        let t = *Link::default().set_addr(self.head_addr());
-        let mut t = Trb::Link(t);
-        t.set_c(self.c);
-        self.raw[self.enq_p] = t.into();
+        let t = *Link::default().set_ring_segment_pointer(self.head_addr().as_u64());
+        let mut t = command::Allowed::Link(t);
+        t.set_cycle_bit(self.c.into());
+        self.raw[self.enq_p] = t.into_raw();
     }
 
     fn move_enq_p_to_the_beginning(&mut self) {
@@ -102,7 +101,7 @@ impl Raw {
     }
 
     fn enq_addr(&self) -> PhysAddr {
-        self.head_addr() + Trb::SIZE.as_usize() * self.enq_p
+        self.head_addr() + trb::BYTES * self.enq_p
     }
 
     fn head_addr(&self) -> PhysAddr {

@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{CycleBit, Link};
+use super::CycleBit;
 use alloc::vec::Vec;
 use page_box::PageBox;
-use trb::Trb;
+use trb::Link;
 use x86_64::PhysAddr;
-
-pub mod trb;
+use xhci::ring::{trb, trb::transfer};
 
 const SIZE_OF_RING: usize = 256;
 
@@ -22,7 +21,7 @@ impl Ring {
         self.raw.phys_addr()
     }
 
-    pub fn enqueue(&mut self, trbs: &[Trb]) -> Vec<PhysAddr> {
+    pub fn enqueue(&mut self, trbs: &[transfer::Allowed]) -> Vec<PhysAddr> {
         self.raw.enqueue_trbs(trbs)
     }
 }
@@ -41,12 +40,12 @@ impl Raw {
         }
     }
 
-    fn enqueue_trbs(&mut self, trbs: &[Trb]) -> Vec<PhysAddr> {
+    fn enqueue_trbs(&mut self, trbs: &[transfer::Allowed]) -> Vec<PhysAddr> {
         trbs.iter().map(|t| self.enqueue(*t)).collect()
     }
 
-    fn enqueue(&mut self, mut trb: Trb) -> PhysAddr {
-        trb.set_c(self.c);
+    fn enqueue(&mut self, mut trb: transfer::Allowed) -> PhysAddr {
+        trb.set_cycle_bit(self.c.into());
         self.write_trb_on_memory(trb);
         let addr_to_trb = self.addr_to_enqueue_ptr();
         self.increment_enqueue_ptr();
@@ -54,12 +53,12 @@ impl Raw {
         addr_to_trb
     }
 
-    fn write_trb_on_memory(&mut self, trb: Trb) {
-        self.ring[self.enq_p] = trb.into();
+    fn write_trb_on_memory(&mut self, trb: transfer::Allowed) {
+        self.ring[self.enq_p] = trb.into_raw();
     }
 
     fn addr_to_enqueue_ptr(&self) -> PhysAddr {
-        self.phys_addr() + Trb::SIZE.as_usize() * self.enq_p
+        self.phys_addr() + trb::BYTES * self.enq_p
     }
 
     fn phys_addr(&self) -> PhysAddr {
@@ -81,10 +80,10 @@ impl Raw {
     }
 
     fn append_link_trb(&mut self) {
-        let t = *Link::default().set_addr(self.phys_addr());
-        let mut t = Trb::Link(t);
-        t.set_c(self.c);
-        self.ring[self.enq_p] = t.into();
+        let t = *Link::default().set_ring_segment_pointer(self.phys_addr().as_u64());
+        let mut t = transfer::Allowed::Link(t);
+        t.set_cycle_bit(self.c.into());
+        self.ring[self.enq_p] = t.into_raw();
     }
 
     fn move_enqueue_ptr_to_the_beginning(&mut self) {

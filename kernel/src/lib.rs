@@ -8,7 +8,6 @@
 #![feature(alloc_error_handler)]
 #![feature(linked_list_remove)]
 #![feature(const_fn)]
-#![feature(wake_trait)]
 #![feature(asm)]
 #![feature(panic_info_message)]
 #![feature(start)]
