@@ -172,12 +172,15 @@ impl<T: ?Sized> PageBox<T> {
         self.virt
     }
 
+    /// # Panics
+    ///
+    /// This method panics if the `PageBox` is not mapped.
     #[must_use]
     pub fn phys_addr(&self) -> PhysAddr {
         let a = syscalls::translate_address(self.virt);
 
         if a.is_null() {
-            panic!("Address: {:?} is not mapped.", self.virt);
+            unreachable!("Address: {:?} is not mapped.", self.virt);
         }
 
         a
