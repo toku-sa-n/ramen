@@ -69,6 +69,7 @@ async fn task(port: Port) {
         (3, 1, 1) => {
             multitask::add(Task::new_poll(class_driver::keyboard::task(eps)));
         }
+        (8, _, _) => multitask::add(Task::new(class_driver::mass_storage::task(eps))),
         t => warn!("Unknown device: {:?}", t),
     }
 }
