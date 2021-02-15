@@ -31,7 +31,7 @@ impl MassStorage {
         Self { eps }
     }
 
-    async fn inquiry(&mut self) -> Result<Inquiry, scsi::Invalid> {
+    async fn inquiry(&mut self) -> Inquiry {
         let header = CommandBlockWrapperHeaderBuilder::default()
             .transfer_length(36)
             .flags(0x80)
@@ -45,10 +45,10 @@ impl MassStorage {
         let (response, status): (PageBox<Inquiry>, _) = self.send_scsi_command(&mut wrapper).await;
 
         status.check_corruption();
-        Ok(*response)
+        *response
     }
 
-    async fn read_capacity(&mut self) -> Result<ReadCapacity, scsi::Invalid> {
+    async fn read_capacity(&mut self) -> ReadCapacity {
         let header = CommandBlockWrapperHeaderBuilder::default()
             .transfer_length(8)
             .flags(0x80)
@@ -63,10 +63,10 @@ impl MassStorage {
             self.send_scsi_command(&mut wrapper).await;
 
         status.check_corruption();
-        Ok(*response)
+        *response
     }
 
-    async fn read10(&mut self) -> Result<PageBox<Read10>, scsi::Invalid> {
+    async fn read10(&mut self) -> PageBox<Read10> {
         let header = CommandBlockWrapperHeaderBuilder::default()
             .transfer_length(0x8000)
             .flags(0x80)
@@ -80,7 +80,7 @@ impl MassStorage {
         let (response, status): (PageBox<Read10>, _) = self.send_scsi_command(&mut wrapper).await;
 
         status.check_corruption();
-        Ok(response)
+        response
     }
 
     async fn send_scsi_command<T>(

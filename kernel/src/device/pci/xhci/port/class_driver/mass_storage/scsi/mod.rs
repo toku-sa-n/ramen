@@ -4,7 +4,6 @@ mod channel;
 pub(super) mod response;
 
 use num_derive::FromPrimitive;
-use num_traits::FromPrimitive;
 
 #[repr(C, packed)]
 pub(super) struct CommandBlockWrapper {
@@ -77,9 +76,6 @@ impl CommandStatusWrapper {
             "The signature of the Command Status Wrapper is wrong."
         );
     }
-    pub(super) fn status(&self) -> Result<Status, Invalid> {
-        FromPrimitive::from_u8(self.status).ok_or(Invalid::Status(self.status))
-    }
 }
 
 #[derive(Copy, Clone, Debug, FromPrimitive)]
@@ -90,12 +86,4 @@ impl Default for Status {
     fn default() -> Self {
         Self::Good
     }
-}
-
-#[derive(Debug)]
-pub(super) enum Invalid {
-    PeripheralDeviceType(u8),
-    PeripheralQualifier(u8),
-    ResponseDataFormat(u8),
-    Status(u8),
 }
