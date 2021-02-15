@@ -9,6 +9,6 @@ license = "GPL-3.0-or-later"
 
 [dependencies]
 uefi = "0.7.0"
-x86_64 = "0.13.1"
+x86_64 = "0.13.2"
 os_units = "0.2.7"
-vek = { version = "0.13.0", default-features = false, features = ["libm"] }
+vek = { version = "0.13.1", default-features = false, features = ["libm"] }

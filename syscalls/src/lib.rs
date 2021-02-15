@@ -2,6 +2,7 @@
 
 #![no_std]
 #![feature(asm)]
+#![allow(clippy::missing_panics_doc)]
 
 use core::convert::TryInto;
 
@@ -14,7 +15,11 @@ use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 /// This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
 #[must_use]
 pub unsafe fn inl(port: u16) -> u32 {
-    general_syscall(Ty::Inl, port.into(), 0).try_into().unwrap()
+    general_syscall(Ty::Inl, port.into(), 0)
+        .try_into()
+        .unwrap_or_else(|_| {
+            unreachable!("Inl system call returns a value which is out of the ramge of `u32`.")
+        })
 }
 
 /// # Safety
@@ -49,7 +54,14 @@ pub fn enable_interrupt_and_halt() {
 pub fn allocate_pages(pages: NumOfPages<Size4KiB>) -> VirtAddr {
     // SAFETY: This operation is safe as the arguments are propertly passed.
     VirtAddr::new(unsafe {
-        general_syscall(Ty::AllocatePages, pages.as_usize().try_into().unwrap(), 0)
+        general_syscall(
+            Ty::AllocatePages,
+            pages
+                .as_usize()
+                .try_into()
+                .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `u64` == `usize`.")),
+            0,
+        )
     })
 }
 
@@ -59,7 +71,10 @@ pub fn deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) {
         general_syscall(
             Ty::DeallocatePages,
             virt.as_u64(),
-            pages.as_usize().try_into().unwrap(),
+            pages
+                .as_usize()
+                .try_into()
+                .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `u64` == `usize`.")),
         )
     };
 }
@@ -71,7 +86,10 @@ pub fn map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
         general_syscall(
             Ty::MapPages,
             start.as_u64(),
-            bytes.as_usize().try_into().unwrap(),
+            bytes
+                .as_usize()
+                .try_into()
+                .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `u64` == `usize`.")),
         )
     })
 }
@@ -81,7 +99,10 @@ pub fn unmap_pages(start: VirtAddr, bytes: Bytes) {
         general_syscall(
             Ty::UnmapPages,
             start.as_u64(),
-            bytes.as_usize().try_into().unwrap(),
+            bytes
+                .as_usize()
+                .try_into()
+                .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `usize` == `u64`.")),
         );
     }
 }
@@ -89,7 +110,11 @@ pub fn unmap_pages(start: VirtAddr, bytes: Bytes) {
 #[must_use]
 pub fn getpid() -> i32 {
     // SAFETY: The system call type is correct, and the remaining arguments are not used.
-    unsafe { general_syscall(Ty::GetPid, 0, 0).try_into().unwrap() }
+    unsafe {
+        general_syscall(Ty::GetPid, 0, 0)
+            .try_into()
+            .unwrap_or_else(|_| unreachable!("PID is out of `i32` range."))
+    }
 }
 
 pub fn exit() -> ! {
