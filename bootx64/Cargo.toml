@@ -10,7 +10,7 @@ license = "GPL-3.0-or-later"
 [dependencies]
 log = "0.4.14"
 uefi = { version = "0.7.0", features = ["logger"] }
-uefi-services = "0.4.0"
+uefi-services = { git = "https://github.com/rust-osdev/uefi-rs/" }
 common = { path = "../common/" }
 x86_64 = "0.13.2"
 elf_rs = "0.1.3"
