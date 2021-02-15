@@ -2,7 +2,6 @@
 
 #![no_std]
 #![feature(asm)]
-#![allow(clippy::missing_panics_doc)]
 
 use core::convert::TryInto;
 
