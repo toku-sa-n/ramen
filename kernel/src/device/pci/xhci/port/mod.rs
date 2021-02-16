@@ -18,7 +18,6 @@ use spinning_top::Spinlock;
 
 mod class_driver;
 mod endpoint;
-mod resetter;
 mod slot_not_assigned;
 mod spawner;
 

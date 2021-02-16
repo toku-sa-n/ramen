@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::resetter::Resetter;
 use crate::device::pci::xhci::structures::{context::Context, registers};
 use alloc::sync::Arc;
 use spinning_top::Spinlock;
@@ -42,6 +41,40 @@ impl SlotNotAssigned {
 
     fn read_port_rg(&self) -> PortRegisterSet {
         registers::handle(|r| r.port_register_set.read_at((self.port_number - 1).into()))
+    }
+}
+
+struct Resetter {
+    port_number: u8,
+}
+impl Resetter {
+    fn new(port_number: u8) -> Self {
+        Self { port_number }
+    }
+
+    fn reset(&mut self) {
+        self.start_resetting();
+        self.wait_until_reset_is_completed();
+    }
+
+    fn start_resetting(&mut self) {
+        registers::handle(|r| {
+            r.port_register_set
+                .update_at((self.port_number - 1).into(), |r| {
+                    r.portsc.set_port_reset(true)
+                })
+        });
+    }
+
+    fn wait_until_reset_is_completed(&self) {
+        registers::handle(|r| {
+            while !r
+                .port_register_set
+                .read_at((self.port_number - 1).into())
+                .portsc
+                .port_reset_changed()
+            {}
+        });
     }
 }
 
