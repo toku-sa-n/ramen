@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::Slot;
+use super::SlotAssigned;
 use crate::device::pci::xhci::{
     exchanger::{self, transfer},
     structures::{context::Context, descriptor, registers},
@@ -19,7 +19,7 @@ pub struct Collection {
     slot_id: u8,
 }
 impl Collection {
-    pub async fn new(mut slot: Slot) -> Self {
+    pub async fn new(mut slot: SlotAssigned) -> Self {
         let eps = slot.endpoints().await;
         let interface = slot.interface_descriptor().await;
         debug!("Endpoints collected");
