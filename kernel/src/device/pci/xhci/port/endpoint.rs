@@ -32,7 +32,7 @@ impl AddressAssigned {
     }
 
     pub async fn init(&mut self) {
-        self.enable_eps();
+        self.init_ep_contexts();
         self.issue_configure_eps().await;
         debug!("Endpoints initialized");
     }
@@ -56,7 +56,7 @@ impl AddressAssigned {
         Err(Error::NoSuchEndpoint(ty))
     }
 
-    fn enable_eps(&mut self) {
+    fn init_ep_contexts(&mut self) {
         for ep in &mut self.eps {
             ep.init_context();
         }
