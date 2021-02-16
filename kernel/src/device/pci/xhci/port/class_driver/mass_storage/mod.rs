@@ -10,7 +10,7 @@ use scsi::{
 };
 use xhci::context::EndpointType;
 
-pub async fn task(eps: endpoint::Collection) {
+pub async fn task(eps: endpoint::AddressAssigned) {
     let mut m = MassStorage::new(eps);
     info!("This is the task of USB Mass Storage.");
     let b = m.inquiry().await;
@@ -24,10 +24,10 @@ pub async fn task(eps: endpoint::Collection) {
 }
 
 struct MassStorage {
-    eps: endpoint::Collection,
+    eps: endpoint::AddressAssigned,
 }
 impl MassStorage {
-    fn new(eps: endpoint::Collection) -> Self {
+    fn new(eps: endpoint::AddressAssigned) -> Self {
         Self { eps }
     }
 

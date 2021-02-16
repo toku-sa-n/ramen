@@ -4,7 +4,7 @@ use crate::device::pci::xhci::port::endpoint;
 use page_box::PageBox;
 use xhci::context::EndpointType;
 
-pub async fn task(eps: endpoint::Collection) {
+pub async fn task(eps: endpoint::AddressAssigned) {
     let mut m = Mouse::new(eps);
     loop {
         m.get_packet().await;
@@ -13,11 +13,11 @@ pub async fn task(eps: endpoint::Collection) {
 }
 
 pub struct Mouse {
-    ep: endpoint::Collection,
+    ep: endpoint::AddressAssigned,
     buf: PageBox<[i8; 4]>,
 }
 impl Mouse {
-    pub fn new(ep: endpoint::Collection) -> Self {
+    pub fn new(ep: endpoint::AddressAssigned) -> Self {
         Self {
             ep,
             buf: [0; 4].into(),

@@ -10,7 +10,7 @@ const LOWER_ALPHABETS: &str = "abcdefghijklmnopqrstuvwxyz";
 
 static STR: Spinlock<String> = Spinlock::new(String::new());
 
-pub async fn task(eps: endpoint::Collection) {
+pub async fn task(eps: endpoint::AddressAssigned) {
     let mut k = Keyboard::new(eps);
     loop {
         k.get_packet().await;
@@ -19,11 +19,11 @@ pub async fn task(eps: endpoint::Collection) {
 }
 
 pub struct Keyboard {
-    ep: endpoint::Collection,
+    ep: endpoint::AddressAssigned,
     buf: PageBox<[u8; 8]>,
 }
 impl Keyboard {
-    pub fn new(ep: endpoint::Collection) -> Self {
+    pub fn new(ep: endpoint::AddressAssigned) -> Self {
         Self {
             ep,
             buf: [0; 8].into(),

@@ -76,7 +76,7 @@ async fn main(port: SlotNotAssigned) {
     }
 }
 
-async fn init_port_and_slot_exclusively(port: SlotNotAssigned) -> endpoint::Collection {
+async fn init_port_and_slot_exclusively(port: SlotNotAssigned) -> endpoint::AddressAssigned {
     let reset_waiter = ResetWaiterFuture;
     reset_waiter.await;
 
@@ -84,7 +84,7 @@ async fn init_port_and_slot_exclusively(port: SlotNotAssigned) -> endpoint::Coll
     let slot = init_port_and_slot(port).await;
     CURRENT_RESET_PORT.lock().complete_reset();
     info!("Port {} reset completed.", port_idx);
-    endpoint::Collection::new(slot).await
+    endpoint::AddressAssigned::new(slot).await
 }
 
 async fn init_port_and_slot(mut p: SlotNotAssigned) -> SlotAssigned {

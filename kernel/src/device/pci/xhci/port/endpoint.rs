@@ -12,13 +12,13 @@ use page_box::PageBox;
 use spinning_top::Spinlock;
 use xhci::context::{EndpointHandler, EndpointType};
 
-pub struct Collection {
+pub struct AddressAssigned {
     eps: Vec<Endpoint>,
     cx: Arc<Spinlock<Context>>,
     interface: descriptor::Interface,
     slot_id: u8,
 }
-impl Collection {
+impl AddressAssigned {
     pub async fn new(mut slot: SlotAssigned) -> Self {
         let eps = slot.endpoints().await;
         let interface = slot.interface_descriptor().await;
@@ -67,7 +67,7 @@ impl Collection {
         exchanger::command::configure_endpoint(cx_addr, self.slot_id).await;
     }
 }
-impl<'a> IntoIterator for &'a mut Collection {
+impl<'a> IntoIterator for &'a mut AddressAssigned {
     type Item = &'a mut Endpoint;
     type IntoIter = slice::IterMut<'a, Endpoint>;
 
