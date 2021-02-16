@@ -139,16 +139,16 @@ impl SlotNotAssigned {
 }
 
 pub struct SlotAssigned {
-    id: u8,
+    slot_number: u8,
     cx: Arc<Spinlock<Context>>,
     def_ep: endpoint::Default,
 }
 impl SlotAssigned {
-    pub fn new(port: SlotNotAssigned, id: u8) -> Self {
+    pub fn new(port: SlotNotAssigned, slot_number: u8) -> Self {
         let cx = Arc::new(Spinlock::new(port.context));
-        let dbl_writer = DoorbellWriter::new(id, 1);
+        let dbl_writer = DoorbellWriter::new(slot_number, 1);
         Self {
-            id,
+            slot_number,
             cx: cx.clone(),
             def_ep: endpoint::Default::new(transfer::Sender::new(dbl_writer), cx, port.index),
         }
@@ -159,7 +159,7 @@ impl SlotAssigned {
     }
 
     pub fn id(&self) -> u8 {
-        self.id
+        self.slot_number
     }
 
     pub async fn init(&mut self) {
@@ -209,7 +209,7 @@ impl SlotAssigned {
         Endpoint::new(
             ep,
             self.cx.clone(),
-            transfer::Sender::new(DoorbellWriter::new(self.id, ep.doorbell_value())),
+            transfer::Sender::new(DoorbellWriter::new(self.slot_number, ep.doorbell_value())),
         )
     }
 
@@ -223,12 +223,12 @@ impl SlotAssigned {
 
     fn register_with_dcbaa(&mut self) {
         let a = self.cx.lock().output.phys_addr();
-        dcbaa::register(self.id.into(), a);
+        dcbaa::register(self.slot_number.into(), a);
     }
 
     async fn issue_address_device(&mut self) {
         let cx_addr = self.cx.lock().input.phys_addr();
-        exchanger::command::address_device(cx_addr, self.id).await;
+        exchanger::command::address_device(cx_addr, self.slot_number).await;
     }
 }
 
