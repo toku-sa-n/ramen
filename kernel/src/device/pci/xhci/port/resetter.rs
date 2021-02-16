@@ -3,11 +3,11 @@
 use crate::device::pci::xhci::registers;
 
 pub struct Resetter {
-    slot: u8,
+    port_number: u8,
 }
 impl Resetter {
-    pub fn new(slot: u8) -> Self {
-        Self { slot }
+    pub fn new(port_number: u8) -> Self {
+        Self { port_number }
     }
 
     pub fn reset(&mut self) {
@@ -18,7 +18,9 @@ impl Resetter {
     fn start_resetting(&mut self) {
         registers::handle(|r| {
             r.port_register_set
-                .update_at((self.slot - 1).into(), |r| r.portsc.set_port_reset(true))
+                .update_at((self.port_number - 1).into(), |r| {
+                    r.portsc.set_port_reset(true)
+                })
         });
     }
 
@@ -26,7 +28,7 @@ impl Resetter {
         registers::handle(|r| {
             while !r
                 .port_register_set
-                .read_at((self.slot - 1).into())
+                .read_at((self.port_number - 1).into())
                 .portsc
                 .port_reset_changed()
             {}
