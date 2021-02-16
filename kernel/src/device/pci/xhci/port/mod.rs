@@ -91,9 +91,7 @@ async fn init_port_and_slot(mut p: SlotNotAssigned) -> SlotAssigned {
     p.reset();
     p.init_context();
 
-    let slot_id = exchanger::command::enable_device_slot().await;
-
-    let mut slot = SlotAssigned::new(p, slot_id);
+    let mut slot = SlotAssigned::new(p).await;
     slot.init().await;
     debug!("Slot initialized");
     slot
@@ -144,7 +142,8 @@ pub struct SlotAssigned {
     def_ep: endpoint::Default,
 }
 impl SlotAssigned {
-    pub fn new(port: SlotNotAssigned, slot_number: u8) -> Self {
+    pub async fn new(port: SlotNotAssigned) -> Self {
+        let slot_number = exchanger::command::enable_device_slot().await;
         let cx = Arc::new(Spinlock::new(port.context));
         let dbl_writer = DoorbellWriter::new(slot_number, 1);
         Self {
