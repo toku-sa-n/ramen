@@ -4,10 +4,10 @@ use super::slot_not_assigned::SlotNotAssigned;
 use crate::device::pci::xhci::structures::registers;
 use xhci::registers::PortRegisterSet;
 
-pub(super) struct NotReset {
+pub(super) struct Resetter {
     port_number: u8,
 }
-impl NotReset {
+impl Resetter {
     pub(super) fn new(port_number: u8) -> Self {
         Self { port_number }
     }

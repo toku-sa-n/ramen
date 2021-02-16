@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::not_reset::NotReset;
+use super::resetter::Resetter;
 use crate::multitask;
 use alloc::{vec, vec::Vec};
 use conquer_once::spin::Lazy;
@@ -18,7 +18,7 @@ pub(in crate::device::pci::xhci) fn spawn_all_connected_ports() {
 }
 
 pub(in crate::device::pci::xhci) fn try_spawn(port_idx: u8) -> Result<(), PortNotConnected> {
-    let p = NotReset::new(port_idx);
+    let p = Resetter::new(port_idx);
     if spawnable(&p) {
         spawn(p);
         Ok(())
@@ -27,24 +27,24 @@ pub(in crate::device::pci::xhci) fn try_spawn(port_idx: u8) -> Result<(), PortNo
     }
 }
 
-fn spawn(p: NotReset) {
+fn spawn(p: Resetter) {
     mark_as_spawned(&p);
     add_task_for_port(p);
 }
 
-fn add_task_for_port(p: NotReset) {
+fn add_task_for_port(p: Resetter) {
     multitask::add(Task::new(super::main(p)));
 }
 
-fn spawnable(p: &NotReset) -> bool {
+fn spawnable(p: &Resetter) -> bool {
     p.connected() && !spawned(p)
 }
 
-fn spawned(p: &NotReset) -> bool {
+fn spawned(p: &Resetter) -> bool {
     SPAWN_STATUS.lock()[usize::from(p.port_number())]
 }
 
-fn mark_as_spawned(p: &NotReset) {
+fn mark_as_spawned(p: &Resetter) {
     SPAWN_STATUS.lock()[usize::from(p.port_number())] = true;
 }
 
