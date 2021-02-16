@@ -8,7 +8,6 @@ use core::{future::Future, pin::Pin, task::Poll};
 use futures_util::task::AtomicWaker;
 use not_reset::NotReset;
 use slot_assigned::SlotAssigned;
-use slot_not_assigned::SlotNotAssigned;
 use spinning_top::Spinlock;
 
 mod class_driver;
