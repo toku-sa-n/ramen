@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::slot_not_assigned::SlotNotAssigned;
+use super::slot_assigned::SlotAssigned;
 use crate::device::pci::xhci::structures::registers;
 use xhci::registers::PortRegisterSet;
 
@@ -20,10 +20,10 @@ impl Resetter {
         self.read_port_register(|r| r.portsc.current_connect_status())
     }
 
-    pub(super) fn reset(self) -> SlotNotAssigned {
+    pub(super) async fn reset(self) -> SlotAssigned {
         self.start_resetting();
         self.wait_until_reset_is_completed();
-        SlotNotAssigned::new(self.port_number)
+        SlotAssigned::new(self).await
     }
 
     fn start_resetting(&self) {

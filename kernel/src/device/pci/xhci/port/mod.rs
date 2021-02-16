@@ -14,7 +14,6 @@ mod class_driver;
 mod endpoint;
 mod resetter;
 mod slot_assigned;
-mod slot_not_assigned;
 mod spawner;
 
 static CURRENT_RESET_PORT: Lazy<Spinlock<ResetPort>> =
@@ -82,10 +81,8 @@ async fn init_port_and_slot_exclusively(port: Resetter) -> endpoint::AddressAssi
 }
 
 async fn init_port_and_slot(p: Resetter) -> SlotAssigned {
-    let mut slot_not_assigned = p.reset();
-    slot_not_assigned.init_context();
+    let mut slot = p.reset().await;
 
-    let mut slot = SlotAssigned::new(slot_not_assigned).await;
     slot.init().await;
     debug!("Slot initialized");
     slot

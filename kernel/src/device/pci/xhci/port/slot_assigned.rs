@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{endpoint, slot_not_assigned::SlotNotAssigned};
+use super::{endpoint, resetter::Resetter};
 use crate::device::pci::xhci::{
     exchanger,
     structures::{context::Context, dcbaa, descriptor},
@@ -12,23 +12,21 @@ use page_box::PageBox;
 use spinning_top::Spinlock;
 
 pub(super) struct SlotAssigned {
+    port_number: u8,
     slot_number: u8,
     cx: Arc<Spinlock<Context>>,
     def_ep: endpoint::Default,
 }
 impl SlotAssigned {
-    pub(super) async fn new(port: SlotNotAssigned) -> Self {
+    pub(super) async fn new(r: Resetter) -> Self {
         let slot_number = exchanger::command::enable_device_slot().await;
-        let cx = port.context();
+        let cx = Arc::new(Spinlock::new(Context::default()));
         let dbl_writer = DoorbellWriter::new(slot_number, 1);
         Self {
             slot_number,
+            port_number: r.port_number(),
             cx: cx.clone(),
-            def_ep: endpoint::Default::new(
-                transfer::Sender::new(dbl_writer),
-                cx,
-                port.port_number(),
-            ),
+            def_ep: endpoint::Default::new(transfer::Sender::new(dbl_writer), cx, r.port_number()),
         }
     }
 
@@ -41,6 +39,7 @@ impl SlotAssigned {
     }
 
     pub async fn init(&mut self) {
+        self.init_input_context();
         self.init_default_ep();
         self.register_with_dcbaa();
         self.issue_address_device().await;
@@ -81,6 +80,10 @@ impl SlotAssigned {
     pub async fn get_configuration_descriptors(&mut self) -> Vec<Descriptor> {
         let r = self.get_raw_configuration_descriptors().await;
         RawDescriptorParser::new(r).parse()
+    }
+
+    fn init_input_context(&mut self) {
+        InputContextInitializer::new(&mut self.cx.lock(), self.port_number).init()
     }
 
     fn generate_endpoint(&self, ep: descriptor::Endpoint) -> endpoint::NonDefault {
@@ -146,5 +149,35 @@ impl RawDescriptorParser {
         let v = self.raw[self.current..(self.current + len)].to_vec();
         self.current += len;
         v
+    }
+}
+
+struct InputContextInitializer<'a> {
+    context: &'a mut Context,
+    port_number: u8,
+}
+impl<'a> InputContextInitializer<'a> {
+    fn new(context: &'a mut Context, port_id: u8) -> Self {
+        Self {
+            context,
+            port_number: port_id,
+        }
+    }
+
+    fn init(&mut self) {
+        self.init_input_control();
+        self.init_input_slot();
+    }
+
+    fn init_input_control(&mut self) {
+        let input_control = self.context.input.control_mut();
+        input_control.set_aflag(0);
+        input_control.set_aflag(1);
+    }
+
+    fn init_input_slot(&mut self) {
+        let slot = self.context.input.device_mut().slot_mut();
+        slot.set_context_entries(1);
+        slot.set_root_hub_port_number(self.port_number);
     }
 }
