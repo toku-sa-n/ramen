@@ -60,7 +60,7 @@ pub fn try_spawn(port_idx: u8) -> Result<(), spawner::PortNotConnected> {
     spawner::try_spawn(port_idx)
 }
 
-async fn task(port: SlotNotAssigned) {
+async fn main(port: SlotNotAssigned) {
     let mut eps = init_port_and_slot_exclusively(port).await;
     eps.init().await;
 

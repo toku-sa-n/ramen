@@ -33,7 +33,7 @@ fn spawn(p: SlotNotAssigned) {
 }
 
 fn add_task_for_port(p: SlotNotAssigned) {
-    multitask::add(Task::new(super::task(p)));
+    multitask::add(Task::new(super::main(p)));
 }
 
 fn spawnable(p: &SlotNotAssigned) -> bool {
