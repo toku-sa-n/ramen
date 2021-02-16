@@ -59,7 +59,7 @@ pub fn try_spawn(port_idx: u8) -> Result<(), spawner::PortNotConnected> {
 }
 
 async fn task(port: Port) {
-    let mut eps = init_port_and_slot(port).await;
+    let mut eps = init_port_and_slot_exclusively(port).await;
     eps.init().await;
 
     match eps.ty() {
@@ -74,23 +74,27 @@ async fn task(port: Port) {
     }
 }
 
-async fn init_port_and_slot(mut port: Port) -> endpoint::Collection {
+async fn init_port_and_slot_exclusively(port: Port) -> endpoint::Collection {
     let reset_waiter = ResetWaiterFuture;
     reset_waiter.await;
 
     let port_idx = port.index;
-
-    port.reset();
-    port.init_context();
-
-    let slot_id = exchanger::command::enable_device_slot().await;
-
-    let mut slot = Slot::new(port, slot_id);
-    slot.init().await;
-    debug!("Slot initialized");
+    let slot = init_port_and_slot(port).await;
     CURRENT_RESET_PORT.lock().complete_reset();
     info!("Port {} reset completed.", port_idx);
     endpoint::Collection::new(slot).await
+}
+
+async fn init_port_and_slot(mut p: Port) -> Slot {
+    p.reset();
+    p.init_context();
+
+    let slot_id = exchanger::command::enable_device_slot().await;
+
+    let mut slot = Slot::new(p, slot_id);
+    slot.init().await;
+    debug!("Slot initialized");
+    slot
 }
 
 pub fn spawn_all_connected_port_tasks() {
