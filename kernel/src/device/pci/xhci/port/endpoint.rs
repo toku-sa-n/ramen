@@ -204,6 +204,7 @@ impl<'a> ContextInitializer<'a> {
         let ring_addr = self.sender.ring_addr();
 
         debug!("Endpoint type: {:?}", ep_ty);
+
         let c = self.ep_context();
         c.set_endpoint_type(ep_ty);
         c.set_max_packet_size(max_packet_size);
