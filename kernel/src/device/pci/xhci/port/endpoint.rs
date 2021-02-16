@@ -19,7 +19,7 @@ pub struct AddressAssigned {
     slot_id: u8,
 }
 impl AddressAssigned {
-    pub async fn new(mut slot: SlotAssigned) -> Self {
+    pub(super) async fn new(mut slot: SlotAssigned) -> Self {
         let eps = slot.endpoints().await;
         let interface = slot.interface_descriptor().await;
         debug!("Endpoints collected");
@@ -121,11 +121,11 @@ impl Default {
         }
     }
 
-    pub async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
+    pub(super) async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
         self.sender.get_device_descriptor().await
     }
 
-    pub async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
+    pub(super) async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
         self.sender.get_configuration_descriptor().await
     }
 
