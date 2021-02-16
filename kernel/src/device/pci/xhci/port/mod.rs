@@ -13,14 +13,14 @@ use endpoint::Endpoint;
 use exchanger::{transfer, transfer::DoorbellWriter};
 use futures_util::task::AtomicWaker;
 use page_box::PageBox;
-use resetter::Resetter;
+use slot_not_assigned::SlotNotAssigned;
 use spinning_top::Spinlock;
-use xhci::registers::operational::PortRegisterSet;
 
 mod class_driver;
 mod context;
 mod endpoint;
 mod resetter;
+mod slot_not_assigned;
 mod spawner;
 
 static CURRENT_RESET_PORT: Lazy<Spinlock<ResetPort>> =
@@ -80,7 +80,7 @@ async fn init_port_and_slot_exclusively(port: SlotNotAssigned) -> endpoint::Addr
     let reset_waiter = ResetWaiterFuture;
     reset_waiter.await;
 
-    let port_idx = port.index;
+    let port_idx = port.port_number();
     let slot = init_port_and_slot(port).await;
     CURRENT_RESET_PORT.lock().complete_reset();
     info!("Port {} reset completed.", port_idx);
@@ -105,51 +105,24 @@ fn max_num() -> u8 {
     registers::handle(|r| r.capability.hcsparams1.read().number_of_ports())
 }
 
-pub struct SlotNotAssigned {
-    index: u8,
-    context: Context,
-}
-impl SlotNotAssigned {
-    fn new(index: u8) -> Self {
-        Self {
-            index,
-            context: Context::default(),
-        }
-    }
-
-    fn connected(&self) -> bool {
-        self.read_port_rg().portsc.current_connect_status()
-    }
-
-    fn reset(&mut self) {
-        info!("Resetting port {}", self.index);
-        Resetter::new(self.index).reset();
-        info!("Port {} is reset.", self.index);
-    }
-
-    fn init_context(&mut self) {
-        context::Initializer::new(&mut self.context, self.index).init();
-    }
-
-    fn read_port_rg(&self) -> PortRegisterSet {
-        registers::handle(|r| r.port_register_set.read_at((self.index - 1).into()))
-    }
-}
-
 pub struct SlotAssigned {
     slot_number: u8,
     cx: Arc<Spinlock<Context>>,
     def_ep: endpoint::Default,
 }
 impl SlotAssigned {
-    pub async fn new(port: SlotNotAssigned) -> Self {
+    async fn new(port: SlotNotAssigned) -> Self {
         let slot_number = exchanger::command::enable_device_slot().await;
-        let cx = Arc::new(Spinlock::new(port.context));
+        let cx = port.context();
         let dbl_writer = DoorbellWriter::new(slot_number, 1);
         Self {
             slot_number,
             cx: cx.clone(),
-            def_ep: endpoint::Default::new(transfer::Sender::new(dbl_writer), cx, port.index),
+            def_ep: endpoint::Default::new(
+                transfer::Sender::new(dbl_writer),
+                cx,
+                port.port_number(),
+            ),
         }
     }
 

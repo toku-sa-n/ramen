@@ -41,11 +41,11 @@ fn spawnable(p: &SlotNotAssigned) -> bool {
 }
 
 fn spawned(p: &SlotNotAssigned) -> bool {
-    SPAWN_STATUS.lock()[usize::from(p.index)]
+    SPAWN_STATUS.lock()[usize::from(p.port_number())]
 }
 
 fn mark_as_spawned(p: &SlotNotAssigned) {
-    SPAWN_STATUS.lock()[usize::from(p.index)] = true;
+    SPAWN_STATUS.lock()[usize::from(p.port_number())] = true;
 }
 
 #[derive(Debug)]
