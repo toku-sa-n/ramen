@@ -31,7 +31,7 @@ pub(in crate::device::pci::xhci) fn init(mmio_base: PhysAddr) {
 /// deadlocks.
 pub(in crate::device::pci::xhci) fn handle<T, U>(f: T) -> U
 where
-    T: Fn(&mut Registers<Mappers>) -> U,
+    T: FnOnce(&mut Registers<Mappers>) -> U,
 {
     let mut r = REGISTERS.try_get().unwrap().lock();
     f(&mut r)

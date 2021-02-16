@@ -6,12 +6,14 @@ use alloc::collections::VecDeque;
 use conquer_once::spin::Lazy;
 use core::{future::Future, pin::Pin, task::Poll};
 use futures_util::task::AtomicWaker;
+use not_reset::NotReset;
 use slot_assigned::SlotAssigned;
 use slot_not_assigned::SlotNotAssigned;
 use spinning_top::Spinlock;
 
 mod class_driver;
 mod endpoint;
+mod not_reset;
 mod slot_assigned;
 mod slot_not_assigned;
 mod spawner;
@@ -53,7 +55,7 @@ pub fn try_spawn(port_idx: u8) -> Result<(), spawner::PortNotConnected> {
     spawner::try_spawn(port_idx)
 }
 
-async fn main(port: SlotNotAssigned) {
+async fn main(port: NotReset) {
     let mut eps = init_port_and_slot_exclusively(port).await;
     eps.init().await;
 
@@ -69,7 +71,7 @@ async fn main(port: SlotNotAssigned) {
     }
 }
 
-async fn init_port_and_slot_exclusively(port: SlotNotAssigned) -> endpoint::AddressAssigned {
+async fn init_port_and_slot_exclusively(port: NotReset) -> endpoint::AddressAssigned {
     let reset_waiter = ResetWaiterFuture;
     reset_waiter.await;
 
@@ -80,11 +82,11 @@ async fn init_port_and_slot_exclusively(port: SlotNotAssigned) -> endpoint::Addr
     endpoint::AddressAssigned::new(slot).await
 }
 
-async fn init_port_and_slot(mut p: SlotNotAssigned) -> SlotAssigned {
-    p.reset();
-    p.init_context();
+async fn init_port_and_slot(p: NotReset) -> SlotAssigned {
+    let mut slot_not_assigned = p.reset();
+    slot_not_assigned.init_context();
 
-    let mut slot = SlotAssigned::new(p).await;
+    let mut slot = SlotAssigned::new(slot_not_assigned).await;
     slot.init().await;
     debug!("Slot initialized");
     slot
