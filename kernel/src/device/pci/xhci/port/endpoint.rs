@@ -187,9 +187,10 @@ impl<'a> ContextInitializer<'a> {
 
     fn set_aflag(&mut self) {
         let dci: usize = self.calculate_dci().into();
+        let c = self.context.input.control_mut();
 
-        self.context.input.control_mut().clear_aflag(1); // See xHCI dev manual 4.6.6.
-        self.context.input.control_mut().set_aflag(dci);
+        c.clear_aflag(1); // See xHCI dev manual 4.6.6.
+        c.set_aflag(dci);
     }
 
     fn calculate_dci(&self) -> u8 {
