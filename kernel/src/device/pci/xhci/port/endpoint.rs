@@ -13,7 +13,7 @@ use spinning_top::Spinlock;
 use xhci::context::{EndpointHandler, EndpointType};
 
 pub struct AddressAssigned {
-    eps: Vec<Endpoint>,
+    eps: Vec<NonDefault>,
     cx: Arc<Spinlock<Context>>,
     interface: descriptor::Interface,
     slot_id: u8,
@@ -68,20 +68,20 @@ impl AddressAssigned {
     }
 }
 impl<'a> IntoIterator for &'a mut AddressAssigned {
-    type Item = &'a mut Endpoint;
-    type IntoIter = slice::IterMut<'a, Endpoint>;
+    type Item = &'a mut NonDefault;
+    type IntoIter = slice::IterMut<'a, NonDefault>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.eps.iter_mut()
     }
 }
 
-pub struct Endpoint {
+pub struct NonDefault {
     desc: descriptor::Endpoint,
     cx: Arc<Spinlock<Context>>,
     sender: transfer::Sender,
 }
-impl Endpoint {
+impl NonDefault {
     pub(in crate::device::pci::xhci) fn new(
         desc: descriptor::Endpoint,
         cx: Arc<Spinlock<Context>>,

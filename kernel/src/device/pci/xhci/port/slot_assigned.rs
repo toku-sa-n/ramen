@@ -7,7 +7,6 @@ use crate::device::pci::xhci::{
 };
 use alloc::{sync::Arc, vec::Vec};
 use descriptor::Descriptor;
-use endpoint::Endpoint;
 use exchanger::{transfer, transfer::DoorbellWriter};
 use page_box::PageBox;
 use spinning_top::Spinlock;
@@ -51,7 +50,7 @@ impl SlotAssigned {
         self.def_ep.get_device_descriptor().await
     }
 
-    pub async fn endpoints(&mut self) -> Vec<Endpoint> {
+    pub async fn endpoints(&mut self) -> Vec<endpoint::NonDefault> {
         let ds = self.get_configuration_descriptors().await;
         let mut eps = Vec::new();
 
@@ -84,8 +83,8 @@ impl SlotAssigned {
         RawDescriptorParser::new(r).parse()
     }
 
-    fn generate_endpoint(&self, ep: descriptor::Endpoint) -> Endpoint {
-        Endpoint::new(
+    fn generate_endpoint(&self, ep: descriptor::Endpoint) -> endpoint::NonDefault {
+        endpoint::NonDefault::new(
             ep,
             self.cx.clone(),
             transfer::Sender::new(DoorbellWriter::new(self.slot_number, ep.doorbell_value())),
