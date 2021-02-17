@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::slice;
-
-use super::{
-    endpoint::{Error, NonDefault},
-    endpoints_initializer::EndpointsInitializer,
+use super::endpoints_initializer::EndpointsInitializer;
+use crate::device::pci::xhci::{
+    port::endpoint::{Error, NonDefault},
+    structures::descriptor::Descriptor,
 };
-use crate::device::pci::xhci::structures::descriptor::Descriptor;
 use alloc::vec::Vec;
+use core::slice;
 use page_box::PageBox;
 use xhci::context::EndpointType;
 
-pub(super) struct FullyOperational {
+pub(in super::super) struct FullyOperational {
     descriptors: Vec<Descriptor>,
     eps: Vec<NonDefault>,
 }
@@ -25,7 +24,7 @@ impl FullyOperational {
         Self { eps, descriptors }
     }
 
-    pub(super) fn ty(&self) -> (u8, u8, u8) {
+    pub(in super::super) fn ty(&self) -> (u8, u8, u8) {
         for d in &self.descriptors {
             if let Descriptor::Interface(i) = d {
                 return i.ty();
@@ -35,7 +34,7 @@ impl FullyOperational {
         unreachable!("HID class must have at least one interface descriptor");
     }
 
-    pub(super) async fn issue_normal_trb<T>(
+    pub(in super::super) async fn issue_normal_trb<T>(
         &mut self,
         b: &PageBox<T>,
         ty: EndpointType,

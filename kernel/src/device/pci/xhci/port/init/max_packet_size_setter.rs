@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{
-    descriptor_fetcher::DescriptorFetcher, endpoint,
-    slot_structures_initializer::SlotStructuresInitializer,
+    descriptor_fetcher::DescriptorFetcher, slot_structures_initializer::SlotStructuresInitializer,
 };
-use crate::device::pci::xhci::{exchanger, structures::context::Context};
+use crate::device::pci::xhci::{exchanger, port::endpoint, structures::context::Context};
 use alloc::sync::Arc;
 use spinning_top::Spinlock;
 

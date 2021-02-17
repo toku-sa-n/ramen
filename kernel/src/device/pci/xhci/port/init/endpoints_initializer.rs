@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{descriptor_fetcher::DescriptorFetcher, endpoint, fully_operational::FullyOperational};
+use super::{descriptor_fetcher::DescriptorFetcher, fully_operational::FullyOperational};
 use crate::device::pci::xhci::{
     exchanger,
     exchanger::transfer,
+    port::endpoint,
     structures::{context::Context, descriptor::Descriptor},
 };
 use alloc::{sync::Arc, vec::Vec};

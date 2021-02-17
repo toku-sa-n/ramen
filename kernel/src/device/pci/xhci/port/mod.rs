@@ -5,19 +5,13 @@ use crate::multitask::{self, task::Task};
 use alloc::collections::VecDeque;
 use conquer_once::spin::Lazy;
 use core::{future::Future, pin::Pin, task::Poll};
-use fully_operational::FullyOperational;
 use futures_util::task::AtomicWaker;
-use resetter::Resetter;
+use init::fully_operational::FullyOperational;
 use spinning_top::Spinlock;
 
 mod class_driver;
-mod descriptor_fetcher;
 mod endpoint;
-mod endpoints_initializer;
-mod fully_operational;
-mod max_packet_size_setter;
-mod resetter;
-mod slot_structures_initializer;
+mod init;
 mod spawner;
 
 static CURRENT_RESET_PORT: Lazy<Spinlock<ResetPort>> =
@@ -57,8 +51,8 @@ pub fn try_spawn(port_idx: u8) -> Result<(), spawner::PortNotConnected> {
     spawner::try_spawn(port_idx)
 }
 
-async fn main(port: Resetter) {
-    let fully_operational = init_port_and_slot_exclusively(port).await;
+async fn main(port_number: u8) {
+    let fully_operational = init_port_and_slot_exclusively(port_number).await;
 
     match fully_operational.ty() {
         (3, 1, 2) => {
@@ -76,24 +70,14 @@ async fn main(port: Resetter) {
     }
 }
 
-async fn init_port_and_slot_exclusively(port: Resetter) -> FullyOperational {
+async fn init_port_and_slot_exclusively(port_number: u8) -> FullyOperational {
     let reset_waiter = ResetWaiterFuture;
     reset_waiter.await;
 
-    let port_idx = port.port_number();
-    let slot = init_port_and_slot(port).await;
+    let fully_operational = init::init(port_number).await;
     CURRENT_RESET_PORT.lock().complete_reset();
-    info!("Port {} reset completed.", port_idx);
-    slot
-}
-
-async fn init_port_and_slot(r: Resetter) -> FullyOperational {
-    let slot_structures_initializer = r.reset().await;
-
-    let max_packet_size_setter = slot_structures_initializer.init().await;
-    let descriptor_fetcher = max_packet_size_setter.set().await;
-    let endpoints_initializer = descriptor_fetcher.fetch().await;
-    endpoints_initializer.init().await
+    info!("Port {} reset completed.", port_number);
+    fully_operational
 }
 
 pub fn spawn_all_connected_port_tasks() {
@@ -103,6 +87,16 @@ pub fn spawn_all_connected_port_tasks() {
 fn max_num() -> u8 {
     registers::handle(|r| r.capability.hcsparams1.read().number_of_ports())
 }
+
+fn connected(port_number: u8) -> bool {
+    registers::handle(|r| {
+        r.port_register_set
+            .read_at((port_number - 1).into())
+            .portsc
+            .current_connect_status()
+    })
+}
+
 struct ResetWaiterFuture;
 impl Future for ResetWaiterFuture {
     type Output = ();

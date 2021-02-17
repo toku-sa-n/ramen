@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{
-    endpoint, endpoints_initializer::EndpointsInitializer,
-    max_packet_size_setter::MaxPacketSizeSetter,
+    endpoints_initializer::EndpointsInitializer, max_packet_size_setter::MaxPacketSizeSetter,
 };
-use crate::device::pci::xhci::structures::{context::Context, descriptor, descriptor::Descriptor};
+use crate::device::pci::xhci::{
+    port::endpoint,
+    structures::{context::Context, descriptor, descriptor::Descriptor},
+};
 use alloc::{sync::Arc, vec::Vec};
 use page_box::PageBox;
 use spinning_top::Spinlock;

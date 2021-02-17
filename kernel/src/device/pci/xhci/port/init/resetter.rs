@@ -16,10 +16,6 @@ impl Resetter {
         self.port_number
     }
 
-    pub(super) fn connected(&self) -> bool {
-        self.read_port_register(|r| r.portsc.current_connect_status())
-    }
-
     pub(super) async fn reset(self) -> SlotStructuresInitializer {
         self.start_resetting();
         self.wait_until_reset_is_completed();

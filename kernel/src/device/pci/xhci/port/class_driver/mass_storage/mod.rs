@@ -2,7 +2,7 @@
 
 mod scsi;
 
-use crate::device::pci::xhci::port::fully_operational::FullyOperational;
+use crate::device::pci::xhci::port::init::fully_operational::FullyOperational;
 use page_box::PageBox;
 use scsi::{
     response::{Inquiry, Read10, ReadCapacity},

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::device::pci::xhci::port::fully_operational::FullyOperational;
+use crate::device::pci::xhci::port::init::fully_operational::FullyOperational;
 use alloc::string::String;
 use page_box::PageBox;
 use spinning_top::Spinlock;
