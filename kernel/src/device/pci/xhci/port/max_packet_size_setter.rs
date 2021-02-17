@@ -3,7 +3,7 @@
 use super::{
     endpoint, slot_assigned::SlotAssigned, slot_structures_initializer::SlotStructuresInitializer,
 };
-use crate::device::pci::xhci::structures::context::Context;
+use crate::device::pci::xhci::{exchanger, structures::context::Context};
 use alloc::sync::Arc;
 use spinning_top::Spinlock;
 
@@ -28,6 +28,8 @@ impl MaxPacketSizeSetter {
     pub(super) async fn set(mut self) -> SlotAssigned {
         let s = self.max_packet_size().await;
         self.set_max_packet_size(s);
+        self.evaluate_context().await;
+
         SlotAssigned::new(self).await
     }
 
@@ -52,5 +54,14 @@ impl MaxPacketSizeSetter {
         let ep_0 = cx.input.device_mut().endpoint0_mut();
 
         ep_0.set_max_packet_size(s);
+    }
+
+    async fn evaluate_context(&self) {
+        let mut cx = self.cx.lock();
+        let i = &mut cx.input;
+
+        i.control_mut().set_aflag(1);
+
+        exchanger::command::evaluate_context(i.phys_addr(), self.slot_number).await
     }
 }
