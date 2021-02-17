@@ -139,9 +139,8 @@ impl<'a> Ep0ContextInitializer<'a> {
         });
 
         match psi {
-            1 => 64,
+            1 | 3 => 64,
             2 => 8,
-            3 => 64,
             4 => 512,
             _ => unimplemented!("PSI: {}", psi),
         }
