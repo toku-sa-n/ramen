@@ -3,7 +3,7 @@
 use super::{resetter::Resetter, slot_assigned::SlotAssigned};
 use crate::device::pci::xhci::{
     exchanger,
-    structures::{context::Context, registers},
+    structures::{context::Context, dcbaa, registers},
 };
 use alloc::sync::Arc;
 use exchanger::{transfer, transfer::DoorbellWriter};
@@ -33,6 +33,9 @@ impl SlotContextInitializer {
     pub(super) async fn init(self) -> SlotAssigned {
         self.init_input_context();
         self.inint_endpoint0_context();
+        self.register_with_dcbaa();
+        self.issue_address_device().await;
+
         SlotAssigned::new(self).await
     }
 
@@ -54,6 +57,16 @@ impl SlotContextInitializer {
 
     fn inint_endpoint0_context(&self) {
         Ep0ContextInitializer::new(&mut self.cx.lock(), self.port_number, &self.sender).init()
+    }
+
+    fn register_with_dcbaa(&self) {
+        let a = self.cx.lock().output.phys_addr();
+        dcbaa::register(self.slot_number.into(), a);
+    }
+
+    async fn issue_address_device(&self) {
+        let cx_addr = self.cx.lock().input.phys_addr();
+        exchanger::command::address_device(cx_addr, self.slot_number).await;
     }
 }
 

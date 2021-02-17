@@ -37,11 +37,6 @@ impl SlotAssigned {
         self.slot_number
     }
 
-    pub async fn init(&mut self) {
-        self.register_with_dcbaa();
-        self.issue_address_device().await;
-    }
-
     pub(super) async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
         self.def_ep.get_device_descriptor().await
     }
@@ -89,16 +84,6 @@ impl SlotAssigned {
 
     async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
         self.def_ep.get_raw_configuration_descriptors().await
-    }
-
-    fn register_with_dcbaa(&mut self) {
-        let a = self.cx.lock().output.phys_addr();
-        dcbaa::register(self.slot_number.into(), a);
-    }
-
-    async fn issue_address_device(&mut self) {
-        let cx_addr = self.cx.lock().input.phys_addr();
-        exchanger::command::address_device(cx_addr, self.slot_number).await;
     }
 }
 

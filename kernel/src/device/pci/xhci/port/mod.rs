@@ -84,8 +84,7 @@ async fn init_port_and_slot_exclusively(port: Resetter) -> endpoint::AddressAssi
 async fn init_port_and_slot(p: Resetter) -> SlotAssigned {
     let slot_cx_initializer = p.reset().await;
 
-    let mut slot = slot_cx_initializer.init().await;
-    slot.init().await;
+    let slot = slot_cx_initializer.init().await;
     debug!("Slot initialized");
     slot
 }
