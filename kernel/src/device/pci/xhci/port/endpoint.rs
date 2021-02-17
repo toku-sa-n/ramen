@@ -10,6 +10,7 @@ use bit_field::BitField;
 use core::slice;
 use page_box::PageBox;
 use spinning_top::Spinlock;
+use x86_64::PhysAddr;
 use xhci::context::{EndpointHandler, EndpointType};
 
 pub struct AddressAssigned {
@@ -111,8 +112,18 @@ impl Default {
         Self { sender }
     }
 
+    pub(super) fn ring_addr(&self) -> PhysAddr {
+        self.sender.ring_addr()
+    }
+
     pub(super) async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
         self.sender.get_device_descriptor().await
+    }
+
+    pub(super) async fn get_max_packet_size(&mut self) -> u16 {
+        self.sender
+            .get_max_packet_size_from_device_descriptor()
+            .await
     }
 
     pub(super) async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {

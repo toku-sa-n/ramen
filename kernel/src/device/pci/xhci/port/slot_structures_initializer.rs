@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{resetter::Resetter, slot_assigned::SlotAssigned};
+use super::{
+    endpoint, max_packet_size_setter::MaxPacketSizeSetter, resetter::Resetter,
+    slot_assigned::SlotAssigned,
+};
 use crate::device::pci::xhci::{
     exchanger,
     structures::{context::Context, dcbaa, registers},
@@ -14,7 +17,7 @@ pub(super) struct SlotStructuresInitializer {
     port_number: u8,
     slot_number: u8,
     cx: Arc<Spinlock<Context>>,
-    sender: transfer::Sender,
+    ep: endpoint::Default,
 }
 impl SlotStructuresInitializer {
     pub(super) async fn new(r: Resetter) -> Self {
@@ -26,17 +29,17 @@ impl SlotStructuresInitializer {
             port_number: r.port_number(),
             slot_number,
             cx,
-            sender: transfer::Sender::new(dbl_writer),
+            ep: endpoint::Default::new(transfer::Sender::new(dbl_writer)),
         }
     }
 
-    pub(super) async fn init(self) -> SlotAssigned {
+    pub(super) async fn init(self) -> MaxPacketSizeSetter {
         self.init_input_context();
         self.init_endpoint0_context();
         self.register_with_dcbaa();
         self.issue_address_device().await;
 
-        SlotAssigned::new(self).await
+        MaxPacketSizeSetter::new(self)
     }
 
     pub(super) fn slot_number(&self) -> u8 {
@@ -47,8 +50,8 @@ impl SlotStructuresInitializer {
         self.cx.clone()
     }
 
-    pub(super) fn sender(self) -> transfer::Sender {
-        self.sender
+    pub(super) fn ep0(self) -> endpoint::Default {
+        self.ep
     }
 
     fn init_input_context(&self) {
@@ -56,7 +59,7 @@ impl SlotStructuresInitializer {
     }
 
     fn init_endpoint0_context(&self) {
-        Ep0ContextInitializer::new(&mut self.cx.lock(), self.port_number, &self.sender).init()
+        Ep0ContextInitializer::new(&mut self.cx.lock(), self.port_number, &self.ep).init()
     }
 
     fn register_with_dcbaa(&self) {
@@ -103,14 +106,14 @@ impl<'a> InputContextInitializer<'a> {
 struct Ep0ContextInitializer<'a> {
     cx: &'a mut Context,
     port_number: u8,
-    sender: &'a transfer::Sender,
+    ep: &'a endpoint::Default,
 }
 impl<'a> Ep0ContextInitializer<'a> {
-    fn new(cx: &'a mut Context, port_number: u8, sender: &'a transfer::Sender) -> Self {
+    fn new(cx: &'a mut Context, port_number: u8, ep: &'a endpoint::Default) -> Self {
         Self {
             cx,
             port_number,
-            sender,
+            ep,
         }
     }
 
@@ -120,7 +123,7 @@ impl<'a> Ep0ContextInitializer<'a> {
 
         ep_0.set_endpoint_type(EndpointType::Control);
         ep_0.set_max_packet_size(s);
-        ep_0.set_transfer_ring_dequeue_pointer(self.sender.ring_addr().as_u64());
+        ep_0.set_transfer_ring_dequeue_pointer(self.ep.ring_addr().as_u64());
         ep_0.set_dequeue_cycle_state(true);
         ep_0.set_error_count(3);
     }
@@ -138,7 +141,7 @@ impl<'a> Ep0ContextInitializer<'a> {
         });
 
         match psi {
-            1 => unimplemented!("Full speed."), // Full-speed has four candidates: 8, 16, 32, and 64.
+            1 => 64,
             2 => 8,
             3 => 64,
             4 => 512,

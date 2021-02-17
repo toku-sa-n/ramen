@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{endpoint, slot_structures_initializer::SlotStructuresInitializer};
+use super::{endpoint, max_packet_size_setter::MaxPacketSizeSetter};
 use crate::device::pci::xhci::{
     exchanger,
-    structures::{context::Context, dcbaa, descriptor},
+    structures::{context::Context, descriptor},
 };
 use alloc::{sync::Arc, vec::Vec};
 use descriptor::Descriptor;
@@ -17,15 +17,15 @@ pub(super) struct SlotAssigned {
     def_ep: endpoint::Default,
 }
 impl SlotAssigned {
-    pub(super) async fn new(i: SlotStructuresInitializer) -> Self {
-        let slot_number = i.slot_number();
-        let cx = i.context();
-        let sender = i.sender();
+    pub(super) async fn new(s: MaxPacketSizeSetter) -> Self {
+        let slot_number = s.slot_number();
+        let cx = s.context();
+        let ep = s.ep0();
 
         Self {
             slot_number,
-            cx: cx.clone(),
-            def_ep: endpoint::Default::new(sender),
+            cx,
+            def_ep: ep,
         }
     }
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use bit_field::BitField;
-use core::ptr;
+use core::{convert::TryInto, ptr};
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use xhci::context::EndpointType;
@@ -57,6 +57,24 @@ pub struct Device {
     product: u8,
     serial_number: u8,
     num_configurations: u8,
+}
+impl Device {
+    pub(in crate::device::pci::xhci) fn max_packet_size(&self) -> u16 {
+        if let (3, _) = self.version() {
+            2_u16.pow(self.max_packet_size0.into())
+        } else {
+            self.max_packet_size0.into()
+        }
+    }
+
+    fn version(&self) -> (u8, u8) {
+        let cd_usb = self.cd_usb;
+
+        (
+            (cd_usb >> 8).try_into().unwrap(),
+            (cd_usb & 0xff).try_into().unwrap(),
+        )
+    }
 }
 
 #[derive(Copy, Clone, Default, Debug)]
