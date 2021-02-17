@@ -38,11 +38,11 @@ impl NonDefault {
     }
 }
 
-pub struct Default {
+pub(super) struct Default {
     sender: transfer::Sender,
 }
 impl Default {
-    pub(in crate::device::pci::xhci) fn new(sender: transfer::Sender) -> Self {
+    pub(super) fn new(sender: transfer::Sender) -> Self {
         Self { sender }
     }
 
