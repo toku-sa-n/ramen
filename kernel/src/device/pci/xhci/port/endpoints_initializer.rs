@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{descriptor_fetcher::DescriptorFetcher, endpoint};
+use super::{descriptor_fetcher::DescriptorFetcher, endpoint, fully_operational::FullyOperational};
 use crate::device::pci::xhci::{
     exchanger,
     exchanger::transfer,
     structures::{context::Context, descriptor::Descriptor},
 };
 use alloc::{sync::Arc, vec::Vec};
-use endpoint::AddressAssigned;
 use spinning_top::Spinlock;
 use transfer::DoorbellWriter;
 
@@ -18,6 +17,7 @@ pub(super) struct EndpointsInitializer {
     slot_number: u8,
 }
 impl EndpointsInitializer {
+    #[allow(clippy::needless_pass_by_value)] // `DescriptorFetcher` should be consumed.
     pub(super) fn new(f: DescriptorFetcher, descriptors: Vec<Descriptor>) -> Self {
         let cx = f.context();
         let endpoints = descriptors_to_endpoints(&f, &descriptors);
@@ -31,10 +31,10 @@ impl EndpointsInitializer {
         }
     }
 
-    pub(super) async fn init(mut self) -> AddressAssigned {
+    pub(super) async fn init(mut self) -> FullyOperational {
         self.init_contexts();
         self.configure_endpoint().await;
-        AddressAssigned::new(self)
+        FullyOperational::new(self)
     }
 
     pub(super) fn descriptors(&self) -> Vec<Descriptor> {
@@ -62,7 +62,6 @@ fn descriptors_to_endpoints(
     descriptors: &[Descriptor],
 ) -> Vec<endpoint::NonDefault> {
     descriptors
-        .clone()
         .iter()
         .filter_map(|desc| {
             if let Descriptor::Endpoint(e) = desc {

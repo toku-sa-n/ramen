@@ -1,74 +1,23 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::endpoints_initializer::EndpointsInitializer;
 use crate::device::pci::xhci::{
     exchanger::transfer,
     structures::{context::Context, descriptor},
 };
-use alloc::{sync::Arc, vec::Vec};
+use alloc::sync::Arc;
 use bit_field::BitField;
-use core::slice;
-use descriptor::Descriptor;
 use page_box::PageBox;
 use spinning_top::Spinlock;
 use x86_64::PhysAddr;
 use xhci::context::{EndpointHandler, EndpointType};
 
-pub struct AddressAssigned {
-    descriptors: Vec<Descriptor>,
-    eps: Vec<NonDefault>,
-}
-impl AddressAssigned {
-    pub(super) fn new(i: EndpointsInitializer) -> Self {
-        let descriptors = i.descriptors();
-        let eps = i.endpoints();
-
-        debug!("Endpoints collected");
-
-        Self { eps, descriptors }
-    }
-
-    pub fn ty(&self) -> (u8, u8, u8) {
-        for d in &self.descriptors {
-            if let Descriptor::Interface(i) = d {
-                return i.ty();
-            }
-        }
-
-        unreachable!("HID class must have at least one interface descriptor");
-    }
-
-    pub(in crate::device::pci::xhci) async fn issue_normal_trb<T>(
-        &mut self,
-        b: &PageBox<T>,
-        ty: EndpointType,
-    ) -> Result<(), Error> {
-        for ep in &mut self.eps {
-            if ep.ty() == ty {
-                ep.issue_normal_trb(b).await;
-                return Ok(());
-            }
-        }
-
-        Err(Error::NoSuchEndpoint(ty))
-    }
-}
-impl<'a> IntoIterator for &'a mut AddressAssigned {
-    type Item = &'a mut NonDefault;
-    type IntoIter = slice::IterMut<'a, NonDefault>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.eps.iter_mut()
-    }
-}
-
-pub struct NonDefault {
+pub(super) struct NonDefault {
     desc: descriptor::Endpoint,
     cx: Arc<Spinlock<Context>>,
     sender: transfer::Sender,
 }
 impl NonDefault {
-    pub(in crate::device::pci::xhci) fn new(
+    pub(super) fn new(
         desc: descriptor::Endpoint,
         cx: Arc<Spinlock<Context>>,
         sender: transfer::Sender,
@@ -76,15 +25,15 @@ impl NonDefault {
         Self { desc, cx, sender }
     }
 
-    pub fn init_context(&mut self) {
+    pub(super) fn init_context(&mut self) {
         ContextInitializer::new(&self.desc, &mut self.cx.lock(), &self.sender).init();
     }
 
-    pub fn ty(&self) -> EndpointType {
+    pub(super) fn ty(&self) -> EndpointType {
         self.desc.ty()
     }
 
-    async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
+    pub(super) async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
         self.sender.issue_normal_trb(b).await
     }
 }

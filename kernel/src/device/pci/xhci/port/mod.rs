@@ -5,7 +5,7 @@ use crate::multitask::{self, task::Task};
 use alloc::collections::VecDeque;
 use conquer_once::spin::Lazy;
 use core::{future::Future, pin::Pin, task::Poll};
-use endpoint::AddressAssigned;
+use fully_operational::FullyOperational;
 use futures_util::task::AtomicWaker;
 use resetter::Resetter;
 use spinning_top::Spinlock;
@@ -14,6 +14,7 @@ mod class_driver;
 mod descriptor_fetcher;
 mod endpoint;
 mod endpoints_initializer;
+mod fully_operational;
 mod max_packet_size_setter;
 mod resetter;
 mod slot_structures_initializer;
@@ -57,21 +58,25 @@ pub fn try_spawn(port_idx: u8) -> Result<(), spawner::PortNotConnected> {
 }
 
 async fn main(port: Resetter) {
-    let eps = init_port_and_slot_exclusively(port).await;
+    let fully_operational = init_port_and_slot_exclusively(port).await;
 
-    match eps.ty() {
+    match fully_operational.ty() {
         (3, 1, 2) => {
-            multitask::add(Task::new_poll(class_driver::mouse::task(eps)));
+            multitask::add(Task::new_poll(class_driver::mouse::task(fully_operational)));
         }
         (3, 1, 1) => {
-            multitask::add(Task::new_poll(class_driver::keyboard::task(eps)));
+            multitask::add(Task::new_poll(class_driver::keyboard::task(
+                fully_operational,
+            )));
         }
-        (8, _, _) => multitask::add(Task::new(class_driver::mass_storage::task(eps))),
+        (8, _, _) => multitask::add(Task::new(class_driver::mass_storage::task(
+            fully_operational,
+        ))),
         t => warn!("Unknown device: {:?}", t),
     }
 }
 
-async fn init_port_and_slot_exclusively(port: Resetter) -> AddressAssigned {
+async fn init_port_and_slot_exclusively(port: Resetter) -> FullyOperational {
     let reset_waiter = ResetWaiterFuture;
     reset_waiter.await;
 
@@ -82,16 +87,13 @@ async fn init_port_and_slot_exclusively(port: Resetter) -> AddressAssigned {
     slot
 }
 
-async fn init_port_and_slot(r: Resetter) -> AddressAssigned {
+async fn init_port_and_slot(r: Resetter) -> FullyOperational {
     let slot_structures_initializer = r.reset().await;
 
     let max_packet_size_setter = slot_structures_initializer.init().await;
     let descriptor_fetcher = max_packet_size_setter.set().await;
     let endpoints_initializer = descriptor_fetcher.fetch().await;
-    let slot = endpoints_initializer.init().await;
-
-    debug!("Slot initialized");
-    slot
+    endpoints_initializer.init().await
 }
 
 pub fn spawn_all_connected_port_tasks() {
