@@ -3,7 +3,7 @@
 use super::SlotAssigned;
 use crate::device::pci::xhci::{
     exchanger::{self, transfer},
-    structures::{context::Context, descriptor, registers},
+    structures::{context::Context, descriptor},
 };
 use alloc::{sync::Arc, vec::Vec};
 use bit_field::BitField;
@@ -105,20 +105,10 @@ impl NonDefault {
 
 pub struct Default {
     sender: transfer::Sender,
-    cx: Arc<Spinlock<Context>>,
-    port_id: u8,
 }
 impl Default {
-    pub(in crate::device::pci::xhci) fn new(
-        sender: transfer::Sender,
-        cx: Arc<Spinlock<Context>>,
-        port_id: u8,
-    ) -> Self {
-        Self {
-            sender,
-            cx,
-            port_id,
-        }
+    pub(in crate::device::pci::xhci) fn new(sender: transfer::Sender) -> Self {
+        Self { sender }
     }
 
     pub(super) async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
@@ -127,38 +117,6 @@ impl Default {
 
     pub(super) async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
         self.sender.get_configuration_descriptor().await
-    }
-
-    pub fn init_context(&mut self) {
-        let mut cx = self.cx.lock();
-        let ep_0 = cx.input.device_mut().endpoint0_mut();
-        ep_0.set_endpoint_type(EndpointType::Control);
-
-        ep_0.set_max_packet_size(self.get_max_packet_size());
-        ep_0.set_transfer_ring_dequeue_pointer(self.sender.ring_addr().as_u64());
-        ep_0.set_dequeue_cycle_state(true);
-        ep_0.set_error_count(3);
-    }
-
-    // TODO: This function does not check the actual port speed, instead it uses the normal
-    // correspondence between PSI and the port speed.
-    // The actual port speed is listed on the xHCI supported protocol capability.
-    // Check the capability and fetch the actual port speed. Then return the max packet size.
-    fn get_max_packet_size(&self) -> u16 {
-        let psi = registers::handle(|r| {
-            r.port_register_set
-                .read_at((self.port_id - 1).into())
-                .portsc
-                .port_speed()
-        });
-
-        match psi {
-            1 => unimplemented!("Full speed."), // Full-speed has four candidates: 8, 16, 32, and 64.
-            2 => 8,
-            3 => 64,
-            4 => 512,
-            _ => unimplemented!("PSI: {}", psi),
-        }
     }
 }
 

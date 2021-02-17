@@ -19,14 +19,13 @@ pub(super) struct SlotAssigned {
 impl SlotAssigned {
     pub(super) async fn new(i: SlotContextInitializer) -> Self {
         let slot_number = i.slot_number();
-        let port_number = i.port_number();
         let cx = i.context();
         let sender = i.sender();
 
         Self {
             slot_number,
             cx: cx.clone(),
-            def_ep: endpoint::Default::new(sender, cx, port_number),
+            def_ep: endpoint::Default::new(sender),
         }
     }
 
@@ -39,7 +38,6 @@ impl SlotAssigned {
     }
 
     pub async fn init(&mut self) {
-        self.init_default_ep();
         self.register_with_dcbaa();
         self.issue_address_device().await;
     }
@@ -87,10 +85,6 @@ impl SlotAssigned {
             self.cx.clone(),
             transfer::Sender::new(DoorbellWriter::new(self.slot_number, ep.doorbell_value())),
         )
-    }
-
-    fn init_default_ep(&mut self) {
-        self.def_ep.init_context();
     }
 
     async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
