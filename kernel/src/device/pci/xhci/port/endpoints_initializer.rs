@@ -36,14 +36,6 @@ impl EndpointsInitializer {
         SlotAssigned::new(self)
     }
 
-    pub(super) fn slot_number(&self) -> u8 {
-        self.slot_number
-    }
-
-    pub(super) fn context(&self) -> Arc<Spinlock<Context>> {
-        self.cx.clone()
-    }
-
     pub(super) fn descriptors(&self) -> Vec<Descriptor> {
         self.descriptors.clone()
     }

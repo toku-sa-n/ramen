@@ -58,8 +58,7 @@ pub fn try_spawn(port_idx: u8) -> Result<(), spawner::PortNotConnected> {
 }
 
 async fn main(port: Resetter) {
-    let mut eps = init_port_and_slot_exclusively(port).await;
-    eps.init().await;
+    let eps = init_port_and_slot_exclusively(port).await;
 
     match eps.ty() {
         (3, 1, 2) => {

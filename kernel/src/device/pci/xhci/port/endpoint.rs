@@ -2,7 +2,7 @@
 
 use super::SlotAssigned;
 use crate::device::pci::xhci::{
-    exchanger::{self, transfer},
+    exchanger::transfer,
     structures::{context::Context, descriptor},
 };
 use alloc::{sync::Arc, vec::Vec};
@@ -15,32 +15,17 @@ use x86_64::PhysAddr;
 use xhci::context::{EndpointHandler, EndpointType};
 
 pub struct AddressAssigned {
-    cx: Arc<Spinlock<Context>>,
     descriptors: Vec<Descriptor>,
     eps: Vec<NonDefault>,
-    slot_number: u8,
 }
 impl AddressAssigned {
     pub(super) async fn new(s: SlotAssigned) -> Self {
-        let cx = s.context();
         let descriptors = s.descriptors();
-        let slot_number = s.slot_number();
         let eps = s.endpoints();
 
         debug!("Endpoints collected");
 
-        Self {
-            eps,
-            cx,
-            descriptors,
-            slot_number,
-        }
-    }
-
-    pub async fn init(&mut self) {
-        self.init_ep_contexts();
-        self.issue_configure_eps().await;
-        debug!("Endpoints initialized");
+        Self { eps, descriptors }
     }
 
     pub fn ty(&self) -> (u8, u8, u8) {
@@ -66,17 +51,6 @@ impl AddressAssigned {
         }
 
         Err(Error::NoSuchEndpoint(ty))
-    }
-
-    fn init_ep_contexts(&mut self) {
-        for ep in &mut self.eps {
-            ep.init_context();
-        }
-    }
-
-    async fn issue_configure_eps(&mut self) {
-        let cx_addr = self.cx.lock().input.phys_addr();
-        exchanger::command::configure_endpoint(cx_addr, self.slot_number).await;
     }
 }
 impl<'a> IntoIterator for &'a mut AddressAssigned {
