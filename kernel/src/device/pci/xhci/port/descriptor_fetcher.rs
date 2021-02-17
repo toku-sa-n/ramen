@@ -51,6 +51,7 @@ struct RawDescriptorParser {
 impl RawDescriptorParser {
     fn new(raw: PageBox<[u8]>) -> Self {
         let len = raw.len();
+
         Self {
             raw,
             current: 0,
