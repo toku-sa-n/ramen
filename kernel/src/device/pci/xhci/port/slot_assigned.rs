@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{endpoint, slot_context_initializer::SlotContextInitializer};
+use super::{endpoint, slot_structures_initializer::SlotStructuresInitializer};
 use crate::device::pci::xhci::{
     exchanger,
     structures::{context::Context, dcbaa, descriptor},
@@ -17,7 +17,7 @@ pub(super) struct SlotAssigned {
     def_ep: endpoint::Default,
 }
 impl SlotAssigned {
-    pub(super) async fn new(i: SlotContextInitializer) -> Self {
+    pub(super) async fn new(i: SlotStructuresInitializer) -> Self {
         let slot_number = i.slot_number();
         let cx = i.context();
         let sender = i.sender();

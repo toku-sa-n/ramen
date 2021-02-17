@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::slot_context_initializer::SlotContextInitializer;
+use super::slot_structures_initializer::SlotStructuresInitializer;
 use crate::device::pci::xhci::structures::registers;
 use xhci::registers::PortRegisterSet;
 
@@ -20,10 +20,10 @@ impl Resetter {
         self.read_port_register(|r| r.portsc.current_connect_status())
     }
 
-    pub(super) async fn reset(self) -> SlotContextInitializer {
+    pub(super) async fn reset(self) -> SlotStructuresInitializer {
         self.start_resetting();
         self.wait_until_reset_is_completed();
-        SlotContextInitializer::new(self).await
+        SlotStructuresInitializer::new(self).await
     }
 
     fn start_resetting(&self) {

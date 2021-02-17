@@ -10,13 +10,13 @@ use exchanger::{transfer, transfer::DoorbellWriter};
 use spinning_top::Spinlock;
 use xhci::context::EndpointType;
 
-pub(super) struct SlotContextInitializer {
+pub(super) struct SlotStructuresInitializer {
     port_number: u8,
     slot_number: u8,
     cx: Arc<Spinlock<Context>>,
     sender: transfer::Sender,
 }
-impl SlotContextInitializer {
+impl SlotStructuresInitializer {
     pub(super) async fn new(r: Resetter) -> Self {
         let slot_number = exchanger::command::enable_device_slot().await;
         let cx = Arc::new(Spinlock::new(Context::default()));
