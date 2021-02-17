@@ -12,7 +12,6 @@ use page_box::PageBox;
 use spinning_top::Spinlock;
 
 pub(super) struct SlotAssigned {
-    port_number: u8,
     slot_number: u8,
     cx: Arc<Spinlock<Context>>,
     def_ep: endpoint::Default,
@@ -26,7 +25,6 @@ impl SlotAssigned {
 
         Self {
             slot_number,
-            port_number,
             cx: cx.clone(),
             def_ep: endpoint::Default::new(sender, cx, port_number),
         }
