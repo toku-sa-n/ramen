@@ -5,9 +5,9 @@ use crate::multitask::{self, task::Task};
 use alloc::collections::VecDeque;
 use conquer_once::spin::Lazy;
 use core::{future::Future, pin::Pin, task::Poll};
+use endpoint::AddressAssigned;
 use futures_util::task::AtomicWaker;
 use resetter::Resetter;
-use slot_assigned::SlotAssigned;
 use spinning_top::Spinlock;
 
 mod class_driver;
@@ -16,7 +16,6 @@ mod endpoint;
 mod endpoints_initializer;
 mod max_packet_size_setter;
 mod resetter;
-mod slot_assigned;
 mod slot_structures_initializer;
 mod spawner;
 
@@ -72,7 +71,7 @@ async fn main(port: Resetter) {
     }
 }
 
-async fn init_port_and_slot_exclusively(port: Resetter) -> endpoint::AddressAssigned {
+async fn init_port_and_slot_exclusively(port: Resetter) -> AddressAssigned {
     let reset_waiter = ResetWaiterFuture;
     reset_waiter.await;
 
@@ -80,10 +79,10 @@ async fn init_port_and_slot_exclusively(port: Resetter) -> endpoint::AddressAssi
     let slot = init_port_and_slot(port).await;
     CURRENT_RESET_PORT.lock().complete_reset();
     info!("Port {} reset completed.", port_idx);
-    endpoint::AddressAssigned::new(slot).await
+    slot
 }
 
-async fn init_port_and_slot(r: Resetter) -> SlotAssigned {
+async fn init_port_and_slot(r: Resetter) -> AddressAssigned {
     let slot_structures_initializer = r.reset().await;
 
     let max_packet_size_setter = slot_structures_initializer.init().await;

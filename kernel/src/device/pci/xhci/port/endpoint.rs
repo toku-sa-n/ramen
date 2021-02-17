@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::SlotAssigned;
+use super::endpoints_initializer::EndpointsInitializer;
 use crate::device::pci::xhci::{
     exchanger::transfer,
     structures::{context::Context, descriptor},
@@ -19,9 +19,9 @@ pub struct AddressAssigned {
     eps: Vec<NonDefault>,
 }
 impl AddressAssigned {
-    pub(super) async fn new(s: SlotAssigned) -> Self {
-        let descriptors = s.descriptors();
-        let eps = s.endpoints();
+    pub(super) fn new(i: EndpointsInitializer) -> Self {
+        let descriptors = i.descriptors();
+        let eps = i.endpoints();
 
         debug!("Endpoints collected");
 

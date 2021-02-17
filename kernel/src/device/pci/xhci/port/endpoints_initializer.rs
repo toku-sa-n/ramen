@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{descriptor_fetcher::DescriptorFetcher, endpoint, slot_assigned::SlotAssigned};
+use super::{descriptor_fetcher::DescriptorFetcher, endpoint};
 use crate::device::pci::xhci::{
     exchanger,
     exchanger::transfer,
     structures::{context::Context, descriptor::Descriptor},
 };
 use alloc::{sync::Arc, vec::Vec};
+use endpoint::AddressAssigned;
 use spinning_top::Spinlock;
 use transfer::DoorbellWriter;
 
@@ -30,10 +31,10 @@ impl EndpointsInitializer {
         }
     }
 
-    pub(super) async fn init(mut self) -> SlotAssigned {
+    pub(super) async fn init(mut self) -> AddressAssigned {
         self.init_contexts();
         self.configure_endpoint().await;
-        SlotAssigned::new(self)
+        AddressAssigned::new(self)
     }
 
     pub(super) fn descriptors(&self) -> Vec<Descriptor> {
