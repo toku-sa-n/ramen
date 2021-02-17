@@ -17,7 +17,7 @@ pub(super) struct SlotAssigned {
     def_ep: endpoint::Default,
 }
 impl SlotAssigned {
-    pub(super) async fn new(s: MaxPacketSizeSetter) -> Self {
+    pub(super) fn new(s: MaxPacketSizeSetter) -> Self {
         let slot_number = s.slot_number();
         let cx = s.context();
         let ep = s.ep0();

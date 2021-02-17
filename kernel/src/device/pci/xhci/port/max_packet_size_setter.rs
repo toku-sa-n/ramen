@@ -30,7 +30,7 @@ impl MaxPacketSizeSetter {
         self.set_max_packet_size(s);
         self.evaluate_context().await;
 
-        SlotAssigned::new(self).await
+        SlotAssigned::new(self)
     }
 
     pub(super) fn slot_number(&self) -> u8 {
