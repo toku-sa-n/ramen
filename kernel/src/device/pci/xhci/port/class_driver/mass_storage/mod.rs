@@ -2,7 +2,7 @@
 
 mod scsi;
 
-use crate::device::pci::xhci::port::endpoint;
+use crate::device::pci::xhci::port::init::fully_operational::FullyOperational;
 use page_box::PageBox;
 use scsi::{
     response::{Inquiry, Read10, ReadCapacity},
@@ -10,7 +10,7 @@ use scsi::{
 };
 use xhci::context::EndpointType;
 
-pub async fn task(eps: endpoint::Collection) {
+pub(in crate::device::pci::xhci::port) async fn task(eps: FullyOperational) {
     let mut m = MassStorage::new(eps);
     info!("This is the task of USB Mass Storage.");
     let b = m.inquiry().await;
@@ -24,10 +24,10 @@ pub async fn task(eps: endpoint::Collection) {
 }
 
 struct MassStorage {
-    eps: endpoint::Collection,
+    eps: FullyOperational,
 }
 impl MassStorage {
-    fn new(eps: endpoint::Collection) -> Self {
+    fn new(eps: FullyOperational) -> Self {
         Self { eps }
     }
 

@@ -6,7 +6,7 @@ use super::{
 };
 use crate::{Futurelock, FuturelockGuard};
 use alloc::sync::Arc;
-use command_trb::{AddressDevice, ConfigureEndpoint, EnableSlot};
+use command_trb::{AddressDevice, ConfigureEndpoint, EnableSlot, EvaluateContext};
 use conquer_once::spin::OnceCell;
 use futures_util::task::AtomicWaker;
 use spinning_top::Spinlock;
@@ -35,6 +35,10 @@ pub(in crate::device::pci::xhci) async fn address_device(input_cx: PhysAddr, slo
 
 pub(in crate::device::pci::xhci) async fn configure_endpoint(cx: PhysAddr, slot: u8) {
     lock().await.configure_endpoint(cx, slot).await;
+}
+
+pub(in crate::device::pci::xhci) async fn evaluate_context(cx: PhysAddr, slot: u8) {
+    lock().await.evaluate_context(cx, slot).await;
 }
 
 async fn lock() -> FuturelockGuard<'static, Sender> {
@@ -83,6 +87,14 @@ impl Sender {
             .set_input_context_pointer(context_addr.as_u64())
             .set_slot_id(slot_id);
         let t = command_trb::Allowed::ConfigureEndpoint(t);
+        self.issue_trb(t).await;
+    }
+
+    async fn evaluate_context(&mut self, cx: PhysAddr, slot: u8) {
+        let t = *EvaluateContext::default()
+            .set_input_context_pointer(cx.as_u64())
+            .set_slot_id(slot);
+        let t = command_trb::Allowed::EvaluateContext(t);
         self.issue_trb(t).await;
     }
 

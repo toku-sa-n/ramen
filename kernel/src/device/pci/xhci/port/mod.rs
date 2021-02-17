@@ -1,24 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{
-    exchanger,
-    structures::{context::Context, registers},
-};
+use super::structures::registers;
 use crate::multitask::{self, task::Task};
 use alloc::collections::VecDeque;
 use conquer_once::spin::Lazy;
 use core::{future::Future, pin::Pin, task::Poll};
 use futures_util::task::AtomicWaker;
-use resetter::Resetter;
-use slot::Slot;
+use init::fully_operational::FullyOperational;
 use spinning_top::Spinlock;
-use xhci::registers::operational::PortRegisterSet;
 
 mod class_driver;
-mod context;
 mod endpoint;
-mod resetter;
-mod slot;
+mod init;
 mod spawner;
 
 static CURRENT_RESET_PORT: Lazy<Spinlock<ResetPort>> =
@@ -58,43 +51,33 @@ pub fn try_spawn(port_idx: u8) -> Result<(), spawner::PortNotConnected> {
     spawner::try_spawn(port_idx)
 }
 
-async fn task(port: Port) {
-    let mut eps = init_port_and_slot_exclusively(port).await;
-    eps.init().await;
+async fn main(port_number: u8) {
+    let fully_operational = init_port_and_slot_exclusively(port_number).await;
 
-    match eps.ty() {
+    match fully_operational.ty() {
         (3, 1, 2) => {
-            multitask::add(Task::new_poll(class_driver::mouse::task(eps)));
+            multitask::add(Task::new_poll(class_driver::mouse::task(fully_operational)));
         }
         (3, 1, 1) => {
-            multitask::add(Task::new_poll(class_driver::keyboard::task(eps)));
+            multitask::add(Task::new_poll(class_driver::keyboard::task(
+                fully_operational,
+            )));
         }
-        (8, _, _) => multitask::add(Task::new(class_driver::mass_storage::task(eps))),
+        (8, _, _) => multitask::add(Task::new(class_driver::mass_storage::task(
+            fully_operational,
+        ))),
         t => warn!("Unknown device: {:?}", t),
     }
 }
 
-async fn init_port_and_slot_exclusively(port: Port) -> endpoint::Collection {
+async fn init_port_and_slot_exclusively(port_number: u8) -> FullyOperational {
     let reset_waiter = ResetWaiterFuture;
     reset_waiter.await;
 
-    let port_idx = port.index;
-    let slot = init_port_and_slot(port).await;
+    let fully_operational = init::init(port_number).await;
     CURRENT_RESET_PORT.lock().complete_reset();
-    info!("Port {} reset completed.", port_idx);
-    endpoint::Collection::new(slot).await
-}
-
-async fn init_port_and_slot(mut p: Port) -> Slot {
-    p.reset();
-    p.init_context();
-
-    let slot_id = exchanger::command::enable_device_slot().await;
-
-    let mut slot = Slot::new(p, slot_id);
-    slot.init().await;
-    debug!("Slot initialized");
-    slot
+    info!("Port {} reset completed.", port_number);
+    fully_operational
 }
 
 pub fn spawn_all_connected_port_tasks() {
@@ -105,35 +88,13 @@ fn max_num() -> u8 {
     registers::handle(|r| r.capability.hcsparams1.read().number_of_ports())
 }
 
-pub struct Port {
-    index: u8,
-    context: Context,
-}
-impl Port {
-    fn new(index: u8) -> Self {
-        Self {
-            index,
-            context: Context::default(),
-        }
-    }
-
-    fn connected(&self) -> bool {
-        self.read_port_rg().portsc.current_connect_status()
-    }
-
-    fn reset(&mut self) {
-        info!("Resetting port {}", self.index);
-        Resetter::new(self.index).reset();
-        info!("Port {} is reset.", self.index);
-    }
-
-    fn init_context(&mut self) {
-        context::Initializer::new(&mut self.context, self.index).init();
-    }
-
-    fn read_port_rg(&self) -> PortRegisterSet {
-        registers::handle(|r| r.port_register_set.read_at((self.index - 1).into()))
-    }
+fn connected(port_number: u8) -> bool {
+    registers::handle(|r| {
+        r.port_register_set
+            .read_at((port_number - 1).into())
+            .portsc
+            .current_connect_status()
+    })
 }
 
 struct ResetWaiterFuture;
