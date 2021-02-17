@@ -6,7 +6,7 @@ use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use xhci::context::EndpointType;
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum Descriptor {
     Device(Device),
     Configuration,

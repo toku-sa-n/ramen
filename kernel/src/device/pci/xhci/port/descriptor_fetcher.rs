@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{endpoint, max_packet_size_setter::MaxPacketSizeSetter, slot_assigned::SlotAssigned};
+use super::{
+    endpoint, endpoints_initializer::EndpointsInitializer,
+    max_packet_size_setter::MaxPacketSizeSetter,
+};
 use crate::device::pci::xhci::structures::{context::Context, descriptor, descriptor::Descriptor};
 use alloc::{sync::Arc, vec::Vec};
 use page_box::PageBox;
@@ -24,10 +27,10 @@ impl DescriptorFetcher {
         }
     }
 
-    pub(super) async fn fetch(mut self) -> SlotAssigned {
+    pub(super) async fn fetch(mut self) -> EndpointsInitializer {
         let r = self.get_raw_descriptors().await;
         let ds = RawDescriptorParser::new(r).parse();
-        SlotAssigned::new(self, ds)
+        EndpointsInitializer::new(self, ds)
     }
 
     pub(super) fn context(&self) -> Arc<Spinlock<Context>> {

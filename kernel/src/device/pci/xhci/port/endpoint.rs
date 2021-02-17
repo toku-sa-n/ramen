@@ -8,27 +8,32 @@ use crate::device::pci::xhci::{
 use alloc::{sync::Arc, vec::Vec};
 use bit_field::BitField;
 use core::slice;
+use descriptor::Descriptor;
 use page_box::PageBox;
 use spinning_top::Spinlock;
 use x86_64::PhysAddr;
 use xhci::context::{EndpointHandler, EndpointType};
 
 pub struct AddressAssigned {
-    eps: Vec<NonDefault>,
     cx: Arc<Spinlock<Context>>,
-    interface: descriptor::Interface,
-    slot_id: u8,
+    descriptors: Vec<Descriptor>,
+    eps: Vec<NonDefault>,
+    slot_number: u8,
 }
 impl AddressAssigned {
-    pub(super) async fn new(mut slot: SlotAssigned) -> Self {
-        let eps = slot.endpoints().await;
-        let interface = slot.interface_descriptor().await;
+    pub(super) async fn new(s: SlotAssigned) -> Self {
+        let cx = s.context();
+        let descriptors = s.descriptors();
+        let slot_number = s.slot_number();
+        let eps = s.endpoints();
+
         debug!("Endpoints collected");
+
         Self {
             eps,
-            cx: slot.context(),
-            interface,
-            slot_id: slot.id(),
+            cx,
+            descriptors,
+            slot_number,
         }
     }
 
@@ -39,7 +44,13 @@ impl AddressAssigned {
     }
 
     pub fn ty(&self) -> (u8, u8, u8) {
-        self.interface.ty()
+        for d in &self.descriptors {
+            if let Descriptor::Interface(i) = d {
+                return i.ty();
+            }
+        }
+
+        unreachable!("HID class must have at least one interface descriptor");
     }
 
     pub(in crate::device::pci::xhci) async fn issue_normal_trb<T>(
@@ -65,7 +76,7 @@ impl AddressAssigned {
 
     async fn issue_configure_eps(&mut self) {
         let cx_addr = self.cx.lock().input.phys_addr();
-        exchanger::command::configure_endpoint(cx_addr, self.slot_id).await;
+        exchanger::command::configure_endpoint(cx_addr, self.slot_number).await;
     }
 }
 impl<'a> IntoIterator for &'a mut AddressAssigned {
