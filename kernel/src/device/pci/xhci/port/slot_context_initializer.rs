@@ -32,7 +32,7 @@ impl SlotContextInitializer {
 
     pub(super) async fn init(self) -> SlotAssigned {
         self.init_input_context();
-        self.inint_endpoint0_context();
+        self.init_endpoint0_context();
         self.register_with_dcbaa();
         self.issue_address_device().await;
 
@@ -55,7 +55,7 @@ impl SlotContextInitializer {
         InputContextInitializer::new(&mut self.cx.lock(), self.port_number).init()
     }
 
-    fn inint_endpoint0_context(&self) {
+    fn init_endpoint0_context(&self) {
         Ep0ContextInitializer::new(&mut self.cx.lock(), self.port_number, &self.sender).init()
     }
 
