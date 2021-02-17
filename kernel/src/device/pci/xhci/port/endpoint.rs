@@ -116,10 +116,6 @@ impl Default {
         self.sender.ring_addr()
     }
 
-    pub(super) async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
-        self.sender.get_device_descriptor().await
-    }
-
     pub(super) async fn get_max_packet_size(&mut self) -> u16 {
         self.sender
             .get_max_packet_size_from_device_descriptor()

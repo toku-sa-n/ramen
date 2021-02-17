@@ -31,16 +31,6 @@ impl Sender {
         self.ring.phys_addr()
     }
 
-    pub async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
-        let b = PageBox::from(descriptor::Device::default());
-
-        let (setup, data, status) =
-            Self::trbs_for_getting_descriptors(&b, DescTyIdx::new(descriptor::Ty::Device, 0));
-
-        self.issue_trbs(&[setup, data, status]).await;
-        b
-    }
-
     pub(in crate::device::pci::xhci) async fn get_max_packet_size_from_device_descriptor(
         &mut self,
     ) -> u16 {

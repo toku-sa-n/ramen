@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{
-    endpoint, max_packet_size_setter::MaxPacketSizeSetter, resetter::Resetter,
-    slot_assigned::SlotAssigned,
-};
+use super::{endpoint, max_packet_size_setter::MaxPacketSizeSetter, resetter::Resetter};
 use crate::device::pci::xhci::{
     exchanger,
     structures::{context::Context, dcbaa, registers},

@@ -11,6 +11,7 @@ use slot_assigned::SlotAssigned;
 use spinning_top::Spinlock;
 
 mod class_driver;
+mod descriptor_fetcher;
 mod endpoint;
 mod max_packet_size_setter;
 mod resetter;
@@ -86,7 +87,8 @@ async fn init_port_and_slot(r: Resetter) -> SlotAssigned {
     let slot_structures_initializer = r.reset().await;
 
     let max_packet_size_setter = slot_structures_initializer.init().await;
-    let slot = max_packet_size_setter.set().await;
+    let descriptor_fetcher = max_packet_size_setter.set().await;
+    let slot = descriptor_fetcher.fetch().await;
     debug!("Slot initialized");
     slot
 }

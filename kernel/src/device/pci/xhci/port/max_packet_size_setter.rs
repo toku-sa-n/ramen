@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{
-    endpoint, slot_assigned::SlotAssigned, slot_structures_initializer::SlotStructuresInitializer,
+    descriptor_fetcher::DescriptorFetcher, endpoint,
+    slot_structures_initializer::SlotStructuresInitializer,
 };
 use crate::device::pci::xhci::{exchanger, structures::context::Context};
 use alloc::sync::Arc;
@@ -25,12 +26,12 @@ impl MaxPacketSizeSetter {
         }
     }
 
-    pub(super) async fn set(mut self) -> SlotAssigned {
+    pub(super) async fn set(mut self) -> DescriptorFetcher {
         let s = self.max_packet_size().await;
         self.set_max_packet_size(s);
         self.evaluate_context().await;
 
-        SlotAssigned::new(self)
+        DescriptorFetcher::new(self)
     }
 
     pub(super) fn slot_number(&self) -> u8 {
