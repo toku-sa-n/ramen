@@ -54,7 +54,7 @@ fn get_the_maximum_resolution_and_mode(gop: &gop::GraphicsOutput) -> (usize, usi
 }
 
 fn is_usable_gop_mode(mode: &gop::ModeInfo) -> bool {
-    if mode.pixel_format() != PixelFormat::BGR {
+    if mode.pixel_format() != PixelFormat::Bgr {
         return false;
     }
 
