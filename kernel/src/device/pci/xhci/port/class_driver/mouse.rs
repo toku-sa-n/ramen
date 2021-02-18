@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::device::pci::xhci::port::endpoint;
+use crate::device::pci::xhci::port::init::fully_operational::FullyOperational;
 use page_box::PageBox;
 use xhci::context::EndpointType;
 
-pub async fn task(eps: endpoint::Collection) {
+pub(in crate::device::pci::xhci::port) async fn task(eps: FullyOperational) {
     let mut m = Mouse::new(eps);
     loop {
         m.get_packet().await;
@@ -13,11 +13,11 @@ pub async fn task(eps: endpoint::Collection) {
 }
 
 pub struct Mouse {
-    ep: endpoint::Collection,
+    ep: FullyOperational,
     buf: PageBox<[i8; 4]>,
 }
 impl Mouse {
-    pub fn new(ep: endpoint::Collection) -> Self {
+    pub(in crate::device::pci::xhci::port) fn new(ep: FullyOperational) -> Self {
         Self {
             ep,
             buf: [0; 4].into(),

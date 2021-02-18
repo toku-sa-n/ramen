@@ -31,14 +31,34 @@ impl Sender {
         self.ring.phys_addr()
     }
 
-    pub async fn get_device_descriptor(&mut self) -> PageBox<descriptor::Device> {
+    pub(in crate::device::pci::xhci) async fn get_max_packet_size_from_device_descriptor(
+        &mut self,
+    ) -> u16 {
         let b = PageBox::from(descriptor::Device::default());
 
-        let (setup, data, status) =
-            Self::trbs_for_getting_descriptors(&b, DescTyIdx::new(descriptor::Ty::Device, 0));
+        let setup = *transfer_trb::SetupStage::default()
+            .set_transfer_type(TransferType::In)
+            .set_trb_transfer_length(8)
+            .set_interrupt_on_completion(false)
+            .set_request_type(0x80)
+            .set_request(6)
+            .set_value(0x0100)
+            .set_length(8);
+        let setup = transfer_trb::Allowed::SetupStage(setup);
+
+        let data = *transfer_trb::DataStage::default()
+            .set_direction(Direction::In)
+            .set_trb_transfer_length(8)
+            .set_interrupt_on_completion(false)
+            .set_data_buffer_pointer(b.phys_addr().as_u64());
+        let data = transfer_trb::Allowed::DataStage(data);
+
+        let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion(true);
+        let status = transfer_trb::Allowed::StatusStage(status);
 
         self.issue_trbs(&[setup, data, status]).await;
-        b
+
+        b.max_packet_size()
     }
 
     pub async fn get_configuration_descriptor(&mut self) -> PageBox<[u8]> {

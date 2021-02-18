@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::device::pci::xhci::port::endpoint;
+use crate::device::pci::xhci::port::init::fully_operational::FullyOperational;
 use alloc::string::String;
 use page_box::PageBox;
 use spinning_top::Spinlock;
@@ -10,7 +10,7 @@ const LOWER_ALPHABETS: &str = "abcdefghijklmnopqrstuvwxyz";
 
 static STR: Spinlock<String> = Spinlock::new(String::new());
 
-pub async fn task(eps: endpoint::Collection) {
+pub(in crate::device::pci::xhci::port) async fn task(eps: FullyOperational) {
     let mut k = Keyboard::new(eps);
     loop {
         k.get_packet().await;
@@ -19,11 +19,11 @@ pub async fn task(eps: endpoint::Collection) {
 }
 
 pub struct Keyboard {
-    ep: endpoint::Collection,
+    ep: FullyOperational,
     buf: PageBox<[u8; 8]>,
 }
 impl Keyboard {
-    pub fn new(ep: endpoint::Collection) -> Self {
+    pub(in crate::device::pci::xhci::port) fn new(ep: FullyOperational) -> Self {
         Self {
             ep,
             buf: [0; 8].into(),
