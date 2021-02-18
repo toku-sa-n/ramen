@@ -39,6 +39,7 @@ fn register() {
 /// RAX: system call index
 /// RDI: 1st argument
 /// RSI: 2nd argument
+/// RDX: 3rd argument
 #[naked]
 extern "C" fn save_rip_and_rflags() -> u64 {
     unsafe {
@@ -66,14 +67,16 @@ unsafe fn prepare_arguments() {
     let syscall_index: u64;
     let a1: u64;
     let a2: u64;
+    let a3: u64;
 
-    asm!("", out("rax") syscall_index, out("rdi") a1, out("rsi") a2);
-    asm!("", in("rax") select_proper_syscall(syscall_index, a1, a2))
+    asm!("", out("rax") syscall_index, out("rdi") a1, out("rsi") a2,out("rdx") a3);
+    asm!("", in("rax") select_proper_syscall(syscall_index, a1, a2,a3))
 }
 
 /// SAFETY: This function is unsafe because invalid arguments may break memory safety.
 #[allow(clippy::too_many_lines)]
-unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64) -> u64 {
+#[allow(clippy::too_many_arguments)]
+unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, _a3: u64) -> u64 {
     match FromPrimitive::from_u64(idx) {
         Some(s) => match s {
             syscalls::Ty::Inb => sys_inb(a1.try_into().unwrap()).into(),
