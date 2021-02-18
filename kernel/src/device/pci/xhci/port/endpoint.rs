@@ -129,7 +129,7 @@ impl<'a> ContextInitializer<'a> {
             | EndpointType::IsochronousIn
             | EndpointType::InterruptOut
             | EndpointType::InterruptIn => {
-                c.set_max_packet_size((max_packet_size & 0x7ff).try_into().unwrap());
+                c.set_max_packet_size(max_packet_size & 0x7ff);
                 c.set_max_burst_size(((max_packet_size & 0x1800) >> 11).try_into().unwrap());
                 c.set_mult(0);
 
