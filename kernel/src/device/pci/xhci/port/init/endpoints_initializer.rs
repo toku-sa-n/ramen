@@ -34,6 +34,7 @@ impl EndpointsInitializer {
 
     pub(super) async fn init(mut self) -> FullyOperational {
         self.init_contexts();
+        self.set_context_entries();
         self.configure_endpoint().await;
         FullyOperational::new(self)
     }
@@ -50,6 +51,11 @@ impl EndpointsInitializer {
         for e in &mut self.endpoints {
             e.init_context();
         }
+    }
+
+    fn set_context_entries(&mut self) {
+        let mut cx = self.cx.lock();
+        cx.input.device_mut().slot_mut().set_context_entries(31);
     }
 
     async fn configure_endpoint(&mut self) {
