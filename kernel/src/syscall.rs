@@ -4,7 +4,7 @@ use crate::{
     mem::{allocator, paging::pml4::PML4},
     process,
 };
-use alloc::vec::Vec;
+use alloc::string::String;
 use core::{convert::TryInto, ffi::c_void, ptr};
 use num_traits::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
@@ -196,14 +196,17 @@ fn sys_translate_address(v: VirtAddr) -> PhysAddr {
 
 unsafe fn sys_write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
     if fildes == 1 {
-        let mut buf: *const char = buf.cast();
-        let mut s = Vec::new();
+        let mut buf: *const u8 = buf.cast();
+        let mut s = String::new();
 
         for _ in 0..nbyte {
             let c = ptr::read(buf);
-            s.push(c);
-            buf = (buf as usize + 1) as *const char;
+            s.push(c as char);
+            buf = (buf as usize + 1) as *const u8;
         }
+
+        // TODO: rewrite with `write` macro.
+        info!("{}", s);
 
         nbyte.try_into().unwrap()
     } else {
