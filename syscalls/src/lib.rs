@@ -135,6 +135,7 @@ pub fn translate_address(a: VirtAddr) -> PhysAddr {
 /// # Safety
 ///
 /// `buf` must be valid.
+#[must_use]
 pub unsafe fn write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
     // SAFETY: The arguments are fulfilled properly.
     general_syscall(
