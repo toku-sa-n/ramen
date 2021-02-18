@@ -6,6 +6,7 @@ use crate::device::pci::xhci::{
 };
 use alloc::sync::Arc;
 use bit_field::BitField;
+use core::convert::TryInto;
 use page_box::PageBox;
 use spinning_top::Spinlock;
 use x86_64::PhysAddr;
@@ -88,6 +89,7 @@ impl<'a> ContextInitializer<'a> {
         let dci: usize = self.calculate_dci().into();
         let c = self.context.input.control_mut();
 
+        c.set_aflag(0);
         c.clear_aflag(1); // See xHCI dev manual 4.6.6.
         c.set_aflag(dci);
     }
@@ -100,21 +102,47 @@ impl<'a> ContextInitializer<'a> {
     fn init_ep_context(&mut self) {
         let ep_ty = self.ep.ty();
         let max_packet_size = self.ep.max_packet_size;
-        let interval = self.ep.interval;
         let ring_addr = self.sender.ring_addr();
 
-        debug!("Endpoint type: {:?}", ep_ty);
-
         let c = self.ep_context();
+
         c.set_endpoint_type(ep_ty);
-        c.set_max_packet_size(max_packet_size);
-        c.set_max_burst_size(0);
-        c.set_dequeue_cycle_state(true);
-        c.set_max_primary_streams(0);
-        c.set_mult(0);
-        c.set_error_count(3);
-        c.set_interval(interval);
-        c.set_transfer_ring_dequeue_pointer(ring_addr.as_u64());
+
+        // TODO: This initializes the context only for USB2. Branch if the version of a device is
+        // USB3.
+        match ep_ty {
+            EndpointType::Control => {
+                c.set_max_packet_size(max_packet_size);
+                c.set_error_count(3);
+                c.set_transfer_ring_dequeue_pointer(ring_addr.as_u64());
+                c.set_dequeue_cycle_state(true);
+            }
+            EndpointType::BulkOut | EndpointType::BulkIn => {
+                c.set_max_packet_size(max_packet_size);
+                c.set_max_burst_size(0);
+                c.set_error_count(3);
+                c.set_max_primary_streams(0);
+                c.set_transfer_ring_dequeue_pointer(ring_addr.as_u64());
+                c.set_dequeue_cycle_state(true);
+            }
+            EndpointType::IsochronousOut
+            | EndpointType::IsochronousIn
+            | EndpointType::InterruptOut
+            | EndpointType::InterruptIn => {
+                c.set_max_packet_size((max_packet_size & 0x7ff).try_into().unwrap());
+                c.set_max_burst_size(((max_packet_size & 0x1800) >> 11).try_into().unwrap());
+                c.set_mult(0);
+
+                if let EndpointType::IsochronousOut | EndpointType::IsochronousIn = ep_ty {
+                    c.set_error_count(0);
+                } else {
+                    c.set_error_count(3);
+                }
+                c.set_transfer_ring_dequeue_pointer(ring_addr.as_u64());
+                c.set_dequeue_cycle_state(true);
+            }
+            EndpointType::NotValid => unreachable!("Not Valid Endpoint should not exist."),
+        }
     }
 
     fn ep_context(&mut self) -> &mut dyn EndpointHandler {
