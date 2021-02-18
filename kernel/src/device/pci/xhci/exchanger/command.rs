@@ -87,7 +87,13 @@ impl Sender {
             .set_input_context_pointer(context_addr.as_u64())
             .set_slot_id(slot_id);
         let t = command_trb::Allowed::ConfigureEndpoint(t);
-        self.issue_trb(t).await;
+        let t = self.issue_trb(t).await;
+
+        if let event::Allowed::CommandCompletion(c) = t {
+            info!("Configure Endpoint Result: {:?}", c.completion_code());
+        } else {
+            unreachable!("The Command Completion TRB must be returned.");
+        }
     }
 
     async fn evaluate_context(&mut self, cx: PhysAddr, slot: u8) {
