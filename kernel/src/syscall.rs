@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::convert::TryInto;
+use crate::{
+    mem::{allocator, paging::pml4::PML4},
+    process,
+};
+use alloc::vec::Vec;
+use core::{convert::TryInto, ffi::c_void, ptr};
 use num_traits::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{
@@ -11,11 +16,6 @@ use x86_64::{
     registers::model_specific::{Efer, EferFlags, LStar},
     structures::paging::{Size4KiB, Translate},
     PhysAddr, VirtAddr,
-};
-
-use crate::{
-    mem::{allocator, paging::pml4::PML4},
-    process,
 };
 
 pub fn init() {
@@ -76,7 +76,7 @@ unsafe fn prepare_arguments() {
 /// SAFETY: This function is unsafe because invalid arguments may break memory safety.
 #[allow(clippy::too_many_lines)]
 #[allow(clippy::too_many_arguments)]
-unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, _a3: u64) -> u64 {
+unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
     match FromPrimitive::from_u64(idx) {
         Some(s) => match s {
             syscalls::Ty::Inb => sys_inb(a1.try_into().unwrap()).into(),
@@ -102,6 +102,13 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, _a3: u64) -> u64 {
             syscalls::Ty::GetPid => sys_getpid().try_into().unwrap(),
             syscalls::Ty::Exit => sys_exit(),
             syscalls::Ty::TranslateAddress => sys_translate_address(VirtAddr::new(a1)).as_u64(),
+            syscalls::Ty::Write => sys_write(
+                a1.try_into().unwrap(),
+                a2 as *const _,
+                a3.try_into().unwrap(),
+            )
+            .try_into()
+            .unwrap(),
         },
         None => panic!("Unsupported syscall index: {}", idx),
     }
@@ -185,4 +192,21 @@ fn sys_exit() -> ! {
 
 fn sys_translate_address(v: VirtAddr) -> PhysAddr {
     PML4.lock().translate_addr(v).unwrap_or_else(PhysAddr::zero)
+}
+
+unsafe fn sys_write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
+    if fildes == 1 {
+        let mut buf: *const char = buf.cast();
+        let mut s = Vec::new();
+
+        for _ in 0..nbyte {
+            let c = ptr::read(buf);
+            s.push(c);
+            buf = (buf as usize + 1) as *const char;
+        }
+
+        nbyte.try_into().unwrap()
+    } else {
+        unimplemented!("Not stdout");
+    }
 }

@@ -4,7 +4,7 @@
 #![feature(asm)]
 #![allow(clippy::missing_panics_doc)]
 
-use core::convert::TryInto;
+use core::{convert::TryInto, ffi::c_void};
 use num_derive::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
@@ -132,6 +132,21 @@ pub fn translate_address(a: VirtAddr) -> PhysAddr {
     PhysAddr::new(unsafe { general_syscall(Ty::TranslateAddress, a.as_u64(), 0, 0) })
 }
 
+/// # Safety
+///
+/// `buf` must be valid.
+pub unsafe fn write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
+    // SAFETY: The arguments are fulfilled properly.
+    general_syscall(
+        Ty::Write,
+        fildes.try_into().unwrap(),
+        buf as _,
+        nbyte.into(),
+    )
+    .try_into()
+    .unwrap()
+}
+
 /// SAFETY: This function is unsafe if arguments are invalid.
 #[allow(clippy::too_many_arguments)]
 unsafe fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
@@ -160,4 +175,5 @@ pub enum Ty {
     GetPid,
     Exit,
     TranslateAddress,
+    Write,
 }
