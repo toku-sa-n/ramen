@@ -14,6 +14,20 @@ static LOGGER: Logger = Logger;
 static LOG_WRITER: Lazy<Spinlock<Writer>> =
     Lazy::new(|| Spinlock::new(Writer::new(RGB8::new(0xff, 0xff, 0xff))));
 
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => {
+        write!(*LOG_WRITER.lock(),$($arg)*);
+    };
+}
+
+#[macro_export]
+macro_rules! println{
+    ($($arg:tt)*)=>{
+        writeln!(*LOG_WRITER.lock().$($arg)*);
+    }
+}
+
 impl log::Log for Logger {
     fn enabled(&self, metadata: &Metadata) -> bool {
         metadata.level() <= Level::Info
