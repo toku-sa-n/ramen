@@ -8,6 +8,7 @@ use crate::{Futurelock, FuturelockGuard};
 use alloc::sync::Arc;
 use command_trb::{AddressDevice, ConfigureEndpoint, EnableSlot, EvaluateContext};
 use conquer_once::spin::OnceCell;
+use event::CompletionCode;
 use futures_util::task::AtomicWaker;
 use spinning_top::Spinlock;
 use x86_64::PhysAddr;
@@ -60,13 +61,14 @@ impl Sender {
 
     async fn noop(&mut self) {
         let t = command_trb::Allowed::Noop(Noop::default());
-        self.issue_trb(t).await;
-        info!("NOOP SUCCEESS");
+        let c = self.issue_trb(t).await;
+        panic_on_error("No-Op", c);
     }
 
     async fn enable_device_slot(&mut self) -> u8 {
         let t = command_trb::Allowed::EnableSlot(EnableSlot::default());
         let completion = self.issue_trb(t).await;
+        panic_on_error("Enable Device Slot", completion);
         if let event::Allowed::CommandCompletion(c) = completion {
             c.slot_id()
         } else {
@@ -79,7 +81,8 @@ impl Sender {
             .set_input_context_pointer(input_context_addr.as_u64())
             .set_slot_id(slot_id);
         let t = command_trb::Allowed::AddressDevice(t);
-        self.issue_trb(t).await;
+        let c = self.issue_trb(t).await;
+        panic_on_error("Address Device", c);
     }
 
     async fn configure_endpoint(&mut self, context_addr: PhysAddr, slot_id: u8) {
@@ -87,13 +90,8 @@ impl Sender {
             .set_input_context_pointer(context_addr.as_u64())
             .set_slot_id(slot_id);
         let t = command_trb::Allowed::ConfigureEndpoint(t);
-        let t = self.issue_trb(t).await;
-
-        if let event::Allowed::CommandCompletion(c) = t {
-            info!("Configure Endpoint Result: {:?}", c.completion_code());
-        } else {
-            unreachable!("The Command Completion TRB must be returned.");
-        }
+        let c = self.issue_trb(t).await;
+        panic_on_error("Configure Endpoint", c);
     }
 
     async fn evaluate_context(&mut self, cx: PhysAddr, slot: u8) {
@@ -101,7 +99,8 @@ impl Sender {
             .set_input_context_pointer(cx.as_u64())
             .set_slot_id(slot);
         let t = command_trb::Allowed::EvaluateContext(t);
-        self.issue_trb(t).await;
+        let c = self.issue_trb(t).await;
+        panic_on_error("Evaluate Context", c);
     }
 
     async fn issue_trb(&mut self, t: command_trb::Allowed) -> event::Allowed {
@@ -117,5 +116,15 @@ impl Sender {
 
     async fn get_trb(&mut self, addr_to_trb: PhysAddr) -> event::Allowed {
         ReceiveFuture::new(addr_to_trb, self.waker.clone()).await
+    }
+}
+
+fn panic_on_error(n: &str, c: event::Allowed) {
+    if let event::Allowed::CommandCompletion(c) = c {
+        if c.completion_code() != Ok(CompletionCode::Success) {
+            panic!("{} command failed: {:?}", n, c.completion_code());
+        }
+    } else {
+        unreachable!("The Command Completion TRB is the only TRB to receive in response to the Command TRBs.")
     }
 }
