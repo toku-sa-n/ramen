@@ -104,7 +104,7 @@ impl<'a> ContextInitializer<'a> {
         let max_packet_size = self.ep.max_packet_size;
         let ring_addr = self.sender.ring_addr();
 
-        let c = self.ep_context();
+        let c = self.cx();
 
         c.set_endpoint_type(ep_ty);
 
@@ -145,7 +145,7 @@ impl<'a> ContextInitializer<'a> {
         }
     }
 
-    fn ep_context(&mut self) -> &mut dyn EndpointHandler {
+    fn cx(&mut self) -> &mut dyn EndpointHandler {
         let ep_i: usize = self.ep.endpoint_address.get_bits(0..=3).into();
         let is_input = self.ep.endpoint_address.get_bit(7);
         let context_inout = self.context.input.device_mut().endpoints_mut(ep_i);
