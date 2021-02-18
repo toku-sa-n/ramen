@@ -5,7 +5,6 @@
 #![allow(clippy::missing_panics_doc)]
 
 use core::convert::TryInto;
-
 use num_derive::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
