@@ -126,7 +126,7 @@ fn wait_until_timer_interrupt_happens() -> ! {
 
 fn run_tasks() {
     multitask::add(Task::new(mouse::task()));
-    // multitask::add(Task::new(xhci::task()));
+    multitask::add(Task::new(xhci::task()));
     multitask::add(Task::new(ahci::task()));
 
     let mut executor = Executor::new();
