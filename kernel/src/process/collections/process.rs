@@ -46,7 +46,7 @@ pub(in crate::process) fn handle_mut<T, U>(id: process::Id, f: T) -> U
 where
     T: FnOnce(&mut Process) -> U,
 {
-    let l = lock_processes();
+    let mut l = lock_processes();
     let p = l
         .get_mut(&id)
         .unwrap_or_else(|| panic!("Process of PID {} does not exist.", id.as_i32()));
