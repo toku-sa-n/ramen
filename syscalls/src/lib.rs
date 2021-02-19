@@ -13,6 +13,7 @@ use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 ///
 /// This function is unsafe because reading a value from I/O port may have side effects which
 /// violate memory safety.
+#[must_use]
 pub unsafe fn inb(port: u16) -> u8 {
     general_syscall(Ty::Inb, port.into(), 0, 0)
         .try_into()
