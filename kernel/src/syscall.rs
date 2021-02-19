@@ -102,6 +102,7 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, _a3: u64) -> u64 {
             syscalls::Ty::GetPid => sys_getpid().try_into().unwrap(),
             syscalls::Ty::Exit => sys_exit(),
             syscalls::Ty::TranslateAddress => sys_translate_address(VirtAddr::new(a1)).as_u64(),
+            syscalls::Ty::NotifyExists => sys_notify_exists() as _,
         },
         None => panic!("Unsupported syscall index: {}", idx),
     }
@@ -185,4 +186,8 @@ fn sys_exit() -> ! {
 
 fn sys_translate_address(v: VirtAddr) -> PhysAddr {
     PML4.lock().translate_addr(v).unwrap_or_else(PhysAddr::zero)
+}
+
+fn sys_notify_exists() -> bool {
+    process::manager::notify_exists()
 }

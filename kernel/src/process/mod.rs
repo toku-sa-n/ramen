@@ -3,6 +3,7 @@
 mod collections;
 mod exit;
 pub mod manager;
+mod message;
 mod page_table;
 mod stack_frame;
 mod switch;
@@ -11,6 +12,8 @@ use core::{
     convert::TryInto,
     sync::atomic::{AtomicI32, Ordering},
 };
+use crossbeam_queue::ArrayQueue;
+use message::Message;
 use page_box::PageBox;
 use stack_frame::StackFrame;
 use x86_64::{
@@ -27,9 +30,12 @@ pub struct Process {
     stack: PageBox<[u8]>,
     stack_frame: PageBox<StackFrame>,
     privilege: Privilege,
+
+    inbox: ArrayQueue<Message>,
 }
 impl Process {
     const STACK_SIZE: u64 = Size4KiB::SIZE * 12;
+    const BOX_SIZE: usize = 128;
 
     pub fn kernel(f: fn()) -> Self {
         Self::new(f, Privilege::Kernel)
@@ -60,6 +66,8 @@ impl Process {
             stack,
             stack_frame,
             privilege,
+
+            inbox: ArrayQueue::new(Self::BOX_SIZE),
         }
     }
 
