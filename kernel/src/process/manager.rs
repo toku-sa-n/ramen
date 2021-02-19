@@ -39,6 +39,10 @@ pub fn getpid() -> i32 {
     collections::process::handle_running(|p| p.id.as_i32())
 }
 
+pub fn notify_exists() -> bool {
+    collections::process::handle_running(|p| p.inbox.pop()).is_some()
+}
+
 pub(super) fn send_message(m: Message) {
     MESSAGE.push(m).expect("`MESSAGE` is full.");
 }
