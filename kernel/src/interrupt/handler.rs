@@ -48,6 +48,6 @@ pub extern "x86-interrupt" fn h_2c(
 
 pub fn notify_on_interrupt(vec: usize, pid: i32) {
     let mut l = NOTIFY_ON_INTERRUPT.lock();
-    let a = l.entry(vec).or_insert_with(|| Vec::new());
+    let a = l.entry(vec).or_insert_with(Vec::new);
     a.push(pid);
 }
