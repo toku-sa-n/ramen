@@ -14,6 +14,7 @@ use x86_64::{
 };
 
 use crate::{
+    interrupt,
     mem::{allocator, paging::pml4::PML4},
     process,
 };
@@ -103,6 +104,10 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, _a3: u64) -> u64 {
             syscalls::Ty::Exit => sys_exit(),
             syscalls::Ty::TranslateAddress => sys_translate_address(VirtAddr::new(a1)).as_u64(),
             syscalls::Ty::NotifyExists => sys_notify_exists() as _,
+            syscalls::Ty::NotifyOnInterrupt => {
+                sys_notify_on_interrupt(a1.try_into().unwrap(), a2.try_into().unwrap());
+                0
+            }
         },
         None => panic!("Unsupported syscall index: {}", idx),
     }
@@ -190,4 +195,8 @@ fn sys_translate_address(v: VirtAddr) -> PhysAddr {
 
 fn sys_notify_exists() -> bool {
     process::manager::notify_exists()
+}
+
+fn sys_notify_on_interrupt(vec: usize, pid: i32) {
+    interrupt::handler::notify_on_interrupt(vec, pid);
 }
