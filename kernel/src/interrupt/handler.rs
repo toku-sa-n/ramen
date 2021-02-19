@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::apic;
-use crate::{
-    device::{keyboard, mouse},
-    process,
-};
+use crate::{device::mouse, process};
 use alloc::{collections::BTreeMap, vec::Vec};
 use common::constant::{INTERRUPT_STACK, PORT_KEY_DATA};
 use spinning_top::Spinlock;
@@ -34,9 +31,11 @@ pub extern "x86-interrupt" fn h_20(
 pub extern "x86-interrupt" fn h_21(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
-    apic::local::end_of_interrupt();
-    let mut port = PortReadOnly::new(PORT_KEY_DATA);
-    keyboard::enqueue_scancode(unsafe { port.read() });
+    if let Some(a) = NOTIFY_ON_INTERRUPT.lock().get(&0x21) {
+        for pid in a {
+            process::manager::notify(*pid);
+        }
+    }
 }
 
 pub extern "x86-interrupt" fn h_2c(

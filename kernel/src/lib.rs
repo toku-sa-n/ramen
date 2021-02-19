@@ -41,7 +41,7 @@ mod tss;
 
 use common::{constant::INITRD_ADDR, kernelboot};
 use device::{
-    keyboard, mouse,
+    mouse,
     pci::{ahci, xhci},
 };
 use fs::ustar::Ustar;
@@ -102,8 +102,12 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     ustar.content("build/bootx64.efi");
 
     process::manager::init();
+    add_processes();
+}
 
+fn add_processes() {
     process::manager::add(run_tasks, Privilege::User);
+    process::manager::add(ps2_keyboard::main, Privilege::User);
     process::manager::add(tsukemen::main, Privilege::User);
 
     if cfg!(feature = "qemu_test") {
@@ -124,7 +128,6 @@ fn wait_until_timer_interrupt_happens() -> ! {
 }
 
 fn run_tasks() {
-    multitask::add(Task::new(keyboard::task()));
     multitask::add(Task::new(mouse::task()));
     multitask::add(Task::new(xhci::task()));
     multitask::add(Task::new(ahci::task()));
