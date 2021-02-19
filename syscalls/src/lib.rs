@@ -148,6 +148,12 @@ pub unsafe fn write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
     .unwrap()
 }
 
+#[must_use]
+pub fn notify_exists() -> bool {
+    // SAFETY: Arguments are passed properly.
+    unsafe { general_syscall(Ty::NotifyExists, 0, 0, 0) != 0 }
+}
+
 /// SAFETY: This function is unsafe if arguments are invalid.
 #[allow(clippy::too_many_arguments)]
 unsafe fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
@@ -177,4 +183,5 @@ pub enum Ty {
     Exit,
     TranslateAddress,
     Write,
+    NotifyExists,
 }
