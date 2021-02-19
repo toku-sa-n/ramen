@@ -5,7 +5,11 @@ use crate::{
     device::{keyboard, mouse},
     process,
 };
+use alloc::{collections::BTreeMap, vec::Vec};
 use common::constant::{INTERRUPT_STACK, PORT_KEY_DATA};
+use spinning_top::Spinlock;
+
+static NOTIFY_ON_INTERRUPT: Spinlock<BTreeMap<usize, Vec<i32>>> = Spinlock::new(BTreeMap::new());
 
 pub extern "x86-interrupt" fn h_20(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
@@ -40,4 +44,10 @@ pub extern "x86-interrupt" fn h_2c(
     apic::local::end_of_interrupt();
     let mut port = PORT_KEY_DATA;
     mouse::enqueue_packet(unsafe { port.read() });
+}
+
+pub fn notify_on_interrupt(vec: usize, pid: i32) {
+    let mut l = NOTIFY_ON_INTERRUPT.lock();
+    let a = l.entry(vec).or_insert_with(|| Vec::new());
+    a.push(pid);
 }

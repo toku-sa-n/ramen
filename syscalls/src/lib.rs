@@ -138,6 +138,18 @@ pub fn notify_exists() -> bool {
     unsafe { general_syscall(Ty::NotifyExists, 0, 0, 0) != 0 }
 }
 
+pub fn notify_on_interrup(vec: usize, pid: i32) {
+    // SAFETY: The arguments are passed correctly.
+    unsafe {
+        general_syscall(
+            Ty::NotifyOnInterrupt,
+            vec.try_into().unwrap(),
+            pid.try_into().unwrap(),
+            0,
+        );
+    }
+}
+
 /// SAFETY: This function is unsafe if arguments are invalid.
 #[allow(clippy::too_many_arguments)]
 unsafe fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
@@ -167,4 +179,5 @@ pub enum Ty {
     Exit,
     TranslateAddress,
     NotifyExists,
+    NotifyOnInterrupt,
 }
