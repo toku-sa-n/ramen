@@ -75,13 +75,13 @@ impl Device {
     fn enable() {
         super::keyboard::wait_kbc_sendready();
 
-        let mut port_key_cmd = PORT_KEY_CMD;
-        unsafe { port_key_cmd.write(KEY_CMD_SEND_TO_MOUSE) };
+        let port_key_cmd = PORT_KEY_CMD;
+        unsafe { syscalls::outb(port_key_cmd, KEY_CMD_SEND_TO_MOUSE) };
 
         super::keyboard::wait_kbc_sendready();
 
-        let mut port_key_data = PORT_KEY_DATA;
-        unsafe { port_key_data.write(MOUSE_CMD_ENABLE) };
+        let port_key_data = PORT_KEY_DATA;
+        unsafe { syscalls::outb(port_key_data, MOUSE_CMD_ENABLE) };
     }
 
     fn three_packets_available(&self) -> bool {

@@ -11,6 +11,17 @@ use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 
 /// # Safety
 ///
+/// This function is unsafe because reading a value from I/O port may have side effects which
+/// violate memory safety.
+#[must_use]
+pub unsafe fn inb(port: u16) -> u8 {
+    general_syscall(Ty::Inb, port.into(), 0, 0)
+        .try_into()
+        .unwrap()
+}
+
+/// # Safety
+///
 /// This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
 #[must_use]
 pub unsafe fn inl(port: u16) -> u32 {
@@ -19,6 +30,14 @@ pub unsafe fn inl(port: u16) -> u32 {
         .unwrap_or_else(|_| {
             unreachable!("Inl system call returns a value which is out of the ramge of `u32`.")
         })
+}
+
+/// # Safety
+///
+/// This function is unsafe because writing a value from I/O port may have side effects which
+/// violate memory safety.
+pub unsafe fn outb(port: u16, value: u8) {
+    general_syscall(Ty::Outb, port.into(), value.into(), 0);
 }
 
 /// # Safety
@@ -154,6 +173,18 @@ pub fn notify_exists() -> bool {
     unsafe { general_syscall(Ty::NotifyExists, 0, 0, 0) != 0 }
 }
 
+pub fn notify_on_interrup(vec: usize, pid: i32) {
+    // SAFETY: The arguments are passed correctly.
+    unsafe {
+        general_syscall(
+            Ty::NotifyOnInterrupt,
+            vec.try_into().unwrap(),
+            pid.try_into().unwrap(),
+            0,
+        );
+    }
+}
+
 /// SAFETY: This function is unsafe if arguments are invalid.
 #[allow(clippy::too_many_arguments)]
 unsafe fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
@@ -184,4 +215,5 @@ pub enum Ty {
     TranslateAddress,
     Write,
     NotifyExists,
+    NotifyOnInterrupt,
 }

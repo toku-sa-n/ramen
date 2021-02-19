@@ -2,7 +2,6 @@
 
 use os_units::{Bytes, NumOfPages};
 use x86_64::{
-    instructions::port::Port,
     structures::paging::{PageSize, Size4KiB},
     PhysAddr, VirtAddr,
 };
@@ -26,9 +25,9 @@ pub const NUM_OF_PAGES_STACK: NumOfPages<Size4KiB> = NumOfPages::new(16);
 pub const BYTES_KERNEL_HEAP: Bytes = Bytes::new(0x1000_0000);
 pub const BYTES_AVAILABLE_RAM: Bytes = Bytes::new(0x1_0000_0000_0000);
 
-pub const PORT_KEY_STATUS: Port<u8> = Port::new(0x0064);
-pub const PORT_KEY_CMD: Port<u8> = Port::new(0x0064);
-pub const PORT_KEY_DATA: Port<u8> = Port::new(0x0060);
+pub const PORT_KEY_STATUS: u16 = 0x0064;
+pub const PORT_KEY_CMD: u16 = 0x0064;
+pub const PORT_KEY_DATA: u16 = 0x0060;
 
 pub const KEY_CMD_WRITE_MODE: u8 = 0x60;
 pub const KEY_CMD_MODE: u8 = 0x47;
