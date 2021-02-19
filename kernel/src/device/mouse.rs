@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use common::constant::{PORT_KEY_CMD, PORT_KEY_DATA};
+use common::constant::{KEY_STATUS_SEND_NOT_READY, PORT_KEY_CMD, PORT_KEY_DATA, PORT_KEY_STATUS};
 use conquer_once::spin::OnceCell;
 use core::{
     pin::Pin,
@@ -73,12 +73,12 @@ impl Device {
     }
 
     fn enable() {
-        super::keyboard::wait_kbc_sendready();
+        wait_kbc_sendready();
 
         let port_key_cmd = PORT_KEY_CMD;
         unsafe { syscalls::outb(port_key_cmd, KEY_CMD_SEND_TO_MOUSE) };
 
-        super::keyboard::wait_kbc_sendready();
+        wait_kbc_sendready();
 
         let port_key_data = PORT_KEY_DATA;
         unsafe { syscalls::outb(port_key_data, MOUSE_CMD_ENABLE) };
@@ -263,6 +263,15 @@ impl MouseButtons {
             left: data & 0x01 != 0,
             right: data & 0x02 != 0,
             center: data & 0x04 != 0,
+        }
+    }
+}
+
+fn wait_kbc_sendready() {
+    loop {
+        let port_key_status = PORT_KEY_STATUS;
+        if unsafe { syscalls::inb(port_key_status) } & KEY_STATUS_SEND_NOT_READY == 0 {
+            break;
         }
     }
 }
