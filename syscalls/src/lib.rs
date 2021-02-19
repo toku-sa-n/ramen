@@ -132,6 +132,7 @@ pub fn translate_address(a: VirtAddr) -> PhysAddr {
     PhysAddr::new(unsafe { general_syscall(Ty::TranslateAddress, a.as_u64(), 0, 0) })
 }
 
+#[must_use]
 pub fn notify_exists() -> bool {
     // SAFETY: Arguments are passed properly.
     unsafe { general_syscall(Ty::NotifyExists, 0, 0, 0) != 0 }
