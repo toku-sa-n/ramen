@@ -103,3 +103,8 @@ impl Id {
         self.0
     }
 }
+impl From<i32> for Id {
+    fn from(id: i32) -> Self {
+        Self(id)
+    }
+}

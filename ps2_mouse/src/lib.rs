@@ -1,33 +1,24 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use common::constant::{PORT_KEY_CMD, PORT_KEY_DATA};
-use conquer_once::spin::OnceCell;
-use core::{
-    pin::Pin,
-    task::{Context, Poll},
-};
-use crossbeam_queue::ArrayQueue;
-use futures_util::{
-    stream::{Stream, StreamExt},
-    task::AtomicWaker,
-};
-use vek::Vec2;
+#![no_std]
 
-static MOUSE_PACKET_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
-static WAKER: AtomicWaker = AtomicWaker::new();
+use common::constant::{KEY_STATUS_SEND_NOT_READY, PORT_KEY_CMD, PORT_KEY_DATA, PORT_KEY_STATUS};
+use vek::Vec2;
 
 const KEY_CMD_SEND_TO_MOUSE: u8 = 0xD4;
 const MOUSE_CMD_ENABLE: u8 = 0xF4;
 
-pub async fn task() {
-    PacketStream::init_queue();
+pub fn main() {
     Device::enable();
-    let mut packet_stream = PacketStream;
+    syscalls::notify_on_interrup(0x2c, syscalls::getpid());
 
     let mut device = Device::new();
 
-    while let Some(packet) = packet_stream.next().await {
-        handle_packet(&mut device, packet);
+    loop {
+        if syscalls::notify_exists() {
+            let packet = unsafe { syscalls::inb(PORT_KEY_DATA) };
+            handle_packet(&mut device, packet);
+        }
     }
 }
 
@@ -42,20 +33,6 @@ fn parse_packets(device: &mut Device) {
     device.parse_packets();
     device.print_click_info();
     device.print_speed();
-}
-
-pub fn enqueue_packet(packet: u8) {
-    if queue().push(packet).is_ok() {
-        WAKER.wake();
-    } else {
-        warn!("MOUSE_PACKET_QUEUE is full.")
-    }
-}
-
-fn queue() -> &'static ArrayQueue<u8> {
-    MOUSE_PACKET_QUEUE
-        .try_get()
-        .expect("MOUSE_PACKET_QUEUE is not initialized.")
 }
 
 struct Device {
@@ -73,12 +50,12 @@ impl Device {
     }
 
     fn enable() {
-        super::keyboard::wait_kbc_sendready();
+        wait_kbc_sendready();
 
         let port_key_cmd = PORT_KEY_CMD;
         unsafe { syscalls::outb(port_key_cmd, KEY_CMD_SEND_TO_MOUSE) };
 
-        super::keyboard::wait_kbc_sendready();
+        wait_kbc_sendready();
 
         let port_key_data = PORT_KEY_DATA;
         unsafe { syscalls::outb(port_key_data, MOUSE_CMD_ENABLE) };
@@ -108,20 +85,20 @@ impl Device {
 
     fn print_click_info(&self) {
         if self.buttons.left {
-            info!("Left button pressed");
+            panic!("Left button pressed");
         }
 
         if self.buttons.center {
-            info!("Scroll wheel pressed");
+            panic!("Scroll wheel pressed");
         }
 
         if self.buttons.right {
-            info!("Right button pressed");
+            panic!("Right button pressed");
         }
     }
 
     fn print_speed(&self) {
-        info!("Speed: {}", self.speed());
+        panic!("Speed: {}", self.speed());
     }
 }
 
@@ -201,29 +178,6 @@ impl Buf {
     }
 }
 
-struct PacketStream;
-impl PacketStream {
-    fn init_queue() {
-        MOUSE_PACKET_QUEUE
-            .try_init_once(|| ArrayQueue::new(100))
-            .expect("MOUSE_PACKET_QUEUE is already initialized.")
-    }
-}
-impl Stream for PacketStream {
-    type Item = u8;
-
-    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        WAKER.register(&cx.waker());
-        match queue().pop() {
-            Some(packet) => {
-                WAKER.take();
-                Poll::Ready(Some(packet))
-            }
-            None => Poll::Pending,
-        }
-    }
-}
-
 #[derive(PartialEq, Eq, Copy, Clone)]
 enum DevicePhase {
     Init,
@@ -263,6 +217,15 @@ impl MouseButtons {
             left: data & 0x01 != 0,
             right: data & 0x02 != 0,
             center: data & 0x04 != 0,
+        }
+    }
+}
+
+fn wait_kbc_sendready() {
+    loop {
+        let port_key_status = PORT_KEY_STATUS;
+        if unsafe { syscalls::inb(port_key_status) } & KEY_STATUS_SEND_NOT_READY == 0 {
+            break;
         }
     }
 }
