@@ -7,6 +7,9 @@ use common::constant::{
     PORT_KEY_STATUS,
 };
 
+/// # Panics
+///
+/// This function panics if it receives a notification.
 pub fn main() {
     enable_keyboard();
     syscalls::notify_on_interrup(0x21, syscalls::getpid());
