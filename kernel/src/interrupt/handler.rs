@@ -8,6 +8,7 @@ use crate::{
 use alloc::{collections::BTreeMap, vec::Vec};
 use common::constant::{INTERRUPT_STACK, PORT_KEY_DATA};
 use spinning_top::Spinlock;
+use x86_64::instructions::port::PortReadOnly;
 
 static NOTIFY_ON_INTERRUPT: Spinlock<BTreeMap<usize, Vec<i32>>> = Spinlock::new(BTreeMap::new());
 
@@ -34,7 +35,7 @@ pub extern "x86-interrupt" fn h_21(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     apic::local::end_of_interrupt();
-    let mut port = PORT_KEY_DATA;
+    let mut port = PortReadOnly::new(PORT_KEY_DATA);
     keyboard::enqueue_scancode(unsafe { port.read() });
 }
 
@@ -42,7 +43,7 @@ pub extern "x86-interrupt" fn h_2c(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     apic::local::end_of_interrupt();
-    let mut port = PORT_KEY_DATA;
+    let mut port = PortReadOnly::new(PORT_KEY_DATA);
     mouse::enqueue_packet(unsafe { port.read() });
 }
 
