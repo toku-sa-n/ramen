@@ -5,8 +5,7 @@ use crate::{
     mem::{allocator, paging::pml4::PML4},
     process,
 };
-use alloc::string::String;
-use core::{convert::TryInto, ffi::c_void, ptr};
+use core::{convert::TryInto, ffi::c_void, slice};
 use num_traits::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{
@@ -200,21 +199,26 @@ fn sys_translate_address(v: VirtAddr) -> PhysAddr {
     PML4.lock().translate_addr(v).unwrap_or_else(PhysAddr::zero)
 }
 
+/// # Safety
+///
+/// `buf` must be valid.
 unsafe fn sys_write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
     if fildes == 1 {
-        let mut buf: *const u8 = buf.cast();
-        let mut s = String::new();
+        let buf: *const u8 = buf.cast();
 
-        for _ in 0..nbyte {
-            let c = ptr::read(buf);
-            s.push(c as char);
-            buf = (buf as usize + 1) as *const u8;
+        // SAFETY: The caller ensures that `buf` is valid.
+        let s = slice::from_raw_parts(buf, nbyte.try_into().unwrap());
+        let s = core::str::from_utf8(s);
+
+        match s {
+            Ok(s) => {
+                // TODO: rewrite with `write` macro.
+                info!("{}", s);
+
+                nbyte.try_into().unwrap()
+            }
+            Err(_) => 0,
         }
-
-        // TODO: rewrite with `write` macro.
-        info!("{}", s);
-
-        nbyte.try_into().unwrap()
     } else {
         unimplemented!("Not stdout");
     }
