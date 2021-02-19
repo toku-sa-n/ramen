@@ -72,19 +72,19 @@ impl Stream for ScancodeStream {
 fn enable_keyboard() {
     wait_kbc_sendready();
 
-    let mut port_key_cmd = PORT_KEY_CMD;
-    unsafe { port_key_cmd.write(KEY_CMD_WRITE_MODE as u8) };
+    let port_key_cmd = PORT_KEY_CMD;
+    unsafe { syscalls::outb(port_key_cmd, KEY_CMD_WRITE_MODE as u8) };
 
     wait_kbc_sendready();
 
-    let mut port_key_data = PORT_KEY_DATA;
-    unsafe { port_key_data.write(KEY_CMD_MODE as u8) };
+    let port_key_data = PORT_KEY_DATA;
+    unsafe { syscalls::outb(port_key_data, KEY_CMD_MODE as u8) };
 }
 
 pub(super) fn wait_kbc_sendready() {
     loop {
-        let mut port_key_status = PORT_KEY_STATUS;
-        if unsafe { port_key_status.read() } & KEY_STATUS_SEND_NOT_READY == 0 {
+        let port_key_status = PORT_KEY_STATUS;
+        if unsafe { syscalls::inb(port_key_status) } & KEY_STATUS_SEND_NOT_READY == 0 {
             break;
         }
     }

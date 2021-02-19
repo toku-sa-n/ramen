@@ -11,6 +11,16 @@ use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 
 /// # Safety
 ///
+/// This function is unsafe because reading a value from I/O port may have side effects which
+/// violate memory safety.
+pub unsafe fn inb(port: u16) -> u8 {
+    general_syscall(Ty::Inb, port.into(), 0, 0)
+        .try_into()
+        .unwrap()
+}
+
+/// # Safety
+///
 /// This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
 #[must_use]
 pub unsafe fn inl(port: u16) -> u32 {
@@ -19,6 +29,14 @@ pub unsafe fn inl(port: u16) -> u32 {
         .unwrap_or_else(|_| {
             unreachable!("Inl system call returns a value which is out of the ramge of `u32`.")
         })
+}
+
+/// # Safety
+///
+/// This function is unsafe because writing a value from I/O port may have side effects which
+/// violate memory safety.
+pub unsafe fn outb(port: u16, value: u8) {
+    general_syscall(Ty::Outb, port.into(), value.into(), 0);
 }
 
 /// # Safety
