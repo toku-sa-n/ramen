@@ -47,3 +47,4 @@ terminal = { path = "../terminal" }
 xhci = "0.5.0"
 accessor = "0.3.0"
 ps2_keyboard = { path = "../ps2_keyboard" }
+ps2_mouse = { path = "../ps2_mouse" }

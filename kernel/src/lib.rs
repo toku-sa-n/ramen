@@ -40,10 +40,7 @@ mod tests;
 mod tss;
 
 use common::{constant::INITRD_ADDR, kernelboot};
-use device::{
-    mouse,
-    pci::{ahci, xhci},
-};
+use device::pci::{ahci, xhci};
 use fs::ustar::Ustar;
 use futures_intrusive::sync::{GenericMutex, GenericMutexGuard};
 use interrupt::{apic, idt, timer};
@@ -108,6 +105,7 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
 fn add_processes() {
     process::manager::add(run_tasks, Privilege::User);
     process::manager::add(ps2_keyboard::main, Privilege::User);
+    process::manager::add(ps2_mouse::main, Privilege::User);
     process::manager::add(tsukemen::main, Privilege::User);
 
     if cfg!(feature = "qemu_test") {
@@ -128,7 +126,6 @@ fn wait_until_timer_interrupt_happens() -> ! {
 }
 
 fn run_tasks() {
-    multitask::add(Task::new(mouse::task()));
     multitask::add(Task::new(xhci::task()));
     multitask::add(Task::new(ahci::task()));
 
