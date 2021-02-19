@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::apic;
-use crate::{device::mouse, process};
+use crate::process;
 use alloc::{collections::BTreeMap, vec::Vec};
-use common::constant::{INTERRUPT_STACK, PORT_KEY_DATA};
+use common::constant::INTERRUPT_STACK;
 use spinning_top::Spinlock;
-use x86_64::instructions::port::PortReadOnly;
 
 static NOTIFY_ON_INTERRUPT: Spinlock<BTreeMap<usize, Vec<i32>>> = Spinlock::new(BTreeMap::new());
 
@@ -31,23 +30,27 @@ pub extern "x86-interrupt" fn h_20(
 pub extern "x86-interrupt" fn h_21(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
-    if let Some(a) = NOTIFY_ON_INTERRUPT.lock().get(&0x21) {
-        for pid in a {
-            process::manager::notify(*pid);
-        }
-    }
+    apic::local::end_of_interrupt();
+    notify(0x21);
 }
 
 pub extern "x86-interrupt" fn h_2c(
     _stack_frame: &mut x86_64::structures::idt::InterruptStackFrame,
 ) {
     apic::local::end_of_interrupt();
-    let mut port = PortReadOnly::new(PORT_KEY_DATA);
-    mouse::enqueue_packet(unsafe { port.read() });
+    notify(0x2c);
 }
 
 pub fn notify_on_interrupt(vec: usize, pid: i32) {
     let mut l = NOTIFY_ON_INTERRUPT.lock();
     let a = l.entry(vec).or_insert_with(Vec::new);
     a.push(pid);
+}
+
+fn notify(vec: usize) {
+    if let Some(a) = NOTIFY_ON_INTERRUPT.lock().get(&vec) {
+        for pid in a {
+            process::manager::notify(*pid);
+        }
+    }
 }
