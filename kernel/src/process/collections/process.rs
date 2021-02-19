@@ -23,14 +23,6 @@ where
     handle(id, f)
 }
 
-pub(in crate::process) fn handle_running_mut<T, U>(f: T) -> U
-where
-    T: FnOnce(&mut Process) -> U,
-{
-    let id = woken_pid::active_pid();
-    handle_mut(id, f)
-}
-
 pub(in crate::process) fn handle<T, U>(id: process::Id, f: T) -> U
 where
     T: FnOnce(&Process) -> U,
@@ -38,17 +30,6 @@ where
     let l = lock_processes();
     let p = l
         .get(&id)
-        .unwrap_or_else(|| panic!("Process of PID {} does not exist.", id.as_i32()));
-    f(p)
-}
-
-pub(in crate::process) fn handle_mut<T, U>(id: process::Id, f: T) -> U
-where
-    T: FnOnce(&mut Process) -> U,
-{
-    let mut l = lock_processes();
-    let p = l
-        .get_mut(&id)
         .unwrap_or_else(|| panic!("Process of PID {} does not exist.", id.as_i32()));
     f(p)
 }
