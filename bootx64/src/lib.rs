@@ -16,11 +16,12 @@ pub mod rsdp;
 extern crate log;
 
 use core::{convert::TryInto, ptr, ptr::NonNull, slice};
-
 use uefi::{
     table::{boot, boot::MemoryType, Boot, SystemTable},
     Handle, ResultExt,
 };
+
+pub use init::init;
 
 /// # Panics
 ///
