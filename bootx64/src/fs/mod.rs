@@ -24,6 +24,7 @@ use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 
 mod size;
 
+#[must_use]
 pub fn deploy(bs: &boot::BootServices, name: &'static str) -> (PhysAddr, Bytes) {
     let mut root_dir = root_dir::open(bs);
 
