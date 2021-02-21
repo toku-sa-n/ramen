@@ -8,6 +8,7 @@
 pub mod exit;
 pub mod fs;
 pub mod gop;
+pub mod init;
 pub mod mem;
 pub mod rsdp;
 
@@ -20,22 +21,6 @@ use uefi::{
     table::{boot, boot::MemoryType, Boot, SystemTable},
     Handle, ResultExt,
 };
-
-pub fn init_libs(system_table: &SystemTable<Boot>) {
-    init_uefi_utils(&system_table);
-    reset_console(&system_table);
-}
-
-fn init_uefi_utils(system_table: &SystemTable<Boot>) {
-    uefi_services::init(system_table).expect_success("Failed to initialize_uefi_utilities");
-}
-
-fn reset_console(system_table: &SystemTable<Boot>) {
-    system_table
-        .stdout()
-        .reset(false)
-        .expect_success("Failed to reset stdout");
-}
 
 pub fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> common::mem::Map {
     info!("Goodbye, boot services...");
