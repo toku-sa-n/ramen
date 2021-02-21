@@ -7,8 +7,8 @@ use uefi::{
     ResultExt,
 };
 
-pub fn get(root_dir: &mut file::Directory, name: &'static str) -> Bytes {
-    let mut h = super::get_handler(root_dir, name);
+pub fn get(root: &mut file::Directory, name: &'static str) -> Bytes {
+    let mut h = super::get_handler(root, name);
 
     h.set_position(RegularFile::END_OF_FILE)
         .expect_success("Failed to calculate the size of the kernel.");
