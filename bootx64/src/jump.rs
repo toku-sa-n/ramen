@@ -10,10 +10,20 @@ macro_rules! change_rsp{
     }
 }
 
-pub fn bootx64(boot_info: kernelboot::Info) -> ! {
+pub fn to_kernel(boot_info: kernelboot::Info) -> ! {
     disable_interruption();
 
-    jump_to_kernel(boot_info);
+    boot_info.set();
+
+    change_rsp!(INIT_RSP.as_u64());
+
+    let boot_info = kernelboot::Info::get();
+
+    let kernel = unsafe {
+        core::mem::transmute::<u64, fn(kernelboot::Info) -> !>(boot_info.entry_addr().as_u64())
+    };
+
+    kernel(boot_info)
 }
 
 fn disable_interruption() {
@@ -27,18 +37,4 @@ fn disable_interruption() {
             cli"
         );
     }
-}
-
-fn jump_to_kernel(boot_info: kernelboot::Info) -> ! {
-    boot_info.set();
-
-    change_rsp!(INIT_RSP.as_u64());
-
-    let boot_info = kernelboot::Info::get();
-
-    let kernel = unsafe {
-        core::mem::transmute::<u64, fn(kernelboot::Info) -> !>(boot_info.entry_addr().as_u64())
-    };
-
-    kernel(boot_info)
 }

@@ -11,7 +11,7 @@
 extern crate common;
 
 use bootx64::{
-    exit, fs, gop,
+    fs, gop, jump,
     mem::{paging, stack},
     rsdp,
 };
@@ -41,5 +41,5 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     let mut boot_info = kernelboot::Info::new(entry_addr, vram_info, mem_map, rsdp);
 
     paging::init(&mut boot_info, &reserved_regions);
-    exit::bootx64(boot_info);
+    jump::to_kernel(boot_info);
 }
