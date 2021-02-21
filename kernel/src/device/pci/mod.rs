@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pub mod ahci;
 pub mod config;
 pub mod xhci;
 
