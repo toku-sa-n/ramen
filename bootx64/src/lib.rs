@@ -39,8 +39,7 @@ pub fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -
     let buf = allocate_buf_for_exiting(system_table.boot_services());
     let (_, mut descriptors_iter) = system_table
         .exit_boot_services(image, buf)
-        .expect("Failed to exit boot services")
-        .unwrap();
+        .expect_success("Failed to exit boot services");
 
     let num_descriptors = descriptors_iter.len();
     let memory_map_buf = write_descriptors_on_buf(memory_map_buf, &mut descriptors_iter);
