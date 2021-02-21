@@ -24,7 +24,6 @@ use uefi::{
 pub fn init_libs(system_table: &SystemTable<Boot>) {
     init_uefi_utils(&system_table);
     reset_console(&system_table);
-    info!("Hello World!");
 }
 
 fn init_uefi_utils(system_table: &SystemTable<Boot>) {
