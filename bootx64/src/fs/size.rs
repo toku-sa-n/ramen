@@ -8,13 +8,12 @@ use uefi::{
 };
 
 pub fn get(root_dir: &mut file::Directory, name: &'static str) -> Bytes {
-    let mut handler = super::get_handler(root_dir, name);
+    let mut h = super::get_handler(root_dir, name);
 
-    handler
-        .set_position(RegularFile::END_OF_FILE)
+    h.set_position(RegularFile::END_OF_FILE)
         .expect_success("Failed to calculate the size of the kernel.");
 
-    let b = handler
+    let b = h
         .get_position()
         .expect_success("Failed to calculate the size of a binary.");
     Bytes::new(b.try_into().unwrap())
