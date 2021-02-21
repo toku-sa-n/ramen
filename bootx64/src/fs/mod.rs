@@ -2,7 +2,6 @@
 
 mod root_dir;
 
-use alloc::vec;
 use common::constant::KERNEL_ADDR;
 use core::{
     convert::{TryFrom, TryInto},
@@ -37,7 +36,7 @@ fn locate(
     name: &'static str,
 ) -> (PhysAddr, Bytes) {
     let mut file_handler = get_handler(root, name);
-    let file_bytes = size(&mut file_handler);
+    let file_bytes = size(bs, &mut file_handler);
 
     let addr = allocate(bs, file_bytes);
     put_on_memory(&mut file_handler, addr, file_bytes);
@@ -112,12 +111,27 @@ fn put_on_memory(handler: &mut file::RegularFile, kernel_addr: PhysAddr, kernel_
         .expect_success("Failed to read kernel");
 }
 
-fn size(r: &mut file::RegularFile) -> Bytes {
-    // Allocate a too small buffer deliberately to get the number of bytes which is enough for a
-    // buffer.
-    let mut b = vec![0_u8; 1];
+fn size(bs: &boot::BootServices, r: &mut file::RegularFile) -> Bytes {
+    let info_bytes = bytes_for_get_info(r);
+
+    let n = info_bytes.as_num_of_pages::<Size4KiB>().as_usize();
+    let buf = bs.allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, n);
+    let buf = buf.expect_success("Failed to allocate memory for getting the size of a file.");
+    let mut s = unsafe { slice::from_raw_parts_mut(buf as *mut u8, info_bytes.as_usize()) };
+
+    let i = r
+        .get_info::<FileInfo>(&mut s)
+        .expect_success("`get_info` failed.");
+
+    let sz = Bytes::new(i.file_size().try_into().unwrap());
+    bs.free_pages(buf, n)
+        .expect_success("Failed to free memory.");
+    sz
+}
+
+fn bytes_for_get_info(r: &mut file::RegularFile) -> Bytes {
     let (s, bytes) = r
-        .get_info::<FileInfo>(&mut b)
+        .get_info::<FileInfo>(&mut [0_u8])
         .expect_error("The buffer should be too small.")
         .split();
     assert_eq!(
@@ -125,12 +139,6 @@ fn size(r: &mut file::RegularFile) -> Bytes {
         uefi::Status::BUFFER_TOO_SMALL,
         "Unexpected error was returned."
     );
-    let bytes = bytes.expect("The number of bytes was not returned.");
 
-    let mut b = vec![0_u8; bytes];
-    let i = r
-        .get_info::<FileInfo>(&mut b)
-        .expect_success("`get_info` failed.");
-
-    Bytes::new(i.file_size().try_into().unwrap())
+    Bytes::new(bytes.expect("The number of bytes was not returned."))
 }
