@@ -22,12 +22,12 @@ use uefi::{
 };
 
 pub fn init_libs(system_table: &SystemTable<Boot>) {
-    initialize_uefi_utilities(&system_table);
+    init_uefi_utils(&system_table);
     reset_console(&system_table);
     info!("Hello World!");
 }
 
-fn initialize_uefi_utilities(system_table: &SystemTable<Boot>) {
+fn init_uefi_utils(system_table: &SystemTable<Boot>) {
     uefi_services::init(system_table).expect_success("Failed to initialize_uefi_utilities");
 }
 
