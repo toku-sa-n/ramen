@@ -28,7 +28,6 @@ extern crate derive_builder;
 
 mod acpi;
 mod device;
-mod fs;
 mod gdt;
 mod interrupt;
 mod mem;
@@ -39,9 +38,8 @@ mod syscall;
 mod tests;
 mod tss;
 
-use common::{constant::INITRD_ADDR, kernelboot};
+use common::kernelboot;
 use device::pci::xhci;
-use fs::ustar::Ustar;
 use futures_intrusive::sync::{GenericMutex, GenericMutexGuard};
 use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
@@ -92,11 +90,6 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
 
     info!("Hello Ramen OS!");
     vram::print_info();
-
-    // SAFETY: `INITRD_ADDR` is the valid address to UStar data.
-    let ustar = unsafe { Ustar::new(INITRD_ADDR) };
-    ustar.list();
-    ustar.content("build/bootx64.efi");
 
     process::manager::init();
     add_processes();
