@@ -22,6 +22,9 @@ use uefi::{
     Handle, ResultExt,
 };
 
+/// # Panics
+///
+/// This function panics if it fails to allocate a memory for the memory map.
 pub fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> common::mem::Map {
     info!("Goodbye, boot services...");
     let memory_map_buf = system_table
