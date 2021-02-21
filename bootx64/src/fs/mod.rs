@@ -8,6 +8,7 @@ use core::{
     slice,
 };
 use elf_rs::Elf;
+use file::RegularFile;
 use os_units::Bytes;
 use uefi::{
     proto::media::{
@@ -22,8 +23,6 @@ use uefi::{
 };
 use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 
-mod size;
-
 #[must_use]
 pub fn deploy(bs: &boot::BootServices, name: &'static str) -> (PhysAddr, Bytes) {
     let mut root_dir = root_dir::open(bs);
@@ -36,7 +35,7 @@ fn locate(
     root: &mut file::Directory,
     name: &'static str,
 ) -> (PhysAddr, Bytes) {
-    let file_bytes = size::get(root, name);
+    let file_bytes = size(root, name);
     let mut file_handler = get_handler(root, name);
 
     let addr = allocate(bs, file_bytes);
@@ -101,4 +100,16 @@ fn put_on_memory(handler: &mut file::RegularFile, kernel_addr: PhysAddr, kernel_
             core::slice::from_raw_parts_mut(kernel_addr.as_u64() as _, kernel_bytes.as_usize())
         })
         .expect_success("Failed to read kernel");
+}
+
+fn size(root: &mut file::Directory, name: &'static str) -> Bytes {
+    let mut h = get_handler(root, name);
+
+    h.set_position(RegularFile::END_OF_FILE)
+        .expect_success("Failed to calculate the size of the kernel.");
+
+    let b = h
+        .get_position()
+        .expect_success("Failed to calculate the size of a binary.");
+    Bytes::new(b.try_into().unwrap())
 }
