@@ -44,6 +44,9 @@ fn locate(
     (addr, file_bytes)
 }
 
+/// # Panics
+///
+/// This function panics if the given file is not an ELF file.
 pub fn fetch_entry_address_and_memory_size(addr: PhysAddr, bytes: Bytes) -> (VirtAddr, Bytes) {
     let elf =
         Elf::from_bytes(unsafe { slice::from_raw_parts(addr.as_u64() as _, bytes.as_usize()) });
