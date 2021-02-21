@@ -36,7 +36,7 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
         stack_addr,
         &vram_info,
     );
-    let mem_map = bootx64::terminate_boot_services(image, system_table);
+    let mem_map = bootx64::exit::boot_services(image, system_table);
 
     let mut boot_info = kernelboot::Info::new(entry_addr, vram_info, mem_map, rsdp);
 
