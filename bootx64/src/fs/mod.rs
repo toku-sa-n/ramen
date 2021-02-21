@@ -8,7 +8,7 @@ use core::{
     slice,
 };
 use elf_rs::Elf;
-use file::RegularFile;
+use file::{FileType, RegularFile};
 use os_units::Bytes;
 use uefi::{
     proto::media::{
@@ -76,7 +76,16 @@ fn get_handler(root: &mut file::Directory, name: &'static str) -> file::RegularF
         .open(name, FileMode::Read, FileAttribute::empty())
         .expect_success("Failed to get file handler of the kernel.");
 
-    unsafe { file::RegularFile::new(h) }
+    let h = h
+        .into_type()
+        .expect_success("Failed to get the type of a file.");
+
+    match h {
+        FileType::Regular(r) => r,
+        FileType::Dir(_) => {
+            panic!("Not a regular file.")
+        }
+    }
 }
 
 fn allocate(boot_services: &boot::BootServices, kernel_bytes: Bytes) -> PhysAddr {
