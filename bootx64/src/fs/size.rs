@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::convert::TryFrom;
+use core::convert::TryInto;
 use os_units::Bytes;
 use uefi::{
     proto::media::{file, file::RegularFile},
@@ -14,13 +14,8 @@ pub fn get(root_dir: &mut file::Directory, name: &'static str) -> Bytes {
         .set_position(RegularFile::END_OF_FILE)
         .expect_success("Failed to calculate the size of the kernel.");
 
-    Bytes::new(
-        usize::try_from(
-            handler
-                .get_position()
-                .expect("Failed to calculate the size of the kernel.")
-                .unwrap(),
-        )
-        .unwrap(),
-    )
+    let b = handler
+        .get_position()
+        .expect_success("Failed to calculate the size of a binary.");
+    Bytes::new(b.try_into().unwrap())
 }
