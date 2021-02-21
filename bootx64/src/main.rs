@@ -10,8 +10,6 @@
 #[allow(unused_imports)]
 extern crate common;
 
-extern crate bootx64;
-
 use bootx64::{
     exit, fs, gop,
     mem::{paging, stack},
