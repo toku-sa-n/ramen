@@ -24,17 +24,15 @@ use uefi::{
 
 pub fn terminate_boot_services(image: Handle, system_table: SystemTable<Boot>) -> common::mem::Map {
     info!("Goodbye, boot services...");
-    let memory_map_buf = NonNull::new(
-        system_table
-            .boot_services()
-            .allocate_pool(
-                MemoryType::LOADER_DATA,
-                system_table.boot_services().memory_map_size(),
-            )
-            .expect_success("Failed to allocate memory for memory map"),
-    )
-    .unwrap()
-    .cast::<boot::MemoryDescriptor>();
+    let memory_map_buf = system_table
+        .boot_services()
+        .allocate_pool(
+            MemoryType::LOADER_DATA,
+            system_table.boot_services().memory_map_size(),
+        )
+        .expect_success("Failed to allocate memory for memory map");
+    let memory_map_buf = NonNull::new(memory_map_buf).expect("`memory_map_buf` must not be Null.");
+    let memory_map_buf: NonNull<boot::MemoryDescriptor> = memory_map_buf.cast();
 
     let buf = allocate_buf_for_exiting(system_table.boot_services());
     let (_, mut descriptors_iter) = system_table
