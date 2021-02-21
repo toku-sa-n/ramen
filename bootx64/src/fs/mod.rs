@@ -8,7 +8,7 @@ use core::{
     slice,
 };
 use elf_rs::Elf;
-use file::{FileType, RegularFile};
+use file::{FileInfo, FileType};
 use os_units::Bytes;
 use uefi::{
     proto::media::{
@@ -35,8 +35,8 @@ fn locate(
     root: &mut file::Directory,
     name: &'static str,
 ) -> (PhysAddr, Bytes) {
-    let file_bytes = size(root, name);
     let mut file_handler = get_handler(root, name);
+    let file_bytes = size(bs, &mut file_handler);
 
     let addr = allocate(bs, file_bytes);
     put_on_memory(&mut file_handler, addr, file_bytes);
@@ -111,14 +111,34 @@ fn put_on_memory(handler: &mut file::RegularFile, kernel_addr: PhysAddr, kernel_
         .expect_success("Failed to read kernel");
 }
 
-fn size(root: &mut file::Directory, name: &'static str) -> Bytes {
-    let mut h = get_handler(root, name);
+fn size(bs: &boot::BootServices, r: &mut file::RegularFile) -> Bytes {
+    let info_bytes = bytes_for_get_info(r);
 
-    h.set_position(RegularFile::END_OF_FILE)
-        .expect_success("Failed to calculate the size of the kernel.");
+    let n = info_bytes.as_num_of_pages::<Size4KiB>().as_usize();
+    let buf = bs.allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, n);
+    let buf = buf.expect_success("Failed to allocate memory for getting the size of a file.");
+    let mut s = unsafe { slice::from_raw_parts_mut(buf as *mut u8, info_bytes.as_usize()) };
 
-    let b = h
-        .get_position()
-        .expect_success("Failed to calculate the size of a binary.");
-    Bytes::new(b.try_into().unwrap())
+    let i = r
+        .get_info::<FileInfo>(&mut s)
+        .expect_success("`get_info` failed.");
+
+    let sz = Bytes::new(i.file_size().try_into().unwrap());
+    bs.free_pages(buf, n)
+        .expect_success("Failed to free memory.");
+    sz
+}
+
+fn bytes_for_get_info(r: &mut file::RegularFile) -> Bytes {
+    let (s, bytes) = r
+        .get_info::<FileInfo>(&mut [0_u8])
+        .expect_error("The buffer should be too small.")
+        .split();
+    assert_eq!(
+        s,
+        uefi::Status::BUFFER_TOO_SMALL,
+        "Unexpected error was returned."
+    );
+
+    Bytes::new(bytes.expect("The number of bytes was not returned."))
 }
