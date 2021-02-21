@@ -2,13 +2,14 @@
 
 mod root_dir;
 
+use alloc::vec;
 use common::constant::KERNEL_ADDR;
 use core::{
     convert::{TryFrom, TryInto},
     slice,
 };
 use elf_rs::Elf;
-use file::RegularFile;
+use file::FileInfo;
 use os_units::Bytes;
 use uefi::{
     proto::media::{
@@ -35,8 +36,8 @@ fn locate(
     root: &mut file::Directory,
     name: &'static str,
 ) -> (PhysAddr, Bytes) {
-    let file_bytes = size(root, name);
     let mut file_handler = get_handler(root, name);
+    let file_bytes = size(&mut file_handler);
 
     let addr = allocate(bs, file_bytes);
     put_on_memory(&mut file_handler, addr, file_bytes);
@@ -102,14 +103,25 @@ fn put_on_memory(handler: &mut file::RegularFile, kernel_addr: PhysAddr, kernel_
         .expect_success("Failed to read kernel");
 }
 
-fn size(root: &mut file::Directory, name: &'static str) -> Bytes {
-    let mut h = get_handler(root, name);
+fn size(r: &mut file::RegularFile) -> Bytes {
+    // Allocate a too small buffer deliberately to get the number of bytes which is enough for a
+    // buffer.
+    let mut b = vec![0_u8; 1];
+    let (s, bytes) = r
+        .get_info::<FileInfo>(&mut b)
+        .expect_error("The buffer should be too small.")
+        .split();
+    assert_eq!(
+        s,
+        uefi::Status::BUFFER_TOO_SMALL,
+        "Unexpected error was returned."
+    );
+    let bytes = bytes.expect("The number of bytes was not returned.");
 
-    h.set_position(RegularFile::END_OF_FILE)
-        .expect_success("Failed to calculate the size of the kernel.");
+    let mut b = vec![0_u8; bytes];
+    let i = r
+        .get_info::<FileInfo>(&mut b)
+        .expect_success("`get_info` failed.");
 
-    let b = h
-        .get_position()
-        .expect_success("Failed to calculate the size of a binary.");
-    Bytes::new(b.try_into().unwrap())
+    Bytes::new(i.file_size().try_into().unwrap())
 }
