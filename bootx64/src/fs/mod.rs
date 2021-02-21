@@ -24,6 +24,7 @@ use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 
 mod size;
 
+#[must_use]
 pub fn deploy(bs: &boot::BootServices, name: &'static str) -> (PhysAddr, Bytes) {
     let mut root_dir = root_dir::open(bs);
 
@@ -44,14 +45,14 @@ fn locate(
     (addr, file_bytes)
 }
 
+/// # Panics
+///
+/// This function panics if the given file is not an ELF file.
+#[must_use]
 pub fn fetch_entry_address_and_memory_size(addr: PhysAddr, bytes: Bytes) -> (VirtAddr, Bytes) {
     let elf =
         Elf::from_bytes(unsafe { slice::from_raw_parts(addr.as_u64() as _, bytes.as_usize()) });
-
-    let elf = match elf {
-        Ok(elf) => elf,
-        Err(e) => panic!("Could not get ELF information from the kernel: {:?}", e),
-    };
+    let elf = elf.expect("Failed to get the ELF information.");
 
     match elf {
         Elf::Elf32(_) => panic!("32-bit kernel is not supported"),

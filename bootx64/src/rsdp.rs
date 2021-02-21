@@ -14,6 +14,10 @@ const GUID_RSDP: Guid = Guid::from_values(
     [0x00, 0x80, 0xc7, 0x3c, 0x88, 0x81],
 );
 
+/// # Panics
+///
+/// This function panics if the architecture does not have RSDP.
+#[must_use]
 pub fn get(st: &SystemTable<Boot>) -> PhysAddr {
     for c in st.config_table() {
         if c.guid == GUID_RSDP {

@@ -10,14 +10,14 @@ use uefi::{
 };
 use x86_64::PhysAddr;
 
-pub fn allocate(boot_services: &boot::BootServices) -> PhysAddr {
+#[must_use]
+pub fn allocate(bs: &boot::BootServices) -> PhysAddr {
     PhysAddr::new(
-        boot_services
-            .allocate_pages(
-                AllocateType::AnyPages,
-                MemoryType::LOADER_DATA,
-                NUM_OF_PAGES_STACK.as_bytes().as_usize(),
-            )
-            .expect_success("Failed to allocate memory for the stack"),
+        bs.allocate_pages(
+            AllocateType::AnyPages,
+            MemoryType::LOADER_DATA,
+            NUM_OF_PAGES_STACK.as_bytes().as_usize(),
+        )
+        .expect_success("Failed to allocate memory for the stack"),
     )
 }

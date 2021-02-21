@@ -8,6 +8,7 @@ use uefi::{
     ResultExt,
 };
 
+#[must_use]
 pub fn init(boot_services: &boot::BootServices) -> vram::Info {
     let gop = fetch_gop(boot_services);
     set_resolution(gop);
