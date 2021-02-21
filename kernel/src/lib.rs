@@ -40,7 +40,7 @@ mod tests;
 mod tss;
 
 use common::{constant::INITRD_ADDR, kernelboot};
-use device::pci::{ahci, xhci};
+use device::pci::xhci;
 use fs::ustar::Ustar;
 use futures_intrusive::sync::{GenericMutex, GenericMutexGuard};
 use interrupt::{apic, idt, timer};
@@ -127,7 +127,6 @@ fn wait_until_timer_interrupt_happens() -> ! {
 
 fn run_tasks() {
     multitask::add(Task::new(xhci::task()));
-    multitask::add(Task::new(ahci::task()));
 
     let mut executor = Executor::new();
     executor.run();
