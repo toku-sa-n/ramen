@@ -9,7 +9,7 @@ use core::{
     slice,
 };
 use elf_rs::Elf;
-use file::{FileType, RegularFile};
+use file::{FileInfo, FileType};
 use os_units::Bytes;
 use uefi::{
     proto::media::{
