@@ -2,15 +2,17 @@
 
 use core::convert::TryFrom;
 use os_units::Bytes;
-use uefi::proto::media::{file, file::RegularFile};
+use uefi::{
+    proto::media::{file, file::RegularFile},
+    ResultExt,
+};
 
 pub fn get(root_dir: &mut file::Directory, name: &'static str) -> Bytes {
     let mut handler = super::get_handler(root_dir, name);
 
     handler
         .set_position(RegularFile::END_OF_FILE)
-        .expect("Failed to calculate the size of the kernel.")
-        .unwrap();
+        .expect_success("Failed to calculate the size of the kernel.");
 
     Bytes::new(
         usize::try_from(
