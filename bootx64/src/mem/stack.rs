@@ -10,6 +10,7 @@ use uefi::{
 };
 use x86_64::PhysAddr;
 
+#[must_use]
 pub fn allocate(boot_services: &boot::BootServices) -> PhysAddr {
     PhysAddr::new(
         boot_services
