@@ -47,11 +47,7 @@ fn locate(
 pub fn fetch_entry_address_and_memory_size(addr: PhysAddr, bytes: Bytes) -> (VirtAddr, Bytes) {
     let elf =
         Elf::from_bytes(unsafe { slice::from_raw_parts(addr.as_u64() as _, bytes.as_usize()) });
-
-    let elf = match elf {
-        Ok(elf) => elf,
-        Err(e) => panic!("Could not get ELF information from the kernel: {:?}", e),
-    };
+    let elf = elf.expect("Failed to get the ELF information.");
 
     match elf {
         Elf::Elf32(_) => panic!("32-bit kernel is not supported"),
