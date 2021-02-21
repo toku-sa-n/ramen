@@ -9,11 +9,8 @@
 #[macro_use]
 #[allow(unused_imports)]
 extern crate common;
-
 #[macro_use]
 extern crate log;
-
-extern crate x86_64;
 
 mod exit;
 mod fs;
