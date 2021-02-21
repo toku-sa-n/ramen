@@ -71,12 +71,12 @@ pub fn fetch_entry_address_and_memory_size(addr: PhysAddr, bytes: Bytes) -> (Vir
     }
 }
 
-fn get_handler(root_dir: &mut file::Directory, name: &'static str) -> file::RegularFile {
-    let handler = root_dir
+fn get_handler(root: &mut file::Directory, name: &'static str) -> file::RegularFile {
+    let h = root
         .open(name, FileMode::Read, FileAttribute::empty())
         .expect_success("Failed to get file handler of the kernel.");
 
-    unsafe { file::RegularFile::new(handler) }
+    unsafe { file::RegularFile::new(h) }
 }
 
 fn allocate(boot_services: &boot::BootServices, kernel_bytes: Bytes) -> PhysAddr {
