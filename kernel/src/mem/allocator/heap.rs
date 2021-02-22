@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+// WORKAROUND: https://stackoverflow.com/questions/63933070/clippy-says-too-many-arguments-to-static-declaration
+#![allow(clippy::too_many_arguments)]
+
 use core::alloc::Layout;
 use linked_list_allocator::LockedHeap;
 
