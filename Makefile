@@ -16,7 +16,7 @@ CONFIG_TOML		:= $(KERNEL_DIR)/.cargo/config.toml
 
 COMMON_SRC		:= $(addprefix $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)/, $(shell ls $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)))
 
-LD_SRC			:= $(KERNEL_DIR)/os.ld
+LD_SRC			:= $(KERNEL_DIR)/kernel.ld
 
 EFI_FILE		:= $(BUILD_DIR)/bootx64.efi
 
