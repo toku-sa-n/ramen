@@ -34,6 +34,7 @@ mod mem;
 mod multitask;
 mod panic;
 mod process;
+mod qemu;
 mod syscall;
 mod tests;
 mod tss;

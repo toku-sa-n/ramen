@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use qemu_exit::QEMUExit;
+use crate::qemu;
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
@@ -31,7 +31,7 @@ fn print_panic_location(location: &core::panic::Location, info: &core::panic::Pa
 
 fn fini() -> ! {
     if cfg!(feature = "qemu_test") {
-        qemu_exit::X86::new(0xf4, 33).exit_success();
+        qemu::exit();
     } else {
         loop {
             syscalls::halt()
