@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use qemu_exit::QEMUExit;
+
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
     syscalls::disable_interrupt();
@@ -8,9 +10,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
         print_panic_location(location, info);
     }
 
-    loop {
-        syscalls::halt();
-    }
+    fini()
 }
 
 fn print_banner() {
@@ -27,4 +27,14 @@ fn print_panic_location(location: &core::panic::Location, info: &core::panic::Pa
         location.column(),
         info.message().unwrap_or(&format_args!(""))
     );
+}
+
+fn fini() -> ! {
+    if cfg!(feature = "qemu_test") {
+        qemu_exit::X86::new(0xf4, 33).exit_success();
+    } else {
+        loop {
+            syscalls::halt()
+        }
+    }
 }
