@@ -13,5 +13,5 @@ pub fn main() {
 
     while !process::SWITCH_TEST_SUCCESS.load(Ordering::Relaxed) {}
 
-    qemu::exit();
+    qemu::exit_success();
 }

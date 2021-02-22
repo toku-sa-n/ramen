@@ -31,7 +31,7 @@ fn print_panic_location(location: &core::panic::Location, info: &core::panic::Pa
 
 fn fini() -> ! {
     if cfg!(feature = "qemu_test") {
-        qemu::exit();
+        qemu::exit_failure();
     } else {
         loop {
             syscalls::halt()
