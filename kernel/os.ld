@@ -24,9 +24,9 @@ SECTIONS
     } > kernel
 
     .bss : {
-        PROVIDE(HEAP_START = .);
+        HEAP_START = .;
         . += 0x10000;
-        PROVIDE(HEAP_END = .);
+        HEAP_END = .;
         *(.bss)
     } > kernel
 
