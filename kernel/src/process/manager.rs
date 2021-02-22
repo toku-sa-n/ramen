@@ -9,7 +9,7 @@ use crossbeam_queue::ArrayQueue;
 pub use super::exit::exit;
 pub use switch::switch;
 
-const MAX_MESSAGE: usize = 4096;
+const MAX_MESSAGE: usize = 128;
 static MESSAGE: Lazy<ArrayQueue<Message>> = Lazy::new(|| ArrayQueue::new(MAX_MESSAGE));
 
 pub fn main() {

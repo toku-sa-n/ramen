@@ -22,7 +22,7 @@ pub const INIT_RSP: VirtAddr = VirtAddr::new_truncate(STACK_BASE.as_u64() - Size
 pub const RECUR_PML4_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_ffff_f000);
 
 pub const NUM_OF_PAGES_STACK: NumOfPages<Size4KiB> = NumOfPages::new(16);
-pub const BYTES_KERNEL_HEAP: Bytes = Bytes::new(0x1000_0000);
+pub const BYTES_KERNEL_HEAP: Bytes = Bytes::new(0x10000);
 pub const BYTES_AVAILABLE_RAM: Bytes = Bytes::new(0x1_0000_0000_0000);
 
 pub const PORT_KEY_STATUS: u16 = 0x0064;
