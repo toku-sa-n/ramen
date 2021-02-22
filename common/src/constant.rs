@@ -10,7 +10,6 @@ pub const LOCAL_APIC_ID_REGISTER_ADDR: PhysAddr = PhysAddr::new_truncate(0xfee0_
 
 pub const KERNEL_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_8000_0000);
 pub const INITRD_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_8800_0000);
-pub const KERNEL_HEAP_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_9000_0000);
 pub const VRAM_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_a000_1000);
 pub const STACK_BASE: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_c000_0000);
 pub const STACK_LOWER: VirtAddr =
@@ -22,7 +21,6 @@ pub const INIT_RSP: VirtAddr = VirtAddr::new_truncate(STACK_BASE.as_u64() - Size
 pub const RECUR_PML4_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_ffff_f000);
 
 pub const NUM_OF_PAGES_STACK: NumOfPages<Size4KiB> = NumOfPages::new(16);
-pub const BYTES_KERNEL_HEAP: Bytes = Bytes::new(0x1000_0000);
 pub const BYTES_AVAILABLE_RAM: Bytes = Bytes::new(0x1_0000_0000_0000);
 
 pub const PORT_KEY_STATUS: u16 = 0x0064;
