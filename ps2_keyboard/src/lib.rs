@@ -12,7 +12,7 @@ use common::constant::{
 /// This function panics if it receives a notification.
 pub fn main() {
     enable_keyboard();
-    syscalls::notify_on_interrup(0x21, syscalls::getpid());
+    syscalls::notify_on_interrupt(0x21, syscalls::getpid());
 
     loop {
         if syscalls::notify_exists() {

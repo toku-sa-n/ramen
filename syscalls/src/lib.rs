@@ -173,7 +173,7 @@ pub fn notify_exists() -> bool {
     unsafe { general_syscall(Ty::NotifyExists, 0, 0, 0) != 0 }
 }
 
-pub fn notify_on_interrup(vec: usize, pid: i32) {
+pub fn notify_on_interrupt(vec: usize, pid: i32) {
     // SAFETY: The arguments are passed correctly.
     unsafe {
         general_syscall(
