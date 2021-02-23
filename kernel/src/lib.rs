@@ -102,7 +102,6 @@ fn add_processes() {
     process::manager::add(run_tasks, Privilege::User);
     process::manager::add(ps2_keyboard::main, Privilege::User);
     process::manager::add(ps2_mouse::main, Privilege::User);
-    process::manager::add(tsukemen::main, Privilege::User);
 
     if cfg!(feature = "qemu_test") {
         process::manager::add(tests::main, Privilege::User);
