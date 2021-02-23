@@ -10,7 +10,7 @@ const MOUSE_CMD_ENABLE: u8 = 0xF4;
 
 pub fn main() {
     Device::enable();
-    syscalls::notify_on_interrup(0x2c, syscalls::getpid());
+    syscalls::notify_on_interrupt(0x2c, syscalls::getpid());
 
     let mut device = Device::new();
 
