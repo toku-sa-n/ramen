@@ -1,11 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::device::pci::xhci::port::init::fully_operational::FullyOperational;
+use crate::device::pci::xhci::{
+    port::init::fully_operational::FullyOperational,
+    structures::descriptor::{Configuration, Descriptor},
+};
+use alloc::vec::Vec;
 use page_box::PageBox;
 use xhci::context::EndpointType;
 
 pub(in crate::device::pci::xhci::port) async fn task(eps: FullyOperational) {
     let mut m = Mouse::new(eps);
+    m.configure().await;
+    info!("Configuration completed.");
     loop {
         m.get_packet().await;
         m.print_buf();
@@ -22,6 +28,26 @@ impl Mouse {
             ep,
             buf: [0; 4].into(),
         }
+    }
+
+    async fn configure(&mut self) {
+        let d = self.configuration_descriptor();
+        self.ep.set_configure(d.config_val()).await;
+    }
+
+    fn configuration_descriptor(&self) -> Configuration {
+        *self
+            .ep
+            .descriptors()
+            .iter()
+            .filter_map(|x| {
+                if let Descriptor::Configuration(c) = x {
+                    Some(c)
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<&Configuration>>()[0]
     }
 
     async fn get_packet(&mut self) {

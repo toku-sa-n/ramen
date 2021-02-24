@@ -63,9 +63,9 @@ async fn main(port_number: u8) {
                 fully_operational,
             )));
         }
-        (8, _, _) => multitask::add(Task::new(class_driver::mass_storage::task(
-            fully_operational,
-        ))),
+        // (8, _, _) => multitask::add(Task::new(class_driver::mass_storage::task(
+        //     fully_operational,
+        // ))),
         t => warn!("Unknown device: {:?}", t),
     }
 }

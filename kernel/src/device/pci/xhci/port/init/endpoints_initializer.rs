@@ -15,6 +15,7 @@ pub(super) struct EndpointsInitializer {
     cx: Arc<Spinlock<Context>>,
     descriptors: Vec<Descriptor>,
     endpoints: Vec<endpoint::NonDefault>,
+    ep0: endpoint::Default,
     slot_number: u8,
 }
 impl EndpointsInitializer {
@@ -23,11 +24,13 @@ impl EndpointsInitializer {
         let cx = f.context();
         let endpoints = descriptors_to_endpoints(&f, &descriptors);
         let slot_number = f.slot_number();
+        let ep0 = f.ep0();
 
         Self {
             cx,
             descriptors,
             endpoints,
+            ep0,
             slot_number,
         }
     }
@@ -43,8 +46,8 @@ impl EndpointsInitializer {
         self.descriptors.clone()
     }
 
-    pub(super) fn endpoints(self) -> Vec<endpoint::NonDefault> {
-        self.endpoints
+    pub(super) fn endpoints(self) -> (endpoint::Default, Vec<endpoint::NonDefault>) {
+        (self.ep0, self.endpoints)
     }
 
     fn init_contexts(&mut self) {
