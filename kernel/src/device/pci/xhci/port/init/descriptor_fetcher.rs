@@ -43,6 +43,10 @@ impl DescriptorFetcher {
         self.slot_number
     }
 
+    pub(super) fn ep0(self) -> endpoint::Default {
+        self.ep0
+    }
+
     async fn get_raw_descriptors(&mut self) -> PageBox<[u8]> {
         self.ep0.get_raw_configuration_descriptors().await
     }

@@ -60,6 +60,10 @@ impl Default {
     pub(super) async fn get_raw_configuration_descriptors(&mut self) -> PageBox<[u8]> {
         self.sender.get_configuration_descriptor().await
     }
+
+    pub(super) async fn set_configuration(&mut self, config_val: u8) {
+        self.sender.set_configure(config_val).await;
+    }
 }
 
 struct ContextInitializer<'a> {
