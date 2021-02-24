@@ -101,48 +101,93 @@ impl<'a> ContextInitializer<'a> {
 
     fn init_ep_context(&mut self) {
         let ep_ty = self.ep.ty();
-        let max_packet_size = self.ep.max_packet_size;
-        let ring_addr = self.sender.ring_addr();
 
-        let c = self.cx();
-
-        c.set_endpoint_type(ep_ty);
+        self.cx().set_endpoint_type(ep_ty);
 
         // TODO: This initializes the context only for USB2. Branch if the version of a device is
         // USB3.
         match ep_ty {
-            EndpointType::Control => {
-                c.set_max_packet_size(max_packet_size);
-                c.set_error_count(3);
-                c.set_transfer_ring_dequeue_pointer(ring_addr.as_u64());
-                c.set_dequeue_cycle_state(true);
-            }
-            EndpointType::BulkOut | EndpointType::BulkIn => {
-                c.set_max_packet_size(max_packet_size);
-                c.set_max_burst_size(0);
-                c.set_error_count(3);
-                c.set_max_primary_streams(0);
-                c.set_transfer_ring_dequeue_pointer(ring_addr.as_u64());
-                c.set_dequeue_cycle_state(true);
-            }
+            EndpointType::Control => self.init_for_control(),
+            EndpointType::BulkOut | EndpointType::BulkIn => self.init_for_bulk(),
             EndpointType::IsochronousOut
             | EndpointType::IsochronousIn
             | EndpointType::InterruptOut
-            | EndpointType::InterruptIn => {
-                c.set_max_packet_size(max_packet_size & 0x7ff);
-                c.set_max_burst_size(((max_packet_size & 0x1800) >> 11).try_into().unwrap());
-                c.set_mult(0);
-
-                if let EndpointType::IsochronousOut | EndpointType::IsochronousIn = ep_ty {
-                    c.set_error_count(0);
-                } else {
-                    c.set_error_count(3);
-                }
-                c.set_transfer_ring_dequeue_pointer(ring_addr.as_u64());
-                c.set_dequeue_cycle_state(true);
-            }
+            | EndpointType::InterruptIn => self.init_for_isoch_or_interrupt(),
             EndpointType::NotValid => unreachable!("Not Valid Endpoint should not exist."),
         }
+    }
+
+    fn init_for_control(&mut self) {
+        assert_eq!(
+            self.ep.ty(),
+            EndpointType::Control,
+            "Not the Control Endpoint."
+        );
+
+        let sz = self.ep.max_packet_size;
+        let a = self.sender.ring_addr();
+        let c = self.cx();
+
+        c.set_max_packet_size(sz);
+        c.set_error_count(3);
+        c.set_transfer_ring_dequeue_pointer(a.as_u64());
+        c.set_dequeue_cycle_state(true);
+    }
+
+    fn init_for_bulk(&mut self) {
+        assert!(self.is_bulk(), "Not the Bulk Endpoint.");
+
+        let sz = self.ep.max_packet_size;
+        let a = self.sender.ring_addr();
+        let c = self.cx();
+
+        c.set_max_packet_size(sz);
+        c.set_max_burst_size(0);
+        c.set_error_count(3);
+        c.set_max_primary_streams(0);
+        c.set_transfer_ring_dequeue_pointer(a.as_u64());
+        c.set_dequeue_cycle_state(true);
+    }
+
+    fn is_bulk(&self) -> bool {
+        let t = self.ep.ty();
+
+        [EndpointType::BulkOut, EndpointType::BulkIn].contains(&t)
+    }
+
+    fn init_for_isoch_or_interrupt(&mut self) {
+        let t = self.ep.ty();
+        assert!(
+            self.is_isoch_or_interrupt(),
+            "Not the Isochronous or the Interrupt Endpoint."
+        );
+
+        let sz = self.ep.max_packet_size;
+        let a = self.sender.ring_addr();
+        let c = self.cx();
+
+        c.set_max_packet_size(sz & 0x7ff);
+        c.set_max_burst_size(((sz & 0x1800) >> 11).try_into().unwrap());
+        c.set_mult(0);
+
+        if let EndpointType::IsochronousOut | EndpointType::IsochronousIn = t {
+            c.set_error_count(0);
+        } else {
+            c.set_error_count(3);
+        }
+        c.set_transfer_ring_dequeue_pointer(a.as_u64());
+        c.set_dequeue_cycle_state(true);
+    }
+
+    fn is_isoch_or_interrupt(&self) -> bool {
+        let t = self.ep.ty();
+        [
+            EndpointType::IsochronousOut,
+            EndpointType::IsochronousIn,
+            EndpointType::InterruptOut,
+            EndpointType::InterruptIn,
+        ]
+        .contains(&t)
     }
 
     fn cx(&mut self) -> &mut dyn EndpointHandler {
