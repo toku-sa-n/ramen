@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::convert::TryInto;
+use crate::{
+    interrupt,
+    mem::{allocator, paging::pml4::PML4},
+    process,
+};
+use core::{convert::TryInto, ffi::c_void, slice};
 use num_traits::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{
@@ -11,11 +16,6 @@ use x86_64::{
     registers::model_specific::{Efer, EferFlags, LStar},
     structures::paging::{Size4KiB, Translate},
     PhysAddr, VirtAddr,
-};
-
-use crate::{
-    mem::{allocator, paging::pml4::PML4},
-    process,
 };
 
 pub fn init() {
@@ -39,6 +39,7 @@ fn register() {
 /// RAX: system call index
 /// RDI: 1st argument
 /// RSI: 2nd argument
+/// RDX: 3rd argument
 #[naked]
 extern "C" fn save_rip_and_rflags() -> u64 {
     unsafe {
@@ -66,14 +67,16 @@ unsafe fn prepare_arguments() {
     let syscall_index: u64;
     let a1: u64;
     let a2: u64;
+    let a3: u64;
 
-    asm!("", out("rax") syscall_index, out("rdi") a1, out("rsi") a2);
-    asm!("", in("rax") select_proper_syscall(syscall_index, a1, a2))
+    asm!("", out("rax") syscall_index, out("rdi") a1, out("rsi") a2,out("rdx") a3);
+    asm!("", in("rax") select_proper_syscall(syscall_index, a1, a2,a3))
 }
 
 /// SAFETY: This function is unsafe because invalid arguments may break memory safety.
 #[allow(clippy::too_many_lines)]
-unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64) -> u64 {
+#[allow(clippy::too_many_arguments)]
+unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
     match FromPrimitive::from_u64(idx) {
         Some(s) => match s {
             syscalls::Ty::Inb => sys_inb(a1.try_into().unwrap()).into(),
@@ -99,6 +102,18 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64) -> u64 {
             syscalls::Ty::GetPid => sys_getpid().try_into().unwrap(),
             syscalls::Ty::Exit => sys_exit(),
             syscalls::Ty::TranslateAddress => sys_translate_address(VirtAddr::new(a1)).as_u64(),
+            syscalls::Ty::Write => sys_write(
+                a1.try_into().unwrap(),
+                a2 as *const _,
+                a3.try_into().unwrap(),
+            )
+            .try_into()
+            .unwrap(),
+            syscalls::Ty::NotifyExists => sys_notify_exists() as _,
+            syscalls::Ty::NotifyOnInterrupt => {
+                sys_notify_on_interrupt(a1.try_into().unwrap(), a2.try_into().unwrap());
+                0
+            }
         },
         None => panic!("Unsupported syscall index: {}", idx),
     }
@@ -182,4 +197,37 @@ fn sys_exit() -> ! {
 
 fn sys_translate_address(v: VirtAddr) -> PhysAddr {
     PML4.lock().translate_addr(v).unwrap_or_else(PhysAddr::zero)
+}
+
+/// # Safety
+///
+/// `buf` must be valid.
+unsafe fn sys_write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
+    if fildes == 1 {
+        let buf: *const u8 = buf.cast();
+
+        // SAFETY: The caller ensures that `buf` is valid.
+        let s = slice::from_raw_parts(buf, nbyte.try_into().unwrap());
+        let s = core::str::from_utf8(s);
+
+        match s {
+            Ok(s) => {
+                // TODO: rewrite with `write` macro.
+                info!("{}", s);
+
+                nbyte.try_into().unwrap()
+            }
+            Err(_) => 0,
+        }
+    } else {
+        unimplemented!("Not stdout");
+    }
+}
+
+fn sys_notify_exists() -> bool {
+    process::manager::notify_exists()
+}
+
+fn sys_notify_on_interrupt(vec: usize, pid: i32) {
+    interrupt::handler::notify_on_interrupt(vec, pid);
 }

@@ -9,7 +9,7 @@ use crossbeam_queue::ArrayQueue;
 pub use super::exit::exit;
 pub use switch::switch;
 
-const MAX_MESSAGE: usize = 4096;
+const MAX_MESSAGE: usize = 128;
 static MESSAGE: Lazy<ArrayQueue<Message>> = Lazy::new(|| ArrayQueue::new(MAX_MESSAGE));
 
 pub fn main() {
@@ -37,6 +37,16 @@ pub fn add(f: fn(), p: Privilege) {
 
 pub fn getpid() -> i32 {
     collections::process::handle_running(|p| p.id.as_i32())
+}
+
+pub fn notify(pid: i32) {
+    let _ = collections::process::handle(super::Id::from(pid), |p| {
+        p.inbox.push(super::message::Message)
+    });
+}
+
+pub fn notify_exists() -> bool {
+    collections::process::handle_running(|p| p.inbox.pop()).is_some()
 }
 
 pub(super) fn send_message(m: Message) {

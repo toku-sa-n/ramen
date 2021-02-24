@@ -16,15 +16,13 @@ CONFIG_TOML		:= $(KERNEL_DIR)/.cargo/config.toml
 
 COMMON_SRC		:= $(addprefix $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)/, $(shell ls $(COMMON_SRC_DIR)/$(RUST_SRC_DIR)))
 
-LD_SRC			:= $(KERNEL_DIR)/os.ld
+LD_SRC			:= $(KERNEL_DIR)/kernel.ld
 
 EFI_FILE		:= $(BUILD_DIR)/bootx64.efi
 
 KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
 LIB_FILE		:= $(BUILD_DIR)/libramen_os.a
 IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
-FAT_IMG			:= $(BUILD_DIR)/fat.img
-INITRD			:= $(BUILD_DIR)/initrd.img
 
 LD				:= ld
 RUSTC			:= cargo
@@ -35,7 +33,7 @@ OVMF_CODE		:= OVMF_CODE.fd
 OVMF_VARS		:= OVMF_VARS.fd
 
 # If you change values of `iobase` and `iosize`, don't forget to change the corresponding values in `kernel/src/lib.rs`!
-VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -no-reboot -m 4G -d int -device isa-debug-exit,iobase=0xf4,iosize=0x04 -device qemu-xhci,id=xhci -device usb-kbd --trace events=trace.event -drive id=disk,file=$(FAT_IMG),if=none,format=raw -device ahci,id=ahci -device ide-drive,drive=disk,bus=ahci.0 -device usb-mouse, -drive id=usb,file=$(EFI_FILE),if=none,format=raw -device usb-storage,drive=usb
+VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -no-reboot -m 4G -d int -device isa-debug-exit,iobase=0xf4,iosize=0x04 -device qemu-xhci,id=xhci -device usb-kbd --trace events=trace.event -device usb-mouse, -drive id=usb,file=$(EFI_FILE),if=none,format=raw -device usb-storage,drive=usb
 RUSTCFLAGS		:= --release
 
 LDFLAGS			:= -nostdlib -T $(LD_SRC)
@@ -44,32 +42,30 @@ LDFLAGS			:= -nostdlib -T $(LD_SRC)
 
 .SUFFIXES:
 
-all:$(KERNEL_FILE) $(EFI_FILE) $(INITRD)
+all:$(KERNEL_FILE) $(EFI_FILE)
 
-copy_to_usb:$(KERNEL_FILE) $(EFI_FILE) $(INITRD)
+copy_to_usb:$(KERNEL_FILE) $(EFI_FILE)
 ifeq ($(USB_DEVICE_PATH),)
 	echo 'Specify device path by $$USB_DEVICE_PATH environment variable.' >&2
 else
 	sudo mount $(USB_DEVICE_PATH) /mnt
 	sudo mkdir -p /mnt/efi/boot
 	sudo cp $(EFI_FILE) /mnt/efi/boot/
-	sudo cp $(INITRD) /mnt/
 	sudo cp $(KERNEL_FILE) /mnt/
 	sudo umount /mnt
 endif
 
-run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE) $(FAT_IMG) $(INITRD)
+run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE)
 	$(VIEWER) $(VIEWERFLAGS) -no-shutdown -monitor stdio
 
 test:
 	make clean
 	make $(IMG_FILE) TEST_FLAG=--features=qemu_test
-	make $(FAT_IMG)
 	$(VIEWER) $(VIEWERFLAGS) -nographic; if [[ $$? -eq 33 ]];\
 		then echo "Booting test succeed! ($(TEST_MODE) mode)"; exit 0;\
 		else echo "Booting test failed ($(TEST_MODE) mode)"; exit 1;fi
 
-$(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE) $(INITRD)
+$(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 	dd if=/dev/zero of=$@ bs=1k count=28800
 	mformat -i $@ -h 200 -t 500 -s 144::
 	# Cannot replace these mmd and mcopy with `make copy_to_usb` because `mount` needs `sudo`
@@ -78,11 +74,7 @@ $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE) $(INITRD)
 	mmd -i $@ ::/efi
 	mmd -i $@ ::/efi/boot
 	mcopy -i $@ $(KERNEL_FILE) ::
-	mcopy -i $@ $(INITRD) ::
 	mcopy -i $@ $(EFI_FILE) ::/efi/boot
-
-$(FAT_IMG):$(IMG_FILE)
-	cp $^ $@
 
 $(KERNEL_FILE):$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE)
@@ -100,14 +92,11 @@ $(LIB_FILE): $(RUST_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(KERNEL_
 $(EFI_FILE):$(EFI_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(EFI_DIR)/$(CARGO_TOML)|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
-$(INITRD):|$(BUILD_DIR)
-	tar cf $@ $(BUILD_DIR)
-
 $(BUILD_DIR):
 	mkdir $@ -p
 
 clippy:
-	find . -name Cargo.toml -printf '%h\n'|xargs -I {} sh -c "cd {} && cargo clippy -- -D clippy::pedantic -D clippy::all"
+	find . -name Cargo.toml -printf '%h\n'|xargs -I {} sh -c "cd {} && cargo clippy -- -D clippy::pedantic -D clippy::all || exit 255"
 
 clean:
 	$(RM) build
