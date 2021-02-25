@@ -44,19 +44,17 @@ impl Sender {
             .set_request(6)
             .set_value(0x0100)
             .set_length(8);
-        let setup = transfer_trb::Allowed::SetupStage(setup);
 
         let data = *transfer_trb::DataStage::default()
             .set_direction(Direction::In)
             .set_trb_transfer_length(8)
             .set_interrupt_on_completion(false)
             .set_data_buffer_pointer(b.phys_addr().as_u64());
-        let data = transfer_trb::Allowed::DataStage(data);
 
         let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion(true);
-        let status = transfer_trb::Allowed::StatusStage(status);
 
-        self.issue_trbs(&[setup, data, status]).await;
+        self.issue_trbs(&[setup.into(), data.into(), status.into()])
+            .await;
 
         b.max_packet_size()
     }
@@ -70,12 +68,10 @@ impl Sender {
             .set_request(9)
             .set_value(config_val.into())
             .set_length(0);
-        let setup = transfer_trb::Allowed::SetupStage(setup);
 
         let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion(true);
-        let status = transfer_trb::Allowed::StatusStage(status);
 
-        self.issue_trbs(&[setup, status]).await;
+        self.issue_trbs(&[setup.into(), status.into()]).await;
     }
 
     pub async fn get_configuration_descriptor(&mut self) -> PageBox<[u8]> {
@@ -96,9 +92,8 @@ impl Sender {
             .set_data_buffer_pointer(b.phys_addr().as_u64())
             .set_trb_transfer_length(b.bytes().as_usize().try_into().unwrap())
             .set_interrupt_on_completion(true);
-        let t = transfer_trb::Allowed::Normal(t);
         debug!("Normal TRB: {:X?}", t);
-        self.issue_trbs(&[t]).await;
+        self.issue_trbs(&[t.into()]).await;
     }
 
     fn trbs_for_getting_descriptors<T: ?Sized>(
@@ -116,18 +111,15 @@ impl Sender {
             .set_length(b.bytes().as_usize().try_into().unwrap())
             .set_trb_transfer_length(8)
             .set_transfer_type(TransferType::In);
-        let setup = transfer_trb::Allowed::SetupStage(setup);
 
         let data = *transfer_trb::DataStage::default()
             .set_data_buffer_pointer(b.phys_addr().as_u64())
             .set_trb_transfer_length(b.bytes().as_usize().try_into().unwrap())
             .set_direction(Direction::In);
-        let data = transfer_trb::Allowed::DataStage(data);
 
         let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion(true);
-        let status = transfer_trb::Allowed::StatusStage(status);
 
-        (setup, data, status)
+        (setup.into(), data.into(), status.into())
     }
 
     async fn issue_trbs(&mut self, ts: &[transfer_trb::Allowed]) -> Vec<Option<event::Allowed>> {
