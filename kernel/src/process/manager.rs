@@ -17,8 +17,8 @@ pub fn main() {
         while let Some(m) = MESSAGE.pop() {
             match m {
                 Message::Add(f, p) => match p {
-                    Privilege::Kernel => push_process_to_queue(Process::kernel(f)),
-                    Privilege::User => push_process_to_queue(Process::user(f)),
+                    Privilege::Kernel => push_process_to_queue(Process::new(f)),
+                    Privilege::User => unreachable!(),
                 },
                 Message::Exit(id) => collections::process::remove(id),
             }
@@ -28,7 +28,7 @@ pub fn main() {
 
 pub fn init() {
     set_temporary_stack_frame();
-    push_process_to_queue(Process::user(main));
+    push_process_to_queue(Process::new(main));
 }
 
 pub fn add(f: fn(), p: Privilege) {

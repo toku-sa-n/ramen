@@ -46,7 +46,7 @@ use multitask::{executor::Executor, task::Task};
 use process::Privilege;
 use spinning_top::RawSpinlock;
 use terminal::vram;
-use x86_64::instructions;
+use x86_64::instructions::interrupts;
 pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 pub type FuturelockGuard<'a, T> = GenericMutexGuard<'a, RawSpinlock, T>;
 
@@ -58,11 +58,6 @@ pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
 }
 
 fn init(boot_info: &mut kernelboot::Info) {
-    initialize_in_kernel_mode(boot_info);
-    initialize_in_user_mode();
-}
-
-fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
     gdt::init();
     idt::init();
 
@@ -86,10 +81,6 @@ fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
     info!("Hello Ramen OS!");
 
     vram::print_info();
-}
-
-fn initialize_in_user_mode() {
-    gdt::enter_usermode();
 
     process::manager::init();
     add_processes();
@@ -109,7 +100,7 @@ fn add_processes() {
 
 fn wait_until_timer_interrupt_happens() -> ! {
     loop {
-        instructions::hlt()
+        interrupts::enable_and_hlt();
     }
 }
 

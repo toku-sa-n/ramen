@@ -37,15 +37,9 @@ impl Process {
     const STACK_SIZE: u64 = Size4KiB::SIZE * 12;
     const BOX_SIZE: usize = 128;
 
-    pub fn kernel(f: fn()) -> Self {
-        Self::new(f, Privilege::Kernel)
-    }
+    pub fn new(f: fn()) -> Self {
+        let privilege = Privilege::Kernel;
 
-    pub fn user(f: fn()) -> Self {
-        Self::new(f, Privilege::User)
-    }
-
-    fn new(f: fn(), privilege: Privilege) -> Self {
         let mut tables = page_table::Collection::default();
         let stack = PageBox::new_slice(0, Self::STACK_SIZE.try_into().unwrap());
         let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
