@@ -10,6 +10,7 @@ use core::{
     ops::{Deref, DerefMut},
     ptr, slice,
 };
+use memory::{allocator, paging};
 use os_units::Bytes;
 use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 
@@ -177,13 +178,7 @@ impl<T: ?Sized> PageBox<T> {
     /// This method panics if the `PageBox` is not mapped.
     #[must_use]
     pub fn phys_addr(&self) -> PhysAddr {
-        let a = syscalls::translate_address(self.virt);
-
-        if a.is_null() {
-            unreachable!("Address: {:?} is not mapped.", self.virt);
-        }
-
-        a
+        paging::translate(self.virt).expect("This `PageBox` is not mapped.")
     }
 
     #[must_use]
@@ -192,11 +187,8 @@ impl<T: ?Sized> PageBox<T> {
     }
 
     fn from_bytes(bytes: Bytes) -> Self {
-        let virt = syscalls::allocate_pages(bytes.as_num_of_pages());
-
-        if virt.is_null() {
-            panic!("Failed to allocate pages.");
-        }
+        let virt =
+            allocator::allocate_pages(bytes.as_num_of_pages()).expect("Failed to allocate pages.");
 
         Self {
             virt,
@@ -207,7 +199,7 @@ impl<T: ?Sized> PageBox<T> {
 }
 impl<T: ?Sized> Drop for PageBox<T> {
     fn drop(&mut self) {
-        let num_of_pages = self.bytes.as_num_of_pages::<Size4KiB>();
-        syscalls::deallocate_pages(self.virt, num_of_pages);
+        let n = self.bytes.as_num_of_pages::<Size4KiB>();
+        allocator::deallocate_pages(self.virt, n);
     }
 }
