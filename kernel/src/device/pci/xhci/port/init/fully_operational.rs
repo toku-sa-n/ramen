@@ -61,6 +61,10 @@ impl FullyOperational {
         self.def_ep.set_configuration(config_val).await;
     }
 
+    pub(in super::super) async fn set_idle(&mut self) {
+        self.def_ep.set_idle().await;
+    }
+
     pub(in super::super) fn descriptors(&self) -> &[Descriptor] {
         &self.descriptors
     }

@@ -12,6 +12,8 @@ pub(in crate::device::pci::xhci::port) async fn task(eps: FullyOperational) {
     let mut m = Mouse::new(eps);
     m.configure().await;
     info!("Configuration completed.");
+    m.set_idle().await;
+    info!("Set Idle completed.");
     loop {
         m.get_packet().await;
         m.print_buf();
@@ -33,6 +35,10 @@ impl Mouse {
     async fn configure(&mut self) {
         let d = self.configuration_descriptor();
         self.ep.set_configure(d.config_val()).await;
+    }
+
+    async fn set_idle(&mut self) {
+        self.ep.set_idle().await;
     }
 
     fn configuration_descriptor(&self) -> Configuration {

@@ -64,6 +64,10 @@ impl Default {
     pub(super) async fn set_configuration(&mut self, config_val: u8) {
         self.sender.set_configure(config_val).await;
     }
+
+    pub(super) async fn set_idle(&mut self) {
+        self.sender.set_idle().await;
+    }
 }
 
 struct ContextInitializer<'a> {
