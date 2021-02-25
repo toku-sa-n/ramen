@@ -29,7 +29,6 @@ pub struct Process {
     pml4_addr: PhysAddr,
     stack: PageBox<[u8]>,
     stack_frame: PageBox<StackFrame>,
-    privilege: Privilege,
 
     inbox: ArrayQueue<Message>,
 }
@@ -38,15 +37,10 @@ impl Process {
     const BOX_SIZE: usize = 128;
 
     pub fn new(f: fn()) -> Self {
-        let privilege = Privilege::Kernel;
-
         let mut tables = page_table::Collection::default();
         let stack = PageBox::new_slice(0, Self::STACK_SIZE.try_into().unwrap());
         let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
-        let stack_frame = PageBox::from(match privilege {
-            Privilege::Kernel => StackFrame::kernel(f, stack_bottom),
-            Privilege::User => StackFrame::user(f, stack_bottom),
-        });
+        let stack_frame = PageBox::from(StackFrame::new(f, stack_bottom));
         tables.map_page_box(&stack);
         tables.map_page_box(&stack_frame);
 
@@ -59,7 +53,6 @@ impl Process {
             pml4_addr,
             stack,
             stack_frame,
-            privilege,
 
             inbox: ArrayQueue::new(Self::BOX_SIZE),
         }
@@ -77,12 +70,6 @@ impl Process {
         let b = self.stack_frame.bytes();
         self.stack_frame_top_addr() + b.as_usize()
     }
-}
-
-#[derive(Debug)]
-pub enum Privilege {
-    Kernel,
-    User,
 }
 
 #[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq, Debug)]

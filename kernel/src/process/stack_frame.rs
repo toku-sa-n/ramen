@@ -17,18 +17,11 @@ pub struct StackFrame {
     interrupt: InterruptStackFrameValue,
 }
 impl StackFrame {
-    pub fn kernel(f: fn(), stack_pointer: VirtAddr) -> Self {
-        Self::new(f, stack_pointer, &Selectors::kernel())
-    }
-
-    pub fn user(f: fn(), stack_pointer: VirtAddr) -> Self {
-        Self::new(f, stack_pointer, &Selectors::user())
-    }
-
-    fn new(f: fn(), stack_pointer: VirtAddr, segs: &Selectors) -> Self {
+    pub(super) fn new(f: fn(), stack_pointer: VirtAddr) -> Self {
         let cpu_flags = (rflags::read() | RFlags::INTERRUPT_FLAG).bits();
         let instruction_pointer =
             VirtAddr::new((super::manager::loader as usize).try_into().unwrap());
+        let segs = Selectors::new();
 
         Self {
             regs: GeneralRegisters::new(f),
@@ -48,16 +41,11 @@ struct Selectors {
     data: SegmentSelector,
 }
 impl Selectors {
-    fn kernel() -> Self {
-        Self::new(GDT.kernel_code, GDT.kernel_data)
-    }
-
-    fn user() -> Self {
-        Self::new(GDT.user_code, GDT.user_data)
-    }
-
-    fn new(code: SegmentSelector, user: SegmentSelector) -> Self {
-        Self { code, data: user }
+    fn new() -> Self {
+        Self {
+            code: GDT.kernel_code,
+            data: GDT.kernel_data,
+        }
     }
 }
 

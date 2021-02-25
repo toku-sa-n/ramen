@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{collections, collections::woken_pid, switch, Privilege, Process};
+use super::{collections, collections::woken_pid, switch, Process};
 use crate::tss::TSS;
 use common::constant::INTERRUPT_STACK;
 use conquer_once::spin::Lazy;
@@ -16,10 +16,7 @@ pub fn main() {
     loop {
         while let Some(m) = MESSAGE.pop() {
             match m {
-                Message::Add(f, p) => match p {
-                    Privilege::Kernel => push_process_to_queue(Process::new(f)),
-                    Privilege::User => unreachable!(),
-                },
+                Message::Add(f) => push_process_to_queue(Process::new(f)),
                 Message::Exit(id) => collections::process::remove(id),
             }
         }
@@ -31,8 +28,8 @@ pub fn init() {
     push_process_to_queue(Process::new(main));
 }
 
-pub fn add(f: fn(), p: Privilege) {
-    send_message(Message::Add(f, p));
+pub fn add(f: fn()) {
+    send_message(Message::Add(f));
 }
 
 pub fn getpid() -> i32 {
@@ -77,6 +74,6 @@ pub(super) fn loader(f: fn()) -> ! {
 
 #[derive(Debug)]
 pub(super) enum Message {
-    Add(fn(), Privilege),
+    Add(fn()),
     Exit(super::Id),
 }

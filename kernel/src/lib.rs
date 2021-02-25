@@ -43,10 +43,10 @@ use futures_intrusive::sync::{GenericMutex, GenericMutexGuard};
 use interrupt::{apic, idt, timer};
 use memory::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
-use process::Privilege;
 use spinning_top::RawSpinlock;
 use terminal::vram;
 use x86_64::instructions::interrupts;
+
 pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 pub type FuturelockGuard<'a, T> = GenericMutexGuard<'a, RawSpinlock, T>;
 
@@ -87,13 +87,13 @@ fn init(boot_info: &mut kernelboot::Info) {
 }
 
 fn add_processes() {
-    process::manager::add(run_tasks, Privilege::Kernel);
+    process::manager::add(run_tasks);
 
     if cfg!(feature = "qemu_test") {
-        process::manager::add(tests::main, Privilege::Kernel);
+        process::manager::add(tests::main);
 
         for _ in 0..100 {
-            process::manager::add(tests::process::do_nothing, Privilege::Kernel);
+            process::manager::add(tests::process::do_nothing);
         }
     }
 }
