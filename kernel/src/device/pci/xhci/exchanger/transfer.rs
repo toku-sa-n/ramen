@@ -79,12 +79,10 @@ impl Sender {
             .set_request(0x0a)
             .set_value(0)
             .set_length(0);
-        let setup = transfer_trb::Allowed::SetupStage(setup);
 
         let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion(true);
-        let status = transfer_trb::Allowed::StatusStage(status);
 
-        self.issue_trbs(&[setup, status]).await;
+        self.issue_trbs(&[setup.into(), status.into()]).await;
     }
 
     pub async fn get_configuration_descriptor(&mut self) -> PageBox<[u8]> {
@@ -113,9 +111,9 @@ impl Sender {
         b: &PageBox<T>,
         t: DescTyIdx,
     ) -> (
-        transfer_trb::Allowed,
-        transfer_trb::Allowed,
-        transfer_trb::Allowed,
+    transfer_trb::Allowed,
+    transfer_trb::Allowed,
+    transfer_trb::Allowed,
     ) {
         let setup = *transfer_trb::SetupStage::default()
             .set_request_type(0b1000_0000)
