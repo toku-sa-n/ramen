@@ -78,6 +78,23 @@ impl Sender {
         self.issue_trbs(&[setup, status]).await;
     }
 
+    pub(in crate::device::pci::xhci) async fn set_idle(&mut self) {
+        let setup = *transfer_trb::SetupStage::default()
+            .set_transfer_type(TransferType::No)
+            .set_trb_transfer_length(8)
+            .set_interrupt_on_completion(false)
+            .set_request_type(0x21)
+            .set_request(0x0a)
+            .set_value(0)
+            .set_length(0);
+        let setup = transfer_trb::Allowed::SetupStage(setup);
+
+        let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion(true);
+        let status = transfer_trb::Allowed::StatusStage(status);
+
+        self.issue_trbs(&[setup, status]).await;
+    }
+
     pub async fn get_configuration_descriptor(&mut self) -> PageBox<[u8]> {
         let b = PageBox::new_slice(0, 4096);
 
