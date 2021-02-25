@@ -15,6 +15,7 @@ pub(super) struct EndpointsInitializer {
     cx: Arc<Spinlock<Context>>,
     descriptors: Vec<Descriptor>,
     endpoints: Vec<endpoint::NonDefault>,
+    ep0: endpoint::Default,
     slot_number: u8,
 }
 impl EndpointsInitializer {
@@ -23,17 +24,20 @@ impl EndpointsInitializer {
         let cx = f.context();
         let endpoints = descriptors_to_endpoints(&f, &descriptors);
         let slot_number = f.slot_number();
+        let ep0 = f.ep0();
 
         Self {
             cx,
             descriptors,
             endpoints,
+            ep0,
             slot_number,
         }
     }
 
     pub(super) async fn init(mut self) -> FullyOperational {
         self.init_contexts();
+        self.set_context_entries();
         self.configure_endpoint().await;
         FullyOperational::new(self)
     }
@@ -42,14 +46,19 @@ impl EndpointsInitializer {
         self.descriptors.clone()
     }
 
-    pub(super) fn endpoints(self) -> Vec<endpoint::NonDefault> {
-        self.endpoints
+    pub(super) fn endpoints(self) -> (endpoint::Default, Vec<endpoint::NonDefault>) {
+        (self.ep0, self.endpoints)
     }
 
     fn init_contexts(&mut self) {
         for e in &mut self.endpoints {
             e.init_context();
         }
+    }
+
+    fn set_context_entries(&mut self) {
+        let mut cx = self.cx.lock();
+        cx.input.device_mut().slot_mut().set_context_entries(31);
     }
 
     async fn configure_endpoint(&mut self) {

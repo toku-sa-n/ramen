@@ -13,22 +13,18 @@ use xhci::ring::trb::{
     transfer::{Direction, Normal, TransferType},
 };
 
-pub struct Sender {
-    ring: transfer::Ring,
-    doorbell_writer: DoorbellWriter,
-    waker: Arc<Spinlock<AtomicWaker>>,
+pub(in crate::device::pci::xhci) struct Sender {
+    channel: Channel,
 }
 impl Sender {
-    pub fn new(doorbell_writer: DoorbellWriter) -> Self {
+    pub(in crate::device::pci::xhci) fn new(doorbell_writer: DoorbellWriter) -> Self {
         Self {
-            ring: transfer::Ring::new(),
-            doorbell_writer,
-            waker: Arc::new(Spinlock::new(AtomicWaker::new())),
+            channel: Channel::new(doorbell_writer),
         }
     }
 
-    pub fn ring_addr(&self) -> PhysAddr {
-        self.ring.phys_addr()
+    pub(in crate::device::pci::xhci) fn ring_addr(&self) -> PhysAddr {
+        self.channel.ring_addr()
     }
 
     pub(in crate::device::pci::xhci) async fn get_max_packet_size_from_device_descriptor(
@@ -44,21 +40,49 @@ impl Sender {
             .set_request(6)
             .set_value(0x0100)
             .set_length(8);
-        let setup = transfer_trb::Allowed::SetupStage(setup);
 
         let data = *transfer_trb::DataStage::default()
             .set_direction(Direction::In)
             .set_trb_transfer_length(8)
             .set_interrupt_on_completion(false)
             .set_data_buffer_pointer(b.phys_addr().as_u64());
-        let data = transfer_trb::Allowed::DataStage(data);
 
         let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion(true);
-        let status = transfer_trb::Allowed::StatusStage(status);
 
-        self.issue_trbs(&[setup, data, status]).await;
+        self.issue_trbs(&[setup.into(), data.into(), status.into()])
+            .await;
 
         b.max_packet_size()
+    }
+
+    pub(in crate::device::pci::xhci) async fn set_configure(&mut self, config_val: u8) {
+        let setup = *transfer_trb::SetupStage::default()
+            .set_transfer_type(TransferType::No)
+            .set_trb_transfer_length(8)
+            .set_interrupt_on_completion(false)
+            .set_request_type(0)
+            .set_request(9)
+            .set_value(config_val.into())
+            .set_length(0);
+
+        let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion(true);
+
+        self.issue_trbs(&[setup.into(), status.into()]).await;
+    }
+
+    pub(in crate::device::pci::xhci) async fn set_idle(&mut self) {
+        let setup = *transfer_trb::SetupStage::default()
+            .set_transfer_type(TransferType::No)
+            .set_trb_transfer_length(8)
+            .set_interrupt_on_completion(false)
+            .set_request_type(0x21)
+            .set_request(0x0a)
+            .set_value(0)
+            .set_length(0);
+
+        let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion(true);
+
+        self.issue_trbs(&[setup.into(), status.into()]).await;
     }
 
     pub async fn get_configuration_descriptor(&mut self) -> PageBox<[u8]> {
@@ -79,9 +103,8 @@ impl Sender {
             .set_data_buffer_pointer(b.phys_addr().as_u64())
             .set_trb_transfer_length(b.bytes().as_usize().try_into().unwrap())
             .set_interrupt_on_completion(true);
-        let t = transfer_trb::Allowed::Normal(t);
         debug!("Normal TRB: {:X?}", t);
-        self.issue_trbs(&[t]).await;
+        self.issue_trbs(&[t.into()]).await;
     }
 
     fn trbs_for_getting_descriptors<T: ?Sized>(
@@ -99,25 +122,48 @@ impl Sender {
             .set_length(b.bytes().as_usize().try_into().unwrap())
             .set_trb_transfer_length(8)
             .set_transfer_type(TransferType::In);
-        let setup = transfer_trb::Allowed::SetupStage(setup);
 
         let data = *transfer_trb::DataStage::default()
             .set_data_buffer_pointer(b.phys_addr().as_u64())
             .set_trb_transfer_length(b.bytes().as_usize().try_into().unwrap())
             .set_direction(Direction::In);
-        let data = transfer_trb::Allowed::DataStage(data);
 
         let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion(true);
-        let status = transfer_trb::Allowed::StatusStage(status);
 
-        (setup, data, status)
+        (setup.into(), data.into(), status.into())
     }
 
     async fn issue_trbs(&mut self, ts: &[transfer_trb::Allowed]) -> Vec<Option<event::Allowed>> {
-        let addrs = self.ring.enqueue(ts);
-        self.register_with_receiver(ts, &addrs);
+        self.channel.send_and_receive(ts).await
+    }
+}
+
+struct Channel {
+    ring: transfer::Ring,
+    doorbell_writer: DoorbellWriter,
+    waker: Arc<Spinlock<AtomicWaker>>,
+}
+impl Channel {
+    fn new(doorbell_writer: DoorbellWriter) -> Self {
+        Self {
+            ring: transfer::Ring::new(),
+            doorbell_writer,
+            waker: Arc::new(Spinlock::new(AtomicWaker::new())),
+        }
+    }
+
+    fn ring_addr(&self) -> PhysAddr {
+        self.ring.phys_addr()
+    }
+
+    async fn send_and_receive(
+        &mut self,
+        trbs: &[transfer_trb::Allowed],
+    ) -> Vec<Option<event::Allowed>> {
+        let addrs = self.ring.enqueue(trbs);
+        self.register_with_receiver(trbs, &addrs);
         self.write_to_doorbell();
-        self.get_trb(ts, &addrs).await
+        self.get_trbs(trbs, &addrs).await
     }
 
     fn register_with_receiver(&mut self, ts: &[transfer_trb::Allowed], addrs: &[PhysAddr]) {
@@ -136,7 +182,7 @@ impl Sender {
         self.doorbell_writer.write();
     }
 
-    async fn get_trb(
+    async fn get_trbs(
         &mut self,
         ts: &[transfer_trb::Allowed],
         addrs: &[PhysAddr],

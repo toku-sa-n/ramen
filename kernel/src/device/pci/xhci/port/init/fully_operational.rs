@@ -2,7 +2,10 @@
 
 use super::endpoints_initializer::EndpointsInitializer;
 use crate::device::pci::xhci::{
-    port::endpoint::{Error, NonDefault},
+    port::{
+        endpoint,
+        endpoint::{Error, NonDefault},
+    },
     structures::descriptor::Descriptor,
 };
 use alloc::vec::Vec;
@@ -12,16 +15,21 @@ use xhci::context::EndpointType;
 
 pub(in super::super) struct FullyOperational {
     descriptors: Vec<Descriptor>,
-    eps: Vec<NonDefault>,
+    def_ep: endpoint::Default,
+    eps: Vec<endpoint::NonDefault>,
 }
 impl FullyOperational {
     pub(super) fn new(i: EndpointsInitializer) -> Self {
         let descriptors = i.descriptors();
-        let eps = i.endpoints();
+        let (def_ep, eps) = i.endpoints();
 
         debug!("Endpoints collected");
 
-        Self { eps, descriptors }
+        Self {
+            def_ep,
+            eps,
+            descriptors,
+        }
     }
 
     pub(in super::super) fn ty(&self) -> (u8, u8, u8) {
@@ -47,6 +55,18 @@ impl FullyOperational {
         }
 
         Err(Error::NoSuchEndpoint(ty))
+    }
+
+    pub(in super::super) async fn set_configure(&mut self, config_val: u8) {
+        self.def_ep.set_configuration(config_val).await;
+    }
+
+    pub(in super::super) async fn set_idle(&mut self) {
+        self.def_ep.set_idle().await;
+    }
+
+    pub(in super::super) fn descriptors(&self) -> &[Descriptor] {
+        &self.descriptors
     }
 }
 impl<'a> IntoIterator for &'a mut FullyOperational {

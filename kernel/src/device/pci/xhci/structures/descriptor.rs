@@ -7,9 +7,9 @@ use num_traits::FromPrimitive;
 use xhci::context::EndpointType;
 
 #[derive(Copy, Clone, Debug)]
-pub enum Descriptor {
+pub(in crate::device::pci::xhci) enum Descriptor {
     Device(Device),
-    Configuration,
+    Configuration(Configuration),
     Str,
     Interface(Interface),
     Endpoint(Endpoint),
@@ -25,7 +25,9 @@ impl Descriptor {
                 Ty::Device => Ok(Self::Device(unsafe {
                     ptr::read((raw as *const [u8]).cast())
                 })),
-                Ty::Configuration => Ok(Self::Configuration),
+                Ty::Configuration => Ok(Self::Configuration(unsafe {
+                    ptr::read((raw as *const [u8]).cast())
+                })),
                 Ty::Str => Ok(Self::Str),
                 Ty::Interface => Ok(Self::Interface(unsafe {
                     ptr::read((raw as *const [u8]).cast())
@@ -74,6 +76,24 @@ impl Device {
             (cd_usb >> 8).try_into().unwrap(),
             (cd_usb & 0xff).try_into().unwrap(),
         )
+    }
+}
+
+#[derive(Copy, Clone, Debug, Default)]
+#[repr(C, packed)]
+pub(in crate::device::pci::xhci) struct Configuration {
+    length: u8,
+    ty: u8,
+    total_length: u16,
+    num_interfaces: u8,
+    config_val: u8,
+    config_string: u8,
+    attributes: u8,
+    max_power: u8,
+}
+impl Configuration {
+    pub(in crate::device::pci::xhci) fn config_val(&self) -> u8 {
+        self.config_val
     }
 }
 

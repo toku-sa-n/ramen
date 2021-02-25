@@ -28,23 +28,19 @@ extern crate derive_builder;
 
 mod acpi;
 mod device;
-mod fs;
 mod gdt;
 mod interrupt;
 mod mem;
 mod multitask;
 mod panic;
 mod process;
+mod qemu;
 mod syscall;
 mod tests;
 mod tss;
 
-use common::{constant::INITRD_ADDR, kernelboot};
-use device::{
-    keyboard, mouse,
-    pci::{ahci, xhci},
-};
-use fs::ustar::Ustar;
+use common::kernelboot;
+use device::pci::xhci;
 use futures_intrusive::sync::{GenericMutex, GenericMutexGuard};
 use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
@@ -64,7 +60,7 @@ pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
 
 fn init(boot_info: &mut kernelboot::Info) {
     initialize_in_kernel_mode(boot_info);
-    initialize_in_user_mode(boot_info);
+    initialize_in_user_mode();
 }
 
 fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
@@ -73,7 +69,7 @@ fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
 
     // It is bothering to initialize heap memory in the user mode as this is to map the area, which an initialized
     // frame manager is needed.
-    heap::init(boot_info.mem_map_mut());
+    heap::init();
 
     // This function unmaps all user memory, which needs the kernel privilege.
     FrameManager::init(boot_info.mem_map_mut());
@@ -83,28 +79,27 @@ fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
     apic::io::init(&acpi);
 
     timer::init(&acpi);
-}
-
-fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
-    syscall::init();
-    gdt::enter_usermode();
 
     vram::init(&boot_info);
 
     terminal::log::init().unwrap();
 
     info!("Hello Ramen OS!");
+
     vram::print_info();
 
-    // SAFETY: `INITRD_ADDR` is the valid address to UStar data.
-    let ustar = unsafe { Ustar::new(INITRD_ADDR) };
-    ustar.list();
-    ustar.content("build/bootx64.efi");
+    syscall::init();
+}
+
+fn initialize_in_user_mode() {
+    gdt::enter_usermode();
 
     process::manager::init();
+    add_processes();
+}
 
+fn add_processes() {
     process::manager::add(run_tasks, Privilege::User);
-    process::manager::add(tsukemen::main, Privilege::User);
 
     if cfg!(feature = "qemu_test") {
         process::manager::add(tests::main, Privilege::User);
@@ -124,10 +119,7 @@ fn wait_until_timer_interrupt_happens() -> ! {
 }
 
 fn run_tasks() {
-    multitask::add(Task::new(keyboard::task()));
-    multitask::add(Task::new(mouse::task()));
     multitask::add(Task::new(xhci::task()));
-    multitask::add(Task::new(ahci::task()));
 
     let mut executor = Executor::new();
     executor.run();
