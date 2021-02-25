@@ -60,14 +60,14 @@ impl Sender {
     }
 
     async fn noop(&mut self) {
-        let t = command_trb::Allowed::Noop(Noop::default());
-        let c = self.issue_trb(t).await;
+        let t = Noop::default();
+        let c = self.issue_trb(t.into()).await;
         panic_on_error("No-Op", c);
     }
 
     async fn enable_device_slot(&mut self) -> u8 {
-        let t = command_trb::Allowed::EnableSlot(EnableSlot::default());
-        let completion = self.issue_trb(t).await;
+        let t = EnableSlot::default();
+        let completion = self.issue_trb(t.into()).await;
         panic_on_error("Enable Device Slot", completion);
         if let event::Allowed::CommandCompletion(c) = completion {
             c.slot_id()
@@ -80,8 +80,7 @@ impl Sender {
         let t = *AddressDevice::default()
             .set_input_context_pointer(input_context_addr.as_u64())
             .set_slot_id(slot_id);
-        let t = command_trb::Allowed::AddressDevice(t);
-        let c = self.issue_trb(t).await;
+        let c = self.issue_trb(t.into()).await;
         panic_on_error("Address Device", c);
     }
 
@@ -89,8 +88,7 @@ impl Sender {
         let t = *ConfigureEndpoint::default()
             .set_input_context_pointer(context_addr.as_u64())
             .set_slot_id(slot_id);
-        let t = command_trb::Allowed::ConfigureEndpoint(t);
-        let c = self.issue_trb(t).await;
+        let c = self.issue_trb(t.into()).await;
         panic_on_error("Configure Endpoint", c);
     }
 
@@ -98,8 +96,7 @@ impl Sender {
         let t = *EvaluateContext::default()
             .set_input_context_pointer(cx.as_u64())
             .set_slot_id(slot);
-        let t = command_trb::Allowed::EvaluateContext(t);
-        let c = self.issue_trb(t).await;
+        let c = self.issue_trb(t.into()).await;
         panic_on_error("Evaluate Context", c);
     }
 

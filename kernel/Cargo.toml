@@ -43,5 +43,5 @@ derive_builder = "0.9.0"
 syscalls = { path = "../syscalls" }
 page_box = { path = "../page_box" }
 terminal = { path = "../terminal" }
-xhci = "0.5.0"
+xhci = "0.5.2"
 accessor = "0.3.0"
