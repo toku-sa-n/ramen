@@ -111,9 +111,9 @@ impl Sender {
         b: &PageBox<T>,
         t: DescTyIdx,
     ) -> (
-    transfer_trb::Allowed,
-    transfer_trb::Allowed,
-    transfer_trb::Allowed,
+        transfer_trb::Allowed,
+        transfer_trb::Allowed,
+        transfer_trb::Allowed,
     ) {
         let setup = *transfer_trb::SetupStage::default()
             .set_request_type(0b1000_0000)
