@@ -48,26 +48,24 @@ async fn lock() -> FuturelockGuard<'static, Sender> {
 }
 
 struct Sender {
-    ring: Arc<Spinlock<command::Ring>>,
-    waker: Arc<Spinlock<AtomicWaker>>,
+    channel: Channel,
 }
 impl Sender {
     fn new(ring: Arc<Spinlock<command::Ring>>) -> Self {
         Self {
-            ring,
-            waker: Arc::new(Spinlock::new(AtomicWaker::new())),
+            channel: Channel::new(ring),
         }
     }
 
     async fn noop(&mut self) {
         let t = Noop::default();
-        let c = self.issue_trb(t.into()).await;
+        let c = self.send_and_receive(t.into()).await;
         panic_on_error("No-Op", c);
     }
 
     async fn enable_device_slot(&mut self) -> u8 {
         let t = EnableSlot::default();
-        let completion = self.issue_trb(t.into()).await;
+        let completion = self.send_and_receive(t.into()).await;
         panic_on_error("Enable Device Slot", completion);
         if let event::Allowed::CommandCompletion(c) = completion {
             c.slot_id()
@@ -80,7 +78,7 @@ impl Sender {
         let t = *AddressDevice::default()
             .set_input_context_pointer(input_context_addr.as_u64())
             .set_slot_id(slot_id);
-        let c = self.issue_trb(t.into()).await;
+        let c = self.send_and_receive(t.into()).await;
         panic_on_error("Address Device", c);
     }
 
@@ -88,7 +86,7 @@ impl Sender {
         let t = *ConfigureEndpoint::default()
             .set_input_context_pointer(context_addr.as_u64())
             .set_slot_id(slot_id);
-        let c = self.issue_trb(t.into()).await;
+        let c = self.send_and_receive(t.into()).await;
         panic_on_error("Configure Endpoint", c);
     }
 
@@ -96,23 +94,39 @@ impl Sender {
         let t = *EvaluateContext::default()
             .set_input_context_pointer(cx.as_u64())
             .set_slot_id(slot);
-        let c = self.issue_trb(t.into()).await;
+        let c = self.send_and_receive(t.into()).await;
         panic_on_error("Evaluate Context", c);
     }
 
-    async fn issue_trb(&mut self, t: command_trb::Allowed) -> event::Allowed {
+    async fn send_and_receive(&mut self, t: command_trb::Allowed) -> event::Allowed {
+        self.channel.send_and_receive(t).await
+    }
+}
+
+struct Channel {
+    ring: Arc<Spinlock<command::Ring>>,
+    waker: Arc<Spinlock<AtomicWaker>>,
+}
+impl Channel {
+    fn new(ring: Arc<Spinlock<command::Ring>>) -> Self {
+        Self {
+            ring,
+            waker: Arc::new(Spinlock::new(AtomicWaker::new())),
+        }
+    }
+
+    async fn send_and_receive(&mut self, t: command_trb::Allowed) -> event::Allowed {
         let a = self.ring.lock().enqueue(t);
         self.register_with_receiver(a);
         self.get_trb(a).await
     }
 
-    fn register_with_receiver(&mut self, addr_to_trb: PhysAddr) {
-        receiver::add_entry(addr_to_trb, self.waker.clone())
-            .expect("Sender is already registered.");
+    fn register_with_receiver(&mut self, trb_a: PhysAddr) {
+        receiver::add_entry(trb_a, self.waker.clone()).expect("Sender is already registered.");
     }
 
-    async fn get_trb(&mut self, addr_to_trb: PhysAddr) -> event::Allowed {
-        ReceiveFuture::new(addr_to_trb, self.waker.clone()).await
+    async fn get_trb(&mut self, trb_a: PhysAddr) -> event::Allowed {
+        ReceiveFuture::new(trb_a, self.waker.clone()).await
     }
 }
 
