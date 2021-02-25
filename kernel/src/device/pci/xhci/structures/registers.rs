@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::mem::accessor::Mappers;
 use conquer_once::spin::OnceCell;
 use core::convert::TryInto;
+use memory::accessor::Mappers;
 use spinning_top::Spinlock;
 use x86_64::PhysAddr;
 use xhci::Registers;
@@ -15,7 +15,7 @@ pub(in crate::device::pci::xhci) fn init(mmio_base: PhysAddr) {
             Spinlock::new(
                 // SAFETY: The address is the correct one and the Registers are accessed only through
                 // this static.
-                unsafe { Registers::new(mmio_base.as_u64().try_into().unwrap(), Mappers::user()) },
+                unsafe { Registers::new(mmio_base.as_u64().try_into().unwrap(), Mappers::new()) },
             )
         })
         .expect("Failed to initialize `REGISTERS`.")

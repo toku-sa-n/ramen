@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::mem::paging::pml4::PML4;
 use alloc::collections::BTreeMap;
 use core::convert::TryFrom;
+use memory::paging;
 use page_box::PageBox;
 use x86_64::{
     structures::paging::{
@@ -96,6 +96,7 @@ impl Pml4Creator {
     }
 
     fn map_kernel_area(&mut self) {
-        self.pml4[510] = PML4.lock().level_4_table()[510].clone();
+        let (e, _) = paging::entries_of_kernel_mapping();
+        self.pml4[510] = e;
     }
 }

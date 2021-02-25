@@ -30,12 +30,10 @@ mod acpi;
 mod device;
 mod gdt;
 mod interrupt;
-mod mem;
 mod multitask;
 mod panic;
 mod process;
 mod qemu;
-mod syscall;
 mod tests;
 mod tss;
 
@@ -43,11 +41,12 @@ use common::kernelboot;
 use device::pci::xhci;
 use futures_intrusive::sync::{GenericMutex, GenericMutexGuard};
 use interrupt::{apic, idt, timer};
-use mem::allocator::{heap, phys::FrameManager};
+use memory::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
 use process::Privilege;
 use spinning_top::RawSpinlock;
 use terminal::vram;
+use x86_64::instructions;
 pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 pub type FuturelockGuard<'a, T> = GenericMutexGuard<'a, RawSpinlock, T>;
 
@@ -87,8 +86,6 @@ fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
     info!("Hello Ramen OS!");
 
     vram::print_info();
-
-    syscall::init();
 }
 
 fn initialize_in_user_mode() {
@@ -99,22 +96,20 @@ fn initialize_in_user_mode() {
 }
 
 fn add_processes() {
-    process::manager::add(run_tasks, Privilege::User);
+    process::manager::add(run_tasks, Privilege::Kernel);
 
     if cfg!(feature = "qemu_test") {
-        process::manager::add(tests::main, Privilege::User);
-        process::manager::add(tests::process::kernel_privilege_test, Privilege::Kernel);
-        process::manager::add(tests::process::exit_test, Privilege::User);
+        process::manager::add(tests::main, Privilege::Kernel);
 
         for _ in 0..100 {
-            process::manager::add(tests::process::do_nothing, Privilege::User);
+            process::manager::add(tests::process::do_nothing, Privilege::Kernel);
         }
     }
 }
 
 fn wait_until_timer_interrupt_happens() -> ! {
     loop {
-        syscalls::enable_interrupt_and_halt()
+        instructions::hlt()
     }
 }
 

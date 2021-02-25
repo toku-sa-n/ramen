@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::pic;
-use crate::mem::{accessor::Single, allocator};
 use acpi::{platform::IoApic, AcpiTables, InterruptModel};
 use bit_field::BitField;
 use core::convert::TryInto;
+use memory::{accessor, accessor::Single, allocator};
 use x86_64::PhysAddr;
 
 /// Currently this OS does not support multiple I/O APIC.
@@ -27,8 +27,8 @@ impl Registers {
         let io_apic_base = PhysAddr::new(io_apics[0].address.into());
 
         Self {
-            addr: crate::mem::accessor::kernel(io_apic_base),
-            data: crate::mem::accessor::kernel(io_apic_base + 0x10_usize),
+            addr: accessor::new(io_apic_base),
+            data: accessor::new(io_apic_base + 0x10_usize),
         }
     }
 

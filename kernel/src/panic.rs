@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::qemu;
+use instructions::interrupts;
+use x86_64::instructions;
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
-    syscalls::disable_interrupt();
+    interrupts::disable();
     print_banner();
     if let Some(location) = info.location() {
         print_panic_location(location, info);
@@ -34,7 +36,7 @@ fn fini() -> ! {
         qemu::exit_failure();
     } else {
         loop {
-            syscalls::halt()
+            instructions::hlt();
         }
     }
 }

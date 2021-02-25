@@ -72,7 +72,7 @@ fn add_process(p: Process) {
 
 pub(super) fn loader(f: fn()) -> ! {
     f();
-    syscalls::exit();
+    super::exit::exit();
 }
 
 #[derive(Debug)]

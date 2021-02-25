@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::registers;
-use crate::mem::accessor::Mappers;
 use conquer_once::spin::OnceCell;
 use core::convert::TryInto;
+use memory::accessor::Mappers;
 use spinning_top::Spinlock;
 use x86_64::PhysAddr;
 use xhci::{extended_capabilities, ExtendedCapability};
@@ -23,7 +23,7 @@ pub(in crate::device::pci::xhci) fn init(mmio_base: PhysAddr) {
                     extended_capabilities::List::new(
                         mmio_base.as_u64().try_into().unwrap(),
                         hccparams1,
-                        Mappers::user(),
+                        Mappers::new(),
                     )
                 },
             )

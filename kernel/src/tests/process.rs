@@ -20,8 +20,4 @@ pub fn kernel_privilege_test() {
     }
 }
 
-pub fn exit_test() {
-    syscalls::exit();
-}
-
 pub fn do_nothing() {}

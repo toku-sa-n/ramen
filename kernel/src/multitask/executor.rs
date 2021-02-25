@@ -12,6 +12,7 @@ use super::task;
 use alloc::collections::BTreeMap;
 use core::task::{Context, Poll, Waker};
 use task::Task;
+use x86_64::instructions::interrupts;
 
 pub struct Executor {
     waker_collection: BTreeMap<task::Id, Waker>,
@@ -32,11 +33,11 @@ impl Executor {
     }
 
     fn sleep_if_idle() {
-        syscalls::disable_interrupt();
+        interrupts::disable();
         if task::COLLECTION.lock().woken_task_exists() {
-            syscalls::enable_interrupt();
+            interrupts::enable();
         } else {
-            syscalls::enable_interrupt_and_halt();
+            interrupts::enable_and_hlt();
         }
     }
 

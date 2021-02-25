@@ -8,7 +8,10 @@ use self::common::Common;
 use bar::Bar;
 use core::{convert::TryFrom, ops::Add};
 use type_spec::TypeSpec;
-use x86_64::PhysAddr;
+use x86_64::{
+    instructions::port::{PortReadOnly, PortWriteOnly},
+    PhysAddr,
+};
 
 #[derive(Debug)]
 pub struct Space {
@@ -99,8 +102,11 @@ impl ConfigAddress {
 
     /// SAFETY: `self` must contain the valid config address.
     unsafe fn read(&self) -> u32 {
-        syscalls::outl(Self::PORT_CONFIG_ADDR, self.as_u32());
-        syscalls::inl(Self::PORT_CONFIG_DATA)
+        let mut a = PortWriteOnly::new(Self::PORT_CONFIG_ADDR);
+        a.write(self.as_u32());
+
+        let mut d = PortReadOnly::new(Self::PORT_CONFIG_DATA);
+        d.read()
     }
 }
 
