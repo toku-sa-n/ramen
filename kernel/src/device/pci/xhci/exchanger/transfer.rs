@@ -13,22 +13,18 @@ use xhci::ring::trb::{
     transfer::{Direction, Normal, TransferType},
 };
 
-pub struct Sender {
-    ring: transfer::Ring,
-    doorbell_writer: DoorbellWriter,
-    waker: Arc<Spinlock<AtomicWaker>>,
+pub(in crate::device::pci::xhci) struct Sender {
+    channel: Channel,
 }
 impl Sender {
-    pub fn new(doorbell_writer: DoorbellWriter) -> Self {
+    pub(in crate::device::pci::xhci) fn new(doorbell_writer: DoorbellWriter) -> Self {
         Self {
-            ring: transfer::Ring::new(),
-            doorbell_writer,
-            waker: Arc::new(Spinlock::new(AtomicWaker::new())),
+            channel: Channel::new(doorbell_writer),
         }
     }
 
-    pub fn ring_addr(&self) -> PhysAddr {
-        self.ring.phys_addr()
+    pub(in crate::device::pci::xhci) fn ring_addr(&self) -> PhysAddr {
+        self.channel.ring_addr()
     }
 
     pub(in crate::device::pci::xhci) async fn get_max_packet_size_from_device_descriptor(
@@ -140,10 +136,36 @@ impl Sender {
     }
 
     async fn issue_trbs(&mut self, ts: &[transfer_trb::Allowed]) -> Vec<Option<event::Allowed>> {
-        let addrs = self.ring.enqueue(ts);
-        self.register_with_receiver(ts, &addrs);
+        self.channel.send_and_receive(ts).await
+    }
+}
+
+struct Channel {
+    ring: transfer::Ring,
+    doorbell_writer: DoorbellWriter,
+    waker: Arc<Spinlock<AtomicWaker>>,
+}
+impl Channel {
+    fn new(doorbell_writer: DoorbellWriter) -> Self {
+        Self {
+            ring: transfer::Ring::new(),
+            doorbell_writer,
+            waker: Arc::new(Spinlock::new(AtomicWaker::new())),
+        }
+    }
+
+    fn ring_addr(&self) -> PhysAddr {
+        self.ring.phys_addr()
+    }
+
+    async fn send_and_receive(
+        &mut self,
+        trbs: &[transfer_trb::Allowed],
+    ) -> Vec<Option<event::Allowed>> {
+        let addrs = self.ring.enqueue(trbs);
+        self.register_with_receiver(trbs, &addrs);
         self.write_to_doorbell();
-        self.get_trb(ts, &addrs).await
+        self.get_trbs(trbs, &addrs).await
     }
 
     fn register_with_receiver(&mut self, ts: &[transfer_trb::Allowed], addrs: &[PhysAddr]) {
@@ -162,7 +184,7 @@ impl Sender {
         self.doorbell_writer.write();
     }
 
-    async fn get_trb(
+    async fn get_trbs(
         &mut self,
         ts: &[transfer_trb::Allowed],
         addrs: &[PhysAddr],
