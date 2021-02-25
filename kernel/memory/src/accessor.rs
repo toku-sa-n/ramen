@@ -27,6 +27,7 @@ pub struct Mappers {
     unmapper: fn(VirtAddr, Bytes),
 }
 impl Mappers {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             mapper: super::map_pages,
