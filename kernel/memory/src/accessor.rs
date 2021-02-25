@@ -10,6 +10,10 @@ pub type Single<T> = accessor::Single<T, Mappers>;
 /// # Safety
 ///
 /// Refer to the safety note of the `Accessor::Single`.
+///
+// This method does not panic.
+#[allow(clippy::missing_panics_doc)]
+#[must_use]
 pub unsafe fn new<T>(phys_base: PhysAddr) -> Single<T>
 where
     T: Copy,

@@ -15,6 +15,7 @@ pub mod heap;
 pub mod phys;
 pub mod virt;
 
+#[must_use]
 pub fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
     let phys_addr = allocate_phys(num_of_pages)?;
 

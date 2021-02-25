@@ -31,6 +31,7 @@ pub fn mark_pages_as_unused() {
     }
 }
 
+#[must_use]
 pub fn translate(v: VirtAddr) -> Option<PhysAddr> {
     PML4.lock().translate_addr(v)
 }
