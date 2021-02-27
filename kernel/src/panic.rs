@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::qemu;
-use instructions::interrupts;
 use x86_64::instructions;
 
 #[panic_handler]
