@@ -61,7 +61,7 @@ run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE)
 test:
 	make clean
 	make $(IMG_FILE) TEST_FLAG=--features=qemu_test
-	$(VIEWER) $(VIEWERFLAGS) -nographic; if [[ $$? -eq 33 ]];\
+	$(VIEWER) $(VIEWERFLAGS) -nographic -serial stdio -monitor none; if [[ $$? -eq 33 ]];\
 		then echo "Booting test succeed! ($(TEST_MODE) mode)"; exit 0;\
 		else echo "Booting test failed ($(TEST_MODE) mode)"; exit 1;fi
 

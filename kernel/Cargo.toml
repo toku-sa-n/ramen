@@ -7,7 +7,7 @@ license = "GPL-3.0-or-later"
 
 [features]
 default = []
-qemu_test = []
+qemu_test = ["terminal/qemu_test"]
 
 [profile.release]
 opt-level = 3
