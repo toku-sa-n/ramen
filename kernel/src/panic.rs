@@ -4,11 +4,9 @@ use crate::qemu;
 use x86_64::instructions;
 
 #[panic_handler]
-fn panic(info: &core::panic::PanicInfo) -> ! {
+fn panic(i: &core::panic::PanicInfo) -> ! {
     print_banner();
-    if let Some(location) = info.location() {
-        print_panic_location(location, info);
-    }
+    print_info(i);
 
     fini()
 }
@@ -19,14 +17,8 @@ fn print_banner() {
     error!("*************");
 }
 
-fn print_panic_location(location: &core::panic::Location, info: &core::panic::PanicInfo) {
-    error!(
-        "Panic in {} at ({}, {}):{}",
-        location.file(),
-        location.line(),
-        location.column(),
-        info.message().unwrap_or(&format_args!(""))
-    );
+fn print_info(i: &core::panic::PanicInfo) {
+    error!("{}", i);
 }
 
 fn fini() -> ! {
