@@ -6,7 +6,6 @@ use x86_64::instructions;
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
-    interrupts::disable();
     print_banner();
     if let Some(location) = info.location() {
         print_panic_location(location, info);
