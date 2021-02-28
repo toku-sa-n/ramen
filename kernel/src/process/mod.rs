@@ -12,8 +12,6 @@ use core::{
     convert::TryInto,
     sync::atomic::{AtomicI32, Ordering},
 };
-use crossbeam_queue::ArrayQueue;
-use message::Message;
 use page_box::PageBox;
 use stack_frame::StackFrame;
 use x86_64::{
@@ -29,12 +27,9 @@ pub struct Process {
     pml4_addr: PhysAddr,
     stack: PageBox<[u8]>,
     stack_frame: PageBox<StackFrame>,
-
-    inbox: ArrayQueue<Message>,
 }
 impl Process {
     const STACK_SIZE: u64 = Size4KiB::SIZE * 12;
-    const BOX_SIZE: usize = 128;
 
     pub fn new(f: fn()) -> Self {
         let mut tables = page_table::Collection::default();
@@ -53,8 +48,6 @@ impl Process {
             pml4_addr,
             stack,
             stack_frame,
-
-            inbox: ArrayQueue::new(Self::BOX_SIZE),
         }
     }
 
