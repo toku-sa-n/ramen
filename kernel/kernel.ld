@@ -25,7 +25,7 @@ SECTIONS
 
     .bss : {
         HEAP_START = .;
-        . += 0x20000;
+        . += 0x40000;
         HEAP_END = .;
         *(.bss)
     } > kernel

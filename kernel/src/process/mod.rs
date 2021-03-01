@@ -45,7 +45,7 @@ pub struct Process {
 }
 impl Process {
     const STACK_SIZE: u64 = Size4KiB::SIZE * 12;
-    const BOX_SIZE: usize = 128;
+    const BOX_SIZE: usize = 16;
 
     fn new(f: fn(), privilege: Privilege) -> Self {
         let mut tables = page_table::Collection::default();
