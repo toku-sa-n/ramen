@@ -20,25 +20,34 @@ static QEMU_PORT: Lazy<Spinlock<SerialPort>> = Lazy::new(|| {
     Spinlock::new(p)
 });
 
+#[derive(Copy, Clone)]
 struct Logger;
+impl Logger {
+    fn log_to_screen(self, r: &Record) {
+        writeln!(*LOG_WRITER.lock(), "{} - {}", r.level(), r.args()).unwrap();
+    }
+
+    fn log_to_qemu_terminal(self, r: &Record) {
+        if !cfg!(feature = "qemu_test") {
+            return;
+        }
+
+        writeln!(*QEMU_PORT.lock(), "{} - {}", r.level(), r.args())
+            .expect("Failed to send a log to the QEMU port.")
+    }
+}
 impl log::Log for Logger {
     fn enabled(&self, metadata: &Metadata) -> bool {
         metadata.level() <= Level::Info
     }
 
-    fn log(&self, record: &Record) {
-        if !self.enabled(record.metadata()) {
+    fn log(&self, r: &Record) {
+        if !self.enabled(r.metadata()) {
             return;
         }
 
-        writeln!(*LOG_WRITER.lock(), "{} - {}", record.level(), record.args()).unwrap();
-
-        if !cfg!(feature = "qemu_test") {
-            return;
-        }
-
-        writeln!(*QEMU_PORT.lock(), "{} - {}", record.level(), record.args())
-            .expect("Failed to send a log to the QEMU port.")
+        self.log_to_screen(r);
+        self.log_to_qemu_terminal(r);
     }
 
     fn flush(&self) {}
