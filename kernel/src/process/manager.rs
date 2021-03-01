@@ -1,16 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{collections, collections::woken_pid, switch, Privilege, Process};
-use crate::tss::TSS;
-use common::constant::INTERRUPT_STACK;
-use conquer_once::spin::Lazy;
-use crossbeam_queue::ArrayQueue;
 
 pub use super::exit::exit;
 pub use switch::switch;
-
-const MAX_MESSAGE: usize = 128;
-static MESSAGE: Lazy<ArrayQueue<Message>> = Lazy::new(|| ArrayQueue::new(MAX_MESSAGE));
 
 pub fn add(f: fn(), p: Privilege) {
     push_process_to_queue(Process::new(f, p));
@@ -30,10 +23,6 @@ pub fn notify_exists() -> bool {
     collections::process::handle_running(|p| p.inbox.pop()).is_some()
 }
 
-pub(super) fn send_message(m: Message) {
-    MESSAGE.push(m).expect("`MESSAGE` is full.");
-}
-
 fn push_process_to_queue(p: Process) {
     add_pid(p.id());
     add_process(p);
@@ -50,10 +39,4 @@ fn add_process(p: Process) {
 pub(super) fn loader(f: fn()) -> ! {
     f();
     syscalls::exit();
-}
-
-#[derive(Debug)]
-pub(super) enum Message {
-    Add(fn(), Privilege),
-    Exit(super::Id),
 }
