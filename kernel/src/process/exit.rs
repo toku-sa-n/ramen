@@ -17,7 +17,10 @@ macro_rules! change_stack {
 pub fn exit() -> ! {
     change_stack!();
     super::set_temporary_stack_frame();
-    super::collections::process::remove(super::manager::getpid().into());
+    // TODO: Call this. Currently this calling will cause a panic because the `KBox` is not mapped
+    // to this process.
+    // super::collections::process::remove(super::manager::getpid().into());
+
     super::collections::woken_pid::pop();
     cause_timer_interrupt();
 }
