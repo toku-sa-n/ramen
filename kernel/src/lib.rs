@@ -89,7 +89,6 @@ fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
 
     syscall::init();
 
-    process::init();
     add_processes();
 }
 

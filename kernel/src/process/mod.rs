@@ -23,12 +23,8 @@ use x86_64::{
 
 use crate::{mem::allocator::kpbox::KpBox, tss::TSS};
 
-pub(super) fn init() {
-    set_temporary_stack_frame();
-}
-
 fn set_temporary_stack_frame() {
-    TSS.lock().interrupt_stack_table[0] = INTERRUPT_STACK;
+    TSS.lock().privilege_stack_table[0] = INTERRUPT_STACK;
 }
 
 #[derive(Debug)]
