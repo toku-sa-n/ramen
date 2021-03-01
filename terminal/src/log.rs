@@ -28,13 +28,15 @@ impl log::Log for Logger {
     }
 
     fn log(&self, record: &Record) {
-        if self.enabled(record.metadata()) {
-            writeln!(*LOG_WRITER.lock(), "{} - {}", record.level(), record.args()).unwrap();
+        if !self.enabled(record.metadata()) {
+            return;
+        }
 
-            if cfg!(feature = "qemu_test") {
-                writeln!(*QEMU_PORT.lock(), "{} - {}", record.level(), record.args())
-                    .expect("Failed to send a log to the QEMU port.")
-            }
+        writeln!(*LOG_WRITER.lock(), "{} - {}", record.level(), record.args()).unwrap();
+
+        if cfg!(feature = "qemu_test") {
+            writeln!(*QEMU_PORT.lock(), "{} - {}", record.level(), record.args())
+                .expect("Failed to send a log to the QEMU port.")
         }
     }
 
