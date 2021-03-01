@@ -8,10 +8,7 @@ use core::{convert::TryInto, ffi::c_void, slice};
 use num_traits::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{
-    instructions::{
-        self, interrupts,
-        port::{PortReadOnly, PortWriteOnly},
-    },
+    instructions::port::{PortReadOnly, PortWriteOnly},
     registers::model_specific::{Efer, EferFlags, LStar},
     structures::paging::{Size4KiB, Translate},
     PhysAddr, VirtAddr,
@@ -82,10 +79,6 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
             syscalls::Ty::Outb => sys_outb(a1.try_into().unwrap(), a2.try_into().unwrap()),
             syscalls::Ty::Inl => sys_inl(a1.try_into().unwrap()).into(),
             syscalls::Ty::Outl => sys_outl(a1.try_into().unwrap(), a2.try_into().unwrap()),
-            syscalls::Ty::Halt => sys_halt(),
-            syscalls::Ty::DisableInterrupt => sys_disable_interrupt(),
-            syscalls::Ty::EnableInterrupt => sys_enable_interrupt(),
-            syscalls::Ty::EnableInterruptAndHalt => sys_enable_interrupt_and_halt(),
             syscalls::Ty::AllocatePages => {
                 sys_allocate_pages(NumOfPages::new(a1.try_into().unwrap())).as_u64()
             }
@@ -140,26 +133,6 @@ unsafe fn sys_inl(port: u16) -> u32 {
 unsafe fn sys_outl(port: u16, v: u32) -> u64 {
     let mut p = PortWriteOnly::new(port);
     p.write(v);
-    0
-}
-
-fn sys_halt() -> u64 {
-    instructions::hlt();
-    0
-}
-
-fn sys_disable_interrupt() -> u64 {
-    interrupts::disable();
-    0
-}
-
-fn sys_enable_interrupt() -> u64 {
-    interrupts::enable();
-    0
-}
-
-fn sys_enable_interrupt_and_halt() -> u64 {
-    interrupts::enable_and_hlt();
     0
 }
 

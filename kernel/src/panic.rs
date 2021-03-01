@@ -4,7 +4,6 @@ use crate::qemu;
 
 #[panic_handler]
 fn panic(i: &core::panic::PanicInfo) -> ! {
-    syscalls::disable_interrupt();
     print_banner();
     print_info(i);
 
@@ -26,7 +25,7 @@ fn fini() -> ! {
         qemu::exit_failure();
     } else {
         loop {
-            syscalls::halt()
+            x86_64::instructions::nop();
         }
     }
 }
