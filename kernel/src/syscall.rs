@@ -41,7 +41,6 @@ extern "C" fn save_rip_and_rflags() -> u64 {
     unsafe {
         asm!(
             "
-        cli
         push rcx    # Save rip
         push r11    # Save rflags
 
@@ -49,7 +48,6 @@ extern "C" fn save_rip_and_rflags() -> u64 {
 
         pop r11     # Restore rflags
         pop rcx     # Restore rip
-        sti
         sysretq
         ",
             options(noreturn)
