@@ -9,9 +9,11 @@ pub fn count_switch() {
     static COUNTER: AtomicUsize = AtomicUsize::new(0);
     COUNTER.fetch_add(1, Ordering::Relaxed);
 
-    if COUNTER.load(Ordering::Relaxed) >= EXIT_GOAL {
-        SWITCH_TEST_SUCCESS.fetch_or(true, Ordering::Relaxed);
+    if !COUNTER.load(Ordering::Relaxed) >= EXIT_GOAL {
+        return;
     }
+
+    SWITCH_TEST_SUCCESS.fetch_or(true, Ordering::Relaxed);
 }
 
 pub fn do_nothing() {}
