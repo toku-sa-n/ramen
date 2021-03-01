@@ -92,9 +92,11 @@ fn add_processes() {
     if cfg!(feature = "qemu_test") {
         process::manager::add(tests::main);
 
-        for _ in 0..100 {
-            process::manager::add(tests::process::do_nothing);
-        }
+        // TODO: Add the test for lots of processes.
+        //
+        // for _ in 0..100 {
+        //     process::manager::add(tests::process::do_nothing);
+        // }
     }
 }
 
