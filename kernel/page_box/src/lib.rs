@@ -16,6 +16,7 @@ use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 
 pub struct PageBox<T: ?Sized> {
     virt: VirtAddr,
+    phys: PhysAddr,
     bytes: Bytes,
     _marker: PhantomData<T>,
 }
@@ -173,12 +174,9 @@ impl<T: ?Sized> PageBox<T> {
         self.virt
     }
 
-    /// # Panics
-    ///
-    /// This method panics if the `PageBox` is not mapped.
     #[must_use]
     pub fn phys_addr(&self) -> PhysAddr {
-        paging::translate(self.virt).expect("This `PageBox` is not mapped.")
+        self.phys
     }
 
     #[must_use]
@@ -190,8 +188,12 @@ impl<T: ?Sized> PageBox<T> {
         let virt =
             allocator::allocate_pages(bytes.as_num_of_pages()).expect("Failed to allocate pages.");
 
+        let phys = paging::translate(virt)
+            .expect("Failed to calculate the physical address correspoinding to {:?}.");
+
         Self {
             virt,
+            phys,
             bytes,
             _marker: PhantomData,
         }
