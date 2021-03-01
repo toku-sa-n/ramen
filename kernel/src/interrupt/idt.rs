@@ -4,11 +4,15 @@
 
 use crate::{interrupt, x86_64::structures::idt::InterruptDescriptorTable};
 use conquer_once::spin::Lazy;
+use x86_64::PrivilegeLevel;
 
 static IDT: Lazy<InterruptDescriptorTable> = Lazy::new(|| {
     let mut idt = InterruptDescriptorTable::new();
 
     idt[0x20].set_handler_fn(interrupt::handler::h_20);
+    idt[0x80]
+        .set_handler_fn(interrupt::handler::h_80)
+        .set_privilege_level(PrivilegeLevel::Ring3);
 
     idt
 });

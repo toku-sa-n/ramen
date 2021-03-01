@@ -121,7 +121,7 @@ pub fn getpid() -> i32 {
 
 pub fn exit() -> ! {
     let ty = Ty::Exit as u64;
-    unsafe { asm!("syscall", in("rax") ty, options(noreturn)) }
+    unsafe { asm!("int 0x80", in("rax") ty, options(noreturn)) }
 }
 
 /// This method will return a null address if the address is not mapped.
@@ -152,7 +152,7 @@ pub unsafe fn write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
 unsafe fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
     let ty = ty as u64;
     let r: u64;
-    asm!("syscall",
+    asm!("int 0x80",
         inout("rax") ty => r, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
         out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
     r
