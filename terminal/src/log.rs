@@ -34,10 +34,12 @@ impl log::Log for Logger {
 
         writeln!(*LOG_WRITER.lock(), "{} - {}", record.level(), record.args()).unwrap();
 
-        if cfg!(feature = "qemu_test") {
-            writeln!(*QEMU_PORT.lock(), "{} - {}", record.level(), record.args())
-                .expect("Failed to send a log to the QEMU port.")
+        if !cfg!(feature = "qemu_test") {
+            return;
         }
+
+        writeln!(*QEMU_PORT.lock(), "{} - {}", record.level(), record.args())
+            .expect("Failed to send a log to the QEMU port.")
     }
 
     fn flush(&self) {}
