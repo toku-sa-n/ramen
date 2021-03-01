@@ -20,14 +20,8 @@ macro_rules! change_stack {
 
 pub fn exit() -> ! {
     change_stack!();
-    manager::set_temporary_stack_frame();
-    send_exit_message();
+    super::set_temporary_stack_frame();
     cause_timer_interrupt();
-}
-
-fn send_exit_message() {
-    let id = collections::woken_pid::pop();
-    manager::send_message(Message::Exit(id));
 }
 
 fn cause_timer_interrupt() -> ! {

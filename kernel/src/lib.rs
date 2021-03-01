@@ -60,7 +60,6 @@ pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
 
 fn init(boot_info: &mut kernelboot::Info) {
     initialize_in_kernel_mode(boot_info);
-    initialize_in_user_mode();
 }
 
 fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
@@ -89,12 +88,8 @@ fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
     vram::print_info();
 
     syscall::init();
-}
 
-fn initialize_in_user_mode() {
-    gdt::enter_usermode();
-
-    process::manager::init();
+    process::init();
     add_processes();
 }
 

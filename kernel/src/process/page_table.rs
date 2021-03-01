@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::mem::paging::pml4::PML4;
+use crate::mem::{allocator::kpbox::KpBox, paging::pml4::PML4};
 use alloc::collections::BTreeMap;
 use core::convert::TryFrom;
-use page_box::PageBox;
 use x86_64::{
     structures::paging::{
         Page, PageSize, PageTable, PageTableFlags, PageTableIndex, PhysFrame, Size4KiB,
@@ -13,17 +12,17 @@ use x86_64::{
 
 #[derive(Debug)]
 pub(super) struct Collection {
-    pml4: PageBox<PageTable>,
-    pdpt: BTreeMap<PageTableIndex, PageBox<PageTable>>,
-    pd: BTreeMap<PageTableIndex, PageBox<PageTable>>,
-    pt: BTreeMap<PageTableIndex, PageBox<PageTable>>,
+    pml4: KpBox<PageTable>,
+    pdpt: BTreeMap<PageTableIndex, KpBox<PageTable>>,
+    pd: BTreeMap<PageTableIndex, KpBox<PageTable>>,
+    pt: BTreeMap<PageTableIndex, KpBox<PageTable>>,
 }
 impl Collection {
     pub(super) fn pml4_addr(&self) -> PhysAddr {
         self.pml4.phys_addr()
     }
 
-    pub(super) fn map_page_box<T: ?Sized>(&mut self, b: &PageBox<T>) {
+    pub(super) fn map_page_box<T: ?Sized>(&mut self, b: &KpBox<T>) {
         for i in 0..b.bytes().as_num_of_pages::<Size4KiB>().as_usize() {
             let off = Size4KiB::SIZE * u64::try_from(i).unwrap();
             let v = Page::from_start_address(b.virt_addr() + off).expect("Page is not aligned.");
@@ -52,13 +51,13 @@ impl Collection {
         p1[table_i].set_addr(p.start_address(), Self::flags());
     }
 
-    fn create(parent: &mut PageTable, i: PageTableIndex) -> PageBox<PageTable> {
-        let t = PageBox::from(PageTable::new());
+    fn create(parent: &mut PageTable, i: PageTableIndex) -> KpBox<PageTable> {
+        let t = KpBox::from(PageTable::new());
         Self::map_transition(parent, &t, i);
         t
     }
 
-    fn map_transition(from: &mut PageTable, to: &PageBox<PageTable>, i: PageTableIndex) {
+    fn map_transition(from: &mut PageTable, to: &KpBox<PageTable>, i: PageTableIndex) {
         from[i].set_addr(to.phys_addr(), Self::flags());
     }
 
@@ -79,10 +78,10 @@ impl Default for Collection {
 
 #[derive(Default)]
 struct Pml4Creator {
-    pml4: PageBox<PageTable>,
+    pml4: KpBox<PageTable>,
 }
 impl Pml4Creator {
-    fn create(mut self) -> PageBox<PageTable> {
+    fn create(mut self) -> KpBox<PageTable> {
         self.enable_recursive_paging();
         self.map_kernel_area();
         self.pml4
