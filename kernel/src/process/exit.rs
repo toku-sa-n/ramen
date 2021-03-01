@@ -1,9 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{
-    collections,
-    manager::{self, Message},
-};
 use common::constant::INTERRUPT_STACK;
 
 // Do not define this as a function as the function cannot return.
@@ -20,14 +16,13 @@ macro_rules! change_stack {
 
 pub fn exit() -> ! {
     change_stack!();
-    manager::set_temporary_stack_frame();
-    send_exit_message();
-    cause_timer_interrupt();
-}
+    super::set_temporary_stack_frame();
+    // TODO: Call this. Currently this calling will cause a panic because the `KBox` is not mapped
+    // to this process.
+    // super::collections::process::remove(super::manager::getpid().into());
 
-fn send_exit_message() {
-    let id = collections::woken_pid::pop();
-    manager::send_message(Message::Exit(id));
+    super::collections::woken_pid::pop();
+    cause_timer_interrupt();
 }
 
 fn cause_timer_interrupt() -> ! {

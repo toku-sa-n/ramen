@@ -8,18 +8,28 @@ mod page_table;
 mod stack_frame;
 mod switch;
 
+use common::constant::INTERRUPT_STACK;
 use core::{
     convert::TryInto,
     sync::atomic::{AtomicI32, Ordering},
 };
 use crossbeam_queue::ArrayQueue;
 use message::Message;
-use page_box::PageBox;
 use stack_frame::StackFrame;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB},
     PhysAddr, VirtAddr,
 };
+
+use crate::{mem::allocator::kpbox::KpBox, tss::TSS};
+
+pub(super) fn init() {
+    set_temporary_stack_frame();
+}
+
+fn set_temporary_stack_frame() {
+    TSS.lock().interrupt_stack_table[0] = INTERRUPT_STACK;
+}
 
 #[derive(Debug)]
 pub struct Process {
@@ -27,29 +37,21 @@ pub struct Process {
     f: fn(),
     tables: page_table::Collection,
     pml4_addr: PhysAddr,
-    stack: PageBox<[u8]>,
-    stack_frame: PageBox<StackFrame>,
+    stack: KpBox<[u8]>,
+    stack_frame: KpBox<StackFrame>,
     privilege: Privilege,
 
     inbox: ArrayQueue<Message>,
 }
 impl Process {
     const STACK_SIZE: u64 = Size4KiB::SIZE * 12;
-    const BOX_SIZE: usize = 128;
-
-    pub fn kernel(f: fn()) -> Self {
-        Self::new(f, Privilege::Kernel)
-    }
-
-    pub fn user(f: fn()) -> Self {
-        Self::new(f, Privilege::User)
-    }
+    const BOX_SIZE: usize = 16;
 
     fn new(f: fn(), privilege: Privilege) -> Self {
         let mut tables = page_table::Collection::default();
-        let stack = PageBox::new_slice(0, Self::STACK_SIZE.try_into().unwrap());
+        let stack = KpBox::new_slice(0, Self::STACK_SIZE.try_into().unwrap());
         let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
-        let stack_frame = PageBox::from(match privilege {
+        let stack_frame = KpBox::from(match privilege {
             Privilege::Kernel => StackFrame::kernel(f, stack_bottom),
             Privilege::User => StackFrame::user(f, stack_bottom),
         });

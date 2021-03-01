@@ -56,29 +56,6 @@ pub fn init() {
     init_star();
 }
 
-pub fn enter_usermode() {
-    unsafe {
-        segmentation::load_ds(GDT.user_data);
-        segmentation::load_es(GDT.user_data);
-        segmentation::load_fs(GDT.user_data);
-        segmentation::load_gs(GDT.user_data);
-
-        let data = u64::from(GDT.user_data.0);
-        let code = u64::from(GDT.user_code.0);
-
-        asm!("
-                mov rax, rsp
-                push rbx
-                push rax
-                pushfq
-                push rcx
-                lea rdx, [1f + rip]
-                push rdx
-                iretq
-                1:", in("rbx") data, in("rcx") code,lateout("rdx") _,); // Do not specify in(reg) or lateout(reg) as these do not consider which registers are used. They may use registers which are already used.
-    }
-}
-
 fn init_star() {
     Star::write(
         GDT.user_code,
