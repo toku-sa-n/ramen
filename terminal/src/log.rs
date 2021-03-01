@@ -8,8 +8,6 @@ use rgb::RGB8;
 use spinning_top::Spinlock;
 use uart_16550::SerialPort;
 
-struct Logger;
-
 static LOGGER: Logger = Logger;
 
 static LOG_WRITER: Lazy<Spinlock<Writer>> =
@@ -22,6 +20,7 @@ static QEMU_PORT: Lazy<Spinlock<SerialPort>> = Lazy::new(|| {
     Spinlock::new(p)
 });
 
+struct Logger;
 impl log::Log for Logger {
     fn enabled(&self, metadata: &Metadata) -> bool {
         metadata.level() <= Level::Info
