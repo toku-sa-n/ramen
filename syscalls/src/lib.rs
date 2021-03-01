@@ -48,26 +48,6 @@ pub unsafe fn outl(port: u16, value: u32) {
     general_syscall(Ty::Outl, port.into(), value.into(), 0);
 }
 
-pub fn halt() {
-    // SAFETY: This operation is safe as it does not touch any unsafe things.
-    unsafe { general_syscall(Ty::Halt, 0, 0, 0) };
-}
-
-pub fn disable_interrupt() {
-    // SAFETY: This operation is safe as it does not touch any unsafe things.
-    unsafe { general_syscall(Ty::DisableInterrupt, 0, 0, 0) };
-}
-
-pub fn enable_interrupt() {
-    // SAFETY: This operation is safe as it does not touch any unsafe things.
-    unsafe { general_syscall(Ty::EnableInterrupt, 0, 0, 0) };
-}
-
-pub fn enable_interrupt_and_halt() {
-    // SAFETY: This operation is safe as it does not touch any unsafe things.
-    unsafe { general_syscall(Ty::EnableInterruptAndHalt, 0, 0, 0) };
-}
-
 #[must_use]
 pub fn allocate_pages(pages: NumOfPages<Size4KiB>) -> VirtAddr {
     // SAFETY: This operation is safe as the arguments are propertly passed.
@@ -184,10 +164,6 @@ pub enum Ty {
     Outb,
     Inl,
     Outl,
-    Halt,
-    DisableInterrupt,
-    EnableInterrupt,
-    EnableInterruptAndHalt,
     AllocatePages,
     DeallocatePages,
     MapPages,

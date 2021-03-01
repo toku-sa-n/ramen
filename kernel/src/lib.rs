@@ -55,7 +55,7 @@ pub type FuturelockGuard<'a, T> = GenericMutexGuard<'a, RawSpinlock, T>;
 #[start]
 pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
     init(&mut boot_info);
-    wait_until_timer_interrupt_happens();
+    cause_timer_interrupt();
 }
 
 fn init(boot_info: &mut kernelboot::Info) {
@@ -106,10 +106,9 @@ fn add_processes() {
     }
 }
 
-fn wait_until_timer_interrupt_happens() -> ! {
-    loop {
-        syscalls::enable_interrupt_and_halt()
-    }
+fn cause_timer_interrupt() -> ! {
+    // SAFETY: This interrupt is handled correctly.
+    unsafe { asm!("int 0x20", options(noreturn)) }
 }
 
 fn run_tasks() {

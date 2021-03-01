@@ -27,16 +27,6 @@ impl Executor {
     pub fn run(&mut self) -> ! {
         loop {
             self.run_woken_tasks();
-            Self::sleep_if_idle();
-        }
-    }
-
-    fn sleep_if_idle() {
-        syscalls::disable_interrupt();
-        if task::COLLECTION.lock().woken_task_exists() {
-            syscalls::enable_interrupt();
-        } else {
-            syscalls::enable_interrupt_and_halt();
         }
     }
 

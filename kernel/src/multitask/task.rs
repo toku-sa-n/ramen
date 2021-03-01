@@ -57,10 +57,6 @@ impl Collection {
             .expect("Woken task id queue is full.");
     }
 
-    pub fn woken_task_exists(&self) -> bool {
-        !self.woken_task_ids.is_empty()
-    }
-
     pub fn pop_woken_task_id(&mut self) -> Option<Id> {
         self.woken_task_ids.pop()
     }
