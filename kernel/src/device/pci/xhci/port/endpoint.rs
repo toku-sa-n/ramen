@@ -68,6 +68,10 @@ impl Default {
     pub(super) async fn set_idle(&mut self) {
         self.sender.set_idle().await;
     }
+
+    pub(super) async fn set_boot_protocol(&mut self) {
+        self.sender.set_boot_protocol().await;
+    }
 }
 
 struct ContextInitializer<'a> {

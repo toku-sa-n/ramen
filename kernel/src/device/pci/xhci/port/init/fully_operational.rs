@@ -65,6 +65,10 @@ impl FullyOperational {
         self.def_ep.set_idle().await;
     }
 
+    pub(in super::super) async fn set_boot_protocol(&mut self) {
+        self.def_ep.set_boot_protocol().await;
+    }
+
     pub(in super::super) fn descriptors(&self) -> &[Descriptor] {
         &self.descriptors
     }

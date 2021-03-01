@@ -85,6 +85,21 @@ impl Sender {
         self.issue_trbs(&[setup.into(), status.into()]).await;
     }
 
+    pub(in crate::device::pci::xhci) async fn set_boot_protocol(&mut self) {
+        let setup = *transfer_trb::SetupStage::default()
+            .set_transfer_type(TransferType::No)
+            .set_trb_transfer_length(8)
+            .set_interrupt_on_completion(false)
+            .set_request_type(0b0010_0001)
+            .set_request(0x0b)
+            .set_value(0)
+            .set_length(0);
+
+        let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion(true);
+
+        self.issue_trbs(&[setup.into(), status.into()]).await;
+    }
+
     pub async fn get_configuration_descriptor(&mut self) -> PageBox<[u8]> {
         let b = PageBox::new_slice(0, 4096);
 
