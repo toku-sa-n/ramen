@@ -11,6 +11,7 @@ use xhci::context::EndpointType;
 pub(in crate::device::pci::xhci::port) async fn task(eps: FullyOperational) {
     let mut m = Mouse::new(eps);
     m.configure().await;
+    m.set_boot_protocol().await;
     info!("Configuration completed.");
     m.set_idle().await;
     info!("Set Idle completed.");
@@ -39,6 +40,10 @@ impl Mouse {
 
     async fn set_idle(&mut self) {
         self.ep.set_idle().await;
+    }
+
+    async fn set_boot_protocol(&mut self) {
+        self.ep.set_boot_protocol().await;
     }
 
     fn configuration_descriptor(&self) -> Configuration {
