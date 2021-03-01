@@ -1,9 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{
-    collections,
-    manager::{self, Message},
-};
 use common::constant::INTERRUPT_STACK;
 
 // Do not define this as a function as the function cannot return.
@@ -21,6 +17,8 @@ macro_rules! change_stack {
 pub fn exit() -> ! {
     change_stack!();
     super::set_temporary_stack_frame();
+    super::collections::process::remove(super::manager::getpid().into());
+    super::collections::woken_pid::pop();
     cause_timer_interrupt();
 }
 
