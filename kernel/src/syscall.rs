@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::{
-    interrupt,
     mem::{allocator, paging::pml4::PML4},
     process,
 };
@@ -109,11 +108,6 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
             )
             .try_into()
             .unwrap(),
-            syscalls::Ty::NotifyExists => sys_notify_exists() as _,
-            syscalls::Ty::NotifyOnInterrupt => {
-                sys_notify_on_interrupt(a1.try_into().unwrap(), a2.try_into().unwrap());
-                0
-            }
         },
         None => panic!("Unsupported syscall index: {}", idx),
     }
@@ -222,12 +216,4 @@ unsafe fn sys_write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
     } else {
         unimplemented!("Not stdout");
     }
-}
-
-fn sys_notify_exists() -> bool {
-    process::manager::notify_exists()
-}
-
-fn sys_notify_on_interrupt(vec: usize, pid: i32) {
-    interrupt::handler::notify_on_interrupt(vec, pid);
 }

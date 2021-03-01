@@ -13,16 +13,6 @@ pub fn getpid() -> i32 {
     collections::process::handle_running(|p| p.id.as_i32())
 }
 
-pub fn notify(pid: i32) {
-    let _ = collections::process::handle(super::Id::from(pid), |p| {
-        p.inbox.push(super::message::Message)
-    });
-}
-
-pub fn notify_exists() -> bool {
-    collections::process::handle_running(|p| p.inbox.pop()).is_some()
-}
-
 fn push_process_to_queue(p: Process) {
     add_pid(p.id());
     add_process(p);
