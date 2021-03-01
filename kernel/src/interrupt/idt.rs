@@ -8,13 +8,7 @@ use conquer_once::spin::Lazy;
 static IDT: Lazy<InterruptDescriptorTable> = Lazy::new(|| {
     let mut idt = InterruptDescriptorTable::new();
 
-    // SAFETY: This operation is safe as the stack index 0 is allocated for the timer
-    // interruption.
-    unsafe {
-        idt[0x20]
-            .set_handler_fn(interrupt::handler::h_20)
-            .set_stack_index(0);
-    }
+    idt[0x20].set_handler_fn(interrupt::handler::h_20);
     idt[0x21].set_handler_fn(interrupt::handler::h_21);
     idt[0x2c].set_handler_fn(interrupt::handler::h_2c);
 

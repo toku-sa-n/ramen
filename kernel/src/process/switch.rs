@@ -32,7 +32,7 @@ fn switch_pml4() {
 }
 
 fn register_current_stack_frame_with_tss() {
-    TSS.lock().interrupt_stack_table[0] = current_stack_frame_bottom_addr();
+    TSS.lock().privilege_stack_table[0] = current_stack_frame_bottom_addr();
 }
 
 fn current_stack_frame_top_addr() -> VirtAddr {
