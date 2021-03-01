@@ -12,8 +12,8 @@ use x86_64::{
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct StackFrame {
-    regs: GeneralRegisters,
+pub(super) struct StackFrame {
+    pub(super) regs: GeneralRegisters,
     interrupt: InterruptStackFrameValue,
 }
 impl StackFrame {
@@ -63,8 +63,8 @@ impl Selectors {
 
 #[repr(C)]
 #[derive(Default, Debug)]
-struct GeneralRegisters {
-    _rax: u64,
+pub(super) struct GeneralRegisters {
+    pub(super) rax: u64,
     _rbx: u64,
     _rcx: u64,
     _rdx: u64,

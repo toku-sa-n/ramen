@@ -87,8 +87,6 @@ fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
 
     vram::print_info();
 
-    syscall::init();
-
     add_processes();
 }
 

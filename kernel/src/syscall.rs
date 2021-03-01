@@ -9,55 +9,13 @@ use num_traits::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{
     instructions::port::{PortReadOnly, PortWriteOnly},
-    registers::model_specific::{Efer, EferFlags, LStar},
     structures::paging::{Size4KiB, Translate},
     PhysAddr, VirtAddr,
 };
 
-pub fn init() {
-    enable();
-    register();
-}
-
-fn enable() {
-    // SAFETY: This operation is safe as this does not touch any unsafe things.
-    unsafe { Efer::update(|e| *e |= EferFlags::SYSTEM_CALL_EXTENSIONS) }
-}
-
-fn register() {
-    let addr = save_rip_and_rflags as usize;
-
-    LStar::write(VirtAddr::new(addr.try_into().unwrap()));
-}
-
-/// `syscall` instruction calls this function.
-///
-/// RAX: system call index
-/// RDI: 1st argument
-/// RSI: 2nd argument
-/// RDX: 3rd argument
-#[naked]
-extern "C" fn save_rip_and_rflags() -> u64 {
-    unsafe {
-        asm!(
-            "
-        push rcx    # Save rip
-        push r11    # Save rflags
-
-        call prepare_arguments
-
-        pop r11     # Restore rflags
-        pop rcx     # Restore rip
-        sysretq
-        ",
-            options(noreturn)
-        );
-    }
-}
-
 /// SAFETY: This function is unsafe because invalid values in registers may break memory safety.
 #[no_mangle]
-unsafe fn prepare_arguments() {
+pub(crate) unsafe fn prepare_arguments() {
     let syscall_index: u64;
     let a1: u64;
     let a2: u64;

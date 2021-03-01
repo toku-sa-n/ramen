@@ -23,6 +23,17 @@ use x86_64::{
 
 use crate::{mem::allocator::kpbox::KpBox, tss::TSS};
 
+pub(crate) fn assign_rax_from_register() {
+    let rax;
+    unsafe { asm!("", out("rax") rax) }
+
+    assign_rax(rax);
+}
+
+fn assign_rax(rax: u64) {
+    collections::process::handle_running_mut(|p| (*p.stack_frame).regs.rax = rax);
+}
+
 fn set_temporary_stack_frame() {
     TSS.lock().privilege_stack_table[0] = INTERRUPT_STACK;
 }
