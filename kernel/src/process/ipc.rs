@@ -64,7 +64,7 @@ impl Sender {
 
     fn set_msg_buf_and_sleep(&self) {
         self.set_msg_buf();
-        self.mark_as_sending();
+        Self::mark_as_sending();
         sleep();
     }
 
@@ -78,7 +78,7 @@ impl Sender {
         })
     }
 
-    fn mark_as_sending(&self) {
+    fn mark_as_sending() {
         collections::process::handle_running_mut(|p| p.flags |= super::Flags::SENDING)
     }
 }
