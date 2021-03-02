@@ -2,6 +2,7 @@
 
 mod collections;
 mod exit;
+mod ipc;
 mod page_table;
 mod stack_frame;
 mod switch;
