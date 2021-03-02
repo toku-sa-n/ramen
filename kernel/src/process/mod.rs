@@ -2,7 +2,6 @@
 
 mod collections;
 mod exit;
-mod message;
 mod page_table;
 mod stack_frame;
 mod switch;
@@ -13,9 +12,7 @@ use core::{
     convert::TryInto,
     sync::atomic::{AtomicI32, Ordering},
 };
-use crossbeam_queue::ArrayQueue;
 pub use exit::exit;
-use message::Message;
 use stack_frame::StackFrame;
 pub use switch::switch;
 use x86_64::{
@@ -73,12 +70,9 @@ pub struct Process {
     stack: KpBox<[u8]>,
     stack_frame: KpBox<StackFrame>,
     privilege: Privilege,
-
-    inbox: ArrayQueue<Message>,
 }
 impl Process {
     const STACK_SIZE: u64 = Size4KiB::SIZE * 12;
-    const BOX_SIZE: usize = 16;
 
     fn new(f: fn(), privilege: Privilege) -> Self {
         let mut tables = page_table::Collection::default();
@@ -101,8 +95,6 @@ impl Process {
             stack,
             stack_frame,
             privilege,
-
-            inbox: ArrayQueue::new(Self::BOX_SIZE),
         }
     }
 
