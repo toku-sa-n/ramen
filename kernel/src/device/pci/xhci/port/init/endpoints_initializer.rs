@@ -19,7 +19,6 @@ pub(super) struct EndpointsInitializer {
     slot_number: u8,
 }
 impl EndpointsInitializer {
-    #[allow(clippy::needless_pass_by_value)] // `DescriptorFetcher` should be consumed.
     pub(super) fn new(f: DescriptorFetcher, descriptors: Vec<Descriptor>) -> Self {
         let cx = f.context();
         let endpoints = descriptors_to_endpoints(&f, &descriptors);
