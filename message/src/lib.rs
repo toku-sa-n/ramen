@@ -2,6 +2,7 @@
 
 #![no_std]
 
+#[derive(Copy, Clone)]
 pub struct Message {
     pub m1: u64,
     pub m2: u64,
