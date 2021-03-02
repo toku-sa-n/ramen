@@ -144,9 +144,10 @@ pub fn send(m: Message, to: i32) {
     }
 }
 
-pub fn receive_from_any() -> Message {
-    let p = unsafe { general_syscall(Ty::Receive, 0, 0, 0) } as *const _;
-    unsafe { *p }
+pub fn receive_from_any(m: *mut Message) {
+    unsafe {
+        general_syscall(Ty::Receive, m as u64, 0, 0);
+    }
 }
 
 /// # Safety
