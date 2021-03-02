@@ -10,11 +10,16 @@ use xhci::context::EndpointType;
 
 pub(in crate::device::pci::xhci::port) async fn task(eps: FullyOperational) {
     let mut m = Mouse::new(eps);
+
     m.configure().await;
-    m.set_boot_protocol().await;
     info!("Configuration completed.");
+
+    m.set_boot_protocol().await;
+    info!("Boot protocol is set.");
+
     m.set_idle().await;
     info!("Set Idle completed.");
+
     loop {
         m.get_packet().await;
         m.print_buf();

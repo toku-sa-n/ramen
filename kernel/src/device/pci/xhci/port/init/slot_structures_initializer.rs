@@ -40,6 +40,10 @@ impl SlotStructuresInitializer {
         MaxPacketSizeSetter::new(self)
     }
 
+    pub(super) fn port_number(&self) -> u8 {
+        self.port_number
+    }
+
     pub(super) fn slot_number(&self) -> u8 {
         self.slot_number
     }
