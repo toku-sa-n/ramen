@@ -88,6 +88,7 @@ struct ContextInitializer<'a> {
     port_number: u8,
 }
 impl<'a> ContextInitializer<'a> {
+    #[warn(clippy::too_many_arguments)] // TODO
     fn new(
         cx: &'a mut Context,
         ep: &'a descriptor::Endpoint,
