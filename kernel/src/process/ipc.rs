@@ -101,7 +101,7 @@ impl Receiver {
     }
 
     fn is_sender_waiting(&self) -> bool {
-        collections::process::handle_running(|p| p.pids_try_to_send_this_process.len() > 0)
+        collections::process::handle_running(|p| !p.pids_try_to_send_this_process.is_empty())
     }
 
     fn copy_msg_and_wake(&self) {
