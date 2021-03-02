@@ -2,7 +2,11 @@
 
 mod scsi;
 
-use crate::device::pci::xhci::port::init::fully_operational::FullyOperational;
+use crate::device::pci::xhci::{
+    port::init::fully_operational::FullyOperational,
+    structures::descriptor::{Configuration, Descriptor},
+};
+use alloc::vec::Vec;
 use page_box::PageBox;
 use scsi::{
     response::{Inquiry, Read10, ReadCapacity},
@@ -13,6 +17,10 @@ use xhci::context::EndpointType;
 pub(in crate::device::pci::xhci::port) async fn task(eps: FullyOperational) {
     let mut m = MassStorage::new(eps);
     info!("This is the task of USB Mass Storage.");
+
+    m.configure().await;
+    info!("USB Mass Storage is configured.");
+
     let b = m.inquiry().await;
     info!("Inquiry Command: {:?}", b);
 
@@ -24,11 +32,31 @@ pub(in crate::device::pci::xhci::port) async fn task(eps: FullyOperational) {
 }
 
 struct MassStorage {
-    eps: FullyOperational,
+    ep: FullyOperational,
 }
 impl MassStorage {
-    fn new(eps: FullyOperational) -> Self {
-        Self { eps }
+    fn new(ep: FullyOperational) -> Self {
+        Self { ep }
+    }
+
+    async fn configure(&mut self) {
+        let d = self.configuration_descriptor();
+        self.ep.set_configure(d.config_val()).await;
+    }
+
+    fn configuration_descriptor(&self) -> Configuration {
+        *self
+            .ep
+            .descriptors()
+            .iter()
+            .filter_map(|x| {
+                if let Descriptor::Configuration(c) = x {
+                    Some(c)
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<&Configuration>>()[0]
     }
 
     async fn inquiry(&mut self) -> Inquiry {
@@ -97,7 +125,7 @@ impl MassStorage {
     }
 
     async fn send_command_block_wrapper(&mut self, c: &mut PageBox<CommandBlockWrapper>) {
-        self.eps
+        self.ep
             .issue_normal_trb(c, EndpointType::BulkOut)
             .await
             .expect("Failed to send a SCSI command.");
@@ -108,7 +136,7 @@ impl MassStorage {
         T: Default,
     {
         let c = PageBox::default();
-        self.eps
+        self.ep
             .issue_normal_trb(&c, EndpointType::BulkIn)
             .await
             .expect("Failed to receive a SCSI command reponse.");
@@ -117,7 +145,7 @@ impl MassStorage {
 
     async fn receive_command_status(&mut self) -> PageBox<CommandStatusWrapper> {
         let b = PageBox::default();
-        self.eps
+        self.ep
             .issue_normal_trb(&b, EndpointType::BulkIn)
             .await
             .expect("Failed to receive a SCSI status.");
