@@ -7,6 +7,7 @@ mod stack_frame;
 mod switch;
 
 use crate::{mem::allocator::kpbox::KpBox, tss::TSS};
+use alloc::collections::VecDeque;
 use common::constant::INTERRUPT_STACK;
 use core::{
     convert::TryInto,
@@ -70,6 +71,8 @@ pub struct Process {
     stack: KpBox<[u8]>,
     stack_frame: KpBox<StackFrame>,
     privilege: Privilege,
+
+    pids_try_to_send_this_process: VecDeque<i32>,
 }
 impl Process {
     const STACK_SIZE: u64 = Size4KiB::SIZE * 12;
@@ -95,6 +98,8 @@ impl Process {
             stack,
             stack_frame,
             privilege,
+
+            pids_try_to_send_this_process: VecDeque::new(),
         }
     }
 
