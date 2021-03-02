@@ -121,8 +121,7 @@ impl Receiver {
     }
 
     fn copy_msg(&self, src_pid: super::Id) {
-        let src = collections::process::handle(src_pid.into(), |p| p.msg_ptr)
-            .expect("Process not found.");
+        let src = collections::process::handle(src_pid, |p| p.msg_ptr).expect("Process not found.");
 
         unsafe { copy_msg(src, self.msg_buf) }
     }
