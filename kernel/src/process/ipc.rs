@@ -42,7 +42,7 @@ impl Sender {
 
     fn copy_msg_and_wake(&self) {
         self.copy_msg();
-        self.remove_msg_buf();
+        Self::remove_msg_buf();
         self.wake_dst();
     }
 
@@ -53,7 +53,7 @@ impl Sender {
         unsafe { copy_msg(self.msg, dst) }
     }
 
-    fn remove_msg_buf(&self) {
+    fn remove_msg_buf() {
         collections::process::handle_running_mut(|p| p.msg_ptr = None)
     }
 
