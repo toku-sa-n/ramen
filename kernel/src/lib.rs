@@ -59,10 +59,6 @@ pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
 }
 
 fn init(boot_info: &mut kernelboot::Info) {
-    initialize_in_kernel_mode(boot_info);
-}
-
-fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
     gdt::init();
     idt::init();
 
