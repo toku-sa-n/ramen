@@ -2,7 +2,7 @@
 
 mod collections;
 mod exit;
-mod ipc;
+pub(crate) mod ipc;
 mod page_table;
 mod stack_frame;
 mod switch;
