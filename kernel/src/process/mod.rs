@@ -42,10 +42,6 @@ fn block_running() {
     collections::woken_pid::pop();
 }
 
-fn wake_process(id: Id) {
-    collections::woken_pid::push(id);
-}
-
 fn push_process_to_queue(p: Process) {
     add_pid(p.id());
     add_process(p);
