@@ -5,6 +5,7 @@
 #![allow(clippy::missing_panics_doc)]
 
 use core::{convert::TryInto, ffi::c_void};
+use message::Message;
 use num_derive::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
@@ -131,6 +132,23 @@ pub fn translate_address(a: VirtAddr) -> PhysAddr {
     PhysAddr::new(unsafe { general_syscall(Ty::TranslateAddress, a.as_u64(), 0, 0) })
 }
 
+pub fn send(m: Message, to: i32) {
+    // SAFETY: All parameters are passed properly.
+    unsafe {
+        general_syscall(
+            Ty::Send,
+            &m as *const Message as u64,
+            to.try_into().unwrap(),
+            0,
+        );
+    }
+}
+
+pub fn receive_from_any() -> Message {
+    let p = unsafe { general_syscall(Ty::Receive, 0, 0, 0) } as *const _;
+    unsafe { *p }
+}
+
 /// # Safety
 ///
 /// `buf` must be valid.
@@ -172,4 +190,6 @@ pub enum Ty {
     Exit,
     TranslateAddress,
     Write,
+    Send,
+    Receive,
 }
