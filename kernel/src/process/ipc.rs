@@ -29,14 +29,14 @@ impl Sender {
     }
 
     fn send(self) {
-        if self.is_receiver_waiting() {
+        if Self::is_receiver_waiting() {
             self.copy_msg_and_wake();
         } else {
             self.set_msg_buf_and_sleep();
         }
     }
 
-    fn is_receiver_waiting(&self) -> bool {
+    fn is_receiver_waiting() -> bool {
         collections::process::handle_running(|p| p.waiting_message() && p.msg_ptr.is_some())
     }
 
