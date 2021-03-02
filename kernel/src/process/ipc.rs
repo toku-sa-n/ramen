@@ -93,25 +93,25 @@ impl Receiver {
     }
 
     fn receive(self) {
-        if self.is_sender_waiting() {
+        if Self::is_sender_waiting() {
             self.copy_msg_and_wake();
         } else {
             self.set_msg_buf_and_sleep();
         }
     }
 
-    fn is_sender_waiting(&self) -> bool {
+    fn is_sender_waiting() -> bool {
         collections::process::handle_running(|p| !p.pids_try_to_send_this_process.is_empty())
     }
 
     fn copy_msg_and_wake(&self) {
-        let src_pid = self.src_pid();
+        let src_pid = Self::src_pid();
 
         self.copy_msg(src_pid);
         Self::wake_sender(src_pid);
     }
 
-    fn src_pid(&self) -> super::Id {
+    fn src_pid() -> super::Id {
         collections::process::handle_running_mut(|p| {
             p.pids_try_to_send_this_process
                 .pop_front()
