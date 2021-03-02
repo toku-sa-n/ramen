@@ -91,13 +91,13 @@ impl<'a> ContextInitializer<'a> {
     fn new(
         cx: &'a mut Context,
         ep: &'a descriptor::Endpoint,
-        transfer_ring: PhysAddr,
+        transfer_ring_addr: PhysAddr,
         port_number: u8,
     ) -> Self {
         Self {
             cx,
             ep,
-            transfer_ring_addr: transfer_ring,
+            transfer_ring_addr,
             port_number,
         }
     }
