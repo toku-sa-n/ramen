@@ -111,11 +111,11 @@ fn sys_unmap_pages(start: VirtAddr, bytes: Bytes) -> u64 {
 }
 
 fn sys_getpid() -> i32 {
-    process::manager::getpid()
+    process::getpid()
 }
 
 fn sys_exit() -> ! {
-    process::manager::exit();
+    process::exit();
 }
 
 fn sys_translate_address(v: VirtAddr) -> PhysAddr {

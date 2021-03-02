@@ -27,8 +27,7 @@ impl StackFrame {
 
     fn new(f: fn(), stack_pointer: VirtAddr, segs: &Selectors) -> Self {
         let cpu_flags = (rflags::read() | RFlags::INTERRUPT_FLAG).bits();
-        let instruction_pointer =
-            VirtAddr::new((super::manager::loader as usize).try_into().unwrap());
+        let instruction_pointer = VirtAddr::new((super::loader as usize).try_into().unwrap());
 
         Self {
             regs: GeneralRegisters::new(f),

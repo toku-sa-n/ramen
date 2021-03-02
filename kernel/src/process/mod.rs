@@ -2,32 +2,58 @@
 
 mod collections;
 mod exit;
-pub mod manager;
 mod message;
 mod page_table;
 mod stack_frame;
 mod switch;
 
+use crate::{mem::allocator::kpbox::KpBox, tss::TSS};
 use common::constant::INTERRUPT_STACK;
 use core::{
     convert::TryInto,
     sync::atomic::{AtomicI32, Ordering},
 };
 use crossbeam_queue::ArrayQueue;
+pub use exit::exit;
 use message::Message;
 use stack_frame::StackFrame;
+pub use switch::switch;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB},
     PhysAddr, VirtAddr,
 };
-
-use crate::{mem::allocator::kpbox::KpBox, tss::TSS};
 
 pub(crate) fn assign_rax_from_register() {
     let rax;
     unsafe { asm!("", out("rax") rax) }
 
     assign_rax(rax);
+}
+
+pub fn add(f: fn(), p: Privilege) {
+    push_process_to_queue(Process::new(f, p));
+}
+
+pub fn getpid() -> i32 {
+    collections::process::handle_running(|p| p.id.as_i32())
+}
+
+fn push_process_to_queue(p: Process) {
+    add_pid(p.id());
+    add_process(p);
+}
+
+fn add_pid(id: Id) {
+    collections::woken_pid::add(id);
+}
+
+fn add_process(p: Process) {
+    collections::process::add(p);
+}
+
+pub(super) fn loader(f: fn()) -> ! {
+    f();
+    syscalls::exit();
 }
 
 fn assign_rax(rax: u64) {
