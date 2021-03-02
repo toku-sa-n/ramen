@@ -10,17 +10,20 @@ use spinning_top::Spinlock;
 pub(super) struct MaxPacketSizeSetter {
     ep: endpoint::Default,
     cx: Arc<Spinlock<Context>>,
+    port_number: u8,
     slot_number: u8,
 }
 impl MaxPacketSizeSetter {
     pub(super) fn new(i: SlotStructuresInitializer) -> Self {
         let cx = i.context();
+        let port_number = i.port_number();
         let slot_number = i.slot_number();
         let ep = i.ep0();
 
         Self {
             ep,
             cx,
+            port_number,
             slot_number,
         }
     }
@@ -31,6 +34,10 @@ impl MaxPacketSizeSetter {
         self.evaluate_context().await;
 
         DescriptorFetcher::new(self)
+    }
+
+    pub(super) fn port_number(&self) -> u8 {
+        self.port_number
     }
 
     pub(super) fn slot_number(&self) -> u8 {

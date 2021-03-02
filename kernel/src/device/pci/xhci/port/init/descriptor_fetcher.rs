@@ -12,17 +12,20 @@ use page_box::PageBox;
 use spinning_top::Spinlock;
 
 pub(super) struct DescriptorFetcher {
+    port_number: u8,
     slot_number: u8,
     cx: Arc<Spinlock<Context>>,
     ep0: endpoint::Default,
 }
 impl DescriptorFetcher {
     pub(super) fn new(s: MaxPacketSizeSetter) -> Self {
+        let port_number = s.port_number();
         let slot_number = s.slot_number();
         let cx = s.context();
         let ep0 = s.ep0();
 
         Self {
+            port_number,
             slot_number,
             cx,
             ep0,
@@ -37,6 +40,10 @@ impl DescriptorFetcher {
 
     pub(super) fn context(&self) -> Arc<Spinlock<Context>> {
         self.cx.clone()
+    }
+
+    pub(super) fn port_number(&self) -> u8 {
+        self.port_number
     }
 
     pub(super) fn slot_number(&self) -> u8 {

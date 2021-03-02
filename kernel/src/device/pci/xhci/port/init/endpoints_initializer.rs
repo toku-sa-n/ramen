@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::convert::TryInto;
-
 use super::{descriptor_fetcher::DescriptorFetcher, fully_operational::FullyOperational};
 use crate::device::pci::xhci::{
     exchanger,
     exchanger::transfer,
     port::endpoint,
-    structures::{context::Context, descriptor, descriptor::Descriptor},
+    structures::{context::Context, descriptor, descriptor::Descriptor, registers},
 };
 use alloc::{sync::Arc, vec::Vec};
 use bit_field::BitField;
+use core::convert::TryInto;
+use num_derive::FromPrimitive;
+use num_traits::FromPrimitive;
 use spinning_top::Spinlock;
 use transfer::DoorbellWriter;
 use x86_64::PhysAddr;
@@ -21,12 +22,14 @@ pub(super) struct EndpointsInitializer {
     descriptors: Vec<Descriptor>,
     endpoints: Vec<endpoint::NonDefault>,
     ep0: endpoint::Default,
+    port_number: u8,
     slot_number: u8,
 }
 impl EndpointsInitializer {
     pub(super) fn new(f: DescriptorFetcher, descriptors: Vec<Descriptor>) -> Self {
         let cx = f.context();
         let endpoints = descriptors_to_endpoints(&f, &descriptors);
+        let port_number = f.port_number();
         let slot_number = f.slot_number();
         let ep0 = f.ep0();
 
@@ -35,6 +38,7 @@ impl EndpointsInitializer {
             descriptors,
             endpoints,
             ep0,
+            port_number,
             slot_number,
         }
     }
@@ -56,8 +60,13 @@ impl EndpointsInitializer {
 
     fn init_contexts(&mut self) {
         for e in &mut self.endpoints {
-            ContextInitializer::new(&e.descriptor(), &mut self.cx.lock(), e.transfer_ring_addr())
-                .init()
+            ContextInitializer::new(
+                &mut self.cx.lock(),
+                &e.descriptor(),
+                e.transfer_ring_addr(),
+                self.port_number,
+            )
+            .init()
         }
     }
 
@@ -73,24 +82,27 @@ impl EndpointsInitializer {
 }
 
 struct ContextInitializer<'a> {
-    ep: &'a descriptor::Endpoint,
     cx: &'a mut Context,
+    ep: &'a descriptor::Endpoint,
     transfer_ring_addr: PhysAddr,
+    port_number: u8,
 }
 impl<'a> ContextInitializer<'a> {
     fn new(
+        cx: &'a mut Context,
         ep: &'a descriptor::Endpoint,
-        context: &'a mut Context,
         transfer_ring: PhysAddr,
+        port_number: u8,
     ) -> Self {
         Self {
+            cx,
             ep,
-            cx: context,
             transfer_ring_addr: transfer_ring,
+            port_number,
         }
     }
 
-    fn init(&mut self) {
+    fn init(mut self) {
         self.set_aflag();
         self.init_ep_context();
     }
@@ -110,9 +122,10 @@ impl<'a> ContextInitializer<'a> {
     }
 
     fn init_ep_context(&mut self) {
-        let ep_ty = self.ep.ty();
+        self.set_interval();
 
-        self.cx().set_endpoint_type(ep_ty);
+        let ep_ty = self.ep.ty();
+        self.ep_cx().set_endpoint_type(ep_ty);
 
         // TODO: This initializes the context only for USB2. Branch if the version of a device is
         // USB3.
@@ -136,7 +149,7 @@ impl<'a> ContextInitializer<'a> {
 
         let sz = self.ep.max_packet_size;
         let a = self.transfer_ring_addr;
-        let c = self.cx();
+        let c = self.ep_cx();
 
         c.set_max_packet_size(sz);
         c.set_error_count(3);
@@ -149,7 +162,7 @@ impl<'a> ContextInitializer<'a> {
 
         let sz = self.ep.max_packet_size;
         let a = self.transfer_ring_addr;
-        let c = self.cx();
+        let c = self.ep_cx();
 
         c.set_max_packet_size(sz);
         c.set_max_burst_size(0);
@@ -174,7 +187,7 @@ impl<'a> ContextInitializer<'a> {
 
         let sz = self.ep.max_packet_size;
         let a = self.transfer_ring_addr;
-        let c = self.cx();
+        let c = self.ep_cx();
 
         c.set_max_packet_size(sz & 0x7ff);
         c.set_max_burst_size(((sz & 0x1800) >> 11).try_into().unwrap());
@@ -200,16 +213,55 @@ impl<'a> ContextInitializer<'a> {
         .contains(&t)
     }
 
-    fn cx(&mut self) -> &mut dyn EndpointHandler {
+    // TODO: Is this calculation correct?
+    fn set_interval(&mut self) {
+        let s = self.port_speed();
+        let t = self.ep.ty();
+        let i = self.ep.interval;
+
+        let i = if let PortSpeed::FullSpeed | PortSpeed::LowSpeed = s {
+            if let EndpointType::IsochronousOut | EndpointType::IsochronousIn = t {
+                i + 2
+            } else {
+                i + 3
+            }
+        } else {
+            i - 1
+        };
+
+        self.ep_cx().set_interval(i);
+    }
+
+    fn port_speed(&self) -> PortSpeed {
+        FromPrimitive::from_u8(registers::handle(|r| {
+            r.port_register_set
+                .read_at((self.port_number - 1).into())
+                .portsc
+                .port_speed()
+        }))
+        .expect("Failed to get the Port Speed.")
+    }
+
+    fn ep_cx(&mut self) -> &mut dyn EndpointHandler {
         let ep_i: usize = self.ep.endpoint_address.get_bits(0..=3).into();
         let is_input = self.ep.endpoint_address.get_bit(7);
         let context_inout = self.cx.input.device_mut().endpoints_mut(ep_i);
+
         if is_input {
             context_inout.input_mut()
         } else {
             context_inout.output_mut()
         }
     }
+}
+
+#[derive(Copy, Clone, FromPrimitive)]
+enum PortSpeed {
+    FullSpeed = 1,
+    LowSpeed = 2,
+    HighSpeed = 3,
+    SuperSpeed = 4,
+    SuperSpeedPlus = 5,
 }
 
 fn descriptors_to_endpoints(
