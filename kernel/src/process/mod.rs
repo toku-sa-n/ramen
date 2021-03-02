@@ -117,10 +117,6 @@ impl Process {
         self.id
     }
 
-    fn sending(&self) -> bool {
-        self.flags.contains(Flags::SENDING)
-    }
-
     fn waiting_message(&self) -> bool {
         self.flags.contains(Flags::RECEIVING)
     }
