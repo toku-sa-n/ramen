@@ -26,6 +26,10 @@ pub(in crate::process) fn pop() -> process::Id {
         .expect("All processes are terminated.")
 }
 
+pub(in crate::process) fn push(id: process::Id) {
+    lock_queue().push_back(id);
+}
+
 fn lock_queue() -> SpinlockGuard<'static, VecDeque<process::Id>> {
     WOKEN_PIDS
         .try_lock()

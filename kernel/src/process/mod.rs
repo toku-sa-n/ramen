@@ -9,6 +9,7 @@ mod switch;
 
 use crate::{mem::allocator::kpbox::KpBox, tss::TSS};
 use alloc::collections::VecDeque;
+use bitflags::bitflags;
 use common::constant::INTERRUPT_STACK;
 use core::{
     convert::TryInto,
@@ -35,6 +36,14 @@ pub fn add(f: fn(), p: Privilege) {
 
 pub fn getpid() -> i32 {
     collections::process::handle_running(|p| p.id.as_i32())
+}
+
+fn block_running() {
+    collections::woken_pid::pop();
+}
+
+fn wake_process(id: Id) {
+    collections::woken_pid::push(id);
 }
 
 fn push_process_to_queue(p: Process) {
@@ -73,6 +82,8 @@ pub struct Process {
     stack_frame: KpBox<StackFrame>,
     privilege: Privilege,
 
+    flags: Flags,
+    msg_ptr: Option<PhysAddr>,
     pids_try_to_send_this_process: VecDeque<i32>,
 }
 impl Process {
@@ -100,12 +111,22 @@ impl Process {
             stack_frame,
             privilege,
 
+            flags: Flags::empty(),
+            msg_ptr: None,
             pids_try_to_send_this_process: VecDeque::new(),
         }
     }
 
     fn id(&self) -> Id {
         self.id
+    }
+
+    fn sending(&self) -> bool {
+        self.flags.contains(Flags::SENDING)
+    }
+
+    fn waiting_message(&self) -> bool {
+        self.flags.contains(Flags::RECEIVING)
     }
 
     fn stack_frame_top_addr(&self) -> VirtAddr {
@@ -115,6 +136,13 @@ impl Process {
     fn stack_frame_bottom_addr(&self) -> VirtAddr {
         let b = self.stack_frame.bytes();
         self.stack_frame_top_addr() + b.as_usize()
+    }
+}
+
+bitflags! {
+    struct Flags:u32{
+        const SENDING=0b0001;
+        const RECEIVING=0b0010;
     }
 }
 
