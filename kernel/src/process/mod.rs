@@ -85,6 +85,7 @@ pub struct Process {
 impl Process {
     const STACK_SIZE: u64 = Size4KiB::SIZE * 12;
 
+    #[allow(clippy::too_many_lines)]
     fn new(f: fn(), privilege: Privilege) -> Self {
         let mut tables = page_table::Collection::default();
         let stack = KpBox::new_slice(0, Self::STACK_SIZE.try_into().unwrap());
