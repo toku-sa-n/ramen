@@ -12,33 +12,6 @@ use spinning_top::Spinlock;
 use x86_64::PhysAddr;
 use xhci::context::{EndpointHandler, EndpointType};
 
-pub(super) struct NonDefault {
-    desc: descriptor::Endpoint,
-    cx: Arc<Spinlock<Context>>,
-    sender: transfer::Sender,
-}
-impl NonDefault {
-    pub(super) fn new(
-        desc: descriptor::Endpoint,
-        cx: Arc<Spinlock<Context>>,
-        sender: transfer::Sender,
-    ) -> Self {
-        Self { desc, cx, sender }
-    }
-
-    pub(super) fn init_context(&mut self) {
-        ContextInitializer::new(&self.desc, &mut self.cx.lock(), &self.sender).init();
-    }
-
-    pub(super) fn ty(&self) -> EndpointType {
-        self.desc.ty()
-    }
-
-    pub(super) async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
-        self.sender.issue_normal_trb(b).await
-    }
-}
-
 pub(super) struct Default {
     sender: transfer::Sender,
 }
@@ -71,6 +44,33 @@ impl Default {
 
     pub(super) async fn set_boot_protocol(&mut self) {
         self.sender.set_boot_protocol().await;
+    }
+}
+
+pub(super) struct NonDefault {
+    desc: descriptor::Endpoint,
+    cx: Arc<Spinlock<Context>>,
+    sender: transfer::Sender,
+}
+impl NonDefault {
+    pub(super) fn new(
+        desc: descriptor::Endpoint,
+        cx: Arc<Spinlock<Context>>,
+        sender: transfer::Sender,
+    ) -> Self {
+        Self { desc, cx, sender }
+    }
+
+    pub(super) fn init_context(&mut self) {
+        ContextInitializer::new(&self.desc, &mut self.cx.lock(), &self.sender).init();
+    }
+
+    pub(super) fn ty(&self) -> EndpointType {
+        self.desc.ty()
+    }
+
+    pub(super) async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
+        self.sender.issue_normal_trb(b).await
     }
 }
 
