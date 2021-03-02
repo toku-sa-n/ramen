@@ -134,7 +134,7 @@ impl Receiver {
 
     fn set_msg_buf_and_sleep(&self) {
         self.set_msg_buf();
-        self.mark_as_receiving();
+        Self::mark_as_receiving();
         sleep();
     }
 
@@ -148,7 +148,7 @@ impl Receiver {
         })
     }
 
-    fn mark_as_receiving(&self) {
+    fn mark_as_receiving() {
         collections::process::handle_running_mut(|p| p.flags |= super::Flags::RECEIVING)
     }
 }
