@@ -35,6 +35,11 @@ jobs:
     - name: Run clippy
       run: make clippy
 
+    - name: Run udeps
+      run: |
+        cargo install cargo-udeps
+        make udeps
+
     - name: Install dependencies
       run: |
         sudo apt-get update
