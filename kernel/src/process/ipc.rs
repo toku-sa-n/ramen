@@ -63,7 +63,10 @@ impl Sender {
     }
 
     fn wake_dst(&self) {
-        collections::process::handle_mut(self.to.into(), |p| p.flags -= super::Flags::RECEIVING);
+        collections::process::handle_mut(self.to.into(), |p| {
+            p.flags -= super::Flags::RECEIVING;
+            p.msg_ptr = None;
+        });
         collections::woken_pid::push(self.to.into());
     }
 
