@@ -135,7 +135,7 @@ pub fn translate_address(a: VirtAddr) -> PhysAddr {
 pub fn send(m: Message, to: i32) {
     let ty = Ty::Send as u64;
     let a1 = &m as *const Message as u64;
-    let a2 = to as u64;
+    let a2 = to;
     let a3 = 0;
     unsafe {
         asm!("int 0x81",
