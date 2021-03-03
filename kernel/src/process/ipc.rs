@@ -56,7 +56,10 @@ impl Sender {
     }
 
     fn remove_msg_buf() {
-        collections::process::handle_running_mut(|p| p.msg_ptr = None)
+        collections::process::handle_running_mut(|p| {
+            p.msg_ptr = None;
+            p.flags -= super::Flags::SENDING;
+        })
     }
 
     fn wake_dst(&self) {
