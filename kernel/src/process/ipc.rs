@@ -49,7 +49,7 @@ impl Sender {
     }
 
     fn copy_msg(&self) {
-        let dst = collections::process::handle_running(|p| p.msg_ptr);
+        let dst = collections::process::handle(self.to.into(), |p| p.msg_ptr);
         let dst = dst.expect("Message destination address is not specified.");
 
         unsafe { copy_msg(self.msg, dst) }
