@@ -1,20 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
-#![feature(option_expect_none)]
-#![feature(int_bits_const)]
-#![feature(const_btree_new)]
-#![feature(async_closure)]
-#![feature(alloc_error_handler)]
-#![feature(linked_list_remove)]
-#![feature(const_fn)]
-#![feature(asm)]
-#![feature(panic_info_message)]
-#![feature(start)]
-#![feature(naked_functions)]
-#![feature(abi_x86_interrupt)]
-#![deny(clippy::pedantic)]
-#![deny(clippy::all)]
+#![feature(
+    option_expect_none,
+    int_bits_const,
+    const_btree_new,
+    async_closure,
+    alloc_error_handler,
+    linked_list_remove,
+    const_fn,
+    asm,
+    panic_info_message,
+    start,
+    naked_functions,
+    abi_x86_interrupt
+)]
+#![deny(clippy::pedantic, clippy::all)]
 
 #[macro_use]
 #[allow(unused_imports)]
