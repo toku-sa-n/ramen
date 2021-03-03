@@ -5,6 +5,7 @@
 #![allow(clippy::missing_panics_doc)]
 
 use core::{convert::TryInto, ffi::c_void};
+use message::Message;
 use num_derive::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
@@ -131,6 +132,30 @@ pub fn translate_address(a: VirtAddr) -> PhysAddr {
     PhysAddr::new(unsafe { general_syscall(Ty::TranslateAddress, a.as_u64(), 0, 0) })
 }
 
+pub fn send(m: Message, to: i32) {
+    let ty = Ty::Send as u64;
+    let a1 = &m as *const Message as u64;
+    let a2 = to;
+    let a3 = 0;
+    unsafe {
+        asm!("int 0x81",
+        inout("rax") ty => _, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
+        out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
+    }
+}
+
+pub fn receive_from_any(m: *mut Message) {
+    let ty = Ty::Receive as u64;
+    let a1 = m as u64;
+    let a2 = 0;
+    let a3 = 0;
+    unsafe {
+        asm!("int 0x81",
+        inout("rax") ty => _, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
+        out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
+    }
+}
+
 /// # Safety
 ///
 /// `buf` must be valid.
@@ -172,4 +197,6 @@ pub enum Ty {
     Exit,
     TranslateAddress,
     Write,
+    Send,
+    Receive,
 }

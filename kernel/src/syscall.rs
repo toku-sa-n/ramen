@@ -57,6 +57,8 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
             )
             .try_into()
             .unwrap(),
+            syscalls::Ty::Send => sys_send(VirtAddr::new(a1), a2.try_into().unwrap()),
+            syscalls::Ty::Receive => sys_receive(VirtAddr::new(a1)),
         },
         None => panic!("Unsupported syscall index: {}", idx),
     }
@@ -145,4 +147,14 @@ unsafe fn sys_write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
     } else {
         unimplemented!("Not stdout");
     }
+}
+
+fn sys_send(m: VirtAddr, to: i32) -> u64 {
+    process::ipc::send(m, to);
+    0
+}
+
+fn sys_receive(m: VirtAddr) -> u64 {
+    process::ipc::receive(m);
+    0
 }
