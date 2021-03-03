@@ -134,26 +134,24 @@ pub fn translate_address(a: VirtAddr) -> PhysAddr {
 
 pub fn send(m: Message, to: i32) {
     let ty = Ty::Send as u64;
-    let r: u64;
     let a1 = &m as *const Message as u64;
     let a2 = to as u64;
     let a3 = 0;
     unsafe {
         asm!("int 0x81",
-        inout("rax") ty => r, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
+        inout("rax") ty => _, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
         out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
     }
 }
 
 pub fn receive_from_any(m: *mut Message) {
     let ty = Ty::Receive as u64;
-    let r: u64;
     let a1 = m as u64;
     let a2 = 0;
     let a3 = 0;
     unsafe {
         asm!("int 0x81",
-        inout("rax") ty => r, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
+        inout("rax") ty => _, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
         out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
     }
 }
