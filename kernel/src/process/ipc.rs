@@ -64,6 +64,7 @@ impl Sender {
 
     fn set_msg_buf_and_sleep(&self) {
         self.set_msg_buf();
+        self.add_self_as_trying_to_send();
         Self::mark_as_sending();
         sleep();
     }
@@ -76,6 +77,12 @@ impl Sender {
                 panic!("Message is already stored.");
             }
         })
+    }
+
+    fn add_self_as_trying_to_send(&self) {
+        collections::process::handle_mut(self.to.into(), |p| {
+            p.pids_try_to_send_this_process.push_back(self.to)
+        });
     }
 
     fn mark_as_sending() {
