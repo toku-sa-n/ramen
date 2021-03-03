@@ -140,7 +140,10 @@ impl Receiver {
     }
 
     fn wake_sender(src_pid: super::Id) {
-        collections::process::handle_mut(src_pid, |p| p.flags -= super::Flags::SENDING);
+        collections::process::handle_mut(src_pid, |p| {
+            p.flags -= super::Flags::SENDING;
+            p.msg_ptr = None;
+        });
         collections::woken_pid::push(src_pid);
     }
 
