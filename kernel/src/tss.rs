@@ -6,6 +6,6 @@ use x86_64::structures::tss::TaskStateSegment;
 
 pub static TSS: Spinlock<TaskStateSegment> = {
     let mut tss = TaskStateSegment::new();
-    tss.privilege_stack_table[0] = INTERRUPT_STACK;
+    tss.interrupt_stack_table[0] = INTERRUPT_STACK;
     Spinlock::new(tss)
 };
