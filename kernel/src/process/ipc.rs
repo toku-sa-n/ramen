@@ -88,8 +88,9 @@ impl Sender {
     }
 
     fn add_self_as_trying_to_send(&self) {
+        let pid = super::getpid();
         collections::process::handle_mut(self.to.into(), |p| {
-            p.pids_try_to_send_this_process.push_back(self.to)
+            p.pids_try_to_send_this_process.push_back(pid)
         });
     }
 
