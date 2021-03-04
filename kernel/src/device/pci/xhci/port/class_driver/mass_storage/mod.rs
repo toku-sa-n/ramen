@@ -27,6 +27,7 @@ pub(in crate::device::pci::xhci::port) async fn task(eps: FullyOperational) {
     let b = m.read_capacity().await;
     info!("Read Capacity: {:?}", b);
 
+    m.write10().await;
     let b = m.read10().await;
     info!("Buf: {:X?}", b);
 }
@@ -111,6 +112,23 @@ impl MassStorage {
         response
     }
 
+    async fn write10(&mut self) {
+        let header = CommandBlockWrapperHeaderBuilder::default()
+            .transfer_length(0x0008)
+            .flags(0)
+            .lun(0)
+            .command_len(0x0a)
+            .build()
+            .expect("Failed to build a write 10 command block wrapper.");
+        let data = CommandDataBlock::write10();
+        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data));
+
+        let content = PageBox::from(0x334_usize);
+
+        let status = self.send_scsi_command_for_out(&mut wrapper, &content).await;
+        status.check_corruption();
+    }
+
     async fn send_scsi_command<T>(
         &mut self,
         c: &mut PageBox<CommandBlockWrapper>,
@@ -122,6 +140,16 @@ impl MassStorage {
         let response = self.receive_command_response().await;
         let status = self.receive_command_status().await;
         (response, status)
+    }
+
+    async fn send_scsi_command_for_out(
+        &mut self,
+        c: &mut PageBox<CommandBlockWrapper>,
+        d: &PageBox<impl ?Sized>,
+    ) -> PageBox<CommandStatusWrapper> {
+        self.send_command_block_wrapper(c).await;
+        self.send_additional_data(d).await;
+        self.receive_command_status().await
     }
 
     async fn send_command_block_wrapper(&mut self, c: &mut PageBox<CommandBlockWrapper>) {
@@ -141,6 +169,13 @@ impl MassStorage {
             .await
             .expect("Failed to receive a SCSI command reponse.");
         c
+    }
+
+    async fn send_additional_data(&mut self, d: &PageBox<impl ?Sized>) {
+        self.ep
+            .issue_normal_trb(d, EndpointType::BulkOut)
+            .await
+            .expect("Failed to send a data.");
     }
 
     async fn receive_command_status(&mut self) -> PageBox<CommandStatusWrapper> {
