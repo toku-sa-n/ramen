@@ -42,9 +42,9 @@ impl FullyOperational {
         unreachable!("HID class must have at least one interface descriptor");
     }
 
-    pub(in super::super) async fn issue_normal_trb<T>(
+    pub(in super::super) async fn issue_normal_trb(
         &mut self,
-        b: &PageBox<T>,
+        b: &PageBox<impl ?Sized>,
         ty: EndpointType,
     ) -> Result<(), Error> {
         for ep in &mut self.eps {
