@@ -2,17 +2,14 @@
 
 use super::woken_pid;
 use crate::{process, process::Process};
-use alloc::collections::BTreeMap;
-use spinning_top::{Spinlock, SpinlockGuard};
+use alloc::vec::Vec;
+use core::ops::DerefMut;
+use spinning_top::Spinlock;
 
-static PROCESSES: Spinlock<BTreeMap<process::Id, Process>> = Spinlock::new(BTreeMap::new());
+static PROCESSES: Spinlock<Vec<Process>> = Spinlock::new(Vec::new());
 
 pub(in crate::process) fn add(p: Process) {
-    let id = p.id();
-    PROCESSES
-        .lock()
-        .insert(id, p)
-        .expect_none("Duplicated process.");
+    lock_processes().deref_mut().push(p)
 }
 
 pub(in crate::process) fn handle_running_mut<T, U>(f: T) -> U
@@ -28,9 +25,10 @@ where
     T: FnOnce(&mut Process) -> U,
 {
     let mut l = lock_processes();
-    let p = l
-        .get_mut(&id)
-        .unwrap_or_else(|| panic!("Process of PID {} does not exist.", id.as_i32()));
+    let mut i = l.deref_mut().iter_mut();
+    let p = i.find(|p| p.id == id);
+    let p = p.expect("No such process.");
+
     f(p)
 }
 
@@ -46,14 +44,15 @@ pub(in crate::process) fn handle<T, U>(id: process::Id, f: T) -> U
 where
     T: FnOnce(&Process) -> U,
 {
-    let l = lock_processes();
-    let p = l
-        .get(&id)
-        .unwrap_or_else(|| panic!("Process of PID {} does not exist.", id.as_i32()));
+    let mut l = lock_processes();
+    let mut i = l.deref_mut().iter();
+    let p = i.find(|p| p.id == id);
+    let p = p.expect("No such process.");
+
     f(p)
 }
 
-fn lock_processes() -> SpinlockGuard<'static, BTreeMap<process::Id, Process>> {
+fn lock_processes() -> impl DerefMut<Target = Vec<Process>> {
     PROCESSES
         .try_lock()
         .expect("Failed to acquire the lock of `PROCESSES`.")
