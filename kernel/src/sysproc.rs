@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::process::ipc;
 use core::convert::TryInto;
 use message::Message;
 use num_traits::FromPrimitive;
-use x86_64::{instructions::port::PortReadOnly, VirtAddr};
+use x86_64::instructions::port::PortReadOnly;
 
 const PID: i32 = 0;
 
@@ -46,12 +45,9 @@ unsafe fn reply_inb(m: Message) {
     let b = message::Body(r.into(), 0, 0, 0, 0);
 
     let reply = Message::new(h, b);
-    let reply_addr = &reply as *const Message as u64;
-    let reply_addr = VirtAddr::new(reply_addr);
-
     let to = m.header.sender;
 
-    ipc::send(reply_addr, to);
+    syscalls::send(reply, to);
 }
 
 /// # Safety
