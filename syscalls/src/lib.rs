@@ -62,7 +62,13 @@ pub unsafe fn outb(port: u16, value: u8) {
 /// This function is unsafe because writing a value via I/O port may have side effects
 /// which violate memory safety.
 pub unsafe fn outl(port: u16, value: u32) {
-    general_syscall(Ty::Outl, port.into(), value.into(), 0);
+    let body = message::Body(Ty::Outl as u64, port.into(), value.into(), 0, 0);
+    let header = message::Header::new(getpid());
+    let m = Message::new(header, body);
+
+    send(m, 0);
+
+    receive_ack();
 }
 
 #[must_use]

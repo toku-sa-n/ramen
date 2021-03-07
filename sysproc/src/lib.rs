@@ -47,6 +47,7 @@ fn select_system_calls(m: Message, t: syscalls::Ty) {
         syscalls::Ty::Inb => unsafe { reply_inb(m) },
         syscalls::Ty::Inl => unsafe { reply_inl(m) },
         syscalls::Ty::Outb => unsafe { reply_outb(m) },
+        syscalls::Ty::Outl => unsafe { reply_outl(m) },
         _ => todo!(),
     }
 }
@@ -63,6 +64,11 @@ unsafe fn reply_inl(m: Message) {
 
 unsafe fn reply_outb(m: Message) {
     port::outb(m);
+    reply_without_contents(m);
+}
+
+unsafe fn reply_outl(m: Message) {
+    port::outl(m);
     reply_without_contents(m);
 }
 
