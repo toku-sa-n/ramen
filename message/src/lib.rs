@@ -8,6 +8,7 @@ pub struct Message {
     pub body: Body,
 }
 impl Message {
+    #[must_use]
     pub fn new(header: Header, body: Body) -> Self {
         Self { header, body }
     }
@@ -18,6 +19,7 @@ pub struct Header {
     pub sender: i32,
 }
 impl Header {
+    #[must_use]
     pub fn new(sender: i32) -> Self {
         Self { sender }
     }
