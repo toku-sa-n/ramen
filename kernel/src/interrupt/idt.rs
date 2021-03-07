@@ -18,6 +18,10 @@ static IDT: Lazy<InterruptDescriptorTable> = Lazy::new(|| {
             .set_handler_fn(interrupt::handler::h_80)
             .set_stack_index(0)
             .set_privilege_level(PrivilegeLevel::Ring3);
+        idt[0x81]
+            .set_handler_fn(interrupt::handler::h_81)
+            .set_privilege_level(PrivilegeLevel::Ring3)
+            .set_stack_index(0);
     }
 
     idt

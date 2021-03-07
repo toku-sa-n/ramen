@@ -1,5 +1,5 @@
 [package]
-name = "syscalls"
+name = "sysproc"
 version = "0.1.0"
 authors = ["toku-sa-n <tokusan441@gmail.com>"]
 edition = "2018"
@@ -7,8 +7,9 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+log = "0.4.14"
 message = { path = "../message" }
 num-derive = "0.3.3"
 num-traits = { version = "0.2.14", default-features = false }
-os_units = "0.2.7"
+syscalls = { path = "../syscalls" }
 x86_64 = "0.13.2"

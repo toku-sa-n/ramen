@@ -2,20 +2,20 @@
 
 mod collections;
 mod exit;
-mod message;
+pub(crate) mod ipc;
 mod page_table;
 mod stack_frame;
 mod switch;
 
 use crate::{mem::allocator::kpbox::KpBox, tss::TSS};
+use alloc::collections::VecDeque;
+use bitflags::bitflags;
 use common::constant::INTERRUPT_STACK;
 use core::{
     convert::TryInto,
     sync::atomic::{AtomicI32, Ordering},
 };
-use crossbeam_queue::ArrayQueue;
 pub use exit::exit;
-use message::Message;
 use stack_frame::StackFrame;
 pub use switch::switch;
 use x86_64::{
@@ -36,6 +36,10 @@ pub fn add(f: fn(), p: Privilege) {
 
 pub fn getpid() -> i32 {
     collections::process::handle_running(|p| p.id.as_i32())
+}
+
+fn block_running() {
+    collections::woken_pid::pop();
 }
 
 fn push_process_to_queue(p: Process) {
@@ -74,12 +78,14 @@ pub struct Process {
     stack_frame: KpBox<StackFrame>,
     privilege: Privilege,
 
-    inbox: ArrayQueue<Message>,
+    flags: Flags,
+    msg_ptr: Option<PhysAddr>,
+    pids_try_to_send_this_process: VecDeque<i32>,
 }
 impl Process {
     const STACK_SIZE: u64 = Size4KiB::SIZE * 12;
-    const BOX_SIZE: usize = 16;
 
+    #[allow(clippy::too_many_lines)]
     fn new(f: fn(), privilege: Privilege) -> Self {
         let mut tables = page_table::Collection::default();
         let stack = KpBox::new_slice(0, Self::STACK_SIZE.try_into().unwrap());
@@ -102,12 +108,18 @@ impl Process {
             stack_frame,
             privilege,
 
-            inbox: ArrayQueue::new(Self::BOX_SIZE),
+            flags: Flags::empty(),
+            msg_ptr: None,
+            pids_try_to_send_this_process: VecDeque::new(),
         }
     }
 
     fn id(&self) -> Id {
         self.id
+    }
+
+    fn waiting_message(&self) -> bool {
+        self.flags.contains(Flags::RECEIVING)
     }
 
     fn stack_frame_top_addr(&self) -> VirtAddr {
@@ -117,6 +129,13 @@ impl Process {
     fn stack_frame_bottom_addr(&self) -> VirtAddr {
         let b = self.stack_frame.bytes();
         self.stack_frame_top_addr() + b.as_usize()
+    }
+}
+
+bitflags! {
+    struct Flags:u32{
+        const SENDING=0b0001;
+        const RECEIVING=0b0010;
     }
 }
 

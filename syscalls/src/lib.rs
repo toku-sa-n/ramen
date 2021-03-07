@@ -5,6 +5,7 @@
 #![allow(clippy::missing_panics_doc)]
 
 use core::{convert::TryInto, ffi::c_void};
+use message::Message;
 use num_derive::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
@@ -15,9 +16,15 @@ use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 /// violate memory safety.
 #[must_use]
 pub unsafe fn inb(port: u16) -> u8 {
-    general_syscall(Ty::Inb, port.into(), 0, 0)
-        .try_into()
-        .unwrap()
+    let body = message::Body(Ty::Inb as u64, port.into(), 0, 0, 0);
+    let header = message::Header::new(getpid());
+    let m = Message::new(header, body);
+
+    send(m, 0);
+
+    let reply = receive_from_any();
+
+    reply.body.0.try_into().unwrap()
 }
 
 /// # Safety
@@ -25,11 +32,15 @@ pub unsafe fn inb(port: u16) -> u8 {
 /// This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
 #[must_use]
 pub unsafe fn inl(port: u16) -> u32 {
-    general_syscall(Ty::Inl, port.into(), 0, 0)
-        .try_into()
-        .unwrap_or_else(|_| {
-            unreachable!("Inl system call returns a value which is out of the ramge of `u32`.")
-        })
+    let body = message::Body(Ty::Inl as u64, port.into(), 0, 0, 0);
+    let header = message::Header::new(getpid());
+    let m = Message::new(header, body);
+
+    send(m, 0);
+
+    let reply = receive_from_any();
+
+    reply.body.0.try_into().unwrap()
 }
 
 /// # Safety
@@ -37,7 +48,13 @@ pub unsafe fn inl(port: u16) -> u32 {
 /// This function is unsafe because writing a value from I/O port may have side effects which
 /// violate memory safety.
 pub unsafe fn outb(port: u16, value: u8) {
-    general_syscall(Ty::Outb, port.into(), value.into(), 0);
+    let body = message::Body(Ty::Outb as u64, port.into(), value.into(), 0, 0);
+    let header = message::Header::new(getpid());
+    let m = Message::new(header, body);
+
+    send(m, 0);
+
+    receive_ack();
 }
 
 /// # Safety
@@ -45,7 +62,13 @@ pub unsafe fn outb(port: u16, value: u8) {
 /// This function is unsafe because writing a value via I/O port may have side effects
 /// which violate memory safety.
 pub unsafe fn outl(port: u16, value: u32) {
-    general_syscall(Ty::Outl, port.into(), value.into(), 0);
+    let body = message::Body(Ty::Outl as u64, port.into(), value.into(), 0, 0);
+    let header = message::Header::new(getpid());
+    let m = Message::new(header, body);
+
+    send(m, 0);
+
+    receive_ack();
 }
 
 #[must_use]
@@ -131,6 +154,36 @@ pub fn translate_address(a: VirtAddr) -> PhysAddr {
     PhysAddr::new(unsafe { general_syscall(Ty::TranslateAddress, a.as_u64(), 0, 0) })
 }
 
+pub fn send(m: Message, to: i32) {
+    let ty = Ty::Send as u64;
+    let a1 = &m as *const Message as u64;
+    let a2 = to;
+    let a3 = 0;
+    unsafe {
+        asm!("int 0x81",
+        inout("rax") ty => _, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
+        out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
+    }
+}
+
+#[must_use]
+pub fn receive_from_any() -> Message {
+    let mut m = Message::default();
+
+    let ty = Ty::Receive as u64;
+    let a1 = &mut m as *mut Message as u64;
+    let a2 = 0;
+    let a3 = 0;
+
+    unsafe {
+        asm!("int 0x81",
+        inout("rax") ty => _, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
+        out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
+    }
+
+    m
+}
+
 /// # Safety
 ///
 /// `buf` must be valid.
@@ -158,7 +211,11 @@ unsafe fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
     r
 }
 
-#[derive(FromPrimitive)]
+fn receive_ack() {
+    let _ = receive_from_any();
+}
+
+#[derive(Copy, Clone, FromPrimitive)]
 pub enum Ty {
     Inb,
     Outb,
@@ -172,4 +229,6 @@ pub enum Ty {
     Exit,
     TranslateAddress,
     Write,
+    Send,
+    Receive,
 }

@@ -44,3 +44,6 @@ page_box = { path = "../page_box" }
 terminal = { path = "../terminal" }
 xhci = "0.5.2"
 accessor = "0.3.0"
+message = { path = "../message" }
+bitflags = "1.2.1"
+sysproc = { path = "../sysproc" }
