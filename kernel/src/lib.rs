@@ -89,6 +89,7 @@ fn init(boot_info: &mut kernelboot::Info) {
 }
 
 fn add_processes() {
+    process::add(sysproc::main, Privilege::Kernel);
     process::add(run_tasks, Privilege::User);
 
     if cfg!(feature = "qemu_test") {
