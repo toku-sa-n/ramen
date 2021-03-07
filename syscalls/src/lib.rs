@@ -33,11 +33,16 @@ pub unsafe fn inb(port: u16) -> u8 {
 /// This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
 #[must_use]
 pub unsafe fn inl(port: u16) -> u32 {
-    general_syscall(Ty::Inl, port.into(), 0, 0)
-        .try_into()
-        .unwrap_or_else(|_| {
-            unreachable!("Inl system call returns a value which is out of the ramge of `u32`.")
-        })
+    let body = message::Body(Ty::Inl as u64, port.into(), 0, 0, 0);
+    let header = message::Header::new(getpid());
+    let m = Message::new(header, body);
+
+    send(m, 0);
+
+    let mut reply = Message::default();
+    receive_from_any(&mut reply);
+
+    reply.body.0.try_into().unwrap()
 }
 
 /// # Safety
@@ -190,7 +195,7 @@ unsafe fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
     r
 }
 
-#[derive(FromPrimitive)]
+#[derive(Copy, Clone, FromPrimitive)]
 pub enum Ty {
     Inb,
     Outb,
