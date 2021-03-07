@@ -46,6 +46,7 @@ fn select_system_calls(m: Message, t: syscalls::Ty) {
     match t {
         syscalls::Ty::Inb => unsafe { reply_inb(m) },
         syscalls::Ty::Inl => unsafe { reply_inl(m) },
+        syscalls::Ty::Outb => unsafe { reply_outb(m) },
         _ => todo!(),
     }
 }
@@ -60,9 +61,24 @@ unsafe fn reply_inl(m: Message) {
     reply_with_result(m, r.into());
 }
 
+unsafe fn reply_outb(m: Message) {
+    port::outb(m);
+    reply_without_contents(m);
+}
+
 fn reply_with_result(received: Message, result: u64) {
     let h = message::Header::new(PID);
     let b = message::Body(result, 0, 0, 0, 0);
+
+    let reply = Message::new(h, b);
+    let to = received.header.sender;
+
+    syscalls::send(reply, to);
+}
+
+fn reply_without_contents(received: Message) {
+    let h = message::Header::new(PID);
+    let b = message::Body::default();
 
     let reply = Message::new(h, b);
     let to = received.header.sender;

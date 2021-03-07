@@ -2,7 +2,10 @@
 
 use core::convert::TryInto;
 use message::Message;
-use x86_64::{instructions::port::PortReadOnly, structures::port::PortRead};
+use x86_64::{
+    instructions::port::{PortReadOnly, PortWriteOnly},
+    structures::port::PortRead,
+};
 
 pub(super) unsafe fn inb(m: Message) -> u8 {
     read_from_port(m)
@@ -10,6 +13,13 @@ pub(super) unsafe fn inb(m: Message) -> u8 {
 
 pub(super) unsafe fn inl(m: Message) -> u32 {
     read_from_port(m)
+}
+
+pub(super) unsafe fn outb(m: Message) {
+    let message::Body(_, p, v, ..) = m.body;
+    let mut p = PortWriteOnly::<u8>::new(p.try_into().unwrap());
+
+    p.write(v.try_into().unwrap());
 }
 
 unsafe fn read_from_port<T: PortRead>(m: Message) -> T {

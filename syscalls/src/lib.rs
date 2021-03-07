@@ -48,7 +48,13 @@ pub unsafe fn inl(port: u16) -> u32 {
 /// This function is unsafe because writing a value from I/O port may have side effects which
 /// violate memory safety.
 pub unsafe fn outb(port: u16, value: u8) {
-    general_syscall(Ty::Outb, port.into(), value.into(), 0);
+    let body = message::Body(Ty::Outb as u64, port.into(), value.into(), 0, 0);
+    let header = message::Header::new(getpid());
+    let m = Message::new(header, body);
+
+    send(m, 0);
+
+    receive_ack();
 }
 
 /// # Safety
@@ -197,6 +203,10 @@ unsafe fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
         inout("rax") ty => r, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
         out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
     r
+}
+
+fn receive_ack() {
+    let _ = receive_from_any();
 }
 
 #[derive(Copy, Clone, FromPrimitive)]
