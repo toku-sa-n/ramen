@@ -154,6 +154,7 @@ pub fn send(m: Message, to: i32) {
     }
 }
 
+#[must_use]
 pub fn receive_from_any() -> Message {
     let mut m = Message::default();
 
