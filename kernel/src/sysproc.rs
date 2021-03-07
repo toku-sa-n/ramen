@@ -15,11 +15,15 @@ pub(super) fn main() {
 
 fn main_loop() {
     loop {
-        let mut m = Message::default();
-
-        syscalls::receive_from_any(&mut m);
-        handle_message(m);
+        main_loop_iteration();
     }
+}
+
+fn main_loop_iteration() {
+    let mut m = Message::default();
+
+    syscalls::receive_from_any(&mut m);
+    handle_message(m);
 }
 
 fn ensure_pid_is_correct() {
