@@ -16,9 +16,16 @@ use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 /// violate memory safety.
 #[must_use]
 pub unsafe fn inb(port: u16) -> u8 {
-    general_syscall(Ty::Inb, port.into(), 0, 0)
-        .try_into()
-        .unwrap()
+    let body = message::Body(Ty::Inb as u64, port.into(), 0, 0, 0);
+    let header = message::Header::new(getpid());
+    let m = Message::new(header, body);
+
+    send(m, 0);
+
+    let mut reply = Message::default();
+    receive_from_any(&mut reply);
+
+    reply.body.0.try_into().unwrap()
 }
 
 /// # Safety
