@@ -10,10 +10,13 @@ const PID: i32 = 0;
 
 pub(super) fn main() {
     ensure_pid_is_correct();
+    main_loop();
+}
 
-    let mut m = Message::default();
-
+fn main_loop() {
     loop {
+        let mut m = Message::default();
+
         syscalls::receive_from_any(&mut m);
         handle_message(m);
     }
