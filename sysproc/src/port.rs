@@ -5,14 +5,14 @@ use message::Message;
 use x86_64::{instructions::port::PortReadOnly, structures::port::PortRead};
 
 pub(super) unsafe fn inb(m: Message) -> u8 {
-    read_port(m)
+    read_from_port(m)
 }
 
 pub(super) unsafe fn inl(m: Message) -> u32 {
-    read_port(m)
+    read_from_port(m)
 }
 
-unsafe fn read_port<T: PortRead>(m: Message) -> T {
+unsafe fn read_from_port<T: PortRead>(m: Message) -> T {
     let p = m.body.1;
     let mut p = PortReadOnly::new(p.try_into().unwrap());
 
