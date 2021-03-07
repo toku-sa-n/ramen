@@ -27,9 +27,10 @@ pub(in crate::device::pci::xhci::port) async fn task(eps: FullyOperational) {
     let b = m.read_capacity().await;
     info!("Read Capacity: {:?}", b);
 
-    m.write10().await;
     let b = m.read10().await;
     info!("Buf: {:X?}", b);
+
+    m.write10().await;
 }
 
 struct MassStorage {
