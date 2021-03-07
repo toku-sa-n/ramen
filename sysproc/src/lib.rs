@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#![no_std]
+
+#[macro_use]
+extern crate log;
+
 use core::convert::TryInto;
 use message::Message;
 use num_traits::FromPrimitive;
@@ -7,7 +12,7 @@ use x86_64::{instructions::port::PortReadOnly, structures::port::PortRead};
 
 const PID: i32 = 0;
 
-pub(super) fn main() {
+pub fn main() {
     ensure_pid_is_correct();
     main_loop();
 }
