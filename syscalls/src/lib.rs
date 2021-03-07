@@ -22,8 +22,7 @@ pub unsafe fn inb(port: u16) -> u8 {
 
     send(m, 0);
 
-    let mut reply = Message::default();
-    receive_from_any(&mut reply);
+    let reply = receive_from_any();
 
     reply.body.0.try_into().unwrap()
 }
@@ -39,8 +38,7 @@ pub unsafe fn inl(port: u16) -> u32 {
 
     send(m, 0);
 
-    let mut reply = Message::default();
-    receive_from_any(&mut reply);
+    let reply = receive_from_any();
 
     reply.body.0.try_into().unwrap()
 }
@@ -156,16 +154,21 @@ pub fn send(m: Message, to: i32) {
     }
 }
 
-pub fn receive_from_any(m: *mut Message) {
+pub fn receive_from_any() -> Message {
+    let mut m = Message::default();
+
     let ty = Ty::Receive as u64;
-    let a1 = m as u64;
+    let a1 = &mut m as *mut Message as u64;
     let a2 = 0;
     let a3 = 0;
+
     unsafe {
         asm!("int 0x81",
         inout("rax") ty => _, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
         out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
     }
+
+    m
 }
 
 /// # Safety

@@ -19,9 +19,7 @@ fn main_loop() {
 }
 
 fn main_loop_iteration() {
-    let mut m = Message::default();
-
-    syscalls::receive_from_any(&mut m);
+    let m = syscalls::receive_from_any();
     handle_message(m);
 }
 

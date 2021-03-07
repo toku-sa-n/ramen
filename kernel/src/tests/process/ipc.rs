@@ -24,14 +24,14 @@ pub fn proc_1() {
 
     let m_body = message::Body(3, 1, 4, 1, 5);
     let m_header = message::Header::new(syscalls::getpid());
-    let mut m = Message::new(m_header, m_body);
+    let m = Message::new(m_header, m_body);
 
     while !PROC2_PID.is_initialized() {}
     let to = *PROC2_PID.get().expect("PROC2_PID is not initialized.");
 
     syscalls::send(m, to);
 
-    syscalls::receive_from_any(&mut m);
+    let m = syscalls::receive_from_any();
 
     let reply_body = message::Body(4, 2, 1, 9, 5);
     let reply_header = message::Header::new(*PROC2_PID.get().unwrap());
@@ -45,8 +45,7 @@ pub fn proc_2() {
     PROC2_PID.init_once(syscalls::getpid);
     while !PROC1_PID.is_initialized() {}
 
-    let mut m = Message::default();
-    syscalls::receive_from_any(&mut m);
+    let m = syscalls::receive_from_any();
 
     let reply_body = message::Body(3, 1, 4, 1, 5);
     let reply_header = message::Header::new(*PROC1_PID.get().unwrap());
