@@ -4,9 +4,6 @@ use core::convert::TryInto;
 use message::Message;
 use x86_64::{instructions::port::PortReadOnly, structures::port::PortRead};
 
-/// # Safety
-///
-/// `m.body.1` must be the valid port number.
 pub(super) unsafe fn inb(m: Message) -> u8 {
     read_port(m)
 }
