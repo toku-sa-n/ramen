@@ -5,10 +5,10 @@
 #[macro_use]
 extern crate log;
 
-use core::convert::TryInto;
+mod port;
+
 use message::Message;
 use num_traits::FromPrimitive;
-use x86_64::{instructions::port::PortReadOnly, structures::port::PortRead};
 
 const PID: i32 = 0;
 
@@ -51,12 +51,12 @@ fn select_system_calls(m: Message, t: syscalls::Ty) {
 }
 
 unsafe fn reply_inb(m: Message) {
-    let r = inb(m);
+    let r = port::inb(m);
     reply_with_result(m, r.into());
 }
 
 unsafe fn reply_inl(m: Message) {
-    let r = inl(m);
+    let r = port::inl(m);
     reply_with_result(m, r.into());
 }
 
@@ -68,22 +68,4 @@ fn reply_with_result(received: Message, result: u64) {
     let to = received.header.sender;
 
     syscalls::send(reply, to);
-}
-
-/// # Safety
-///
-/// `m.body.1` must be the valid port number.
-unsafe fn inb(m: Message) -> u8 {
-    read_port(m)
-}
-
-unsafe fn inl(m: Message) -> u32 {
-    read_port(m)
-}
-
-unsafe fn read_port<T: PortRead>(m: Message) -> T {
-    let p = m.body.1;
-    let mut p = PortReadOnly::new(p.try_into().unwrap());
-
-    p.read()
 }
