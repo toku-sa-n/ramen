@@ -1,38 +1,97 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#[repr(transparent)]
-#[derive(Default)]
-pub(in super::super) struct CommandDataBlock([u8; 16]);
-impl CommandDataBlock {
-    pub(in super::super) fn inquiry() -> Self {
-        let mut b = Self::default();
-        b.set_command(Command::Inquiry);
-        b.0[4] = 0x24;
-        b
+use byteorder::{BigEndian, ByteOrder};
+
+#[derive(Copy, Clone)]
+pub(in super::super) enum CommandDataBlock {
+    Inquiry(Inquiry),
+    ReadCapacity(ReadCapacity),
+    Read10(Read10),
+    Write10(Write10),
+}
+impl From<CommandDataBlock> for [u8; 16] {
+    fn from(cdb: CommandDataBlock) -> Self {
+        match cdb {
+            CommandDataBlock::Inquiry(i) => i.0,
+            CommandDataBlock::ReadCapacity(r) => r.0,
+            CommandDataBlock::Read10(r) => r.0,
+            CommandDataBlock::Write10(w) => w.0,
+        }
+    }
+}
+
+macro_rules! command {
+    ($name:ident) => {
+        #[derive(Copy, Clone)]
+        pub(in super::super) struct $name([u8; 16]);
+        impl $name {
+            fn set_command(&mut self) -> &mut Self {
+                self.0[0] = Command::$name.into();
+                self
+            }
+        }
+        impl Default for $name {
+            fn default() -> Self {
+                *Self([0; 16]).set_command()
+            }
+        }
+        impl From<$name> for CommandDataBlock {
+            fn from(c: $name) -> CommandDataBlock {
+                CommandDataBlock::$name(c)
+            }
+        }
+    };
+}
+
+command!(Inquiry);
+impl Inquiry {
+    pub(in super::super) fn new(length: u16) -> Self {
+        *Self::default().set_length(length)
     }
 
-    pub(in super::super) fn read_capacity() -> Self {
-        let mut b = Self::default();
-        b.set_command(Command::ReadCapacity);
-        b
+    fn set_length(&mut self, l: u16) -> &mut Self {
+        BigEndian::write_u16(&mut self.0[3..=4], l);
+        self
+    }
+}
+
+command!(ReadCapacity);
+
+command!(Read10);
+impl Read10 {
+    pub(in super::super) fn new(lba: u32, num_of_blocks: u16) -> Self {
+        *Self::default()
+            .set_lba(lba)
+            .set_num_of_blocks(num_of_blocks)
     }
 
-    pub(in super::super) fn read10() -> Self {
-        let mut b = Self::default();
-        b.set_command(Command::Read10);
-        b.0[8] = 0x40;
-        b
+    fn set_lba(&mut self, l: u32) -> &mut Self {
+        BigEndian::write_u32(&mut self.0[2..6], l);
+        self
     }
 
-    pub(in super::super) fn write10() -> Self {
-        let mut b = Self::default();
-        b.set_command(Command::Write10);
-        b.0[8] = 0x40;
-        b
+    fn set_num_of_blocks(&mut self, n: u16) -> &mut Self {
+        BigEndian::write_u16(&mut self.0[7..=8], n);
+        self
+    }
+}
+
+command!(Write10);
+impl Write10 {
+    pub(in super::super) fn new(lba: u32, num_of_blocks: u16) -> Self {
+        *Self::default()
+            .set_lba(lba)
+            .set_num_of_blocks(num_of_blocks)
     }
 
-    fn set_command(&mut self, c: Command) {
-        self.0[0] = c.into();
+    fn set_lba(&mut self, l: u32) -> &mut Self {
+        BigEndian::write_u32(&mut self.0[2..6], l);
+        self
+    }
+
+    fn set_num_of_blocks(&mut self, n: u16) -> &mut Self {
+        BigEndian::write_u16(&mut self.0[7..=8], n);
+        self
     }
 }
 
