@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod channel;
 pub(super) mod response;
 
 use num_derive::FromPrimitive;
