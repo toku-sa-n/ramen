@@ -11,7 +11,7 @@ impl Default for Inquiry {
 
 #[derive(Copy, Clone, Debug, Default)]
 #[repr(transparent)]
-pub(in crate::device::pci::xhci) struct ReadCapacity([u8; 8]);
+pub(in crate::device::pci::xhci) struct ReadCapacity10([u8; 8]);
 
 #[derive(Copy, Clone, Debug)]
 #[repr(transparent)]
