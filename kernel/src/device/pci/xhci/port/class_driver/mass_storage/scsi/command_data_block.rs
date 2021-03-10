@@ -20,12 +20,33 @@ impl From<CommandDataBlock> for [u8; 16] {
     }
 }
 
-#[derive(Copy, Clone)]
-pub(in super::super) struct Inquiry([u8; 16]);
+macro_rules! command {
+    ($name:ident) => {
+        #[derive(Copy, Clone)]
+        pub(in super::super) struct $name([u8; 16]);
+        impl $name {
+            fn set_command(&mut self) -> &mut Self {
+                self.0[0] = Command::$name.into();
+                self
+            }
+        }
+        impl Default for $name {
+            fn default() -> Self {
+                *Self([0; 16]).set_command()
+            }
+        }
+        impl From<$name> for CommandDataBlock {
+            fn from(c: $name) -> CommandDataBlock {
+                CommandDataBlock::$name(c)
+            }
+        }
+    };
+}
+
+command!(Inquiry);
 impl Inquiry {
-    fn set_command(&mut self, c: Command) -> &mut Self {
-        self.0[0] = c.into();
-        self
+    pub(in super::super) fn new(length: u16) -> Self {
+        *Self::default().set_length(length)
     }
 
     fn set_length(&mut self, l: u16) -> &mut Self {
@@ -33,49 +54,15 @@ impl Inquiry {
         self
     }
 }
-impl Default for Inquiry {
-    fn default() -> Self {
-        *Self([0; 16]).set_command(Command::Inquiry).set_length(0x24)
-    }
-}
-impl From<Inquiry> for CommandDataBlock {
-    fn from(i: Inquiry) -> Self {
-        CommandDataBlock::Inquiry(i)
-    }
-}
 
-#[derive(Copy, Clone)]
-pub(in super::super) struct ReadCapacity([u8; 16]);
-impl ReadCapacity {
-    fn set_command(&mut self, c: Command) -> &mut Self {
-        self.0[0] = c.into();
-        self
-    }
-}
-impl Default for ReadCapacity {
-    fn default() -> Self {
-        *Self([0; 16]).set_command(Command::ReadCapacity)
-    }
-}
-impl From<ReadCapacity> for CommandDataBlock {
-    fn from(r: ReadCapacity) -> Self {
-        CommandDataBlock::ReadCapacity(r)
-    }
-}
+command!(ReadCapacity);
 
-#[derive(Copy, Clone)]
-pub(in super::super) struct Read10([u8; 16]);
+command!(Read10);
 impl Read10 {
     pub(in super::super) fn new(lba: u32, num_of_blocks: u16) -> Self {
-        *Self([0; 16])
-            .set_command(Command::Read10)
+        *Self::default()
             .set_lba(lba)
             .set_num_of_blocks(num_of_blocks)
-    }
-
-    fn set_command(&mut self, c: Command) -> &mut Self {
-        self.0[0] = c.into();
-        self
     }
 
     fn set_lba(&mut self, l: u32) -> &mut Self {
@@ -88,25 +75,13 @@ impl Read10 {
         self
     }
 }
-impl From<Read10> for CommandDataBlock {
-    fn from(r: Read10) -> Self {
-        CommandDataBlock::Read10(r)
-    }
-}
 
-#[derive(Copy, Clone)]
-pub(in super::super) struct Write10([u8; 16]);
+command!(Write10);
 impl Write10 {
     pub(in super::super) fn new(lba: u32, num_of_blocks: u16) -> Self {
-        *Self([0; 16])
-            .set_command(Command::Write10)
+        *Self::default()
             .set_lba(lba)
             .set_num_of_blocks(num_of_blocks)
-    }
-
-    fn set_command(&mut self, c: Command) -> &mut Self {
-        self.0[0] = c.into();
-        self
     }
 
     fn set_lba(&mut self, l: u32) -> &mut Self {
@@ -117,11 +92,6 @@ impl Write10 {
     fn set_num_of_blocks(&mut self, n: u16) -> &mut Self {
         BigEndian::write_u16(&mut self.0[7..=8], n);
         self
-    }
-}
-impl From<Write10> for CommandDataBlock {
-    fn from(w: Write10) -> Self {
-        CommandDataBlock::Write10(w)
     }
 }
 
