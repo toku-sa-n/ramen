@@ -63,14 +63,16 @@ impl MassStorage {
     }
 
     async fn inquiry(&mut self) -> Inquiry {
+        const LEN: u16 = 0x24;
+
         let header = CommandBlockWrapperHeaderBuilder::default()
-            .transfer_length(36)
+            .transfer_length(LEN.into())
             .flags(scsi::Flags::In)
             .lun(0)
             .command_len(6)
             .build()
             .expect("Failed to build an inquiry command block wrapper.");
-        let data = command_data_block::Inquiry::new(0x24);
+        let data = command_data_block::Inquiry::new(LEN);
         let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
 
         let (response, status): (PageBox<Inquiry>, _) = self.send_scsi_command(&mut wrapper).await;
