@@ -9,7 +9,7 @@ use crate::device::pci::xhci::{
 use alloc::vec::Vec;
 use page_box::PageBox;
 use scsi::{
-    command_data_block::CommandDataBlock,
+    command_data_block,
     response::{Inquiry, Read10, ReadCapacity},
     CommandBlockWrapper, CommandBlockWrapperHeaderBuilder, CommandStatusWrapper,
 };
@@ -70,8 +70,8 @@ impl MassStorage {
             .command_len(6)
             .build()
             .expect("Failed to build an inquiry command block wrapper.");
-        let data = CommandDataBlock::inquiry();
-        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data));
+        let data = command_data_block::Inquiry::default();
+        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
 
         let (response, status): (PageBox<Inquiry>, _) = self.send_scsi_command(&mut wrapper).await;
 
@@ -87,8 +87,8 @@ impl MassStorage {
             .command_len(10)
             .build()
             .expect("Failed to build a read capacity command block wrapper");
-        let data = CommandDataBlock::read_capacity();
-        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data));
+        let data = command_data_block::ReadCapacity::default();
+        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
 
         let (response, status): (PageBox<ReadCapacity>, _) =
             self.send_scsi_command(&mut wrapper).await;
@@ -105,8 +105,8 @@ impl MassStorage {
             .command_len(0x0a)
             .build()
             .expect("Failed to build a read 10 command block wrapper.");
-        let data = CommandDataBlock::read10();
-        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data));
+        let data = command_data_block::Read10::new(0, 64);
+        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
 
         let (response, status): (PageBox<Read10>, _) = self.send_scsi_command(&mut wrapper).await;
 
@@ -122,8 +122,8 @@ impl MassStorage {
             .command_len(0x0a)
             .build()
             .expect("Failed to build a write 10 command block wrapper.");
-        let data = CommandDataBlock::write10();
-        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data));
+        let data = command_data_block::Write10::new(0, 64);
+        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
 
         let content = PageBox::from(0x334_usize);
 

@@ -9,11 +9,14 @@ use num_derive::FromPrimitive;
 #[repr(C, packed)]
 pub(super) struct CommandBlockWrapper {
     header: CommandBlockWrapperHeader,
-    data: CommandDataBlock,
+    data: [u8; 16],
 }
 impl CommandBlockWrapper {
     pub(super) fn new(header: CommandBlockWrapperHeader, data: CommandDataBlock) -> Self {
-        Self { header, data }
+        Self {
+            header,
+            data: data.into(),
+        }
     }
 }
 
