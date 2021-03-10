@@ -9,8 +9,9 @@ use crate::device::pci::xhci::{
 use alloc::vec::Vec;
 use page_box::PageBox;
 use scsi::{
+    command_data_block::CommandDataBlock,
     response::{Inquiry, Read10, ReadCapacity},
-    CommandBlockWrapper, CommandBlockWrapperHeaderBuilder, CommandDataBlock, CommandStatusWrapper,
+    CommandBlockWrapper, CommandBlockWrapperHeaderBuilder, CommandStatusWrapper,
 };
 use xhci::context::EndpointType;
 
