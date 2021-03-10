@@ -65,7 +65,7 @@ impl MassStorage {
     async fn inquiry(&mut self) -> Inquiry {
         let header = CommandBlockWrapperHeaderBuilder::default()
             .transfer_length(36)
-            .flags(0x80)
+            .flags(scsi::Flags::In)
             .lun(0)
             .command_len(6)
             .build()
@@ -82,7 +82,7 @@ impl MassStorage {
     async fn read_capacity(&mut self) -> ReadCapacity {
         let header = CommandBlockWrapperHeaderBuilder::default()
             .transfer_length(8)
-            .flags(0x80)
+            .flags(scsi::Flags::In)
             .lun(0)
             .command_len(10)
             .build()
@@ -100,7 +100,7 @@ impl MassStorage {
     async fn read10(&mut self) -> PageBox<Read10> {
         let header = CommandBlockWrapperHeaderBuilder::default()
             .transfer_length(0x8000)
-            .flags(0x80)
+            .flags(scsi::Flags::In)
             .lun(0)
             .command_len(0x0a)
             .build()
@@ -117,7 +117,7 @@ impl MassStorage {
     async fn write10(&mut self) {
         let header = CommandBlockWrapperHeaderBuilder::default()
             .transfer_length(0x0008)
-            .flags(0)
+            .flags(scsi::Flags::Out)
             .lun(0)
             .command_len(0x0a)
             .build()

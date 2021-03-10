@@ -29,12 +29,19 @@ pub(super) struct CommandBlockWrapperHeader {
     #[builder(default = "0")]
     tag: u32,
     transfer_length: u32,
-    flags: u8,
+    flags: Flags,
     lun: u8,
     command_len: u8,
 }
 impl CommandBlockWrapperHeader {
     const SIGNATURE: u32 = 0x4342_5355;
+}
+
+#[repr(u8)]
+#[derive(Copy, Clone)]
+pub(super) enum Flags {
+    Out = 0,
+    In = 0x80,
 }
 
 #[repr(C, packed)]
