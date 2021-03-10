@@ -10,7 +10,7 @@ use alloc::vec::Vec;
 use page_box::PageBox;
 use scsi::{
     command_data_block,
-    response::{Inquiry, Read10, ReadCapacity},
+    response::{Inquiry, Read10, ReadCapacity10},
     CommandBlockWrapper, CommandBlockWrapperHeaderBuilder, CommandStatusWrapper,
 };
 use xhci::context::EndpointType;
@@ -25,7 +25,7 @@ pub(in crate::device::pci::xhci::port) async fn task(eps: FullyOperational) {
     let b = m.inquiry().await;
     info!("Inquiry Command: {:?}", b);
 
-    let b = m.read_capacity().await;
+    let b = m.read_capacity_10().await;
     info!("Read Capacity: {:?}", b);
 
     let b = m.read10().await;
@@ -81,7 +81,7 @@ impl MassStorage {
         *response
     }
 
-    async fn read_capacity(&mut self) -> ReadCapacity {
+    async fn read_capacity_10(&mut self) -> ReadCapacity10 {
         let header = CommandBlockWrapperHeaderBuilder::default()
             .transfer_length(8)
             .flags(scsi::Flags::In)
@@ -92,7 +92,7 @@ impl MassStorage {
         let data = command_data_block::ReadCapacity::default();
         let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
 
-        let (response, status): (PageBox<ReadCapacity>, _) =
+        let (response, status): (PageBox<ReadCapacity10>, _) =
             self.send_scsi_command(&mut wrapper).await;
 
         status.check_corruption();
