@@ -3,6 +3,10 @@
 use super::structures::{extended_capabilities, registers};
 use xhci::extended_capabilities::ExtendedCapability;
 
+pub(super) fn exists() -> bool {
+    super::iter_xhc().next().is_some()
+}
+
 pub fn init() {
     get_ownership_from_bios();
     stop_and_reset();

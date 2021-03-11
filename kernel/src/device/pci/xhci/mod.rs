@@ -17,14 +17,14 @@ use structures::{
 use x86_64::PhysAddr;
 
 pub(crate) async fn task() {
-    if init_statics().is_err() {
-        warn!("xHC not found.");
-        return;
+    if xhc::exists() {
+        info!("XHCI");
+        init_statics().expect("xHC should exist.");
+
+        let event_ring = init();
+
+        spawn_tasks(event_ring);
     }
-
-    let event_ring = init();
-
-    spawn_tasks(event_ring);
 }
 
 fn init_statics() -> Result<(), XhcNotFound> {
