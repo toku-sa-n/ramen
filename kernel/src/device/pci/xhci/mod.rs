@@ -24,9 +24,7 @@ pub(crate) async fn task() {
 
     let event_ring = init();
 
-    port::spawn_all_connected_port_tasks();
-
-    multitask::add(Task::new_poll(event::task(event_ring)));
+    spawn_tasks(event_ring);
 }
 
 fn init_statics() -> Result<(), XhcNotFound> {
@@ -59,6 +57,12 @@ fn init() -> event::Ring {
     xhc::ensure_no_error_occurs();
 
     event_ring
+}
+
+fn spawn_tasks(e: event::Ring) {
+    port::spawn_all_connected_port_tasks();
+
+    multitask::add(Task::new_poll(event::task(e)));
 }
 
 fn iter_xhc() -> impl Iterator<Item = PhysAddr> {
