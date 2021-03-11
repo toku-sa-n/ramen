@@ -24,6 +24,7 @@ pub fn run() {
 pub fn ensure_no_error_occurs() {
     registers::handle(|r| {
         let s = r.operational.usbsts.read();
+
         assert!(!s.hc_halted(), "HC is halted.");
         assert!(
             !s.host_system_error(),
