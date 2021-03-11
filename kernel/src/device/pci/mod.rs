@@ -34,6 +34,8 @@ impl Iterator for IterPciDevices {
                     return Some(space);
                 }
             }
+
+            self.device = 0;
         }
 
         None
