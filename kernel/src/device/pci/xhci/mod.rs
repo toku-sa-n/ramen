@@ -16,7 +16,7 @@ use structures::{
 };
 use x86_64::PhysAddr;
 
-pub async fn task() {
+pub(crate) async fn task() {
     if init_statics().is_err() {
         warn!("xHC not found.");
         return;
