@@ -14,6 +14,13 @@ where
     accessor::Single::new(phys_base.as_u64().try_into().unwrap(), Mappers::kernel())
 }
 
+pub unsafe fn user<T>(phys_base: PhysAddr) -> Single<T>
+where
+    T: Copy,
+{
+    accessor::Single::new(phys_base.as_u64().try_into().unwrap(), Mappers::user())
+}
+
 #[derive(Copy, Clone)]
 pub struct Mappers {
     mapper: fn(PhysAddr, Bytes) -> VirtAddr,
