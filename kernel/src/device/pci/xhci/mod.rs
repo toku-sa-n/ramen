@@ -27,9 +27,6 @@ pub(crate) async fn task() {
     port::spawn_all_connected_port_tasks();
 
     multitask::add(Task::new_poll(event::task(event_ring)));
-
-    info!("Issuing the NOOP trb.");
-    exchanger::command::noop().await;
 }
 
 fn init_statics() -> Result<(), XhcNotFound> {
