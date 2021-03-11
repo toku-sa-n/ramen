@@ -29,9 +29,6 @@ fn init_statics() {
     extended_capabilities::init(a);
 }
 
-#[derive(Debug)]
-struct XhcNotFound;
-
 fn init_and_spawn_tasks() {
     init_statics();
 
