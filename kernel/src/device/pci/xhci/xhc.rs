@@ -3,6 +3,10 @@
 use super::structures::{extended_capabilities, registers};
 use xhci::extended_capabilities::ExtendedCapability;
 
+pub(super) fn exists() -> bool {
+    super::iter_xhc().next().is_some()
+}
+
 pub fn init() {
     get_ownership_from_bios();
     stop_and_reset();
@@ -20,6 +24,7 @@ pub fn run() {
 pub fn ensure_no_error_occurs() {
     registers::handle(|r| {
         let s = r.operational.usbsts.read();
+
         assert!(!s.hc_halted(), "HC is halted.");
         assert!(
             !s.host_system_error(),

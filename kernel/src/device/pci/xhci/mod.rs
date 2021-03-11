@@ -16,37 +16,22 @@ use structures::{
 };
 use x86_64::PhysAddr;
 
-pub async fn task() {
-    if init_statics().is_err() {
-        warn!("xHC not found.");
-        return;
-    }
-
-    let event_ring = init();
-
-    port::spawn_all_connected_port_tasks();
-
-    multitask::add(Task::new_poll(event::task(event_ring)));
-
-    info!("Issuing the NOOP trb.");
-    exchanger::command::noop().await;
-}
-
-fn init_statics() -> Result<(), XhcNotFound> {
-    match iter_devices().next() {
-        Some(a) => {
-            registers::init(a);
-            extended_capabilities::init(a);
-            Ok(())
-        }
-        None => Err(XhcNotFound),
+pub(crate) async fn task() {
+    if xhc::exists() {
+        init_and_spawn_tasks();
     }
 }
 
-#[derive(Debug)]
-struct XhcNotFound;
+fn init_statics() {
+    let a = iter_xhc().next().expect("xHC does not exist.");
 
-fn init() -> event::Ring {
+    registers::init(a);
+    extended_capabilities::init(a);
+}
+
+fn init_and_spawn_tasks() {
+    init_statics();
+
     let mut event_ring = event::Ring::new();
     let command_ring = Arc::new(Spinlock::new(command::Ring::new()));
 
@@ -61,10 +46,16 @@ fn init() -> event::Ring {
     xhc::run();
     xhc::ensure_no_error_occurs();
 
-    event_ring
+    spawn_tasks(event_ring);
 }
 
-fn iter_devices() -> impl Iterator<Item = PhysAddr> {
+fn spawn_tasks(e: event::Ring) {
+    port::spawn_all_connected_port_tasks();
+
+    multitask::add(Task::new_poll(event::task(e)));
+}
+
+fn iter_xhc() -> impl Iterator<Item = PhysAddr> {
     super::iter_devices().filter_map(|device| {
         if device.is_xhci() {
             Some(device.base_address(bar::Index::new(0)))
