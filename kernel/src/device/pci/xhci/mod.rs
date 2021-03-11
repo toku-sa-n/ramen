@@ -18,30 +18,23 @@ use x86_64::PhysAddr;
 
 pub(crate) async fn task() {
     if xhc::exists() {
-        info!("XHCI");
-        init_statics().expect("xHC should exist.");
-
-        let event_ring = init();
-
-        spawn_tasks(event_ring);
+        init_and_spawn_tasks();
     }
 }
 
-fn init_statics() -> Result<(), XhcNotFound> {
-    match iter_xhc().next() {
-        Some(a) => {
-            registers::init(a);
-            extended_capabilities::init(a);
-            Ok(())
-        }
-        None => Err(XhcNotFound),
-    }
+fn init_statics() {
+    let a = iter_xhc().next().expect("xHC does not exist.");
+
+    registers::init(a);
+    extended_capabilities::init(a);
 }
 
 #[derive(Debug)]
 struct XhcNotFound;
 
-fn init() -> event::Ring {
+fn init_and_spawn_tasks() {
+    init_statics();
+
     let mut event_ring = event::Ring::new();
     let command_ring = Arc::new(Spinlock::new(command::Ring::new()));
 
@@ -56,7 +49,7 @@ fn init() -> event::Ring {
     xhc::run();
     xhc::ensure_no_error_occurs();
 
-    event_ring
+    spawn_tasks(event_ring);
 }
 
 fn spawn_tasks(e: event::Ring) {
