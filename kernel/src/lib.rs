@@ -36,7 +36,6 @@ mod multitask;
 mod panic;
 mod process;
 mod qemu;
-mod sound_data;
 mod syscall;
 mod tests;
 mod tss;
