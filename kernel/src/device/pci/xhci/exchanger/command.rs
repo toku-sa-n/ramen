@@ -12,7 +12,7 @@ use event::CompletionCode;
 use futures_util::task::AtomicWaker;
 use spinning_top::Spinlock;
 use x86_64::PhysAddr;
-use xhci::ring::trb::{command as command_trb, command::Noop, event};
+use xhci::ring::trb::{command as command_trb, event};
 
 static SENDER: OnceCell<Futurelock<Sender>> = OnceCell::uninit();
 
@@ -20,10 +20,6 @@ pub(in crate::device::pci::xhci) fn init(r: Arc<Spinlock<command::Ring>>) {
     SENDER
         .try_init_once(|| Futurelock::new(Sender::new(r), true))
         .expect("`Sender` is initialized more than once.")
-}
-
-pub(in crate::device::pci::xhci) async fn noop() {
-    lock().await.noop().await;
 }
 
 pub(in crate::device::pci::xhci) async fn enable_device_slot() -> u8 {
@@ -55,12 +51,6 @@ impl Sender {
         Self {
             channel: Channel::new(ring),
         }
-    }
-
-    async fn noop(&mut self) {
-        let t = Noop::default();
-        let c = self.send_and_receive(t.into()).await;
-        panic_on_error("No-Op", c);
     }
 
     async fn enable_device_slot(&mut self) -> u8 {
