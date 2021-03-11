@@ -33,7 +33,7 @@ pub(crate) async fn task() {
 }
 
 fn init_statics() -> Result<(), XhcNotFound> {
-    match iter_devices().next() {
+    match iter_xhc().next() {
         Some(a) => {
             registers::init(a);
             extended_capabilities::init(a);
@@ -64,7 +64,7 @@ fn init() -> event::Ring {
     event_ring
 }
 
-fn iter_devices() -> impl Iterator<Item = PhysAddr> {
+fn iter_xhc() -> impl Iterator<Item = PhysAddr> {
     super::iter_devices().filter_map(|device| {
         if device.is_xhci() {
             Some(device.base_address(bar::Index::new(0)))
