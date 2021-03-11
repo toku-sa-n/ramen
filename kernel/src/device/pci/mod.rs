@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 pub mod config;
+pub(crate) mod hda;
 pub mod xhci;
 
 use config::{Bus, Device};
