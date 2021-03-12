@@ -4,6 +4,7 @@ mod collections;
 mod exit;
 pub(crate) mod ipc;
 mod page_table;
+mod slot_id;
 mod stack_frame;
 mod switch;
 
@@ -11,11 +12,9 @@ use crate::{mem::allocator::kpbox::KpBox, tss::TSS};
 use alloc::collections::VecDeque;
 use bitflags::bitflags;
 use common::constant::INTERRUPT_STACK;
-use core::{
-    convert::TryInto,
-    sync::atomic::{AtomicI32, Ordering},
-};
+use core::convert::TryInto;
 pub use exit::exit;
+pub(crate) use slot_id::SlotId;
 use stack_frame::StackFrame;
 pub use switch::switch;
 use x86_64::{
@@ -34,8 +33,8 @@ pub fn add(f: fn(), p: Privilege) {
     push_process_to_queue(Process::new(f, p));
 }
 
-pub fn getpid() -> i32 {
-    collections::process::handle_running(|p| p.id.as_i32())
+pub fn getpid() -> SlotId {
+    collections::process::handle_running(|p| p.id)
 }
 
 fn block_running() {
@@ -80,7 +79,7 @@ pub struct Process {
 
     flags: Flags,
     msg_ptr: Option<PhysAddr>,
-    pids_try_to_send_this_process: VecDeque<i32>,
+    pids_try_to_send_this_process: VecDeque<SlotId>,
 }
 impl Process {
     const STACK_SIZE: u64 = Size4KiB::SIZE * 12;
@@ -100,7 +99,7 @@ impl Process {
         let pml4_addr = tables.pml4_addr();
 
         Process {
-            id: SlotId::new(),
+            id: slot_id::generate(),
             f,
             tables,
             pml4_addr,
@@ -143,22 +142,4 @@ bitflags! {
 pub enum Privilege {
     Kernel,
     User,
-}
-
-#[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq, Debug)]
-struct SlotId(i32);
-impl SlotId {
-    fn new() -> Self {
-        static ID: AtomicI32 = AtomicI32::new(0);
-        Self(ID.fetch_add(1, Ordering::Relaxed))
-    }
-
-    fn as_i32(self) -> i32 {
-        self.0
-    }
-}
-impl From<i32> for SlotId {
-    fn from(id: i32) -> Self {
-        Self(id)
-    }
 }
