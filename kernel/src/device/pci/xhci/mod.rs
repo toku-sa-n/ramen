@@ -25,8 +25,11 @@ pub(crate) async fn task() {
 fn init_statics() {
     let a = iter_xhc().next().expect("xHC does not exist.");
 
-    registers::init(a);
-    extended_capabilities::init(a);
+    // SAFETY: BAR 0 address is passed.
+    unsafe {
+        registers::init(a);
+        extended_capabilities::init(a);
+    }
 }
 
 fn init_and_spawn_tasks() {

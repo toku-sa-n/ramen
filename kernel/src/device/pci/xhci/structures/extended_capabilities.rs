@@ -11,22 +11,16 @@ use xhci::{extended_capabilities, ExtendedCapability};
 static EXTENDED_CAPABILITIES: OnceCell<Spinlock<Option<extended_capabilities::List<Mappers>>>> =
     OnceCell::uninit();
 
-pub(in crate::device::pci::xhci) fn init(mmio_base: PhysAddr) {
+pub(in crate::device::pci::xhci) unsafe fn init(mmio_base: PhysAddr) {
     let hccparams1 = registers::handle(|r| r.capability.hccparams1.read());
 
     EXTENDED_CAPABILITIES
         .try_init_once(|| {
-            Spinlock::new(
-                // SAFETY: The address is the correct one and the Extended Capabilities are accessed only through
-                // this static.
-                unsafe {
-                    extended_capabilities::List::new(
-                        mmio_base.as_u64().try_into().unwrap(),
-                        hccparams1,
-                        Mappers::user(),
-                    )
-                },
-            )
+            Spinlock::new(extended_capabilities::List::new(
+                mmio_base.as_u64().try_into().unwrap(),
+                hccparams1,
+                Mappers::user(),
+            ))
         })
         .expect("Failed to initialize `EXTENDED_CAPABILITIES`.");
 }

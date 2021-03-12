@@ -9,14 +9,13 @@ use xhci::Registers;
 
 static REGISTERS: OnceCell<Spinlock<Registers<Mappers>>> = OnceCell::uninit();
 
-pub(in crate::device::pci::xhci) fn init(mmio_base: PhysAddr) {
+pub(in crate::device::pci::xhci) unsafe fn init(mmio_base: PhysAddr) {
     REGISTERS
         .try_init_once(|| {
-            Spinlock::new(
-                // SAFETY: The address is the correct one and the Registers are accessed only through
-                // this static.
-                unsafe { Registers::new(mmio_base.as_u64().try_into().unwrap(), Mappers::user()) },
-            )
+            Spinlock::new(Registers::new(
+                mmio_base.as_u64().try_into().unwrap(),
+                Mappers::user(),
+            ))
         })
         .expect("Failed to initialize `REGISTERS`.")
 }
