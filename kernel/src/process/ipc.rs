@@ -47,7 +47,7 @@ impl Sender {
     }
 
     fn copy_msg(&self) {
-        let dst = collections::process::handle(self.to.into(), |p| p.msg_ptr);
+        let dst = collections::process::handle(self.to, |p| p.msg_ptr);
         let dst = dst.expect("Message destination address is not specified.");
 
         unsafe { copy_msg(self.msg, dst) }
@@ -61,11 +61,11 @@ impl Sender {
     }
 
     fn wake_dst(&self) {
-        collections::process::handle_mut(self.to.into(), |p| {
+        collections::process::handle_mut(self.to, |p| {
             p.flags -= super::Flags::RECEIVING;
             p.msg_ptr = None;
         });
-        collections::woken_pid::push(self.to.into());
+        collections::woken_pid::push(self.to);
     }
 
     fn set_msg_buf_and_sleep(&self) {
@@ -131,7 +131,6 @@ impl Receiver {
                 .pop_front()
                 .expect("No process is waiting to send.")
         })
-        .into()
     }
 
     fn copy_msg(&self, src_pid: super::SlotId) {

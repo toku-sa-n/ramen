@@ -47,7 +47,7 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
             syscalls::Ty::UnmapPages => {
                 sys_unmap_pages(VirtAddr::new(a1), Bytes::new(a2.try_into().unwrap()))
             }
-            syscalls::Ty::GetPid => sys_getpid().try_into().unwrap(),
+            syscalls::Ty::GetPid => sys_getpid(),
             syscalls::Ty::Exit => sys_exit(),
             syscalls::Ty::TranslateAddress => sys_translate_address(VirtAddr::new(a1)).as_u64(),
             syscalls::Ty::Write => sys_write(
@@ -57,7 +57,7 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
             )
             .try_into()
             .unwrap(),
-            syscalls::Ty::Send => sys_send(VirtAddr::new(a1), a2.try_into().unwrap()),
+            syscalls::Ty::Send => sys_send(VirtAddr::new(a1), a2),
             syscalls::Ty::Receive => sys_receive(VirtAddr::new(a1)),
         },
         None => panic!("Unsupported syscall index: {}", idx),
