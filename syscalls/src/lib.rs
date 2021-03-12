@@ -215,7 +215,7 @@ fn receive_ack() {
     let _ = receive_from_any();
 }
 
-#[derive(Copy, Clone, FromPrimitive)]
+#[derive(Copy, Clone, FromPrimitive, Debug)]
 pub enum Ty {
     Inb,
     Outb,
