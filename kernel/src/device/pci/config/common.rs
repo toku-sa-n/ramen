@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{RegisterIndex, Registers};
-use core::convert::TryFrom;
+use bit_field::BitField;
+use core::convert::{TryFrom, TryInto};
 
 #[derive(Debug)]
-pub struct Common<'a> {
+pub(super) struct Common<'a> {
     registers: &'a Registers,
 }
-
 impl<'a> Common<'a> {
-    pub fn new(registers: &'a Registers) -> Self {
+    pub(super) fn new(registers: &'a Registers) -> Self {
         Self { registers }
     }
 
-    pub fn is_xhci(&self) -> bool {
+    pub(super) fn is_xhci(&self) -> bool {
         self.class().is_xhci()
     }
 
-    pub fn bridge_type(&self) -> BridgeType {
+    pub(super) fn bridge_type(&self) -> BridgeType {
         self.header_type().bridge_type()
     }
 
@@ -50,7 +50,7 @@ impl HeaderType {
 }
 
 #[derive(Debug)]
-pub enum BridgeType {
+pub(super) enum BridgeType {
     NonBridge,
     PciToPci,
     PciToCardbus,
@@ -60,25 +60,32 @@ pub enum BridgeType {
 struct Class<'a> {
     registers: &'a Registers,
 }
-
 impl<'a> Class<'a> {
-    fn is_xhci(&self) -> bool {
-        self.base() == 0x0c && self.sub() == 0x03 && self.interface() == 0x30
-    }
-
     fn new(registers: &'a Registers) -> Self {
         Self { registers }
     }
 
+    fn is_xhci(&self) -> bool {
+        self.as_tuple() == (0x0c, 0x03, 0x30)
+    }
+
+    fn as_tuple(&self) -> (u8, u8, u8) {
+        (self.base(), self.sub(), self.interface())
+    }
+
     fn base(&self) -> u8 {
-        u8::try_from((self.registers.get(RegisterIndex::new(2)) >> 24) & 0xff).unwrap()
+        self.raw().get_bits(24..=31).try_into().unwrap()
     }
 
     fn sub(&self) -> u8 {
-        u8::try_from((self.registers.get(RegisterIndex::new(2)) >> 16) & 0xff).unwrap()
+        self.raw().get_bits(16..=23).try_into().unwrap()
     }
 
     fn interface(&self) -> u8 {
-        u8::try_from((self.registers.get(RegisterIndex::new(2)) >> 8) & 0xff).unwrap()
+        self.raw().get_bits(8..=15).try_into().unwrap()
+    }
+
+    fn raw(&self) -> u32 {
+        self.registers.get(RegisterIndex::new(2))
     }
 }
