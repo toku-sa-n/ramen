@@ -62,12 +62,12 @@ struct Class<'a> {
 }
 
 impl<'a> Class<'a> {
-    fn is_xhci(&self) -> bool {
-        self.base() == 0x0c && self.sub() == 0x03 && self.interface() == 0x30
-    }
-
     fn new(registers: &'a Registers) -> Self {
         Self { registers }
+    }
+
+    fn is_xhci(&self) -> bool {
+        self.base() == 0x0c && self.sub() == 0x03 && self.interface() == 0x30
     }
 
     fn base(&self) -> u8 {
