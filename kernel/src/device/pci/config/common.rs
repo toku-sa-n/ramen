@@ -17,7 +17,7 @@ impl<'a> Common<'a> {
         self.class().is_xhci()
     }
 
-    pub fn bridge_type(&self) -> BridgeType {
+    pub(super) fn bridge_type(&self) -> BridgeType {
         self.header_type().bridge_type()
     }
 
@@ -50,7 +50,7 @@ impl HeaderType {
 }
 
 #[derive(Debug)]
-pub enum BridgeType {
+pub(super) enum BridgeType {
     NonBridge,
     PciToPci,
     PciToCardbus,
