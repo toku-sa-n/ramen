@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::device::pci::xhci::port::init::fully_operational::FullyOperational;
-use alloc::string::String;
+use crate::device::pci::xhci::{
+    port::init::fully_operational::FullyOperational,
+    structures::descriptor::{Configuration, Descriptor},
+};
+use alloc::{string::String, vec::Vec};
 use page_box::PageBox;
 use spinning_top::Spinlock;
 use xhci::context::EndpointType;
@@ -12,6 +15,8 @@ static STR: Spinlock<String> = Spinlock::new(String::new());
 
 pub(in crate::device::pci::xhci::port) async fn task(eps: FullyOperational) {
     let mut k = Keyboard::new(eps);
+    k.configure().await;
+
     loop {
         k.get_packet().await;
         k.store_key();
@@ -30,6 +35,11 @@ impl Keyboard {
         }
     }
 
+    async fn configure(&mut self) {
+        let d = self.configuration_descriptor();
+        self.ep.set_configure(d.config_val()).await;
+    }
+
     async fn get_packet(&mut self) {
         self.issue_normal_trb().await;
     }
@@ -39,6 +49,21 @@ impl Keyboard {
             .issue_normal_trb(&self.buf, EndpointType::InterruptIn)
             .await
             .expect("Failed to send a Normal TRB");
+    }
+
+    fn configuration_descriptor(&self) -> Configuration {
+        *self
+            .ep
+            .descriptors()
+            .iter()
+            .filter_map(|x| {
+                if let Descriptor::Configuration(c) = x {
+                    Some(c)
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<&Configuration>>()[0]
     }
 
     fn store_key(&self) {
