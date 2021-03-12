@@ -17,6 +17,10 @@ impl<'a> Common<'a> {
         self.class().is_xhci()
     }
 
+    pub(super) fn is_audio_controller(&self) -> bool {
+        self.class().is_audio_controller()
+    }
+
     pub(super) fn bridge_type(&self) -> BridgeType {
         self.header_type().bridge_type()
     }
@@ -67,6 +71,10 @@ impl<'a> Class<'a> {
 
     fn is_xhci(&self) -> bool {
         self.as_tuple() == (0x0c, 0x03, 0x30)
+    }
+
+    fn is_audio_controller(&self) -> bool {
+        matches!(self.as_tuple(), (0x04, 0x01, _))
     }
 
     fn as_tuple(&self) -> (u8, u8, u8) {

@@ -26,6 +26,10 @@ impl Space {
         self.common().is_xhci()
     }
 
+    pub(super) fn is_audio_controller(&self) -> bool {
+        self.common().is_audio_controller()
+    }
+
     pub fn base_address(&self, index: bar::Index) -> PhysAddr {
         self.type_spec().base_address(index)
     }

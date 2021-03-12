@@ -19,11 +19,11 @@ impl Registers {
 #[derive(Copy, Clone)]
 pub(super) struct GlobalControl(u32);
 impl GlobalControl {
-    pub(super) fn set_controller_reset(&mut self) {
-        self.0.set_bit(0, true);
+    pub(super) fn clear_controller_reset(&mut self) {
+        self.0.set_bit(0, false);
     }
 
-    pub(super) fn controller_reset(self) -> bool {
+    pub(super) fn get_controller_reset(self) -> bool {
         self.0.get_bit(0)
     }
 }

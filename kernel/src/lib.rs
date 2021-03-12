@@ -41,7 +41,7 @@ mod tests;
 mod tss;
 
 use common::kernelboot;
-use device::pci::xhci;
+use device::pci::{hda, xhci};
 use futures_intrusive::sync::{GenericMutex, GenericMutexGuard};
 use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
@@ -90,6 +90,7 @@ fn init(boot_info: &mut kernelboot::Info) {
 fn add_processes() {
     process::add(sysproc::main, Privilege::Kernel);
     process::add(run_tasks, Privilege::User);
+    process::add(hda::main, Privilege::User);
 
     if cfg!(feature = "qemu_test") {
         process::add(tests::main, Privilege::User);
