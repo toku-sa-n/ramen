@@ -127,7 +127,7 @@ impl Receiver {
         Self::wake_sender(src_pid);
     }
 
-    fn src_pid() -> super::Id {
+    fn src_pid() -> super::SlotId {
         collections::process::handle_running_mut(|p| {
             p.pids_try_to_send_this_process
                 .pop_front()
@@ -136,14 +136,14 @@ impl Receiver {
         .into()
     }
 
-    fn copy_msg(&self, src_pid: super::Id) {
+    fn copy_msg(&self, src_pid: super::SlotId) {
         let src = collections::process::handle(src_pid, |p| p.msg_ptr);
         let src = src.expect("The message pointer of the sender is not set.");
 
         unsafe { copy_msg(src, self.msg_buf) }
     }
 
-    fn wake_sender(src_pid: super::Id) {
+    fn wake_sender(src_pid: super::SlotId) {
         collections::process::handle_mut(src_pid, |p| {
             p.flags -= super::Flags::SENDING;
             p.msg_ptr = None;

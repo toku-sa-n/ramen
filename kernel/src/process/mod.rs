@@ -47,7 +47,7 @@ fn push_process_to_queue(p: Process) {
     add_process(p);
 }
 
-fn add_pid(id: Id) {
+fn add_pid(id: SlotId) {
     collections::woken_pid::add(id);
 }
 
@@ -70,7 +70,7 @@ fn set_temporary_stack_frame() {
 
 #[derive(Debug)]
 pub struct Process {
-    id: Id,
+    id: SlotId,
     f: fn(),
     tables: page_table::Collection,
     pml4_addr: PhysAddr,
@@ -100,7 +100,7 @@ impl Process {
         let pml4_addr = tables.pml4_addr();
 
         Process {
-            id: Id::new(),
+            id: SlotId::new(),
             f,
             tables,
             pml4_addr,
@@ -114,7 +114,7 @@ impl Process {
         }
     }
 
-    fn id(&self) -> Id {
+    fn id(&self) -> SlotId {
         self.id
     }
 
@@ -146,8 +146,8 @@ pub enum Privilege {
 }
 
 #[derive(Copy, Clone, PartialOrd, PartialEq, Ord, Eq, Debug)]
-struct Id(i32);
-impl Id {
+struct SlotId(i32);
+impl SlotId {
     fn new() -> Self {
         static ID: AtomicI32 = AtomicI32::new(0);
         Self(ID.fetch_add(1, Ordering::Relaxed))
@@ -157,7 +157,7 @@ impl Id {
         self.0
     }
 }
-impl From<i32> for Id {
+impl From<i32> for SlotId {
     fn from(id: i32) -> Self {
         Self(id)
     }
