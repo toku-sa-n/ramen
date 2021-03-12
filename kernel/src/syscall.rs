@@ -112,7 +112,7 @@ fn sys_unmap_pages(start: VirtAddr, bytes: Bytes) -> u64 {
     0
 }
 
-fn sys_getpid() -> i32 {
+fn sys_getpid() -> process::SlotId {
     process::getpid()
 }
 
@@ -149,7 +149,7 @@ unsafe fn sys_write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
     }
 }
 
-fn sys_send(m: VirtAddr, to: i32) -> u64 {
+fn sys_send(m: VirtAddr, to: process::SlotId) -> u64 {
     process::ipc::send(m, to);
     0
 }

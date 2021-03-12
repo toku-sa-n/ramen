@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::collections;
+use super::{collections, SlotId};
 use crate::{mem, mem::accessor::Single};
 use mem::paging::pml4::PML4;
 use message::Message;
 use x86_64::{structures::paging::Translate, PhysAddr, VirtAddr};
 
-pub(crate) fn send(msg: VirtAddr, to: i32) {
+pub(crate) fn send(msg: VirtAddr, to: SlotId) {
     Sender::new(msg, to).send()
 }
 
@@ -16,10 +16,10 @@ pub(crate) fn receive(msg_buf: VirtAddr) {
 
 struct Sender {
     msg: PhysAddr,
-    to: i32,
+    to: SlotId,
 }
 impl Sender {
-    fn new(msg: VirtAddr, to: i32) -> Self {
+    fn new(msg: VirtAddr, to: SlotId) -> Self {
         let msg = PML4
             .lock()
             .translate_addr(msg)
@@ -37,9 +37,7 @@ impl Sender {
     }
 
     fn is_receiver_waiting(&self) -> bool {
-        collections::process::handle(self.to.into(), |p| {
-            p.waiting_message() && p.msg_ptr.is_some()
-        })
+        collections::process::handle(self.to, |p| p.waiting_message() && p.msg_ptr.is_some())
     }
 
     fn copy_msg_and_wake(&self) {
@@ -89,7 +87,7 @@ impl Sender {
 
     fn add_self_as_trying_to_send(&self) {
         let pid = super::getpid();
-        collections::process::handle_mut(self.to.into(), |p| {
+        collections::process::handle_mut(self.to, |p| {
             p.pids_try_to_send_this_process.push_back(pid)
         });
     }
