@@ -17,6 +17,10 @@ pub(in crate::device::pci::xhci::port) async fn task(eps: FullyOperational) {
     let mut k = Keyboard::new(eps);
     k.configure().await;
 
+    info!("Set the Boot protocol.");
+    k.set_boot_protocol().await;
+    info!("Set.");
+
     loop {
         k.get_packet().await;
         k.store_key();
@@ -38,6 +42,10 @@ impl Keyboard {
     async fn configure(&mut self) {
         let d = self.configuration_descriptor();
         self.ep.set_configure(d.config_val()).await;
+    }
+
+    async fn set_boot_protocol(&mut self) {
+        self.ep.set_boot_protocol().await;
     }
 
     async fn get_packet(&mut self) {
