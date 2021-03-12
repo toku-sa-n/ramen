@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use bit_field::BitField;
-
 use super::{RegisterIndex, Registers};
+use bit_field::BitField;
 use core::convert::{TryFrom, TryInto};
 
 #[derive(Debug)]
 pub(super) struct Common<'a> {
     registers: &'a Registers,
 }
-
 impl<'a> Common<'a> {
     pub(super) fn new(registers: &'a Registers) -> Self {
         Self { registers }
