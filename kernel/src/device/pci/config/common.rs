@@ -4,16 +4,16 @@ use super::{RegisterIndex, Registers};
 use core::convert::{TryFrom, TryInto};
 
 #[derive(Debug)]
-pub struct Common<'a> {
+pub(super) struct Common<'a> {
     registers: &'a Registers,
 }
 
 impl<'a> Common<'a> {
-    pub fn new(registers: &'a Registers) -> Self {
+    pub(super) fn new(registers: &'a Registers) -> Self {
         Self { registers }
     }
 
-    pub fn is_xhci(&self) -> bool {
+    pub(super) fn is_xhci(&self) -> bool {
         self.class().is_xhci()
     }
 
