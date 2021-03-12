@@ -60,7 +60,6 @@ pub enum BridgeType {
 struct Class<'a> {
     registers: &'a Registers,
 }
-
 impl<'a> Class<'a> {
     fn new(registers: &'a Registers) -> Self {
         Self { registers }
