@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{RegisterIndex, Registers};
-use core::convert::TryFrom;
+use core::convert::{TryFrom, TryInto};
 
 #[derive(Debug)]
 pub struct Common<'a> {
@@ -71,14 +71,20 @@ impl<'a> Class<'a> {
     }
 
     fn base(&self) -> u8 {
-        u8::try_from((self.registers.get(RegisterIndex::new(2)) >> 24) & 0xff).unwrap()
+        ((self.registers.get(RegisterIndex::new(2)) >> 24) & 0xff)
+            .try_into()
+            .unwrap()
     }
 
     fn sub(&self) -> u8 {
-        u8::try_from((self.registers.get(RegisterIndex::new(2)) >> 16) & 0xff).unwrap()
+        ((self.registers.get(RegisterIndex::new(2)) >> 16) & 0xff)
+            .try_into()
+            .unwrap()
     }
 
     fn interface(&self) -> u8 {
-        u8::try_from((self.registers.get(RegisterIndex::new(2)) >> 8) & 0xff).unwrap()
+        ((self.registers.get(RegisterIndex::new(2)) >> 8) & 0xff)
+            .try_into()
+            .unwrap()
     }
 }
