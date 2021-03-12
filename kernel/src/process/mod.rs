@@ -4,6 +4,7 @@ mod collections;
 mod exit;
 pub(crate) mod ipc;
 mod page_table;
+mod slot_id;
 mod stack_frame;
 mod switch;
 
