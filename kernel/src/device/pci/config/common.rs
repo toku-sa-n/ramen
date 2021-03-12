@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use bit_field::BitField;
+
 use super::{RegisterIndex, Registers};
 use core::convert::{TryFrom, TryInto};
 
@@ -74,20 +76,18 @@ impl<'a> Class<'a> {
     }
 
     fn base(&self) -> u8 {
-        ((self.registers.get(RegisterIndex::new(2)) >> 24) & 0xff)
-            .try_into()
-            .unwrap()
+        self.raw().get_bits(24..=31).try_into().unwrap()
     }
 
     fn sub(&self) -> u8 {
-        ((self.registers.get(RegisterIndex::new(2)) >> 16) & 0xff)
-            .try_into()
-            .unwrap()
+        self.raw().get_bits(16..=23).try_into().unwrap()
     }
 
     fn interface(&self) -> u8 {
-        ((self.registers.get(RegisterIndex::new(2)) >> 8) & 0xff)
-            .try_into()
-            .unwrap()
+        self.raw().get_bits(8..=15).try_into().unwrap()
+    }
+
+    fn raw(&self) -> u32 {
+        self.registers.get(RegisterIndex::new(2))
     }
 }
