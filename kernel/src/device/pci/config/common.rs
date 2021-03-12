@@ -67,7 +67,11 @@ impl<'a> Class<'a> {
     }
 
     fn is_xhci(&self) -> bool {
-        self.base() == 0x0c && self.sub() == 0x03 && self.interface() == 0x30
+        self.as_tuple() == (0x0c, 0x03, 0x30)
+    }
+
+    fn as_tuple(&self) -> (u8, u8, u8) {
+        (self.base(), self.sub(), self.interface())
     }
 
     fn base(&self) -> u8 {
