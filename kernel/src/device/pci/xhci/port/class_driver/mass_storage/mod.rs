@@ -28,8 +28,7 @@ pub(in crate::device::pci::xhci::port) async fn task(eps: FullyOperational) {
     let b = m.read_capacity_10().await;
     info!("Read Capacity: {:?}", b);
 
-    let b = m.read10().await;
-    info!("Buf: {:X?}", b);
+    m.read10().await;
 
     m.write10().await;
 }
