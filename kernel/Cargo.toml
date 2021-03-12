@@ -46,5 +46,5 @@ xhci = "0.5.2"
 accessor = "0.3.0"
 message = { path = "../message" }
 bitflags = "1.2.1"
-sysproc = { path = "../sysproc" }
 byteorder = { version = "1.4.2", default-features = false }
+port_server = { path = "../port_server" }

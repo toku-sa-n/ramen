@@ -48,7 +48,7 @@ fn select_system_calls(m: Message, t: syscalls::Ty) {
         syscalls::Ty::Inl => unsafe { reply_inl(m) },
         syscalls::Ty::Outb => unsafe { reply_outb(m) },
         syscalls::Ty::Outl => unsafe { reply_outl(m) },
-        _ => todo!(),
+        _ => panic!("Not supported: {:?}", t),
     }
 }
 
