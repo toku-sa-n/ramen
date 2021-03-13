@@ -27,18 +27,15 @@ IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
 LD				:= ld
 RUSTC			:= cargo
 RM				:= rm -rf
-VIEWER			:= qemu-system-x86_64
 
 OVMF_CODE		:= OVMF_CODE.fd
 OVMF_VARS		:= OVMF_VARS.fd
 
-# If you change values of `iobase` and `iosize`, don't forget to change the corresponding values in `kernel/src/lib.rs`!
-VIEWERFLAGS		:= -drive if=pflash,format=raw,file=$(OVMF_CODE),readonly=on -drive if=pflash,format=raw,file=$(OVMF_VARS),readonly=on -drive format=raw,file=$(IMG_FILE) -no-reboot -m 4G -d int -device isa-debug-exit,iobase=0xf4,iosize=0x04 -device qemu-xhci,id=xhci -device usb-kbd --trace events=trace.event -device usb-mouse, -drive id=usb,file=$(EFI_FILE),if=none,format=raw -device usb-storage,drive=usb
 RUSTCFLAGS		:= --release
 
 LDFLAGS			:= -nostdlib -T $(LD_SRC)
 
-.PHONY:all copy_to_usb run test clippy clean
+.PHONY:all copy_to_usb test clean
 
 .SUFFIXES:
 
@@ -54,9 +51,6 @@ else
 	sudo cp $(KERNEL_FILE) /mnt/
 	sudo umount /mnt
 endif
-
-run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE)
-	$(VIEWER) $(VIEWERFLAGS) -no-shutdown -monitor stdio
 
 test:
 	make $(IMG_FILE) TEST_FLAG=--features=qemu_test
