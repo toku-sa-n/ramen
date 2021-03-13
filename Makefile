@@ -94,9 +94,6 @@ $(EFI_FILE):$(EFI_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(EFI_DIR)/
 $(BUILD_DIR):
 	mkdir $@ -p
 
-udeps:
-	find . -name Cargo.toml -printf '%h\n'|xargs -I {} sh -c "cd {} && cargo udeps || exit 255"
-
 clean:
 	$(RM) build
 	find . -name Cargo.toml -printf '%h\n'|xargs -I {} sh -c "cd {} && cargo clean"
