@@ -22,7 +22,7 @@ readonly parameters_for_running_qemu=" \
     -monitor stdio \
     "
 
-parameters_for_testing=" \
+readonly parameters_for_testing=" \
     $common_parameters \
     -nographic \
     "
@@ -32,7 +32,7 @@ then
     make test -j
     dd if=/dev/zero of=build/storage.img count=10000
     qemu-system-x86_64 ${parameters_for_testing}
-    status=$?
+    readonly status=$?
     readonly ok_status=33
     if [[ $status -eq $ok_status ]]
     then
