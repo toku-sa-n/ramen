@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 flags="
 -drive if=pflash,format=raw,file=OVMF_CODE.fd,readonly=on
