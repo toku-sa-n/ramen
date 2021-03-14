@@ -50,4 +50,4 @@ jobs:
 
     - name: Test
       timeout-minutes: 5
-      run: make test
+      run: ./run_qemu.sh -t
