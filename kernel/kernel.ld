@@ -1,6 +1,6 @@
 OUTPUT_FORMAT(elf64-x86-64);
 
-ENTRY(os_main)
+ENTRY(_start)
 
 MEMORY{
     kernel (WX) : ORIGIN = 0xffffffff80000000, LENGTH = 0x8000000

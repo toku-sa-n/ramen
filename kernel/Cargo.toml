@@ -48,3 +48,6 @@ message = { path = "../message" }
 bitflags = "1.2.1"
 byteorder = { version = "1.4.2", default-features = false }
 port_server = { path = "../port_server" }
+
+[build-dependencies]
+cc = "1.0.67"

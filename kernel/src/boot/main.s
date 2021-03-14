@@ -2,6 +2,7 @@
 
     .intel_syntax noprefix
     .global _start
+    .extern os_main
 
 _start:
-    jmp _start
+    jmp os_main

@@ -53,7 +53,6 @@ pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 pub type FuturelockGuard<'a, T> = GenericMutexGuard<'a, RawSpinlock, T>;
 
 #[no_mangle]
-#[start]
 pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
     init(&mut boot_info);
     cause_timer_interrupt();
