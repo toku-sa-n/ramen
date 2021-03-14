@@ -31,6 +31,15 @@ if [[ $1 == "-t" ]]
 then
     make test -j
     qemu-system-x86_64 ${test_flags}
+    status=$?
+    readonly ok_status=33
+    if [[ $status -eq $ok_status ]]
+    then
+        echo "Test succeeded."
+    else
+        echo "Test failed."
+        exit 1
+    fi
 else
     make build/ramen_os.img -j
     qemu-system-x86_64 ${run_flags}
