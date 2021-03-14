@@ -53,10 +53,8 @@ else
 endif
 
 test:
+	make clean
 	make $(IMG_FILE) TEST_FLAG=--features=qemu_test
-	$(VIEWER) $(VIEWERFLAGS) -nographic; if [[ $$? -eq 33 ]];\
-		then echo "Booting test succeed! ($(TEST_MODE) mode)"; exit 0;\
-		else echo "Booting test failed ($(TEST_MODE) mode)"; exit 1;fi
 
 $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 	dd if=/dev/zero of=$@ bs=1k count=28800
@@ -90,4 +88,3 @@ $(BUILD_DIR):
 
 clean:
 	$(RM) build
-	find . -name Cargo.toml -printf '%h\n'|xargs -I {} sh -c "cd {} && cargo clean"
