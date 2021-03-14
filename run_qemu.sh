@@ -1,5 +1,10 @@
 #!/bin/bash
 
+create_storage_image() {
+    mkdir -p build
+    dd if=/dev/zero of=build/storage.img count=10000
+}
+
 readonly common_parameters=" \
     -drive if=pflash,format=raw,file=OVMF_CODE.fd,readonly=on \
     -drive if=pflash,format=raw,file=OVMF_VARS.fd,readonly=on \
@@ -30,7 +35,7 @@ readonly parameters_for_testing=" \
 if [[ $1 == "-t" ]]
 then
     make test -j
-    dd if=/dev/zero of=build/storage.img count=10000
+    create_storage_image
     qemu-system-x86_64 ${parameters_for_testing}
     readonly status=$?
     readonly ok_status=33
@@ -43,6 +48,6 @@ then
     fi
 else
     make build/ramen_os.img -j
-    dd if=/dev/zero of=build/storage.img count=10000
+    create_storage_image
     qemu-system-x86_64 ${parameters_for_running_qemu}
 fi

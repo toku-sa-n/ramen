@@ -22,7 +22,7 @@ LDFLAGS			:= -nostdlib -T $(LD_SRC)
 .PHONY:all copy_to_usb test clean $(LIB_FILE)
 .SUFFIXES:
 
-all:$(KERNEL_FILE)
+all:$(IMG_FILE)
 
 copy_to_usb:$(KERNEL_FILE)
 ifeq ($(USB_DEVICE_PATH),)
