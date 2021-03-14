@@ -26,9 +26,9 @@ impl FullyOperational {
         debug!("Endpoints collected");
 
         Self {
+            descriptors,
             def_ep,
             eps,
-            descriptors,
         }
     }
 
