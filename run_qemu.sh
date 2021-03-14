@@ -17,4 +17,4 @@ flags="
 "
 
 make build/ramen_os.img -j
-qemu-system-x86_64 $flags -no-shutdown -monitor stdio
+qemu-system-x86_64 "$flags" -no-shutdown -monitor stdio
