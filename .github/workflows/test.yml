@@ -33,12 +33,12 @@ jobs:
         rustfmt **/*.rs --check
 
     - name: Run clippy
-      run: make clippy
+      run: checkers/run_clippy.sh
 
     - name: Run udeps
       run: |
         cargo install cargo-udeps
-        make udeps
+        checkers/detect_unused_dependencies.sh
 
     - name: Install dependencies
       run: |
@@ -50,4 +50,4 @@ jobs:
 
     - name: Test
       timeout-minutes: 5
-      run: make test
+      run: ./run_qemu.sh -t
