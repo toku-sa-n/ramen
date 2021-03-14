@@ -1,6 +1,6 @@
 #!/bin/bash
 
-readonly general_flags=" \
+readonly common_parameters=" \
     -drive if=pflash,format=raw,file=OVMF_CODE.fd,readonly=on \
     -drive if=pflash,format=raw,file=OVMF_VARS.fd,readonly=on \
     -drive format=raw,file=build/ramen_os.img \
@@ -16,14 +16,14 @@ readonly general_flags=" \
     --trace events=trace.event \
     "
 
-readonly run_flags=" \
-    $general_flags \
+readonly parameters_for_running_qemu=" \
+    $common_parameters \
     -no-shutdown \
     -monitor stdio \
     "
 
-test_flags=" \
-    $general_flags \
+parameters_for_testing=" \
+    $common_parameters \
     -nographic \
     "
 
@@ -31,7 +31,7 @@ if [[ $1 == "-t" ]]
 then
     make test -j
     dd if=/dev/zero of=build/storage.img count=10000
-    qemu-system-x86_64 ${test_flags}
+    qemu-system-x86_64 ${parameters_for_testing}
     status=$?
     readonly ok_status=33
     if [[ $status -eq $ok_status ]]
@@ -44,5 +44,5 @@ then
 else
     make build/ramen_os.img -j
     dd if=/dev/zero of=build/storage.img count=10000
-    qemu-system-x86_64 ${run_flags}
+    qemu-system-x86_64 ${parameters_for_running_qemu}
 fi
