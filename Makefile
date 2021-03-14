@@ -53,6 +53,7 @@ else
 endif
 
 test:
+	make clean
 	make $(IMG_FILE) TEST_FLAG=--features=qemu_test -B
 
 $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
