@@ -54,7 +54,7 @@ endif
 
 test:
 	make clean
-	make $(IMG_FILE) TEST_FLAG=--features=qemu_test -B
+	make $(IMG_FILE) TEST_FLAG=--features=qemu_test
 
 $(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
 	dd if=/dev/zero of=$@ bs=1k count=28800
