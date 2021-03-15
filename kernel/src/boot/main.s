@@ -4,8 +4,10 @@
     .intel_syntax noprefix
     .global _start
 
-    .extern os_main
-    .extern KERNEL_PML4
+    .extern KERNEL_PML4_LMA
+    .extern KERNEL_PDPT_LMA
+    .extern KERNEL_LMA
+
     .extern MULTIBOOT2_SIGNATURE_LMA
     .extern BOOT_INFO_ADDR_LMA
 
@@ -31,6 +33,52 @@ _start:
     mov eax, cr4
     or eax, 0x20
     mov cr4, eax
+
+    // Prepare page tables
+
+    // Recursive paging
+    lea edx, [KERNEL_PML4_LMA]
+    mov eax, edx
+    or eax, 3   /* Present, writable. */
+    mov [edx + 511 * 8], eax
+    mov dword ptr [edx + 511 * 8 + 4], 0
+
+    // For the bootloader.
+
+    // PML4
+    lea eax, [KERNEL_PDPT_LMA]
+    or eax, 1   /* Present */
+    mov [edx], eax
+
+    // PDPT.
+    lea edx, [KERNEL_PDPT_LMA]
+    mov eax, 0x81  /* 1G, Present */
+    mov [edx], eax
+
+    // For the kernel
+
+    // PDPT of the kernel mapping is the same table as PML4.
+    lea edx, [KERNEL_PML4_LMA]
+
+    lea eax, [KERNEL_LMA]
+    or eax, 0x83   /* 1G, Present, writable. */
+    mov [edx + 510 * 8], eax
+    mov dword ptr [edx + 510 * 8 + 4], 0
+
+    // Change PML4
+    lea eax, [KERNEL_PML4_LMA]
+    mov cr3, eax
+
+    // Enter the Long mode.
+    mov ecx, 0xc0000080
+    rdmsr
+    or eax, 0x100
+    wrmsr
+
+    // Enable Paging
+    mov eax, cr0
+    or eax, 0x80000000
+    mov cr0, eax
 
 loop:
     jmp loop

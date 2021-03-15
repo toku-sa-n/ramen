@@ -23,6 +23,8 @@ SECTIONS
     } > boot
 
     .text : {
+        KERNEL_LMA = . - KERNEL_LMA_OFFSET;
+
         *(.text*)
     } > kernel AT > kernel_lma
 
@@ -39,16 +41,10 @@ SECTIONS
         . += 0x40000;
         HEAP_END = .;
 
-        KERNEL_PML4 = ALIGN(4K) - KERNEL_LMA_OFFSET;
+        KERNEL_PML4_LMA = ALIGN(4K) - KERNEL_LMA_OFFSET;
         . += 4K;
 
-        KERNEL_PDPT = ALIGN(4K) - KERNEL_LMA_OFFSET;
-        . += 4K;
-
-        KERNEL_PD = ALIGN(4K) - KERNEL_LMA_OFFSET;
-        . += 4K;
-
-        KERNEL_PT = ALIGN(4K) - KERNEL_LMA_OFFSET;
+        KERNEL_PDPT_LMA = ALIGN(4K) - KERNEL_LMA_OFFSET;
         . += 4K;
 
         MULTIBOOT2_SIGNATURE_LMA = . - KERNEL_LMA_OFFSET;
