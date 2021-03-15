@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 create_storage_image() {
     mkdir -p build
     dd if=/dev/zero of=build/storage.img count=10000
