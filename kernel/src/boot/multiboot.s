@@ -1,15 +1,15 @@
-    .section .multiboot
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+    .section .multiboot, "a"
     .intel_syntax noprefix
-
-    .extern _start
-
+    .code32
     .align 64
 
-start_multiboot_header:
+multiboot_header:
 
     .set MAGIC_NUMBER, 0xe85250d6
     .set ARCHITECTURE_I386, 0
-    .set HEADER_SIZE, end_multiboot_header - start_multiboot_header
+    .set HEADER_SIZE, end_multiboot_header - multiboot_header
     .set CHECKSUM, -(MAGIC_NUMBER + ARCHITECTURE_I386 + HEADER_SIZE)
 
     .long MAGIC_NUMBER
@@ -19,11 +19,6 @@ start_multiboot_header:
 
     .set TERMINATION, 0
     .set TERMINATION_SIZE, 8
-
-    .word 9
-    .word 0
-    .long 12
-    .long 0x80000000
 
     .word TERMINATION
     .word TERMINATION_SIZE

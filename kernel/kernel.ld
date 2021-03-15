@@ -3,34 +3,43 @@ OUTPUT_FORMAT(elf64-x86-64);
 ENTRY(_start)
 
 MEMORY{
-    kernel (WX) : ORIGIN = 0xffffffff80000000, LENGTH = 0x8000000
+    boot (RWX)       : ORIGIN = 0x1000,             LENGTH = 0x1000
+    kernel (RWX)     : ORIGIN = 0xffffffff80000000, LENGTH = 0x8000000
+    kernel_lma (RWX) : ORIGIN = 0x2000,             LENGTH = 0x8000000
 }
 
 SECTIONS
 {
+    . = 0x1000;
 
-    . += 0xffffffff80000000 + SIZEOF_HEADERS;
+    .multiboot ALIGN(8) : {
+        KEEP(*(.multiboot*))
+    } > boot
 
-    .text BLOCK(4K) : ALIGN(4K) {
+    .boot : {
+        *(.boot*)
+    } > boot
+
+    .text : {
         *(.text*)
-    } > kernel
+    } > kernel AT > kernel_lma
 
     .data : {
         *(.data)
-    } > kernel
+    } > kernel AT > kernel_lma
 
     .rodata : {
         *(.rodata*)
-    } > kernel
+    } > kernel AT > kernel_lma
 
     .bss : {
         HEAP_START = .;
         . += 0x40000;
         HEAP_END = .;
         *(.bss)
-    } > kernel
+    } > kernel AT > kernel_lma
 
     .eh_frame : {
         *(.eh_frame)
-    } > kernel
+    } > kernel AT > kernel_lma
 }
