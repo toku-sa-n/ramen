@@ -12,8 +12,6 @@ MEMORY{
 
 SECTIONS
 {
-    . = 0;
-
     .multiboot ALIGN(8) : {
         KEEP(*(.multiboot*))
     } > boot
