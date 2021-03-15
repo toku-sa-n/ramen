@@ -2,6 +2,8 @@ OUTPUT_FORMAT(elf64-x86-64);
 
 ENTRY(_start)
 
+EXTERN(multiboot_header)
+
 MEMORY{
     boot (RWX)       : ORIGIN = 0x1000,             LENGTH = 0x1000
     kernel (RWX)     : ORIGIN = 0xffffffff80000000, LENGTH = 0x8000000

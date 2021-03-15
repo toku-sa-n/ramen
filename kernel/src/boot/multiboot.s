@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-    .section .multiboot, "a"
     .intel_syntax noprefix
+    .section .multiboot, "a"
+    .global multiboot_header
     .code32
     .align 64
 

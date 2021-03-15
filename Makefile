@@ -2,12 +2,14 @@ SHELL			:= /bin/bash
 
 BUILD_DIR		:= build
 KERNEL_DIR		:= kernel
+ISOFILES_DIR	:= $(BUILD_DIR)/isofiles
 
 LD_SRC			:= $(KERNEL_DIR)/kernel.ld
+GRUB_CFG		:= grub.cfg
 
 KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
 LIB_FILE		:= $(BUILD_DIR)/libramen_os.a
-IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
+ISO_FILE		:= $(BUILD_DIR)/ramen_os.iso
 
 LD				:= ld
 RUSTC			:= cargo
@@ -22,7 +24,7 @@ LDFLAGS			:= -nostdlib -T $(LD_SRC)
 .PHONY:all copy_to_usb test clean $(LIB_FILE)
 .SUFFIXES:
 
-all:$(IMG_FILE)
+all:$(ISO_FILE)
 
 copy_to_usb:$(KERNEL_FILE)
 ifeq ($(USB_DEVICE_PATH),)
@@ -35,15 +37,13 @@ endif
 
 test:
 	make clean
-	make $(IMG_FILE) TEST_FLAG=--features=qemu_test
+	make $(ISO_FILE) TEST_FLAG=--features=qemu_test
 
-$(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE)
-	dd if=/dev/zero of=$@ bs=1k count=28800
-	mformat -i $@ -h 200 -t 500 -s 144::
-	# Cannot replace these mmd and mcopy with `make copy_to_usb` because `mount` needs `sudo`
-	# regardless of the permission of the image file or the device. Using `mmd` and `mcopy` is
-	# the only way to edit image file without `sudo`.
-	mcopy -i $@ $(KERNEL_FILE) ::
+$(ISO_FILE):$(KERNEL_FILE) $(GRUB_CFG) |$(ISOFILES_DIR)
+	mkdir -p $(ISOFILES_DIR)/boot/grub
+	cp $(GRUB_CFG) $(ISOFILES_DIR)/boot/grub
+	cp $(KERNEL_FILE) $(ISOFILES_DIR)/boot
+	grub-mkrescue -o $(ISO_FILE) $(ISOFILES_DIR)
 
 $(KERNEL_FILE):$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE)
@@ -59,6 +59,9 @@ $(LIB_FILE):|$(BUILD_DIR)
 	exit 1
 
 $(BUILD_DIR):
+	mkdir $@ -p
+
+$(ISOFILES_DIR):
 	mkdir $@ -p
 
 clean:

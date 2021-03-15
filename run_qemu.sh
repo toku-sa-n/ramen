@@ -8,7 +8,7 @@ create_storage_image() {
 readonly common_parameters=" \
     -drive if=pflash,format=raw,file=OVMF_CODE.fd,readonly=on \
     -drive if=pflash,format=raw,file=OVMF_VARS.fd,readonly=on \
-    -drive format=raw,file=build/ramen_os.img \
+    -drive format=raw,file=build/ramen_os.iso \
     -drive id=usb,file=build/storage.img,if=none,format=raw \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     -device qemu-xhci,id=xhci \
@@ -47,7 +47,7 @@ then
         exit 1
     fi
 else
-    make build/ramen_os.img -j
+    make build/ramen_os.iso -j
     create_storage_image
     qemu-system-x86_64 ${parameters_for_running_qemu}
 fi
