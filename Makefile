@@ -41,7 +41,7 @@ test:
 	make clean
 	make $(IMG_FILE) TEST_FLAG=--features=qemu_test
 
-$(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE)
+$(IMG_FILE):$(KERNEL_FILE) $(EFI_FILE)
 	dd if=/dev/zero of=$@ bs=1k count=28800
 	mformat -i $@ -h 200 -t 500 -s 144::
 	# Cannot replace these mmd and mcopy with `make copy_to_usb` because `mount` needs `sudo`
