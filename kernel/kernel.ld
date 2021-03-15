@@ -10,6 +10,8 @@ MEMORY{
     kernel_lma (RWX) : ORIGIN = 0x1000,             LENGTH = 0x8000000
 }
 
+KERNEL_LMA_OFFSET = 0xffffffff80000000 - 0x1000;
+
 SECTIONS
 {
     .multiboot ALIGN(8) : {
@@ -37,16 +39,16 @@ SECTIONS
         . += 0x40000;
         HEAP_END = .;
 
-        KERNEL_PML4 = ALIGN(4K);
+        KERNEL_PML4 = ALIGN(4K) - KERNEL_LMA_OFFSET;
         . += 4K;
 
-        KERNEL_PDPT = ALIGN(4K);
+        KERNEL_PDPT = ALIGN(4K) - KERNEL_LMA_OFFSET;
         . += 4K;
 
-        KERNEL_PD = ALIGN(4K);
+        KERNEL_PD = ALIGN(4K) - KERNEL_LMA_OFFSET;
         . += 4K;
 
-        KERNEL_PT = ALIGN(4K);
+        KERNEL_PT = ALIGN(4K) - KERNEL_LMA_OFFSET;
         . += 4K;
 
         *(.bss)
