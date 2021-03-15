@@ -12,6 +12,7 @@
     .extern BOOT_INFO_ADDR_LMA
 
     .extern BOOT_STACK
+    .extern KERNEL_STACK
 
     .code32
 
@@ -107,6 +108,9 @@ switch_cs:
     mov es, ax
     mov fs, ax
     mov gs, ax
+
+    // Setup kernel stack
+    lea rsp, [KERNEL_STACK]
 
 loop:
     jmp loop

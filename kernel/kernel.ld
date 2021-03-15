@@ -55,6 +55,9 @@ SECTIONS
         BOOT_INFO_ADDR_LMA = . - KERNEL_LMA_OFFSET;
         LONG(0)
 
+        . += 8K;
+        KERNEL_STACK = ALIGN(16);
+
         *(.bss)
     } > kernel AT > kernel_lma
 
