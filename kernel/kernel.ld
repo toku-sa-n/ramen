@@ -38,6 +38,19 @@ SECTIONS
         HEAP_START = .;
         . += 0x40000;
         HEAP_END = .;
+
+        KERNEL_PML4 = ALIGN(4K);
+        . += 4K;
+
+        KERNEL_PDPT = ALIGN(4K);
+        . += 4K;
+
+        KERNEL_PD = ALIGN(4K);
+        . += 4K;
+
+        KERNEL_PT = ALIGN(4K);
+        . += 4K;
+
         *(.bss)
     } > kernel AT > kernel_lma
 
