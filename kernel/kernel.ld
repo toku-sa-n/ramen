@@ -20,6 +20,8 @@ SECTIONS
 
     .boot : {
         *(.boot*)
+        . += 1K;
+        BOOT_STACK = ALIGN(16);
     } > boot
 
     .text : {

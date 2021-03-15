@@ -11,6 +11,8 @@
     .extern MULTIBOOT2_SIGNATURE_LMA
     .extern BOOT_INFO_ADDR_LMA
 
+    .extern BOOT_STACK
+
     .code32
 
 _start:
@@ -47,12 +49,12 @@ _start:
 
     // PML4
     lea eax, [KERNEL_PDPT_LMA]
-    or eax, 1   /* Present */
+    or eax, 3   /* Writable, present */
     mov [edx], eax
 
     // PDPT.
     lea edx, [KERNEL_PDPT_LMA]
-    mov eax, 0x81  /* 1G, Present */
+    mov eax, 0x83  /* 1G, writable, present */
     mov [edx], eax
 
     // For the kernel
@@ -80,5 +82,48 @@ _start:
     or eax, 0x80000000
     mov cr0, eax
 
+    .code64
+
+    // Adjust the stack pointer.
+    lea rax, BOOT_STACK
+    mov rsp, rax
+
+    // Switch segments
+    lgdt [lgdt_values]
+
+    // Code Segment
+    push 8
+    lea rax, switch_cs
+    pushq rax
+
+    retfq
+
+switch_cs:
+
+    // All the others
+    mov ax, 0
+    mov ss, ax
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
 loop:
     jmp loop
+
+lgdt_values:
+    .word segments_end - segments - 1
+    .quad segments
+
+    .align 8
+segments:
+    // Null
+    .long 0
+    .long 0
+    // Code
+    .long 0
+    .byte 0
+    .byte 0x9a
+    .byte 0xa0
+    .byte 0
+segments_end:
