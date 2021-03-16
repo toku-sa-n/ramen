@@ -43,7 +43,7 @@ SECTIONS
         . += 0x40000;
         HEAP_END = .;
 
-        . = ALIGN(4K)
+        . = ALIGN(4K);
         KERNEL_PML4_LMA = . - KERNEL_LMA_OFFSET;
         . += 4K;
 
