@@ -31,7 +31,7 @@ SECTIONS
     } > kernel AT > kernel_lma
 
     .data : {
-        *(.data)
+        *(.data*)
     } > kernel AT > kernel_lma
 
     .rodata : {
@@ -58,10 +58,10 @@ SECTIONS
         . += 8K;
         KERNEL_STACK = ALIGN(16);
 
-        *(.bss)
+        *(.bss*)
     } > kernel AT > kernel_lma
 
     .eh_frame : {
-        *(.eh_frame)
+        *(.eh_frame*)
     } > kernel AT > kernel_lma
 }
