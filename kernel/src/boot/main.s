@@ -16,12 +16,17 @@
     .extern os_main
 
     .set MULTIBOOT2_SIGNATURE, 0x36d76289
+    .set MULTIBOOT2_MAX_SIZE, 0x100000
 
 _start:
     .code32
 
     cmp eax, MULTIBOOT2_SIGNATURE
     jne invalid_multiboot2_signature
+
+    mov ecx, [ebx]
+    cmp ecx, MULTIBOOT2_MAX_SIZE
+    jg multiboot2_information_too_big
 
     lea edx, [BOOT_INFO_ADDR_LMA]
     mov [edx], ebx
@@ -137,5 +142,6 @@ segments_end:
 
     // TODO: Print a friendly message.
 invalid_multiboot2_signature:
+multiboot2_information_too_big:
     hlt
     jmp invalid_multiboot2_signature
