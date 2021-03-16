@@ -13,10 +13,10 @@
 
     .extern BOOT_STACK
     .extern KERNEL_STACK
-
-    .code32
+    .extern os_main
 
 _start:
+    .code32
 
     // Save the Multiboot2 informations
     lea edx, [MULTIBOOT2_SIGNATURE_LMA]
@@ -83,6 +83,7 @@ _start:
     or eax, 0x80000000
     mov cr0, eax
 
+paging_enabled:
     .code64
 
     // Adjust the stack pointer.
@@ -100,6 +101,7 @@ _start:
     retfq
 
 switch_cs:
+    .code64
 
     // All the others
     mov ax, 0
@@ -112,8 +114,8 @@ switch_cs:
     // Setup kernel stack
     lea rsp, [KERNEL_STACK]
 
-loop:
-    jmp loop
+    mov rdi, os_main
+    jmp rdi
 
 lgdt_values:
     .word segments_end - segments - 1
