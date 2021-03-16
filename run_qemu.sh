@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 create_storage_image() {
     mkdir -p build
     dd if=/dev/zero of=build/storage.img count=10000
@@ -36,6 +38,9 @@ if [[ $1 == "-t" ]]
 then
     make test -j
     create_storage_image
+
+    # QEMU exist with the exit code nonzero value even on success.
+    set +e
     qemu-system-x86_64 ${parameters_for_testing}
     readonly status=$?
     readonly ok_status=33
