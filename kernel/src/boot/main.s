@@ -8,8 +8,7 @@
     .extern KERNEL_PDPT_LMA
     .extern KERNEL_LMA
 
-    .extern MULTIBOOT2_SIGNATURE_LMA
-    .extern BOOT_INFO_ADDR_LMA
+    .extern MULTIBOOT2_INFORMATION_LMA
 
     .extern BOOT_STACK
     .extern KERNEL_STACK
@@ -28,8 +27,9 @@ _start:
     cmp ecx, MULTIBOOT2_MAX_SIZE
     jg multiboot2_information_too_big
 
-    lea edx, [BOOT_INFO_ADDR_LMA]
-    mov [edx], ebx
+    mov esi, ebx
+    lea edi, [MULTIBOOT2_INFORMATION_LMA]
+    rep movsb
 
     // Enter the Long mode.
     //
