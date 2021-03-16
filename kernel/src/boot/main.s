@@ -10,8 +10,8 @@
 
     .extern MULTIBOOT2_INFORMATION_LMA
 
-    .extern BOOT_STACK
     .extern KERNEL_STACK
+    .extern KERNEL_STACK_LMA
     .extern os_main
 
     .set MULTIBOOT2_SIGNATURE, 0x36d76289
@@ -93,7 +93,7 @@ paging_enabled:
     .code64
 
     // Adjust the stack pointer.
-    lea rax, BOOT_STACK
+    lea rax, KERNEL_STACK_LMA
     mov rsp, rax
 
     // Switch segments

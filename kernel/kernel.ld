@@ -20,8 +20,6 @@ SECTIONS
 
     .boot : {
         *(.boot*)
-        . += 1K;
-        BOOT_STACK = ALIGN(16);
     } > boot
 
     .text : {
@@ -55,6 +53,7 @@ SECTIONS
         . += 8K;
         . = ALIGN(16);
         KERNEL_STACK = .;
+        KERNEL_STACK_LMA = . - KERNEL_LMA_OFFSET;
 
         MULTIBOOT2_INFORMATION_LMA = . - KERNEL_LMA_OFFSET;
         . += 1M;
