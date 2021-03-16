@@ -58,6 +58,9 @@ SECTIONS
         . += 8K;
         KERNEL_STACK = ALIGN(16);
 
+        MULTIBOOT2_INFORMATION_LMA = . - KERNEL_LMA_OFFSET;
+        . += 1M;
+
         *(.bss*)
     } > kernel AT > kernel_lma
 
