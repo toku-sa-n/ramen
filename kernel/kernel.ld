@@ -50,7 +50,6 @@ SECTIONS
         KERNEL_PDPT_LMA = . - KERNEL_LMA_OFFSET;
         . += 4K;
 
-        BOOT_INFO_ADDR_LMA = . - KERNEL_LMA_OFFSET;
         LONG(0)
 
         . += 8K;
