@@ -48,6 +48,7 @@ SECTIONS
         KERNEL_PDPT_LMA = . - KERNEL_LMA_OFFSET;
         . += 4K;
 
+        /* TODO: Remove this. */
         LONG(0)
 
         . += 8K;
