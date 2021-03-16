@@ -50,9 +50,6 @@ SECTIONS
         KERNEL_PDPT_LMA = . - KERNEL_LMA_OFFSET;
         . += 4K;
 
-        MULTIBOOT2_SIGNATURE_LMA = . - KERNEL_LMA_OFFSET;
-        LONG(0)
-
         BOOT_INFO_ADDR_LMA = . - KERNEL_LMA_OFFSET;
         LONG(0)
 
