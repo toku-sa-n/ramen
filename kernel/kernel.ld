@@ -57,7 +57,8 @@ SECTIONS
         LONG(0)
 
         . += 8K;
-        KERNEL_STACK = ALIGN(16);
+        . = ALIGN(16);
+        KERNEL_STACK = .;
 
         MULTIBOOT2_INFORMATION_LMA = . - KERNEL_LMA_OFFSET;
         . += 1M;
