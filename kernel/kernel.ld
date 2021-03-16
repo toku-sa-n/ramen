@@ -43,10 +43,11 @@ SECTIONS
         . += 0x40000;
         HEAP_END = .;
 
-        KERNEL_PML4_LMA = ALIGN(4K) - KERNEL_LMA_OFFSET;
+        . = ALIGN(4K)
+        KERNEL_PML4_LMA = . - KERNEL_LMA_OFFSET;
         . += 4K;
 
-        KERNEL_PDPT_LMA = ALIGN(4K) - KERNEL_LMA_OFFSET;
+        KERNEL_PDPT_LMA = . - KERNEL_LMA_OFFSET;
         . += 4K;
 
         MULTIBOOT2_SIGNATURE_LMA = . - KERNEL_LMA_OFFSET;
