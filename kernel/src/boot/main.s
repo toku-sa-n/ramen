@@ -15,12 +15,13 @@
     .extern KERNEL_STACK
     .extern os_main
 
+    .set MULTIBOOT2_SIGNATURE, 0x36d76289
+
 _start:
     .code32
 
-    // Save the Multiboot2 informations
-    lea edx, [MULTIBOOT2_SIGNATURE_LMA]
-    mov [edx], eax
+    cmp eax, MULTIBOOT2_SIGNATURE
+    jne invalid_multiboot2_signature
 
     lea edx, [BOOT_INFO_ADDR_LMA]
     mov [edx], ebx
@@ -133,3 +134,8 @@ segments:
     .byte 0xa0
     .byte 0
 segments_end:
+
+    // TODO: Print a friendly message.
+invalid_multiboot2_signature:
+    hlt
+    jmp invalid_multiboot2_signature
