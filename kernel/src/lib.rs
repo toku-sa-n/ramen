@@ -44,7 +44,7 @@ use common::kernelboot;
 use device::pci::xhci;
 use futures_intrusive::sync::{GenericMutex, GenericMutexGuard};
 use interrupt::{apic, idt, timer};
-use mem::allocator::{heap, phys::FrameManager};
+use mem::{allocator, allocator::heap};
 use multitask::{executor::Executor, task::Task};
 use process::Privilege;
 use spinning_top::RawSpinlock;
@@ -65,7 +65,7 @@ fn init(boot_info: &mut kernelboot::Info) {
 
     heap::init();
 
-    FrameManager::init(boot_info.mem_map_mut());
+    allocator::phys::init(boot_info.mem_map_mut());
 
     let acpi = unsafe { acpi::get(boot_info.rsdp()) };
 
