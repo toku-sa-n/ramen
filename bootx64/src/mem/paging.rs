@@ -53,7 +53,7 @@ pub fn init(boot_info: &mut kernelboot::Info, reserved: &reserved::Map) {
 fn enable_recursive_mapping() {
     let p4: &mut PageTable = unsafe { &mut *(get_pml4_addr().as_u64() as *mut _) };
 
-    p4[511].set_addr(
+    p4[510].set_addr(
         get_pml4_addr(),
         PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE,
     );

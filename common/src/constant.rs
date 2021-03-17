@@ -18,7 +18,7 @@ pub const INTERRUPT_STACK: VirtAddr = VirtAddr::new_truncate(
     STACK_BASE.as_u64() - (NUM_OF_PAGES_STACK.as_bytes().as_usize() / 2) as u64,
 );
 pub const INIT_RSP: VirtAddr = VirtAddr::new_truncate(STACK_BASE.as_u64() - Size4KiB::SIZE);
-pub const RECUR_PML4_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_ffff_f000);
+pub const RECUR_PML4_ADDR: VirtAddr = VirtAddr::new_truncate(0xff7f_bfdf_e000);
 
 pub const NUM_OF_PAGES_STACK: NumOfPages<Size4KiB> = NumOfPages::new(16);
 pub const BYTES_AVAILABLE_RAM: Bytes = Bytes::new(0x1_0000_0000_0000);
