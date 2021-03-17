@@ -120,7 +120,7 @@ switch_cs:
     // Setup kernel stack
     lea rsp, [KERNEL_STACK]
 
-    mov rdi, os_main
+    lea rdi, [os_main]
     jmp rdi
 
 lgdt_values:
