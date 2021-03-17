@@ -91,10 +91,10 @@ impl Pml4Creator {
         let a = self.pml4.phys_addr();
         let f =
             PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
-        self.pml4[511].set_addr(a, f);
+        self.pml4[510].set_addr(a, f);
     }
 
     fn map_kernel_area(&mut self) {
-        self.pml4[510] = PML4.lock().level_4_table()[510].clone();
+        self.pml4[511] = PML4.lock().level_4_table()[511].clone();
     }
 }
