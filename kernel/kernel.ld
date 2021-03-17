@@ -6,8 +6,8 @@ EXTERN(multiboot_header)
 
 MEMORY{
     boot (RWX)       : ORIGIN = 0x100000,           LENGTH = 0x1000
-    kernel (RWX)     : ORIGIN = 0xffffffff80000000, LENGTH = 0x8000000
-    kernel_lma (RWX) : ORIGIN = 0x101000,           LENGTH = 0x8000000
+    kernel (RWX)     : ORIGIN = 0xffffffff80000000, LENGTH = 0x200000
+    kernel_lma (RWX) : ORIGIN = 0x101000,           LENGTH = 0x200000
 }
 
 KERNEL_LMA_OFFSET = 0xffffffff80000000 - 0x101000;
@@ -48,6 +48,12 @@ SECTIONS
         . += 4K;
 
         KERNEL_PDPT_LMA = . - KERNEL_LMA_OFFSET;
+        . += 4K;
+
+        KERNEL_PD_LMA = . - KERNEL_LMA_OFFSET;
+        . += 4K;
+
+        KERNEL_PT_LMA = . - KERNEL_LMA_OFFSET;
         . += 4K;
 
         /* TODO: Remove this. */

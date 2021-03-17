@@ -6,6 +6,8 @@
 
     .extern KERNEL_PML4_LMA
     .extern KERNEL_PDPT_LMA
+    .extern KERNEL_PD_LMA
+    .extern KERNEL_PT_LMA
     .extern KERNEL_LMA
 
     .extern MULTIBOOT2_INFORMATION_LMA
@@ -49,8 +51,8 @@ _start:
     lea edx, [KERNEL_PML4_LMA]
     mov eax, edx
     or eax, 3   /* Present, writable. */
-    mov [edx + 511 * 8], eax
-    mov dword ptr [edx + 511 * 8 + 4], 0
+    mov [edx + 510 * 8], eax
+    mov dword ptr [edx + 510 * 8 + 4], 0
 
     // For the bootloader.
 
@@ -66,13 +68,37 @@ _start:
 
     // For the kernel
 
-    // PDPT of the kernel mapping is the same table as PML4.
+    // PML4
     lea edx, [KERNEL_PML4_LMA]
+    lea eax, [KERNEL_PDPT_LMA]
+    or eax, 3   /* Writable and present */
+    mov [edx + 511 * 8], eax
+    mov dword ptr [edx + 511 * 8 + 4], 0
 
-    lea eax, [KERNEL_LMA]
-    or eax, 0x83   /* 1G, Present, writable. */
+    // PDPT.
+    lea edx, [KERNEL_PDPT_LMA]
+    lea eax, [KERNEL_PD_LMA]
+    or eax, 0x3   /* writable and present */
     mov [edx + 510 * 8], eax
     mov dword ptr [edx + 510 * 8 + 4], 0
+
+    // PD.
+    lea edx, [KERNEL_PD_LMA]
+    lea eax, [KERNEL_PT_LMA]
+    or eax, 0x3    /* writable and present */
+    mov [edx], eax
+    mov dword ptr [edx + 4], 0
+
+    // PT.
+    lea edx, [KERNEL_PT_LMA]
+    lea eax, [KERNEL_LMA]
+    or eax, 0x3 /* Writable and present. */
+    mov ecx, 512
+map_pt:
+    mov [edx], eax
+    add edx, 8
+    add eax, 0x1000
+    loop map_pt
 
     // Change PML4
     lea eax, [KERNEL_PML4_LMA]
@@ -120,8 +146,10 @@ switch_cs:
     // Setup kernel stack
     lea rsp, [KERNEL_STACK]
 
-    lea rdi, [os_main]
-    jmp rdi
+    jmp invalid_multiboot2_signature
+
+    /* lea rdi, [os_main] */
+    /* jmp rdi */
 
 lgdt_values:
     .word segments_end - segments - 1
