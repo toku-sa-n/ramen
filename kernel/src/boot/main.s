@@ -146,10 +146,8 @@ switch_cs:
     // Setup kernel stack
     lea rsp, [KERNEL_STACK]
 
-    jmp invalid_multiboot2_signature
-
-    /* lea rdi, [os_main] */
-    /* jmp rdi */
+    lea rdi, [os_main]
+    jmp rdi
 
 lgdt_values:
     .word segments_end - segments - 1
