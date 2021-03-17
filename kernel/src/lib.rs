@@ -63,11 +63,8 @@ fn init(boot_info: &mut kernelboot::Info) {
     gdt::init();
     idt::init();
 
-    // It is bothering to initialize heap memory in the user mode as this is to map the area, which an initialized
-    // frame manager is needed.
     heap::init();
 
-    // This function unmaps all user memory, which needs the kernel privilege.
     FrameManager::init(boot_info.mem_map_mut());
 
     let acpi = unsafe { acpi::get(boot_info.rsdp()) };
