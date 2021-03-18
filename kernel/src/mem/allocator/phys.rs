@@ -103,9 +103,7 @@ impl FrameManager {
     }
 
     fn split_node(&mut self, i: usize, num_of_pages: NumOfPages<Size4KiB>) {
-        if !self.0[i].available {
-            return;
-        }
+        assert!(self.0[i].available, "Frames are not available.");
 
         while self.0[i].num_of_pages > num_of_pages {
             self.split_node_into_half(i);
