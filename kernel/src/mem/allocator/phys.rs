@@ -148,21 +148,7 @@ impl FrameManager {
         let node = &self.0[i];
         let next = &self.0[i + 1];
 
-        Self::two_nodes_available(node, next)
-            && Self::two_nodes_consecutive(node, next)
-            && Self::two_nodes_have_same_pages(node, next)
-    }
-
-    fn two_nodes_available(node: &Frames, next: &Frames) -> bool {
-        node.available && next.available
-    }
-
-    fn two_nodes_consecutive(node: &Frames, next: &Frames) -> bool {
-        node.start + u64::try_from(node.num_of_pages.as_bytes().as_usize()).unwrap() == next.start
-    }
-
-    fn two_nodes_have_same_pages(node: &Frames, next: &Frames) -> bool {
-        node.num_of_pages == next.num_of_pages
+        node.is_mergeable(next)
     }
 
     fn merge_node(&mut self, i: usize) {
@@ -209,5 +195,21 @@ impl Frames {
 
     fn is_available_for_allocating(&self, request_num_of_pages: NumOfPages<Size4KiB>) -> bool {
         self.num_of_pages >= request_num_of_pages && self.available
+    }
+
+    fn is_mergeable(&self, other: &Self) -> bool {
+        self.available && other.available && self.is_consecutive(other) && self.is_same_size(other)
+    }
+
+    fn is_consecutive(&self, other: &Self) -> bool {
+        self.end() == other.start
+    }
+
+    fn end(&self) -> PhysAddr {
+        self.start + self.num_of_pages.as_bytes().as_usize()
+    }
+
+    fn is_same_size(&self, other: &Self) -> bool {
+        self.num_of_pages == other.num_of_pages
     }
 }
