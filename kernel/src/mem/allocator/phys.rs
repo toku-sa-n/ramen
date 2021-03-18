@@ -43,8 +43,7 @@ impl FrameManager {
     pub(super) fn free(&mut self, addr: PhysAddr) {
         for i in 0..self.0.len() {
             if self.0[i].start == addr && !self.0[i].available {
-                self.0[i].available = true;
-                return self.merge_all_nodes();
+                return self.free_memory_for_descriptor_index(i);
             }
         }
     }
@@ -94,6 +93,11 @@ impl FrameManager {
                 self.0.insert(i + 1, new_frames);
             }
         }
+    }
+
+    fn free_memory_for_descriptor_index(&mut self, i: usize) {
+        self.0[i].available = true;
+        self.merge_all_nodes();
     }
 
     fn merge_all_nodes(&mut self) {
