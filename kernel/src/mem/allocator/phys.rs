@@ -105,8 +105,7 @@ impl FrameManager {
         // This will make it faster to search a small amount of memory.
         for i in (0..self.0.len()).rev() {
             if self.mergeable(i) {
-                self.merge_two_nodes(i);
-                return self.merge_all_nodes();
+                return self.merge_node(i);
             }
         }
     }
@@ -134,6 +133,11 @@ impl FrameManager {
 
     fn two_nodes_have_same_pages(node: &Frames, next: &Frames) -> bool {
         node.num_of_pages == next.num_of_pages
+    }
+
+    fn merge_node(&mut self, i: usize) {
+        self.merge_two_nodes(i);
+        self.merge_all_nodes();
     }
 
     fn merge_two_nodes(&mut self, i: usize) {
