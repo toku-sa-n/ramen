@@ -27,7 +27,7 @@ impl FrameManager {
         let num_of_pages = NumOfPages::new(num_of_pages.as_usize().next_power_of_two());
 
         for i in 0..self.0.len() {
-            if self.0[i].num_of_pages >= num_of_pages && self.0[i].available {
+            if self.0[i].is_available_for_allocating(num_of_pages) {
                 self.split_node(i, num_of_pages);
 
                 let addr = self.0[i].start;
@@ -167,5 +167,9 @@ impl Frames {
             num_of_pages,
             available: true,
         }
+    }
+
+    fn is_available_for_allocating(&self, request_num_of_pages: NumOfPages<Size4KiB>) -> bool {
+        self.num_of_pages >= request_num_of_pages && self.available
     }
 }
