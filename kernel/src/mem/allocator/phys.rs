@@ -84,17 +84,21 @@ impl FrameManager {
         }
 
         while self.0[i].num_of_pages > num_of_pages {
-            let start = self.0[i].start;
-            let num_of_pages = self.0[i].num_of_pages;
-
-            let new_frames = Frames::new_for_available(
-                start + num_of_pages.as_bytes().as_usize() / 2,
-                num_of_pages / 2,
-            );
-
-            self.0[i].num_of_pages /= 2;
-            self.0.insert(i + 1, new_frames);
+            self.split_node_into_half(i);
         }
+    }
+
+    fn split_node_into_half(&mut self, i: usize) {
+        let start = self.0[i].start;
+        let num_of_pages = self.0[i].num_of_pages;
+
+        let new_frames = Frames::new_for_available(
+            start + num_of_pages.as_bytes().as_usize() / 2,
+            num_of_pages / 2,
+        );
+
+        self.0[i].num_of_pages /= 2;
+        self.0.insert(i + 1, new_frames);
     }
 
     fn free_memory_for_descriptor_index(&mut self, i: usize) {
