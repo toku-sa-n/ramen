@@ -30,12 +30,12 @@ SECTIONS
         *(.text*)
     } > kernel AT > kernel_lma
 
-    .data : {
-        *(.data*)
-    } > kernel AT > kernel_lma
-
     .rodata : {
         *(.rodata*)
+    } > kernel AT > kernel_lma
+
+    .data : {
+        *(.data*)
     } > kernel AT > kernel_lma
 
     .bss : {
