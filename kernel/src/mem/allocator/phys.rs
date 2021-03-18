@@ -28,12 +28,7 @@ impl FrameManager {
 
         for i in 0..self.0.len() {
             if self.0[i].is_available_for_allocating(num_of_pages) {
-                self.split_node(i, num_of_pages);
-
-                let addr = self.0[i].start;
-                self.0[i].available = false;
-
-                return Some(addr);
+                return Some(self.alloc_from_descriptor_index(i, num_of_pages));
             }
         }
 
@@ -56,6 +51,13 @@ impl FrameManager {
         }
 
         self.merge_all_nodes();
+    }
+
+    fn alloc_from_descriptor_index(&mut self, i: usize, n: NumOfPages<Size4KiB>) -> PhysAddr {
+        self.split_node(i, n);
+
+        self.0[i].available = false;
+        self.0[i].start
     }
 
     fn init_for_descriptor(&mut self, descriptor: &boot::MemoryDescriptor) {
