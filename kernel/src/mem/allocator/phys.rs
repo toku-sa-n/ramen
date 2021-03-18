@@ -79,19 +79,21 @@ impl FrameManager {
     }
 
     fn split_node(&mut self, i: usize, num_of_pages: NumOfPages<Size4KiB>) {
-        if self.0[i].available {
-            while self.0[i].num_of_pages > num_of_pages {
-                let start = self.0[i].start;
-                let num_of_pages = self.0[i].num_of_pages;
+        if !self.0[i].available {
+            return;
+        }
 
-                let new_frames = Frames::new_for_available(
-                    start + num_of_pages.as_bytes().as_usize() / 2,
-                    num_of_pages / 2,
-                );
+        while self.0[i].num_of_pages > num_of_pages {
+            let start = self.0[i].start;
+            let num_of_pages = self.0[i].num_of_pages;
 
-                self.0[i].num_of_pages /= 2;
-                self.0.insert(i + 1, new_frames);
-            }
+            let new_frames = Frames::new_for_available(
+                start + num_of_pages.as_bytes().as_usize() / 2,
+                num_of_pages / 2,
+            );
+
+            self.0[i].num_of_pages /= 2;
+            self.0.insert(i + 1, new_frames);
         }
     }
 
