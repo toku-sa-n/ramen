@@ -70,7 +70,7 @@ impl FrameManager {
                     descriptor.phys_start + u64::try_from(offset.as_bytes().as_usize()).unwrap(),
                 );
                 let pages = NumOfPages::new(2_usize.pow(i));
-                let frames = Frames::available(addr, pages);
+                let frames = Frames::new_for_available(addr, pages);
 
                 self.0.push_back(frames);
 
@@ -85,7 +85,7 @@ impl FrameManager {
                 let start = self.0[i].start;
                 let num_of_pages = self.0[i].num_of_pages;
 
-                let new_frames = Frames::available(
+                let new_frames = Frames::new_for_available(
                     start + num_of_pages.as_bytes().as_usize() / 2,
                     num_of_pages / 2,
                 );
@@ -161,7 +161,7 @@ struct Frames {
     available: bool,
 }
 impl Frames {
-    fn available(start: PhysAddr, num_of_pages: NumOfPages<Size4KiB>) -> Self {
+    fn new_for_available(start: PhysAddr, num_of_pages: NumOfPages<Size4KiB>) -> Self {
         Self {
             start,
             num_of_pages,
