@@ -17,7 +17,7 @@ pub(in super::super) static FRAME_MANAGER: Lazy<Spinlock<FrameManager>> =
     Lazy::new(|| Spinlock::new(FrameManager(VecDeque::new())));
 
 pub(crate) fn init(mem_map: &[boot::MemoryDescriptor]) {
-    FRAME_MANAGER.lock().init_static(mem_map);
+    FRAME_MANAGER.lock().init(mem_map);
     paging::mark_pages_as_unused();
 }
 
@@ -49,7 +49,7 @@ impl FrameManager {
         }
     }
 
-    fn init_static(&mut self, mem_map: &[boot::MemoryDescriptor]) {
+    fn init(&mut self, mem_map: &[boot::MemoryDescriptor]) {
         for descriptor in mem_map {
             if Self::available(descriptor.ty) {
                 self.init_for_descriptor(descriptor);
