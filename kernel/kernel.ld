@@ -56,9 +56,6 @@ SECTIONS
         KERNEL_PT_LMA = . - KERNEL_LMA_OFFSET;
         . += 4K;
 
-        /* TODO: Remove this. */
-        LONG(0)
-
         . += 8K;
         . = ALIGN(16);
         KERNEL_STACK = .;
@@ -70,7 +67,7 @@ SECTIONS
         *(.bss*)
     } > kernel AT > kernel_lma
 
-    .eh_frame : {
+    /DISCARD/ : {
         *(.eh_frame*)
-    } > kernel AT > kernel_lma
+    }
 }
