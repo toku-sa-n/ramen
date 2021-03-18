@@ -39,6 +39,8 @@ SECTIONS
     } > kernel AT > kernel_lma
 
     .bss : {
+        *(.bss*)
+
         HEAP_START = .;
         . += 0x40000;
         HEAP_END = .;
@@ -63,8 +65,6 @@ SECTIONS
 
         MULTIBOOT2_INFORMATION_LMA = . - KERNEL_LMA_OFFSET;
         . += 1M;
-
-        *(.bss*)
     } > kernel AT > kernel_lma
 
     /DISCARD/ : {
