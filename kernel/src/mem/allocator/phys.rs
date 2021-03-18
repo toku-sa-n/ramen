@@ -4,7 +4,10 @@ use crate::mem::paging;
 use alloc::collections::vec_deque::VecDeque;
 use bit_field::BitField;
 use conquer_once::spin::Lazy;
-use core::convert::{TryFrom, TryInto};
+use core::{
+    convert::{TryFrom, TryInto},
+    ops::DerefMut,
+};
 use os_units::NumOfPages;
 use spinning_top::Spinlock;
 use uefi::table::boot::{self, MemoryType};
@@ -13,7 +16,7 @@ use x86_64::{
     PhysAddr,
 };
 
-pub(in super::super) static FRAME_MANAGER: Lazy<Spinlock<FrameManager>> =
+static FRAME_MANAGER: Lazy<Spinlock<FrameManager>> =
     Lazy::new(|| Spinlock::new(FrameManager(VecDeque::new())));
 
 pub(crate) fn init(mem_map: &[boot::MemoryDescriptor]) {
@@ -21,9 +24,28 @@ pub(crate) fn init(mem_map: &[boot::MemoryDescriptor]) {
     paging::mark_pages_as_unused();
 }
 
+pub(in super::super) fn allocator(
+) -> impl DerefMut<Target = impl FrameAllocator<Size4KiB> + FrameDeallocator<Size4KiB>> {
+    lock_manager()
+}
+
+pub(super) fn alloc(num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
+    lock_manager().deref_mut().alloc(num_of_pages)
+}
+
+pub(super) fn free(addr: PhysAddr) {
+    lock_manager().deref_mut().free(addr)
+}
+
+fn lock_manager() -> impl DerefMut<Target = FrameManager> {
+    FRAME_MANAGER
+        .try_lock()
+        .expect("Failed to lock the frame manager.")
+}
+
 pub(in super::super) struct FrameManager(VecDeque<Frames>);
 impl FrameManager {
-    pub(super) fn alloc(&mut self, num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
+    fn alloc(&mut self, num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
         let num_of_pages = NumOfPages::new(num_of_pages.as_usize().next_power_of_two());
 
         for i in 0..self.0.len() {
@@ -35,7 +57,7 @@ impl FrameManager {
         None
     }
 
-    pub(super) fn free(&mut self, addr: PhysAddr) {
+    fn free(&mut self, addr: PhysAddr) {
         for i in 0..self.0.len() {
             if self.0[i].start == addr && !self.0[i].available {
                 return self.free_memory_for_descriptor_index(i);

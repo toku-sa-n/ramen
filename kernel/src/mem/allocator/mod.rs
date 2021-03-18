@@ -2,7 +2,6 @@
 
 use core::convert::TryFrom;
 use os_units::NumOfPages;
-use phys::FRAME_MANAGER;
 use x86_64::{
     structures::paging::{Mapper, Page, PageSize, Size4KiB, Translate},
     PhysAddr, VirtAddr,
@@ -30,12 +29,12 @@ pub fn deallocate_pages(virt: VirtAddr, num_of_pages: NumOfPages<Size4KiB>) {
 }
 
 fn allocate_phys(num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
-    FRAME_MANAGER.lock().alloc(num_of_pages)
+    phys::alloc(num_of_pages)
 }
 
 fn deallocate_phys(virt: VirtAddr) {
     let phys = PML4.lock().translate_addr(virt).unwrap();
-    FRAME_MANAGER.lock().free(phys);
+    phys::free(phys);
 }
 
 fn deallocate_virt(virt: VirtAddr, num_of_pages: NumOfPages<Size4KiB>) {
