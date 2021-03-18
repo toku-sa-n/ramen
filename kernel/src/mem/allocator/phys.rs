@@ -13,17 +13,17 @@ use x86_64::{
     PhysAddr,
 };
 
-pub static FRAME_MANAGER: Lazy<Spinlock<FrameManager>> =
+pub(in super::super) static FRAME_MANAGER: Lazy<Spinlock<FrameManager>> =
     Lazy::new(|| Spinlock::new(FrameManager(VecDeque::new())));
 
-pub struct FrameManager(VecDeque<Frames>);
-impl FrameManager {
-    pub fn init(mem_map: &[boot::MemoryDescriptor]) {
-        FRAME_MANAGER.lock().init_static(mem_map);
-        paging::mark_pages_as_unused();
-    }
+pub(crate) fn init(mem_map: &[boot::MemoryDescriptor]) {
+    FRAME_MANAGER.lock().init_static(mem_map);
+    paging::mark_pages_as_unused();
+}
 
-    pub fn alloc(&mut self, num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
+pub(in super::super) struct FrameManager(VecDeque<Frames>);
+impl FrameManager {
+    pub(super) fn alloc(&mut self, num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
         let num_of_pages = NumOfPages::new(num_of_pages.as_usize().next_power_of_two());
 
         for i in 0..self.0.len() {
@@ -40,7 +40,7 @@ impl FrameManager {
         None
     }
 
-    pub fn free(&mut self, addr: PhysAddr) {
+    pub(super) fn free(&mut self, addr: PhysAddr) {
         for i in 0..self.0.len() {
             if self.0[i].start == addr && !self.0[i].available {
                 self.0[i].available = true;
