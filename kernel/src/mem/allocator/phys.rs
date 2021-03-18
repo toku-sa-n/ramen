@@ -111,16 +111,16 @@ impl FrameManager {
     }
 
     fn mergeable(&self, i: usize) -> bool {
-        if i < self.0.len() - 1 {
-            let node = &self.0[i];
-            let next = &self.0[i + 1];
-
-            Self::two_nodes_available(node, next)
-                && Self::two_nodes_consecutive(node, next)
-                && Self::two_nodes_have_same_pages(node, next)
-        } else {
-            false
+        if i >= self.0.len() - 1 {
+            return false;
         }
+
+        let node = &self.0[i];
+        let next = &self.0[i + 1];
+
+        Self::two_nodes_available(node, next)
+            && Self::two_nodes_consecutive(node, next)
+            && Self::two_nodes_have_same_pages(node, next)
     }
 
     fn two_nodes_available(node: &Frames, next: &Frames) -> bool {
