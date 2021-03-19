@@ -2,7 +2,6 @@
 
 use alloc::vec::Vec;
 use bit_field::BitField;
-use conquer_once::spin::Lazy;
 use core::{
     convert::{TryFrom, TryInto},
     ops::DerefMut,
@@ -15,8 +14,7 @@ use x86_64::{
     PhysAddr,
 };
 
-static FRAME_MANAGER: Lazy<Spinlock<FrameManager>> =
-    Lazy::new(|| Spinlock::new(FrameManager(Vec::new())));
+static FRAME_MANAGER: Spinlock<FrameManager> = Spinlock::new(FrameManager(Vec::new()));
 
 pub(crate) fn init(mem_map: &[boot::MemoryDescriptor]) {
     FRAME_MANAGER.lock().init(mem_map);
