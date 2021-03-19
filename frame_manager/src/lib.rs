@@ -3,6 +3,8 @@
 #![cfg_attr(not(test), no_std)]
 #![feature(int_bits_const)]
 
+extern crate alloc;
+
 use alloc::vec::Vec;
 use bit_field::BitField;
 use boot::MemoryType;
@@ -13,8 +15,6 @@ use x86_64::{
     structures::paging::{FrameAllocator, FrameDeallocator, PhysFrame, Size4KiB},
     PhysAddr,
 };
-
-extern crate alloc;
 
 pub struct FrameManager(Vec<Frames>);
 impl FrameManager {
