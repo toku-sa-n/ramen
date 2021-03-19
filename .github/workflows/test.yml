@@ -12,8 +12,6 @@ jobs:
   fmt:
     runs-on: ubuntu-latest
 
-    needs: install_dependencies
-
     steps:
     - uses: actions/checkout@v2
 
@@ -32,8 +30,6 @@ jobs:
   clippy:
     runs-on: ubuntu-latest
 
-    needs: install_dependencies
-
     steps:
     - uses: actions/checkout@v2
 
@@ -49,8 +45,6 @@ jobs:
 
   udeps:
     runs-on: ubuntu-latest
-
-    needs: install_dependencies
 
     steps:
     - uses: actions/checkout@v2
@@ -69,8 +63,6 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-
-    needs: install_dependencies
 
     steps:
     - uses: actions/checkout@v2
