@@ -39,6 +39,9 @@ then
     make test -j
     create_storage_image
 
+    # The target `x86_64-unknown-uefi` does not have `std`.
+    find . -name Cargo.toml -printf '%h\n'|grep -v bootx64|xargs -I {} sh -c "cd {} && cargo test || exit 255"
+
     # QEMU exist with the exit code nonzero value even on success.
     set +e
     qemu-system-x86_64 ${parameters_for_testing}
