@@ -10,8 +10,10 @@ use core::{
     ops::{Deref, DerefMut},
     ptr, slice,
 };
-use os_units::{Bytes, NumOfPages};
+use os_units::Bytes;
 use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
+
+mod alloc;
 
 pub struct PageBox<T: ?Sized> {
     virt: VirtAddr,
@@ -192,7 +194,7 @@ impl<T: ?Sized> PageBox<T> {
     }
 
     fn from_bytes(bytes: Bytes) -> Self {
-        let virt = allocate_pages(bytes.as_num_of_pages());
+        let virt = alloc::allocate_pages(bytes.as_num_of_pages());
 
         if virt.is_null() {
             panic!("Failed to allocate pages.");
@@ -208,50 +210,8 @@ impl<T: ?Sized> PageBox<T> {
 impl<T: ?Sized> Drop for PageBox<T> {
     fn drop(&mut self) {
         let num_of_pages = self.bytes.as_num_of_pages::<Size4KiB>();
-        deallocate_pages(self.virt, num_of_pages);
+        alloc::deallocate_pages(self.virt, num_of_pages);
     }
-}
-
-#[cfg(not(test))]
-fn allocate_pages(n: NumOfPages<Size4KiB>) -> VirtAddr {
-    let v = syscalls::allocate_pages(n);
-
-    if v.is_null() {
-        panic!("Failed to allocate pages.");
-    }
-
-    v
-}
-
-#[cfg(test)]
-fn allocate_pages(n: NumOfPages<Size4KiB>) -> VirtAddr {
-    use std::{alloc, alloc::Layout, convert::TryInto};
-    use x86_64::structures::paging::PageSize;
-
-    let sz: usize = Size4KiB::SIZE.try_into().unwrap();
-    let l = Layout::from_size_align(sz, sz);
-    let l = l.expect("Invalid layout.");
-
-    let p = unsafe { alloc::alloc(l) };
-    VirtAddr::from_ptr(p)
-}
-
-#[cfg(not(test))]
-fn deallocate_pages(v: VirtAddr, n: NumOfPages<Size4KiB>) {
-    syscalls::deallocate_pages(v, n);
-}
-
-#[cfg(test)]
-fn deallocate_pages(v: VirtAddr, n: NumOfPages<Size4KiB>) {
-    use std::{alloc, alloc::Layout, convert::TryInto};
-    use x86_64::structures::paging::PageSize;
-
-    let sz: usize = Size4KiB::SIZE.try_into().unwrap();
-    let l = Layout::from_size_align(sz, sz);
-    let l = l.expect("Invalid layout.");
-
-    let p = v.as_mut_ptr();
-    unsafe { alloc::dealloc(p, l) }
 }
 
 #[cfg(test)]
