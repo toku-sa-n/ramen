@@ -10,6 +10,10 @@ name = "bootx64"
 test = false
 bench = false
 
+[lib]
+test = false
+bench = false
+
 [dependencies]
 log = "0.4.14"
 uefi = { version = "0.8.0", features = ["logger"] }
