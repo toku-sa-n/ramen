@@ -9,8 +9,7 @@ env:
   RUSTFLAGS: -D warnings
 
 jobs:
-  build:
-
+  install_dependencies:
     runs-on: ubuntu-latest
 
     defaults:
@@ -27,24 +26,48 @@ jobs:
         components: clippy, rustfmt, rust-src
         override: true
 
-    - name: Run rustfmt with check mode
-      run: |
-        shopt -s globstar
-        rustfmt **/*.rs --check
-
-    - name: Run clippy
-      run: checkers/run_clippy.sh
-
-    - name: Run udeps
-      run: |
-        cargo install cargo-udeps
-        checkers/detect_unused_dependencies.sh
-
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install nasm mtools qemu-system-x86 ovmf
 
+  fmt:
+    runs-on: ubuntu-latest
+
+    needs: install_dependencies
+
+    steps:
+    - name: Run rustfmt with check mode
+      run: |
+        shopt -s globstar
+        rustfmt **/*.rs --check
+
+  clippy:
+    runs-on: ubuntu-latest
+
+    needs: install_dependencies
+
+    steps:
+    - name: Run clippy
+      run: checkers/run_clippy.sh
+
+  udeps:
+    runs-on: ubuntu-latest
+
+    needs: install_dependencies
+
+    steps:
+    - name: Run udeps
+      run: |
+        cargo install cargo-udeps
+        checkers/detect_unused_dependencies.sh
+
+  test:
+    runs-on: ubuntu-latest
+
+    needs: install_dependencies
+
+    steps:
     - name: Copy OVMF_*
       run: cp /usr/share/OVMF/OVMF_* .
 

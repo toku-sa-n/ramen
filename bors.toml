@@ -1,2 +1,2 @@
-status = ["build"]
+status = ["install_dependencies", "fmt", "clippy", "udeps", "test"]
 delete_merged_branches = true
