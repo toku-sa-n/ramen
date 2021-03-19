@@ -219,12 +219,15 @@ mod tests {
     use super::PageBox;
 
     #[test]
-    fn clone() {
+    fn clone_single_element() {
         let b = PageBox::from(3);
         let b2 = b.clone();
 
         assert_eq!(*b, *b2);
+    }
 
+    #[test]
+    fn clone_slice() {
         let b = PageBox::new_slice(334, 5);
         let b2 = b.clone();
 
