@@ -9,4 +9,4 @@ edition = "2018"
 [dependencies]
 os_units = "0.2.7"
 syscalls = { path = "../syscalls" }
-x86_64 = "0.13.2"
+x86_64 = "0.13.3"

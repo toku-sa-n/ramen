@@ -24,14 +24,14 @@ common = { path = "../common" }
 conquer-once = { version = "0.3.2", default-features = false }
 spinning_top = { version = "0.2.2", features = ["nightly"] }
 qemu-exit = "1.0.2"
-x86_64 = "0.13.2"
+x86_64 = "0.13.3"
 linked_list_allocator = "0.8.11"
 log = "0.4.14"
 vek = { version = "0.15.0", default-features = false, features = ["libm"] }
 rgb = "0.8.25"
 uefi = "0.8.0"
 crossbeam-queue = { version = "0.3.1", default-features = false, features = ["alloc"] }
-futures-util = { version = "0.3.12", default-features = false, features = ["alloc"] }
+futures-util = { version = "0.3.13", default-features = false, features = ["alloc"] }
 os_units = "0.2.7"
 bit_field = "0.10.1"
 futures-intrusive = { version = "0.4.0", default-features = false, features = ["alloc"] }
@@ -46,5 +46,5 @@ xhci = "0.5.2"
 accessor = "0.3.0"
 message = { path = "../message" }
 bitflags = "1.2.1"
-byteorder = { version = "1.4.2", default-features = false }
+byteorder = { version = "1.4.3", default-features = false }
 port_server = { path = "../port_server" }
