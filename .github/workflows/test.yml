@@ -9,13 +9,8 @@ env:
   RUSTFLAGS: -D warnings
 
 jobs:
-  build:
-
+  fmt:
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        shell: bash
 
     steps:
     - uses: actions/checkout@v2
@@ -24,7 +19,7 @@ jobs:
       uses: actions-rs/toolchain@v1.0.6
       with:
         toolchain: nightly
-        components: clippy, rustfmt, rust-src
+        components: rustfmt, rust-src
         override: true
 
     - name: Run rustfmt with check mode
@@ -32,18 +27,57 @@ jobs:
         shopt -s globstar
         rustfmt **/*.rs --check
 
+  clippy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install rust nightly
+      uses: actions-rs/toolchain@v1.0.6
+      with:
+        toolchain: nightly
+        components: clippy, rust-src
+        override: true
+
     - name: Run clippy
       run: checkers/run_clippy.sh
+
+  udeps:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install rust nightly
+      uses: actions-rs/toolchain@v1.0.6
+      with:
+        toolchain: nightly
+        components: rust-src
+        override: true
 
     - name: Run udeps
       run: |
         cargo install cargo-udeps
         checkers/detect_unused_dependencies.sh
 
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install rust nightly
+      uses: actions-rs/toolchain@v1.0.6
+      with:
+        toolchain: nightly
+        components: rust-src
+        override: true
+
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install nasm mtools qemu-system-x86 ovmf
+        sudo apt-get install mtools qemu-system-x86 ovmf
 
     - name: Copy OVMF_*
       run: cp /usr/share/OVMF/OVMF_* .
