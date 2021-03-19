@@ -16,6 +16,7 @@ use x86_64::{
 
 extern crate alloc;
 
+#[derive(PartialEq, Eq, Debug)]
 pub struct FrameManager(Vec<Frames>);
 impl FrameManager {
     #[must_use]
@@ -154,7 +155,7 @@ impl FrameDeallocator<Size4KiB> for FrameManager {
     }
 }
 
-#[derive(Debug)]
+#[derive(PartialEq, Eq, Debug)]
 struct Frames {
     start: PhysAddr,
     num_of_pages: NumOfPages<Size4KiB>,
@@ -202,6 +203,22 @@ mod tests {
 
         let a = f.alloc(NumOfPages::new(200));
         assert!(a.is_none());
+    }
+
+    #[test]
+    fn allocate_not_power_of_two() {
+        let mut f = frame_manager_for_testing();
+
+        let a = f.alloc(NumOfPages::new(3));
+
+        assert_eq!(a, Some(PhysAddr::new(0x2000)));
+        assert_eq!(
+            f,
+            FrameManager(vec![
+                Frames::new_for_available(PhysAddr::zero(), NumOfPages::new(1)),
+                Frames::new_for_available(PhysAddr::new(0x5000), NumOfPages::new(7))
+            ])
+        );
     }
 
     fn frame_manager_for_testing() -> FrameManager {
