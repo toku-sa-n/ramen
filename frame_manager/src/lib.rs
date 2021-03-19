@@ -200,7 +200,7 @@ mod tests {
     fn fail_to_allocate() {
         let mut f = frame_manager_for_testing();
 
-        let a = f.alloc(NumOfPages::new(5));
+        let a = f.alloc(NumOfPages::new(200));
         assert!(a.is_none());
     }
 
