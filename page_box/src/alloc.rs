@@ -16,14 +16,9 @@ pub(super) fn allocate_pages(n: NumOfPages<Size4KiB>) -> VirtAddr {
 
 #[cfg(test)]
 pub(super) fn allocate_pages(n: NumOfPages<Size4KiB>) -> VirtAddr {
-    use std::{alloc, alloc::Layout, convert::TryInto};
-    use x86_64::structures::paging::PageSize;
+    let l = num_of_pages_to_layout(n);
+    let p = unsafe { std::alloc::alloc(l) };
 
-    let sz: usize = Size4KiB::SIZE.try_into().unwrap();
-    let l = Layout::from_size_align(sz, sz);
-    let l = l.expect("Invalid layout.");
-
-    let p = unsafe { alloc::alloc(l) };
     VirtAddr::from_ptr(p)
 }
 
@@ -34,13 +29,15 @@ pub(super) fn deallocate_pages(v: VirtAddr, n: NumOfPages<Size4KiB>) {
 
 #[cfg(test)]
 pub(super) fn deallocate_pages(v: VirtAddr, n: NumOfPages<Size4KiB>) {
-    use std::{alloc, alloc::Layout, convert::TryInto};
-    use x86_64::structures::paging::PageSize;
-
-    let sz: usize = Size4KiB::SIZE.try_into().unwrap();
-    let l = Layout::from_size_align(sz, sz);
-    let l = l.expect("Invalid layout.");
-
+    let l = num_of_pages_to_layout(n);
     let p = v.as_mut_ptr();
-    unsafe { alloc::dealloc(p, l) }
+
+    unsafe { std::alloc::dealloc(p, l) }
+}
+
+#[cfg(test)]
+fn num_of_pages_to_layout(n: NumOfPages<Size4KiB>) -> std::alloc::Layout {
+    let sz = n.as_bytes().as_usize();
+    let l = std::alloc::Layout::from_size_align(sz, sz);
+    l.expect("Invalid layout.")
 }
