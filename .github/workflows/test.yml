@@ -22,6 +22,9 @@ jobs:
         components: rustfmt, rust-src
         override: true
 
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v1.2.0
+
     - name: Run rustfmt with check mode
       run: |
         shopt -s globstar
@@ -40,6 +43,9 @@ jobs:
         components: clippy, rust-src
         override: true
 
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v1.2.0
+
     - name: Run clippy
       run: checkers/run_clippy.sh
 
@@ -55,6 +61,9 @@ jobs:
         toolchain: nightly
         components: rust-src
         override: true
+
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v1.2.0
 
     - name: Run udeps
       run: |
@@ -73,6 +82,9 @@ jobs:
         toolchain: nightly
         components: rust-src
         override: true
+
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v1.2.0
 
     - name: Install dependencies
       run: |
