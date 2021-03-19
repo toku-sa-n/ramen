@@ -5,7 +5,14 @@ authors = ["toku-sa-n <tokusan441@gmail.com>"]
 edition = "2018"
 license = "GPL-3.0-or-later"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "bootx64"
+test = false
+bench = false
+
+[lib]
+test = false
+bench = false
 
 [dependencies]
 log = "0.4.14"
