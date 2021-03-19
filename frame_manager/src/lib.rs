@@ -18,6 +18,7 @@ extern crate alloc;
 
 pub struct FrameManager(Vec<Frames>);
 impl FrameManager {
+    #[must_use]
     pub const fn new() -> Self {
         Self(Vec::new())
     }
