@@ -189,3 +189,22 @@ impl Frames {
         self.num_of_pages == other.num_of_pages
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{FrameManager, Frames};
+    use os_units::NumOfPages;
+    use x86_64::PhysAddr;
+
+    #[test]
+    fn fail_to_allocate() {
+        let f = vec![Frames::new_for_available(
+            PhysAddr::new(0),
+            NumOfPages::new(1),
+        )];
+        let mut f = FrameManager(f);
+
+        let a = f.alloc(NumOfPages::new(5));
+        assert!(a.is_none());
+    }
+}
