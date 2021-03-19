@@ -198,13 +198,18 @@ mod tests {
 
     #[test]
     fn fail_to_allocate() {
-        let f = vec![Frames::new_for_available(
-            PhysAddr::new(0),
-            NumOfPages::new(1),
-        )];
-        let mut f = FrameManager(f);
+        let mut f = frame_manager_for_testing();
 
         let a = f.alloc(NumOfPages::new(5));
         assert!(a.is_none());
+    }
+
+    fn frame_manager_for_testing() -> FrameManager {
+        let f = vec![Frames::new_for_available(
+            PhysAddr::zero(),
+            NumOfPages::new(1),
+        )];
+
+        FrameManager(f)
     }
 }
