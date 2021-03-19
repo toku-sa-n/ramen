@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use alloc::collections::vec_deque::VecDeque;
+use alloc::vec::Vec;
 use bit_field::BitField;
-use conquer_once::spin::Lazy;
 use core::{
     convert::{TryFrom, TryInto},
     ops::DerefMut,
@@ -15,8 +14,7 @@ use x86_64::{
     PhysAddr,
 };
 
-static FRAME_MANAGER: Lazy<Spinlock<FrameManager>> =
-    Lazy::new(|| Spinlock::new(FrameManager(VecDeque::new())));
+static FRAME_MANAGER: Spinlock<FrameManager> = Spinlock::new(FrameManager(Vec::new()));
 
 pub(crate) fn init(mem_map: &[boot::MemoryDescriptor]) {
     FRAME_MANAGER.lock().init(mem_map);
@@ -41,7 +39,7 @@ fn lock_manager() -> impl DerefMut<Target = FrameManager> {
         .expect("Failed to lock the frame manager.")
 }
 
-pub(in super::super) struct FrameManager(VecDeque<Frames>);
+pub(in super::super) struct FrameManager(Vec<Frames>);
 impl FrameManager {
     fn alloc(&mut self, num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
         let num_of_pages = NumOfPages::new(num_of_pages.as_usize().next_power_of_two());
@@ -93,7 +91,7 @@ impl FrameManager {
                 let pages = NumOfPages::new(2_usize.pow(i));
                 let frames = Frames::new_for_available(addr, pages);
 
-                self.0.push_back(frames);
+                self.0.push(frames);
 
                 offset += pages;
             }
