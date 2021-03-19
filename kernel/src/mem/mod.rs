@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use allocator::{phys::FRAME_MANAGER, virt};
+use allocator::{phys, virt};
 use core::convert::TryFrom;
 use os_units::Bytes;
 use paging::pml4::PML4;
@@ -31,7 +31,7 @@ pub fn map_pages(start: PhysAddr, object_size: Bytes) -> VirtAddr {
 
         unsafe {
             PML4.lock()
-                .map_to(page, frame, flag, &mut *FRAME_MANAGER.lock())
+                .map_to(page, frame, flag, &mut *phys::allocator())
                 .unwrap()
                 .flush()
         }
