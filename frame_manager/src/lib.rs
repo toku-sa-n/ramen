@@ -205,10 +205,10 @@ mod tests {
     }
 
     fn frame_manager_for_testing() -> FrameManager {
-        let f = vec![Frames::new_for_available(
-            PhysAddr::zero(),
-            NumOfPages::new(1),
-        )];
+        let f = vec![
+            Frames::new_for_available(PhysAddr::zero(), NumOfPages::new(1)),
+            Frames::new_for_available(PhysAddr::new(0x2000), NumOfPages::new(10)),
+        ];
 
         FrameManager(f)
     }
