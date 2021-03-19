@@ -39,5 +39,6 @@ pub(super) fn deallocate_pages(v: VirtAddr, n: NumOfPages<Size4KiB>) {
 fn num_of_pages_to_layout(n: NumOfPages<Size4KiB>) -> std::alloc::Layout {
     let sz = n.as_bytes().as_usize();
     let l = std::alloc::Layout::from_size_align(sz, sz);
+
     l.expect("Invalid layout.")
 }
