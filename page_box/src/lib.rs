@@ -253,3 +253,29 @@ fn deallocate_pages(v: VirtAddr, n: NumOfPages<Size4KiB>) {
     let p = v.as_mut_ptr();
     unsafe { alloc::dealloc(p, l) }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::PageBox;
+
+    #[test]
+    fn clone() {
+        let b = PageBox::from(3);
+        let b2 = b.clone();
+
+        assert_eq!(*b, *b2);
+
+        let b = PageBox::new_slice(334, 5);
+        let b2 = b.clone();
+
+        assert_eq!(*b, *b2);
+    }
+
+    #[test]
+    fn from_slice() {
+        let s: &[i32] = &[3, 3, 4];
+        let b = PageBox::<[i32]>::from(s);
+
+        assert_eq!(*b, *s);
+    }
+}
