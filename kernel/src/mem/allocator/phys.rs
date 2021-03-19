@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::mem::paging;
 use alloc::collections::vec_deque::VecDeque;
 use bit_field::BitField;
 use conquer_once::spin::Lazy;
@@ -21,7 +20,6 @@ static FRAME_MANAGER: Lazy<Spinlock<FrameManager>> =
 
 pub(crate) fn init(mem_map: &[boot::MemoryDescriptor]) {
     FRAME_MANAGER.lock().init(mem_map);
-    paging::mark_pages_as_unused();
 }
 
 pub(in super::super) fn allocator(
