@@ -48,3 +48,4 @@ message = { path = "../message" }
 bitflags = "1.2.1"
 byteorder = { version = "1.4.3", default-features = false }
 port_server = { path = "../port_server" }
+frame_manager = { path = "../frame_manager" }
