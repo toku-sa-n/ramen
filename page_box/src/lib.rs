@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#![no_std]
+#![cfg_attr(not(test), no_std)]
 
 use core::{
     convert::TryFrom,
@@ -12,6 +12,8 @@ use core::{
 };
 use os_units::Bytes;
 use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
+
+mod alloc;
 
 pub struct PageBox<T: ?Sized> {
     virt: VirtAddr,
@@ -192,7 +194,7 @@ impl<T: ?Sized> PageBox<T> {
     }
 
     fn from_bytes(bytes: Bytes) -> Self {
-        let virt = syscalls::allocate_pages(bytes.as_num_of_pages());
+        let virt = alloc::allocate_pages(bytes.as_num_of_pages());
 
         if virt.is_null() {
             panic!("Failed to allocate pages.");
@@ -208,6 +210,35 @@ impl<T: ?Sized> PageBox<T> {
 impl<T: ?Sized> Drop for PageBox<T> {
     fn drop(&mut self) {
         let num_of_pages = self.bytes.as_num_of_pages::<Size4KiB>();
-        syscalls::deallocate_pages(self.virt, num_of_pages);
+        alloc::deallocate_pages(self.virt, num_of_pages);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::PageBox;
+
+    #[test]
+    fn clone_single_element() {
+        let b = PageBox::from(3);
+        let b2 = b.clone();
+
+        assert_eq!(*b, *b2);
+    }
+
+    #[test]
+    fn clone_slice() {
+        let b = PageBox::new_slice(334, 5);
+        let b2 = b.clone();
+
+        assert_eq!(*b, *b2);
+    }
+
+    #[test]
+    fn from_slice() {
+        let s: &[i32] = &[3, 3, 4];
+        let b = PageBox::<[i32]>::from(s);
+
+        assert_eq!(*b, *s);
     }
 }
