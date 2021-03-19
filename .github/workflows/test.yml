@@ -22,8 +22,13 @@ jobs:
         components: rustfmt, rust-src
         override: true
 
-    - name: Rust Cache
-      uses: Swatinem/rust-cache@v1.2.0
+    - uses: Swatinem/rust-cache@v1.2.0
+      with:
+        working-directory: kernel
+
+    - uses: Swatinem/rust-cache@v1.2.0
+      with:
+        working-directory: bootx64
 
     - name: Run rustfmt with check mode
       run: |
@@ -43,8 +48,13 @@ jobs:
         components: clippy, rust-src
         override: true
 
-    - name: Rust Cache
-      uses: Swatinem/rust-cache@v1.2.0
+    - uses: Swatinem/rust-cache@v1.2.0
+      with:
+        working-directory: kernel
+
+    - uses: Swatinem/rust-cache@v1.2.0
+      with:
+        working-directory: bootx64
 
     - name: Run clippy
       run: checkers/run_clippy.sh
@@ -62,8 +72,13 @@ jobs:
         components: rust-src
         override: true
 
-    - name: Rust Cache
-      uses: Swatinem/rust-cache@v1.2.0
+    - uses: Swatinem/rust-cache@v1.2.0
+      with:
+        working-directory: kernel
+
+    - uses: Swatinem/rust-cache@v1.2.0
+      with:
+        working-directory: bootx64
 
     - name: Run udeps
       run: |
@@ -83,8 +98,13 @@ jobs:
         components: rust-src
         override: true
 
-    - name: Rust Cache
-      uses: Swatinem/rust-cache@v1.2.0
+    - uses: Swatinem/rust-cache@v1.2.0
+      with:
+        working-directory: kernel
+
+    - uses: Swatinem/rust-cache@v1.2.0
+      with:
+        working-directory: bootx64
 
     - name: Install dependencies
       run: |
