@@ -219,7 +219,8 @@ mod tests {
             FrameManager(vec![
                 Frames::new_for_available(PhysAddr::zero(), NumOfPages::new(1)),
                 Frames::new_for_used(PhysAddr::new(0x2000), NumOfPages::new(3)),
-                Frames::new_for_available(PhysAddr::new(0x5000), NumOfPages::new(7))
+                Frames::new_for_available(PhysAddr::new(0x5000), NumOfPages::new(7)),
+                Frames::new_for_used(PhysAddr::new(0xc000), NumOfPages::new(4)),
             ])
         );
     }
