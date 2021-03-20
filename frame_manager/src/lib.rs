@@ -70,7 +70,7 @@ impl FrameManager {
         assert!(self.0[i].available, "Frames are not available.");
         assert!(
             self.0[i].num_of_pages > num_of_pages,
-            "Cannot split frames."
+            "Insufficient number of frames."
         );
 
         unsafe { self.split_node_unchecked(i, num_of_pages) }
@@ -78,9 +78,10 @@ impl FrameManager {
 
     unsafe fn split_node_unchecked(&mut self, i: usize, requested: NumOfPages<Size4KiB>) {
         let new_frames_start = self.0[i].start + requested.as_bytes().as_usize();
-        let new_frames = Frames::new_for_available(new_frames_start, requested);
+        let new_frames_num = self.0[i].num_of_pages - requested;
+        let new_frames = Frames::new_for_available(new_frames_start, new_frames_num);
 
-        self.0[i].num_of_pages -= requested;
+        self.0[i].num_of_pages = requested;
         self.0.insert(i + 1, new_frames);
     }
 
