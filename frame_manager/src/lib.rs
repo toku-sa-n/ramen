@@ -224,10 +224,26 @@ mod tests {
         );
     }
 
+    #[test]
+    fn free() {
+        let mut f = frame_manager_for_testing();
+
+        f.free(PhysAddr::new(0xc000));
+
+        assert_eq!(
+            f,
+            FrameManager(vec![
+                Frames::new_for_available(PhysAddr::zero(), NumOfPages::new(1)),
+                Frames::new_for_available(PhysAddr::new(0x2000), NumOfPages::new(14))
+            ])
+        );
+    }
+
     fn frame_manager_for_testing() -> FrameManager {
         let f = vec![
             Frames::new_for_available(PhysAddr::zero(), NumOfPages::new(1)),
             Frames::new_for_available(PhysAddr::new(0x2000), NumOfPages::new(10)),
+            Frames::new_for_used(PhysAddr::new(0xc000), NumOfPages::new(4)),
         ];
 
         FrameManager(f)
