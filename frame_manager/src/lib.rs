@@ -8,7 +8,10 @@ extern crate alloc;
 use alloc::vec::Vec;
 use bit_field::BitField;
 use boot::MemoryType;
-use core::convert::{TryFrom, TryInto};
+use core::{
+    convert::{TryFrom, TryInto},
+    fmt,
+};
 use os_units::NumOfPages;
 use uefi::table::boot;
 use x86_64::{
@@ -155,7 +158,7 @@ impl FrameDeallocator<Size4KiB> for FrameManager {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq)]
 struct Frames {
     start: PhysAddr,
     num_of_pages: NumOfPages<Size4KiB>,
@@ -188,6 +191,11 @@ impl Frames {
 
     fn is_same_size(&self, other: &Self) -> bool {
         self.num_of_pages == other.num_of_pages
+    }
+}
+impl fmt::Debug for Frames {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Frames({:?} .. {:?})", self.start, self.end())
     }
 }
 
