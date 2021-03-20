@@ -195,7 +195,14 @@ impl Frames {
 }
 impl fmt::Debug for Frames {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Frames({:?} .. {:?})", self.start, self.end())
+        let suffix = if self.available { "Available" } else { "Used" };
+        write!(
+            f,
+            "Frames::<{}>({:?} .. {:?})",
+            suffix,
+            self.start,
+            self.end()
+        )
     }
 }
 
