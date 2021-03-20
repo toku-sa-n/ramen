@@ -47,8 +47,6 @@ impl FrameManager {
                 self.init_for_descriptor(descriptor);
             }
         }
-
-        self.merge_all_nodes();
     }
 
     fn alloc_from_descriptor_index(&mut self, i: usize, n: NumOfPages<Size4KiB>) -> PhysAddr {
@@ -73,10 +71,10 @@ impl FrameManager {
             "Insufficient number of frames."
         );
 
-        unsafe { self.split_node_unchecked(i, num_of_pages) }
+        self.split_node_unchecked(i, num_of_pages)
     }
 
-    unsafe fn split_node_unchecked(&mut self, i: usize, requested: NumOfPages<Size4KiB>) {
+    fn split_node_unchecked(&mut self, i: usize, requested: NumOfPages<Size4KiB>) {
         let new_frames_start = self.0[i].start + requested.as_bytes().as_usize();
         let new_frames_num = self.0[i].num_of_pages - requested;
         let new_frames = Frames::new_for_available(new_frames_start, new_frames_num);
@@ -87,20 +85,20 @@ impl FrameManager {
 
     fn free_memory_for_descriptor_index(&mut self, i: usize) {
         self.0[i].available = true;
-        self.merge_all_nodes();
+        self.merge_before_and_after_frames(i);
     }
 
-    fn merge_all_nodes(&mut self) {
-        // By reversing the range, bigger memory chanks come first.
-        // This will make it faster to search a small amount of memory.
-        for i in (0..self.0.len()).rev() {
-            if self.mergeable(i) {
-                return self.merge_node(i);
-            }
+    fn merge_before_and_after_frames(&mut self, i: usize) {
+        if self.mergeable_to_next_frames(i) {
+            self.merge_to_next_frames(i);
+        }
+
+        if self.mergeable_to_next_frames(i - 1) {
+            self.merge_to_next_frames(i - 1);
         }
     }
 
-    fn mergeable(&self, i: usize) -> bool {
+    fn mergeable_to_next_frames(&self, i: usize) -> bool {
         if i >= self.0.len() - 1 {
             return false;
         }
@@ -111,13 +109,13 @@ impl FrameManager {
         node.is_mergeable(next)
     }
 
-    fn merge_node(&mut self, i: usize) {
+    fn merge_to_next_frames(&mut self, i: usize) {
         self.merge_two_nodes(i);
-        self.merge_all_nodes();
     }
 
     fn merge_two_nodes(&mut self, i: usize) {
-        self.0[i].num_of_pages *= 2;
+        let n = self.0[i + 1].num_of_pages;
+        self.0[i].num_of_pages += n;
         self.0.remove(i + 1);
     }
 
