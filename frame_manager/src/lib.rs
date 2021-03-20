@@ -6,12 +6,8 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use bit_field::BitField;
 use boot::MemoryType;
-use core::{
-    convert::{TryFrom, TryInto},
-    fmt,
-};
+use core::{convert::TryInto, fmt};
 use os_units::NumOfPages;
 use uefi::table::boot;
 use x86_64::{
@@ -28,8 +24,6 @@ impl FrameManager {
     }
 
     pub fn alloc(&mut self, num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
-        let num_of_pages = NumOfPages::new(num_of_pages.as_usize().next_power_of_two());
-
         for i in 0..self.0.len() {
             if self.0[i].is_available_for_allocating(num_of_pages) {
                 return Some(self.alloc_from_descriptor_index(i, num_of_pages));
@@ -65,43 +59,28 @@ impl FrameManager {
     }
 
     fn init_for_descriptor(&mut self, descriptor: &boot::MemoryDescriptor) {
-        let mut offset = NumOfPages::<Size4KiB>::new(0);
+        let start = PhysAddr::new(descriptor.phys_start);
+        let num = NumOfPages::new(descriptor.page_count.try_into().unwrap());
+        let frames = Frames::new_for_available(start, num);
 
-        // By reversing the range, bigger memory chanks come first.
-        // This will make it faster to search a small amount of memory.
-        for i in (0..u64::BITS).rev() {
-            if descriptor.page_count.get_bit(i.try_into().unwrap()) {
-                let addr = PhysAddr::new(
-                    descriptor.phys_start + u64::try_from(offset.as_bytes().as_usize()).unwrap(),
-                );
-                let pages = NumOfPages::new(2_usize.pow(i));
-                let frames = Frames::new_for_available(addr, pages);
-
-                self.0.push(frames);
-
-                offset += pages;
-            }
-        }
+        self.0.push(frames);
     }
 
     fn split_node(&mut self, i: usize, num_of_pages: NumOfPages<Size4KiB>) {
         assert!(self.0[i].available, "Frames are not available.");
-
-        while self.0[i].num_of_pages > num_of_pages {
-            self.split_node_into_half(i);
-        }
-    }
-
-    fn split_node_into_half(&mut self, i: usize) {
-        let start = self.0[i].start;
-        let num_of_pages = self.0[i].num_of_pages;
-
-        let new_frames = Frames::new_for_available(
-            start + num_of_pages.as_bytes().as_usize() / 2,
-            num_of_pages / 2,
+        assert!(
+            self.0[i].num_of_pages > num_of_pages,
+            "Cannot split frames."
         );
 
-        self.0[i].num_of_pages /= 2;
+        unsafe { self.split_node_unchecked(i, num_of_pages) }
+    }
+
+    unsafe fn split_node_unchecked(&mut self, i: usize, requested: NumOfPages<Size4KiB>) {
+        let new_frames_start = self.0[i].start + requested.as_bytes().as_usize();
+        let new_frames = Frames::new_for_available(new_frames_start, requested);
+
+        self.0[i].num_of_pages -= requested;
         self.0.insert(i + 1, new_frames);
     }
 
@@ -173,6 +152,15 @@ impl Frames {
         }
     }
 
+    #[cfg(test)]
+    fn new_for_used(start: PhysAddr, num_of_pages: NumOfPages<Size4KiB>) -> Self {
+        Self {
+            start,
+            num_of_pages,
+            available: false,
+        }
+    }
+
     fn is_available_for_allocating(&self, request_num_of_pages: NumOfPages<Size4KiB>) -> bool {
         self.num_of_pages >= request_num_of_pages && self.available
     }
@@ -231,6 +219,7 @@ mod tests {
             f,
             FrameManager(vec![
                 Frames::new_for_available(PhysAddr::zero(), NumOfPages::new(1)),
+                Frames::new_for_used(PhysAddr::new(0x2000), NumOfPages::new(3)),
                 Frames::new_for_available(PhysAddr::new(0x5000), NumOfPages::new(7))
             ])
         );
