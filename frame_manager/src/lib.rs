@@ -296,6 +296,23 @@ mod tests {
     }
 
     #[test]
+    fn free_and_merge_with_after() {
+        let mut f = manager!(
+            U 0 => 0x3000,
+            A 0x3000 => 0x5000,
+        );
+
+        f.free(PhysAddr::zero());
+
+        assert_eq!(
+            f,
+            manager!(
+                A 0 => 0x5000,
+            )
+        )
+    }
+
+    #[test]
     fn mergable_two_frmaes() {
         let f1 = frames!(A 0x2000 => 0xc000);
         let f2 = frames!(A 0xc000 => 0x10000);
