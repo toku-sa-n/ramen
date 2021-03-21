@@ -165,7 +165,7 @@ impl Frames {
     }
 
     fn is_mergeable(&self, other: &Self) -> bool {
-        self.available && other.available && self.is_consecutive(other) && self.is_same_size(other)
+        self.available && other.available && self.is_consecutive(other)
     }
 
     fn is_consecutive(&self, other: &Self) -> bool {
@@ -174,10 +174,6 @@ impl Frames {
 
     fn end(&self) -> PhysAddr {
         self.start + self.num_of_pages.as_bytes().as_usize()
-    }
-
-    fn is_same_size(&self, other: &Self) -> bool {
-        self.num_of_pages == other.num_of_pages
     }
 }
 impl fmt::Debug for Frames {
