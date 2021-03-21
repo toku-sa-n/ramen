@@ -51,7 +51,9 @@ impl FrameManager {
     }
 
     fn alloc_from_frames_at(&mut self, i: usize, n: NumOfPages<Size4KiB>) -> PhysAddr {
-        self.split_frames(i, n);
+        if self.0[i].is_splittable(n) {
+            self.split_frames(i, n);
+        }
 
         self.0[i].available = false;
         self.0[i].start
@@ -152,6 +154,10 @@ impl Frames {
             num_of_pages,
             available: false,
         }
+    }
+
+    fn is_splittable(&self, requested: NumOfPages<Size4KiB>) -> bool {
+        self.num_of_pages > requested
     }
 
     fn is_available_for_allocating(&self, request_num_of_pages: NumOfPages<Size4KiB>) -> bool {
