@@ -195,6 +195,21 @@ mod tests {
     use os_units::NumOfPages;
     use x86_64::PhysAddr;
 
+    macro_rules! frames {
+        (Available $start:expr => $end:expr) => {
+            Frames::new_for_available(
+                PhysAddr::new($start),
+                os_units::Bytes::new($end - $start).as_num_of_pages(),
+            )
+        };
+        (Used $start:expr => $end:expr) => {
+            Frames::new_for_used(
+                PhysAddr::new($start),
+                os_units::Bytes::new($end - $start).as_num_of_pages(),
+            )
+        };
+    }
+
     #[test]
     fn fail_to_allocate() {
         let mut f = frame_manager_for_testing();
@@ -213,10 +228,10 @@ mod tests {
         assert_eq!(
             f,
             FrameManager(vec![
-                Frames::new_for_available(PhysAddr::zero(), NumOfPages::new(1)),
-                Frames::new_for_used(PhysAddr::new(0x2000), NumOfPages::new(3)),
-                Frames::new_for_available(PhysAddr::new(0x5000), NumOfPages::new(7)),
-                Frames::new_for_used(PhysAddr::new(0xc000), NumOfPages::new(4)),
+                frames!(Available 0 => 0x1000),
+                frames!(Used 0x2000 => 0x5000),
+                frames!(Available 0x5000 => 0xc000),
+                frames!(Used 0xc000 => 0x10000),
             ])
         );
     }
@@ -230,25 +245,25 @@ mod tests {
         assert_eq!(
             f,
             FrameManager(vec![
-                Frames::new_for_available(PhysAddr::zero(), NumOfPages::new(1)),
-                Frames::new_for_available(PhysAddr::new(0x2000), NumOfPages::new(14))
+                frames!(Available 0 => 0x1000),
+                frames!(Available 0x2000 => 0x10000),
             ])
         );
     }
 
     #[test]
     fn mergable_two_frmaes() {
-        let f1 = Frames::new_for_available(PhysAddr::new(0x2000), NumOfPages::new(10));
-        let f2 = Frames::new_for_available(PhysAddr::new(0xc000), NumOfPages::new(4));
+        let f1 = frames!(Available 0x2000 => 0xc000);
+        let f2 = frames!(Available 0xc000 => 0x10000);
 
         assert!(f1.is_mergeable(&f2));
     }
 
     fn frame_manager_for_testing() -> FrameManager {
         let f = vec![
-            Frames::new_for_available(PhysAddr::zero(), NumOfPages::new(1)),
-            Frames::new_for_available(PhysAddr::new(0x2000), NumOfPages::new(10)),
-            Frames::new_for_used(PhysAddr::new(0xc000), NumOfPages::new(4)),
+            frames!(Available 0 => 0x1000),
+            frames!(Available 0x2000 => 0xc000),
+            frames!(Used 0xc000 => 0x10000),
         ];
 
         FrameManager(f)
