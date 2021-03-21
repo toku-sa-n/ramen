@@ -97,7 +97,7 @@ impl FrameManager {
             self.merge_to_next_frames(i);
         }
 
-        if self.mergeable_to_next_frames(i - 1) {
+        if i > 0 && self.mergeable_to_next_frames(i - 1) {
             self.merge_to_next_frames(i - 1);
         }
     }
