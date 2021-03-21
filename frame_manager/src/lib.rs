@@ -196,13 +196,13 @@ mod tests {
     use x86_64::PhysAddr;
 
     macro_rules! frames {
-        (Available $start:expr => $end:expr) => {
+        (A $start:expr => $end:expr) => {
             Frames::new_for_available(
                 PhysAddr::new($start),
                 os_units::Bytes::new($end - $start).as_num_of_pages(),
             )
         };
-        (Used $start:expr => $end:expr) => {
+        (U $start:expr => $end:expr) => {
             Frames::new_for_used(
                 PhysAddr::new($start),
                 os_units::Bytes::new($end - $start).as_num_of_pages(),
@@ -228,10 +228,10 @@ mod tests {
         assert_eq!(
             f,
             FrameManager(vec![
-                frames!(Available 0 => 0x1000),
-                frames!(Used 0x2000 => 0x5000),
-                frames!(Available 0x5000 => 0xc000),
-                frames!(Used 0xc000 => 0x10000),
+                frames!(A 0 => 0x1000),
+                frames!(U 0x2000 => 0x5000),
+                frames!(A 0x5000 => 0xc000),
+                frames!(U 0xc000 => 0x10000),
             ])
         );
     }
@@ -244,26 +244,23 @@ mod tests {
 
         assert_eq!(
             f,
-            FrameManager(vec![
-                frames!(Available 0 => 0x1000),
-                frames!(Available 0x2000 => 0x10000),
-            ])
+            FrameManager(vec![frames!(A 0 => 0x1000), frames!(A 0x2000 => 0x10000),])
         );
     }
 
     #[test]
     fn mergable_two_frmaes() {
-        let f1 = frames!(Available 0x2000 => 0xc000);
-        let f2 = frames!(Available 0xc000 => 0x10000);
+        let f1 = frames!(A 0x2000 => 0xc000);
+        let f2 = frames!(A 0xc000 => 0x10000);
 
         assert!(f1.is_mergeable(&f2));
     }
 
     fn frame_manager_for_testing() -> FrameManager {
         let f = vec![
-            frames!(Available 0 => 0x1000),
-            frames!(Available 0x2000 => 0xc000),
-            frames!(Used 0xc000 => 0x10000),
+            frames!(A 0 => 0x1000),
+            frames!(A 0x2000 => 0xc000),
+            frames!(U 0xc000 => 0x10000),
         ];
 
         FrameManager(f)
