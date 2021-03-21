@@ -23,6 +23,23 @@ impl FrameManager {
         Self(Vec::new())
     }
 
+    pub fn init(&mut self, mem_map: &[boot::MemoryDescriptor]) {
+        for descriptor in mem_map {
+            if is_conventional(descriptor.ty) {
+                self.init_for_descriptor(descriptor);
+            }
+        }
+    }
+
+    fn init_for_descriptor(&mut self, descriptor: &boot::MemoryDescriptor) {
+        let start = PhysAddr::new(descriptor.phys_start);
+        let num = NumOfPages::new(descriptor.page_count.try_into().unwrap());
+        let frames = Frames::new_for_available(start, num);
+
+        self.0.push(frames);
+    }
+}
+impl FrameManager {
     pub fn alloc(&mut self, num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
         for i in 0..self.0.len() {
             if self.0[i].is_available_for_allocating(num_of_pages) {
@@ -33,35 +50,11 @@ impl FrameManager {
         None
     }
 
-    pub fn free(&mut self, addr: PhysAddr) {
-        for i in 0..self.0.len() {
-            if self.0[i].start == addr && !self.0[i].available {
-                return self.free_memory_for_descriptor_index(i);
-            }
-        }
-    }
-
-    pub fn init(&mut self, mem_map: &[boot::MemoryDescriptor]) {
-        for descriptor in mem_map {
-            if Self::available(descriptor.ty) {
-                self.init_for_descriptor(descriptor);
-            }
-        }
-    }
-
     fn alloc_from_descriptor_index(&mut self, i: usize, n: NumOfPages<Size4KiB>) -> PhysAddr {
         self.split_node(i, n);
 
         self.0[i].available = false;
         self.0[i].start
-    }
-
-    fn init_for_descriptor(&mut self, descriptor: &boot::MemoryDescriptor) {
-        let start = PhysAddr::new(descriptor.phys_start);
-        let num = NumOfPages::new(descriptor.page_count.try_into().unwrap());
-        let frames = Frames::new_for_available(start, num);
-
-        self.0.push(frames);
     }
 
     fn split_node(&mut self, i: usize, num_of_pages: NumOfPages<Size4KiB>) {
@@ -81,6 +74,15 @@ impl FrameManager {
 
         self.0[i].num_of_pages = requested;
         self.0.insert(i + 1, new_frames);
+    }
+}
+impl FrameManager {
+    pub fn free(&mut self, addr: PhysAddr) {
+        for i in 0..self.0.len() {
+            if self.0[i].start == addr && !self.0[i].available {
+                return self.free_memory_for_descriptor_index(i);
+            }
+        }
     }
 
     fn free_memory_for_descriptor_index(&mut self, i: usize) {
@@ -117,10 +119,6 @@ impl FrameManager {
         let n = self.0[i + 1].num_of_pages;
         self.0[i].num_of_pages += n;
         self.0.remove(i + 1);
-    }
-
-    fn available(ty: boot::MemoryType) -> bool {
-        ty == MemoryType::CONVENTIONAL
     }
 }
 unsafe impl FrameAllocator<Size4KiB> for FrameManager {
@@ -187,6 +185,10 @@ impl fmt::Debug for Frames {
             self.end()
         )
     }
+}
+
+fn is_conventional(ty: boot::MemoryType) -> bool {
+    ty == MemoryType::CONVENTIONAL
 }
 
 #[cfg(test)]
