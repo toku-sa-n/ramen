@@ -4,6 +4,7 @@ use allocator::{phys, virt};
 use core::convert::TryFrom;
 use os_units::Bytes;
 use paging::pml4::PML4;
+use uefi::table::boot;
 use x86_64::{
     structures::paging::{Mapper, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
     PhysAddr, VirtAddr,
@@ -12,6 +13,12 @@ use x86_64::{
 pub mod accessor;
 pub mod allocator;
 pub mod paging;
+
+pub(super) fn init(mem_map: &[boot::MemoryDescriptor]) {
+    allocator::heap::init();
+    allocator::phys::init(mem_map);
+    paging::mark_pages_as_unused();
+}
 
 pub fn map_pages(start: PhysAddr, object_size: Bytes) -> VirtAddr {
     let start_frame_addr = start.align_down(Size4KiB::SIZE);

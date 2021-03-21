@@ -1,5 +1,5 @@
 [package]
-name = "page_box"
+name = "frame_manager"
 version = "0.1.0"
 authors = ["toku-sa-n <tokusan441@gmail.com>"]
 edition = "2018"
@@ -7,6 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+bit_field = "0.10.1"
 os_units = "0.3.0"
-syscalls = { path = "../syscalls" }
+uefi = "0.8.0"
 x86_64 = "0.13.3"
