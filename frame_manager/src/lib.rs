@@ -219,7 +219,13 @@ mod tests {
 
     #[test]
     fn fail_to_allocate() {
-        let mut f = frame_manager_for_testing();
+        let mut f = manager!(
+            A 0 => 0x1000,
+            A 0x2000 => 0xc000,
+            U 0xc000 => 0x10000,
+            U 0x10000 => 0x13000,
+            A 0x13000 => 0x15000,
+        );
 
         let a = f.alloc(NumOfPages::new(200));
         assert!(a.is_none());
@@ -227,7 +233,11 @@ mod tests {
 
     #[test]
     fn allocate_not_power_of_two() {
-        let mut f = frame_manager_for_testing();
+        let mut f = manager!(
+            A 0 => 0x1000,
+            A 0x2000 => 0xc000,
+            U 0xc000 => 0x10000,
+        );
 
         let a = f.alloc(NumOfPages::new(3));
 
@@ -245,7 +255,11 @@ mod tests {
 
     #[test]
     fn free_and_merge_with_before() {
-        let mut f = frame_manager_for_testing();
+        let mut f = manager!(
+            A 0 => 0x1000,
+            A 0x2000 => 0xc000,
+            U 0xc000 => 0x10000,
+        );
 
         f.free(PhysAddr::new(0xc000));
 
@@ -264,13 +278,5 @@ mod tests {
         let f2 = frames!(A 0xc000 => 0x10000);
 
         assert!(f1.is_mergeable(&f2));
-    }
-
-    fn frame_manager_for_testing() -> FrameManager {
-        manager!(
-            A 0 => 0x1000,
-            A 0x2000 => 0xc000,
-            U 0xc000 => 0x10000,
-        )
     }
 }
