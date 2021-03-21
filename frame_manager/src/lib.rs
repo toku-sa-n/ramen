@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![cfg_attr(not(test), no_std)]
-#![feature(int_bits_const)]
 
 extern crate alloc;
 
