@@ -269,6 +269,14 @@ mod tests {
     }
 
     #[test]
+    fn free_single_frames() {
+        let mut f = manager!(U 0 => 0x3000);
+        f.free(PhysAddr::zero());
+
+        assert_eq!(f, manager!(A 0 => 0x3000));
+    }
+
+    #[test]
     fn free_and_merge_with_before() {
         let mut f = manager!(
             A 0 => 0x1000,
