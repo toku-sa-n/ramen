@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![cfg_attr(not(test), no_std)]
-#![feature(int_bits_const)]
 
 extern crate alloc;
 
 use alloc::vec::Vec;
-use bit_field::BitField;
 use boot::MemoryType;
-use core::convert::{TryFrom, TryInto};
+use core::{convert::TryInto, fmt};
 use os_units::NumOfPages;
 use uefi::table::boot;
 use x86_64::{
@@ -16,6 +14,7 @@ use x86_64::{
     PhysAddr,
 };
 
+#[derive(PartialEq, Eq, Debug)]
 pub struct FrameManager(Vec<Frames>);
 impl FrameManager {
     #[must_use]
@@ -23,100 +22,86 @@ impl FrameManager {
         Self(Vec::new())
     }
 
-    pub fn alloc(&mut self, num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
-        let num_of_pages = NumOfPages::new(num_of_pages.as_usize().next_power_of_two());
+    pub fn init(&mut self, mem_map: &[boot::MemoryDescriptor]) {
+        for descriptor in mem_map {
+            if is_conventional(descriptor.ty) {
+                self.init_for_descriptor(descriptor);
+            }
+        }
+    }
 
+    fn init_for_descriptor(&mut self, descriptor: &boot::MemoryDescriptor) {
+        let start = PhysAddr::new(descriptor.phys_start);
+        let num = NumOfPages::new(descriptor.page_count.try_into().unwrap());
+        let frames = Frames::new_for_available(start, num);
+
+        self.0.push(frames);
+    }
+}
+impl FrameManager {
+    pub fn alloc(&mut self, num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
         for i in 0..self.0.len() {
             if self.0[i].is_available_for_allocating(num_of_pages) {
-                return Some(self.alloc_from_descriptor_index(i, num_of_pages));
+                return Some(self.alloc_from_frames_at(i, num_of_pages));
             }
         }
 
         None
     }
 
-    pub fn free(&mut self, addr: PhysAddr) {
-        for i in 0..self.0.len() {
-            if self.0[i].start == addr && !self.0[i].available {
-                return self.free_memory_for_descriptor_index(i);
-            }
+    fn alloc_from_frames_at(&mut self, i: usize, n: NumOfPages<Size4KiB>) -> PhysAddr {
+        if self.0[i].is_splittable(n) {
+            self.split_frames(i, n);
         }
-    }
-
-    pub fn init(&mut self, mem_map: &[boot::MemoryDescriptor]) {
-        for descriptor in mem_map {
-            if Self::available(descriptor.ty) {
-                self.init_for_descriptor(descriptor);
-            }
-        }
-
-        self.merge_all_nodes();
-    }
-
-    fn alloc_from_descriptor_index(&mut self, i: usize, n: NumOfPages<Size4KiB>) -> PhysAddr {
-        self.split_node(i, n);
 
         self.0[i].available = false;
         self.0[i].start
     }
 
-    fn init_for_descriptor(&mut self, descriptor: &boot::MemoryDescriptor) {
-        let mut offset = NumOfPages::<Size4KiB>::new(0);
-
-        // By reversing the range, bigger memory chanks come first.
-        // This will make it faster to search a small amount of memory.
-        for i in (0..u64::BITS).rev() {
-            if descriptor.page_count.get_bit(i.try_into().unwrap()) {
-                let addr = PhysAddr::new(
-                    descriptor.phys_start + u64::try_from(offset.as_bytes().as_usize()).unwrap(),
-                );
-                let pages = NumOfPages::new(2_usize.pow(i));
-                let frames = Frames::new_for_available(addr, pages);
-
-                self.0.push(frames);
-
-                offset += pages;
-            }
-        }
-    }
-
-    fn split_node(&mut self, i: usize, num_of_pages: NumOfPages<Size4KiB>) {
+    fn split_frames(&mut self, i: usize, num_of_pages: NumOfPages<Size4KiB>) {
         assert!(self.0[i].available, "Frames are not available.");
-
-        while self.0[i].num_of_pages > num_of_pages {
-            self.split_node_into_half(i);
-        }
-    }
-
-    fn split_node_into_half(&mut self, i: usize) {
-        let start = self.0[i].start;
-        let num_of_pages = self.0[i].num_of_pages;
-
-        let new_frames = Frames::new_for_available(
-            start + num_of_pages.as_bytes().as_usize() / 2,
-            num_of_pages / 2,
+        assert!(
+            self.0[i].num_of_pages > num_of_pages,
+            "Insufficient number of frames."
         );
 
-        self.0[i].num_of_pages /= 2;
+        self.split_frames_unchecked(i, num_of_pages)
+    }
+
+    fn split_frames_unchecked(&mut self, i: usize, requested: NumOfPages<Size4KiB>) {
+        let new_frames_start = self.0[i].start + requested.as_bytes().as_usize();
+        let new_frames_num = self.0[i].num_of_pages - requested;
+        let new_frames = Frames::new_for_available(new_frames_start, new_frames_num);
+
+        self.0[i].num_of_pages = requested;
         self.0.insert(i + 1, new_frames);
     }
-
-    fn free_memory_for_descriptor_index(&mut self, i: usize) {
-        self.0[i].available = true;
-        self.merge_all_nodes();
-    }
-
-    fn merge_all_nodes(&mut self) {
-        // By reversing the range, bigger memory chanks come first.
-        // This will make it faster to search a small amount of memory.
-        for i in (0..self.0.len()).rev() {
-            if self.mergeable(i) {
-                return self.merge_node(i);
+}
+impl FrameManager {
+    pub fn free(&mut self, addr: PhysAddr) {
+        for i in 0..self.0.len() {
+            if self.0[i].start == addr && !self.0[i].available {
+                return self.free_memory_for_frames_at(i);
             }
         }
     }
 
-    fn mergeable(&self, i: usize) -> bool {
+    fn free_memory_for_frames_at(&mut self, i: usize) {
+        self.0[i].available = true;
+        self.merge_before_and_after_frames(i);
+    }
+
+    fn merge_before_and_after_frames(&mut self, i: usize) {
+        if self.mergeable_to_next_frames(i) {
+            self.merge_to_next_frames(i);
+        }
+
+        if i > 0 && self.mergeable_to_next_frames(i - 1) {
+            self.merge_to_next_frames(i - 1);
+        }
+    }
+
+    fn mergeable_to_next_frames(&self, i: usize) -> bool {
         if i >= self.0.len() - 1 {
             return false;
         }
@@ -127,18 +112,10 @@ impl FrameManager {
         node.is_mergeable(next)
     }
 
-    fn merge_node(&mut self, i: usize) {
-        self.merge_two_nodes(i);
-        self.merge_all_nodes();
-    }
-
-    fn merge_two_nodes(&mut self, i: usize) {
-        self.0[i].num_of_pages *= 2;
+    fn merge_to_next_frames(&mut self, i: usize) {
+        let n = self.0[i + 1].num_of_pages;
+        self.0[i].num_of_pages += n;
         self.0.remove(i + 1);
-    }
-
-    fn available(ty: boot::MemoryType) -> bool {
-        ty == MemoryType::CONVENTIONAL
     }
 }
 unsafe impl FrameAllocator<Size4KiB> for FrameManager {
@@ -154,7 +131,7 @@ impl FrameDeallocator<Size4KiB> for FrameManager {
     }
 }
 
-#[derive(Debug)]
+#[derive(PartialEq, Eq)]
 struct Frames {
     start: PhysAddr,
     num_of_pages: NumOfPages<Size4KiB>,
@@ -169,12 +146,25 @@ impl Frames {
         }
     }
 
+    #[cfg(test)]
+    fn new_for_used(start: PhysAddr, num_of_pages: NumOfPages<Size4KiB>) -> Self {
+        Self {
+            start,
+            num_of_pages,
+            available: false,
+        }
+    }
+
+    fn is_splittable(&self, requested: NumOfPages<Size4KiB>) -> bool {
+        self.num_of_pages > requested
+    }
+
     fn is_available_for_allocating(&self, request_num_of_pages: NumOfPages<Size4KiB>) -> bool {
         self.num_of_pages >= request_num_of_pages && self.available
     }
 
     fn is_mergeable(&self, other: &Self) -> bool {
-        self.available && other.available && self.is_consecutive(other) && self.is_same_size(other)
+        self.available && other.available && self.is_consecutive(other)
     }
 
     fn is_consecutive(&self, other: &Self) -> bool {
@@ -184,8 +174,161 @@ impl Frames {
     fn end(&self) -> PhysAddr {
         self.start + self.num_of_pages.as_bytes().as_usize()
     }
+}
+impl fmt::Debug for Frames {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let suffix = if self.available { "Available" } else { "Used" };
+        write!(
+            f,
+            "Frames::<{}>({:?} .. {:?})",
+            suffix,
+            self.start,
+            self.end()
+        )
+    }
+}
 
-    fn is_same_size(&self, other: &Self) -> bool {
-        self.num_of_pages == other.num_of_pages
+fn is_conventional(ty: boot::MemoryType) -> bool {
+    ty == MemoryType::CONVENTIONAL
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{FrameManager, Frames};
+    use os_units::NumOfPages;
+    use x86_64::PhysAddr;
+
+    macro_rules! frames {
+        (A $start:expr => $end:expr) => {
+            Frames::new_for_available(
+                PhysAddr::new($start),
+                os_units::Bytes::new($end - $start).as_num_of_pages(),
+            )
+        };
+        (U $start:expr => $end:expr) => {
+            Frames::new_for_used(
+                PhysAddr::new($start),
+                os_units::Bytes::new($end - $start).as_num_of_pages(),
+            )
+        };
+    }
+
+    macro_rules! manager {
+        ($($is_available:ident $start:expr => $end:expr),*$(,)*) => {
+            FrameManager(vec![
+                $(frames!($is_available $start => $end)),*
+            ]
+            )
+        };
+    }
+
+    #[test]
+    fn fail_to_allocate() {
+        let mut f = manager!(
+            A 0 => 0x1000,
+            A 0x2000 => 0xc000,
+            U 0xc000 => 0x10000,
+            U 0x10000 => 0x13000,
+            A 0x13000 => 0x15000,
+        );
+
+        let a = f.alloc(NumOfPages::new(200));
+        assert!(a.is_none());
+    }
+
+    #[test]
+    fn allocate_not_power_of_two() {
+        let mut f = manager!(
+            A 0 => 0x1000,
+            A 0x2000 => 0xc000,
+            U 0xc000 => 0x10000,
+        );
+
+        let a = f.alloc(NumOfPages::new(3));
+
+        assert_eq!(a, Some(PhysAddr::new(0x2000)));
+        assert_eq!(
+            f,
+            manager!(
+                A 0 => 0x1000,
+                U 0x2000 => 0x5000,
+                A 0x5000 => 0xc000,
+                U 0xc000 => 0x10000,
+            )
+        )
+    }
+
+    #[test]
+    fn allocate_full_frames() {
+        let mut f = manager!(A 0 => 0x3000);
+        let a = f.alloc(NumOfPages::new(3));
+
+        assert_eq!(a, Some(PhysAddr::zero()));
+        assert_eq!(f, manager!(U 0 => 0x3000));
+    }
+
+    #[test]
+    fn free_single_frames() {
+        let mut f = manager!(U 0 => 0x3000);
+        f.free(PhysAddr::zero());
+
+        assert_eq!(f, manager!(A 0 => 0x3000));
+    }
+
+    #[test]
+    fn free_and_merge_with_before() {
+        let mut f = manager!(
+            A 0 => 0x1000,
+            A 0x2000 => 0xc000,
+            U 0xc000 => 0x10000,
+        );
+
+        f.free(PhysAddr::new(0xc000));
+
+        assert_eq!(
+            f,
+            manager! (
+                A 0 => 0x1000,
+                A 0x2000 => 0x10000
+            )
+        )
+    }
+
+    #[test]
+    fn free_and_merge_with_after() {
+        let mut f = manager!(
+            U 0 => 0x3000,
+            A 0x3000 => 0x5000,
+        );
+
+        f.free(PhysAddr::zero());
+
+        assert_eq!(
+            f,
+            manager!(
+                A 0 => 0x5000,
+            )
+        )
+    }
+
+    #[test]
+    fn free_and_merge_with_before_and_after() {
+        let mut f = manager!(
+            A 0 => 0x3000,
+            U 0x3000 => 0x5000,
+            A 0x5000 => 0x10000,
+        );
+
+        f.free(PhysAddr::new(0x3000));
+
+        assert_eq!(f, manager!(A 0 => 0x10000))
+    }
+
+    #[test]
+    fn mergable_two_frmaes() {
+        let f1 = frames!(A 0x2000 => 0xc000);
+        let f2 = frames!(A 0xc000 => 0x10000);
+
+        assert!(f1.is_mergeable(&f2));
     }
 }
