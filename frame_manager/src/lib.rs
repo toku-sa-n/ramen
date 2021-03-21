@@ -210,6 +210,15 @@ mod tests {
         };
     }
 
+    macro_rules! manager {
+        ($($is_available:ident $start:expr => $end:expr),*$(,)*) => {
+            FrameManager(vec![
+                $(frames!($is_available $start => $end)),*
+            ]
+            )
+        };
+    }
+
     #[test]
     fn fail_to_allocate() {
         let mut f = frame_manager_for_testing();
@@ -227,13 +236,13 @@ mod tests {
         assert_eq!(a, Some(PhysAddr::new(0x2000)));
         assert_eq!(
             f,
-            FrameManager(vec![
-                frames!(A 0 => 0x1000),
-                frames!(U 0x2000 => 0x5000),
-                frames!(A 0x5000 => 0xc000),
-                frames!(U 0xc000 => 0x10000),
-            ])
-        );
+            manager!(
+            A 0 => 0x1000,
+            U 0x2000 => 0x5000,
+            A 0x5000 => 0xc000,
+            U 0xc000 => 0x10000,
+            )
+        )
     }
 
     #[test]
@@ -244,8 +253,11 @@ mod tests {
 
         assert_eq!(
             f,
-            FrameManager(vec![frames!(A 0 => 0x1000), frames!(A 0x2000 => 0x10000),])
-        );
+            manager! (
+                A 0 => 0x1000,
+                A 0x2000 => 0x10000
+            )
+        )
     }
 
     #[test]
@@ -257,12 +269,10 @@ mod tests {
     }
 
     fn frame_manager_for_testing() -> FrameManager {
-        let f = vec![
-            frames!(A 0 => 0x1000),
-            frames!(A 0x2000 => 0xc000),
-            frames!(U 0xc000 => 0x10000),
-        ];
-
-        FrameManager(f)
+        manager!(
+            A 0 => 0x1000,
+            A 0x2000 => 0xc000,
+            U 0xc000 => 0x10000,
+        )
     }
 }
