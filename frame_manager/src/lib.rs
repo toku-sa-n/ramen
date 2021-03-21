@@ -226,7 +226,7 @@ mod tests {
     }
 
     #[test]
-    fn free() {
+    fn free_and_merge_with_before() {
         let mut f = frame_manager_for_testing();
 
         f.free(PhysAddr::new(0xc000));
@@ -238,6 +238,14 @@ mod tests {
                 Frames::new_for_available(PhysAddr::new(0x2000), NumOfPages::new(14))
             ])
         );
+    }
+
+    #[test]
+    fn mergable_two_frmaes() {
+        let f1 = Frames::new_for_available(PhysAddr::new(0x2000), NumOfPages::new(10));
+        let f2 = Frames::new_for_available(PhysAddr::new(0xc000), NumOfPages::new(4));
+
+        assert!(f1.is_mergeable(&f2));
     }
 
     fn frame_manager_for_testing() -> FrameManager {
