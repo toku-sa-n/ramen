@@ -254,6 +254,15 @@ mod tests {
     }
 
     #[test]
+    fn allocate_full_frames() {
+        let mut f = manager!(A 0 => 0x3000);
+        let a = f.alloc(NumOfPages::new(3));
+
+        assert_eq!(a, Some(PhysAddr::zero()));
+        assert_eq!(f, manager!(U 0 => 0x3000));
+    }
+
+    #[test]
     fn free_and_merge_with_before() {
         let mut f = manager!(
             A 0 => 0x1000,
