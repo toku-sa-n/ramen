@@ -43,31 +43,31 @@ impl FrameManager {
     pub fn alloc(&mut self, num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
         for i in 0..self.0.len() {
             if self.0[i].is_available_for_allocating(num_of_pages) {
-                return Some(self.alloc_from_descriptor_index(i, num_of_pages));
+                return Some(self.alloc_from_frames_at(i, num_of_pages));
             }
         }
 
         None
     }
 
-    fn alloc_from_descriptor_index(&mut self, i: usize, n: NumOfPages<Size4KiB>) -> PhysAddr {
-        self.split_node(i, n);
+    fn alloc_from_frames_at(&mut self, i: usize, n: NumOfPages<Size4KiB>) -> PhysAddr {
+        self.split_frames(i, n);
 
         self.0[i].available = false;
         self.0[i].start
     }
 
-    fn split_node(&mut self, i: usize, num_of_pages: NumOfPages<Size4KiB>) {
+    fn split_frames(&mut self, i: usize, num_of_pages: NumOfPages<Size4KiB>) {
         assert!(self.0[i].available, "Frames are not available.");
         assert!(
             self.0[i].num_of_pages > num_of_pages,
             "Insufficient number of frames."
         );
 
-        self.split_node_unchecked(i, num_of_pages)
+        self.split_frames_unchecked(i, num_of_pages)
     }
 
-    fn split_node_unchecked(&mut self, i: usize, requested: NumOfPages<Size4KiB>) {
+    fn split_frames_unchecked(&mut self, i: usize, requested: NumOfPages<Size4KiB>) {
         let new_frames_start = self.0[i].start + requested.as_bytes().as_usize();
         let new_frames_num = self.0[i].num_of_pages - requested;
         let new_frames = Frames::new_for_available(new_frames_start, new_frames_num);
@@ -80,12 +80,12 @@ impl FrameManager {
     pub fn free(&mut self, addr: PhysAddr) {
         for i in 0..self.0.len() {
             if self.0[i].start == addr && !self.0[i].available {
-                return self.free_memory_for_descriptor_index(i);
+                return self.free_memory_for_frames_at(i);
             }
         }
     }
 
-    fn free_memory_for_descriptor_index(&mut self, i: usize) {
+    fn free_memory_for_frames_at(&mut self, i: usize) {
         self.0[i].available = true;
         self.merge_before_and_after_frames(i);
     }
@@ -112,10 +112,6 @@ impl FrameManager {
     }
 
     fn merge_to_next_frames(&mut self, i: usize) {
-        self.merge_two_nodes(i);
-    }
-
-    fn merge_two_nodes(&mut self, i: usize) {
         let n = self.0[i + 1].num_of_pages;
         self.0[i].num_of_pages += n;
         self.0.remove(i + 1);
@@ -239,10 +235,10 @@ mod tests {
         assert_eq!(
             f,
             manager!(
-            A 0 => 0x1000,
-            U 0x2000 => 0x5000,
-            A 0x5000 => 0xc000,
-            U 0xc000 => 0x10000,
+                A 0 => 0x1000,
+                U 0x2000 => 0x5000,
+                A 0x5000 => 0xc000,
+                U 0xc000 => 0x10000,
             )
         )
     }
