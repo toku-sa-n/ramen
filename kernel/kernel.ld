@@ -65,6 +65,8 @@ SECTIONS
 
         MULTIBOOT2_INFORMATION_LMA = . - KERNEL_LMA_OFFSET;
         . += 1M;
+
+        KERNEL_END_LMA = . - KERNEL_LMA_OFFSET;
     } > kernel AT > kernel_lma
 
     /DISCARD/ : {
