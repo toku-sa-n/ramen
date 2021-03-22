@@ -59,6 +59,12 @@ pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
 }
 
 fn init(boot_info: &mut kernelboot::Info) {
+    vram::init(&boot_info);
+
+    terminal::log::init().unwrap();
+
+    info!("Hello Ramen OS!");
+
     gdt::init();
     idt::init();
 
@@ -69,12 +75,6 @@ fn init(boot_info: &mut kernelboot::Info) {
     apic::io::init(&acpi);
 
     timer::init(&acpi);
-
-    vram::init(&boot_info);
-
-    terminal::log::init().unwrap();
-
-    info!("Hello Ramen OS!");
 
     vram::print_info();
 
