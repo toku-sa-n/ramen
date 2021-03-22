@@ -3,13 +3,18 @@ SHELL			:= /bin/bash
 BUILD_DIR		:= build
 EFI_DIR			:= bootx64
 KERNEL_DIR		:= kernel
+SERVER_DIR		:= example_server
 
 LD_SRC			:= $(KERNEL_DIR)/kernel.ld
 
 EFI_FILE		:= $(BUILD_DIR)/bootx64.efi
 KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
+EXAMPLE_SERVER	:= $(BUILD_DIR)/example_server.bin
 LIB_FILE		:= $(BUILD_DIR)/libramen_os.a
+SERVER_LIB		:= $(BUILD_DIR)/libexample_server.a
 IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
+
+INITRD			:= $(BUILD_DIR)/initrd.cpio
 
 LD				:= ld
 RUSTC			:= cargo
@@ -55,11 +60,20 @@ $(IMG_FILE):$(KERNEL_FILE) $(EFI_FILE)
 $(KERNEL_FILE):$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE)
 
-$(LIB_FILE):|$(BUILD_DIR)
+$(LIB_FILE):$(INITRD)|$(BUILD_DIR)
 	# FIXME: Currently `cargo` tries to read `$(pwd)/.cargo/config.toml`, not
 	# `$(dirname argument_of_--manifest-path)/.cargo/config.toml`.
 	# See: https://github.com/rust-lang/cargo/issues/2930
 	cd $(KERNEL_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(TEST_FLAG) $(RUSTCFLAGS)
+
+$(INITRD):$(EXAMPLE_SERVER)|$(BUILD_DIR)
+	echo $(EXAMPLE_SERVER)|cpio -o > $@
+
+$(EXAMPLE_SERVER):$(SERVER_LIB)|$(BUILD_DIR)
+	$(LD) -nostdlib -o $@ -e main $(SERVER_LIB)
+
+$(SERVER_LIB):|$(BUILD_DIR)
+	cd $(SERVER_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 %.fd:
 	@echo "$@ not found"
