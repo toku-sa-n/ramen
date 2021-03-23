@@ -66,6 +66,8 @@ fn init(boot_info: &mut kernelboot::Info) {
 
     info!("Hello Ramen OS!");
 
+    fs::list_names();
+
     gdt::init();
     idt::init();
 
