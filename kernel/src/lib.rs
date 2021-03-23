@@ -29,6 +29,7 @@ extern crate derive_builder;
 
 mod acpi;
 mod device;
+mod fs;
 mod gdt;
 mod interrupt;
 mod mem;
