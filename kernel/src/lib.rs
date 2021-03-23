@@ -29,6 +29,7 @@ extern crate derive_builder;
 
 mod acpi;
 mod device;
+mod fs;
 mod gdt;
 mod interrupt;
 mod mem;
@@ -64,6 +65,8 @@ fn init(boot_info: &mut kernelboot::Info) {
     terminal::log::init().unwrap();
 
     info!("Hello Ramen OS!");
+
+    fs::list_names();
 
     gdt::init();
     idt::init();
