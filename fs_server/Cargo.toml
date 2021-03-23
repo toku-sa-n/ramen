@@ -1,5 +1,5 @@
 [package]
-name = "fs"
+name = "fs_server"
 version = "0.1.0"
 authors = ["toku-sa-n <tokusan441@gmail.com>"]
 edition = "2018"
