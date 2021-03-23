@@ -67,7 +67,7 @@ $(LIB_FILE):$(INITRD)|$(BUILD_DIR)
 	cd $(KERNEL_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(TEST_FLAG) $(RUSTCFLAGS)
 
 $(INITRD):$(EXAMPLE_SERVER)|$(BUILD_DIR)
-	echo $(EXAMPLE_SERVER)|cpio -o > $@
+	echo $(EXAMPLE_SERVER)|cpio -o > $@ --format=odc
 
 $(EXAMPLE_SERVER):$(SERVER_LIB)|$(BUILD_DIR)
 	$(LD) -nostdlib -o $@ -e main $(SERVER_LIB)
