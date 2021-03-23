@@ -6,6 +6,11 @@ fn main() {
 }
 
 fn touch_initrd() -> Result<(), std::io::Error> {
+    Command::new("mkdir")
+        .arg("-p")
+        .arg("../build/")
+        .spawn()?
+        .wait()?;
     Command::new("touch")
         .arg("../build/initrd.cpio")
         .spawn()?
