@@ -1,0 +1,14 @@
+[package]
+name = "example_server"
+version = "0.1.0"
+authors = ["toku-sa-n <tokusan441@gmail.com>"]
+edition = "2018"
+license = "GPL-3.0-or-later"
+
+[lib]
+name = "example_server"
+crate-type = ["staticlib"]
+test = false
+bench = false
+
+[dependencies]
