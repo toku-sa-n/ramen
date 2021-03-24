@@ -13,7 +13,6 @@ use x86_64::{
 };
 
 /// SAFETY: This function is unsafe because invalid values in registers may break memory safety.
-#[no_mangle]
 pub(crate) unsafe fn prepare_arguments() {
     let syscall_index: u64;
     let a1: u64;
