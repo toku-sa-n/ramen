@@ -86,14 +86,13 @@ fn init(boot_info: &mut kernelboot::Info) {
 
 fn add_processes() {
     process::add(port_server::main, Privilege::Kernel);
+    process::add(pm::main, Privilege::User);
     process::add(run_tasks, Privilege::User);
 
     if cfg!(feature = "qemu_test") {
         process::add(tests::main, Privilege::User);
         process::add(tests::process::kernel_privilege_test, Privilege::Kernel);
         process::add(tests::process::exit_test, Privilege::User);
-        process::add(tests::process::ipc::proc_1, Privilege::User);
-        process::add(tests::process::ipc::proc_2, Privilege::User);
 
         for _ in 0..100 {
             process::add(tests::process::do_nothing, Privilege::User);

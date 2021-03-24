@@ -16,7 +16,7 @@ pub(in crate::process) fn change_active_pid() {
     lock_queue().rotate_left(1)
 }
 
-pub(super) fn active_pid() -> process::SlotId {
+pub(in crate::process) fn active_pid() -> process::SlotId {
     lock_queue()[0]
 }
 

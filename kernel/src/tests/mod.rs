@@ -11,7 +11,5 @@ pub fn main() {
 
     while !process::SWITCH_TEST_SUCCESS.load(Ordering::Relaxed) {}
 
-    process::ipc::assert_test_completion();
-
     qemu::exit_success();
 }

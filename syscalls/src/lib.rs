@@ -17,7 +17,7 @@ use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 #[must_use]
 pub unsafe fn inb(port: u16) -> u8 {
     let body = message::Body(Ty::Inb as u64, port.into(), 0, 0, 0);
-    let header = message::Header::new(getpid());
+    let header = message::Header::new(0);
     let m = Message::new(header, body);
 
     send(m, 0);
@@ -33,7 +33,7 @@ pub unsafe fn inb(port: u16) -> u8 {
 #[must_use]
 pub unsafe fn inl(port: u16) -> u32 {
     let body = message::Body(Ty::Inl as u64, port.into(), 0, 0, 0);
-    let header = message::Header::new(getpid());
+    let header = message::Header::new(0);
     let m = Message::new(header, body);
 
     send(m, 0);
@@ -49,7 +49,7 @@ pub unsafe fn inl(port: u16) -> u32 {
 /// violate memory safety.
 pub unsafe fn outb(port: u16, value: u8) {
     let body = message::Body(Ty::Outb as u64, port.into(), value.into(), 0, 0);
-    let header = message::Header::new(getpid());
+    let header = message::Header::new(0);
     let m = Message::new(header, body);
 
     send(m, 0);
@@ -63,7 +63,7 @@ pub unsafe fn outb(port: u16, value: u8) {
 /// which violate memory safety.
 pub unsafe fn outl(port: u16, value: u32) {
     let body = message::Body(Ty::Outl as u64, port.into(), value.into(), 0, 0);
-    let header = message::Header::new(getpid());
+    let header = message::Header::new(0);
     let m = Message::new(header, body);
 
     send(m, 0);
@@ -134,12 +134,15 @@ pub fn unmap_pages(start: VirtAddr, bytes: Bytes) {
 
 #[must_use]
 pub fn getpid() -> i32 {
-    // SAFETY: The system call type is correct, and the remaining arguments are not used.
-    unsafe {
-        general_syscall(Ty::GetPid, 0, 0, 0)
-            .try_into()
-            .unwrap_or_else(|_| unreachable!("PID is out of `i32` range."))
-    }
+    let body = message::Body(Ty::GetPid as u64, 0, 0, 0, 0);
+    let header = message::Header::default();
+    let m = Message::new(header, body);
+
+    send(m, 1);
+
+    let reply = receive_from_any();
+
+    reply.body.0.try_into().unwrap()
 }
 
 pub fn exit() -> ! {

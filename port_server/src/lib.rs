@@ -13,7 +13,6 @@ use num_traits::FromPrimitive;
 const PID: i32 = 0;
 
 pub fn main() {
-    ensure_pid_is_correct();
     main_loop();
 }
 
@@ -26,11 +25,6 @@ fn main_loop() {
 fn main_loop_iteration() {
     let m = syscalls::receive_from_any();
     handle_message(m);
-}
-
-fn ensure_pid_is_correct() {
-    let i = syscalls::getpid();
-    assert_eq!(i, PID, "Wrong PID for the system process: {:?}", i);
 }
 
 fn handle_message(m: Message) {

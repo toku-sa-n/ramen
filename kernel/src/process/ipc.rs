@@ -50,7 +50,7 @@ impl Sender {
         let dst = collections::process::handle(self.to, |p| p.msg_ptr);
         let dst = dst.expect("Message destination address is not specified.");
 
-        unsafe { copy_msg(self.msg, dst) }
+        unsafe { copy_msg(self.msg, dst, super::get_slot_id()) }
     }
 
     fn remove_msg_buf() {
@@ -86,7 +86,7 @@ impl Sender {
     }
 
     fn add_self_as_trying_to_send(&self) {
-        let pid = super::getpid();
+        let pid = super::get_slot_id();
         collections::process::handle_mut(self.to, |p| {
             p.pids_try_to_send_this_process.push_back(pid)
         });
@@ -133,11 +133,11 @@ impl Receiver {
         })
     }
 
-    fn copy_msg(&self, src_pid: super::SlotId) {
-        let src = collections::process::handle(src_pid, |p| p.msg_ptr);
+    fn copy_msg(&self, src_slot_id: super::SlotId) {
+        let src = collections::process::handle(src_slot_id, |p| p.msg_ptr);
         let src = src.expect("The message pointer of the sender is not set.");
 
-        unsafe { copy_msg(src, self.msg_buf) }
+        unsafe { copy_msg(src, self.msg_buf, src_slot_id) }
     }
 
     fn wake_sender(src_pid: super::SlotId) {
@@ -172,10 +172,11 @@ impl Receiver {
 /// # Safety
 ///
 /// `src` and `dst` must be the correct addresses where a message is located and copied.
-unsafe fn copy_msg(src: PhysAddr, dst: PhysAddr) {
-    let src: Single<Message> = mem::accessor::kernel(src);
+unsafe fn copy_msg(src: PhysAddr, dst: PhysAddr, sender_slot_id: super::SlotId) {
+    let mut src: Single<Message> = mem::accessor::kernel(src);
     let mut dst = mem::accessor::kernel(dst);
 
+    src.update(|m| m.header.sender = sender_slot_id);
     dst.write(src.read());
 }
 

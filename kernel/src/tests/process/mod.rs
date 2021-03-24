@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pub(crate) mod ipc;
-
 use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 pub static SWITCH_TEST_SUCCESS: AtomicBool = AtomicBool::new(false);
