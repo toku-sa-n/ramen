@@ -38,18 +38,22 @@ fn loop_iteration(processes: &mut BTreeMap<i32, Process>) {
     let m = syscalls::receive_from_any();
 
     if let Some(syscalls::Ty::GetPid) = FromPrimitive::from_u64(m.body.0) {
-        let pid = processes
-            .get(&m.header.sender)
-            .expect("No such process.")
-            .pid;
-        let h = message::Header::new(PID);
-        let b = message::Body(pid.try_into().unwrap(), 0, 0, 0, 0);
-
-        let reply = Message::new(h, b);
-        let to = m.header.sender;
-
-        syscalls::send(reply, to);
+        getpid(processes, m);
     }
+}
+
+fn getpid(processes: &mut BTreeMap<i32, Process>, m: Message) {
+    let pid = processes
+        .get(&m.header.sender)
+        .expect("No such process.")
+        .pid;
+    let h = message::Header::new(PID);
+    let b = message::Body(pid.try_into().unwrap(), 0, 0, 0, 0);
+
+    let reply = Message::new(h, b);
+    let to = m.header.sender;
+
+    syscalls::send(reply, to);
 }
 
 struct Process {
