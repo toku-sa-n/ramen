@@ -39,6 +39,8 @@ fn loop_iteration(processes: &mut ProcessCollection) {
 
     if let Some(syscalls::Ty::GetPid) = FromPrimitive::from_u64(m.body.0) {
         getpid(processes, m);
+    } else {
+        panic!("Unexpected message: {:?}", m);
     }
 }
 
