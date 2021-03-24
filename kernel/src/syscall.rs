@@ -8,7 +8,6 @@ use core::{convert::TryInto, ffi::c_void, slice};
 use num_traits::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{
-    instructions::port::{PortReadOnly, PortWriteOnly},
     structures::paging::{Size4KiB, Translate},
     PhysAddr, VirtAddr,
 };
@@ -31,10 +30,6 @@ pub(crate) unsafe fn prepare_arguments() {
 unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
     match FromPrimitive::from_u64(idx) {
         Some(s) => match s {
-            syscalls::Ty::Inb => sys_inb(a1.try_into().unwrap()).into(),
-            syscalls::Ty::Outb => sys_outb(a1.try_into().unwrap(), a2.try_into().unwrap()),
-            syscalls::Ty::Inl => sys_inl(a1.try_into().unwrap()).into(),
-            syscalls::Ty::Outl => sys_outl(a1.try_into().unwrap(), a2.try_into().unwrap()),
             syscalls::Ty::AllocatePages => {
                 sys_allocate_pages(NumOfPages::new(a1.try_into().unwrap())).as_u64()
             }
@@ -59,39 +54,10 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
             .unwrap(),
             syscalls::Ty::Send => sys_send(VirtAddr::new(a1), a2),
             syscalls::Ty::Receive => sys_receive(VirtAddr::new(a1)),
+            _ => unreachable!("This sytem call should not be handled by the kernel itself."),
         },
         None => panic!("Unsupported syscall index: {}", idx),
     }
-}
-
-/// SAFETY: This function is unsafe because reading from I/O port may have side effects which
-/// violate memory safety.
-unsafe fn sys_inb(port: u16) -> u8 {
-    let mut p = PortReadOnly::new(port);
-    p.read()
-}
-
-/// SAFETY: This function is unsafe because writing to I/O port may have side effects which violate
-/// memory safety.
-unsafe fn sys_outb(port: u16, v: u8) -> u64 {
-    let mut p = PortWriteOnly::new(port);
-    p.write(v);
-    0
-}
-
-/// SAFETY: This function is unsafe because reading from I/O port may have side effects which
-/// violate memory safety.
-unsafe fn sys_inl(port: u16) -> u32 {
-    let mut p = PortReadOnly::new(port);
-    p.read()
-}
-
-/// SAFETY: This function is unsafe because writing to I/O port may have side effects which violate
-/// memory safety.
-unsafe fn sys_outl(port: u16, v: u32) -> u64 {
-    let mut p = PortWriteOnly::new(port);
-    p.write(v);
-    0
 }
 
 fn sys_allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> VirtAddr {
