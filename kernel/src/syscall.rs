@@ -5,12 +5,34 @@ use crate::{
     process,
 };
 use core::{convert::TryInto, ffi::c_void, slice};
+use message::Message;
 use num_traits::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{
     structures::paging::{Size4KiB, Translate},
     PhysAddr, VirtAddr,
 };
+
+pub(super) fn main() {
+    main_loop()
+}
+
+fn main_loop() {
+    loop {
+        loop_iteration()
+    }
+}
+
+fn loop_iteration() {
+    let m = syscalls::receive_from_any();
+    let r = unsafe { select_proper_syscall(m.body.0, m.body.1, m.body.2, m.body.3) };
+
+    let body = message::Body(r, 0, 0, 0, 0);
+    let header = message::Header::new(2);
+    let reply = Message::new(header, body);
+
+    syscalls::send(reply, m.header.sender);
+}
 
 /// SAFETY: This function is unsafe because invalid values in registers may break memory safety.
 pub(crate) unsafe fn prepare_arguments() {
