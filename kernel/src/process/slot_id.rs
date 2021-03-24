@@ -4,7 +4,7 @@ use alloc::collections::BTreeSet;
 use core::ops::DerefMut;
 use spinning_top::Spinlock;
 
-pub(crate) type SlotId = u64;
+pub(crate) type SlotId = i32;
 
 static GENERATOR: Spinlock<Generator> = Spinlock::new(Generator::new());
 

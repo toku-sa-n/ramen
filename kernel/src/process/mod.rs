@@ -33,8 +33,8 @@ pub fn add(f: fn(), p: Privilege) {
     push_process_to_queue(Process::new(f, p));
 }
 
-pub fn getpid() -> SlotId {
-    collections::process::handle_running(|p| p.id)
+fn get_slot_id() -> i32 {
+    collections::woken_pid::active_pid()
 }
 
 fn block_running() {

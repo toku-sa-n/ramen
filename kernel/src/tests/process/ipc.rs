@@ -23,7 +23,7 @@ pub fn proc_1() {
     PROC1_PID.init_once(syscalls::getpid);
 
     let m_body = message::Body(3, 1, 4, 1, 5);
-    let m_header = message::Header::new(syscalls::getpid());
+    let m_header = message::Header::new(0);
     let m = Message::new(m_header, m_body);
 
     while !PROC2_PID.is_initialized() {}
@@ -53,7 +53,7 @@ pub fn proc_2() {
     assert_eq!(m, reply);
 
     let m_body = message::Body(4, 2, 1, 9, 5);
-    let m_header = message::Header::new(syscalls::getpid());
+    let m_header = message::Header::new(0);
     let m = Message::new(m_header, m_body);
 
     let to = *PROC1_PID.get().expect("PROC1_PID is not initialized.");

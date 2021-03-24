@@ -19,12 +19,7 @@ pub fn main() {
 }
 
 fn init(processes: &mut BTreeMap<i32, Process>) {
-    ensure_pid_is_correct();
     add_initial_slots(processes);
-}
-
-fn ensure_pid_is_correct() {
-    assert_eq!(syscalls::getpid(), PID, "Wrong PID");
 }
 
 fn add_initial_slots(processes: &mut BTreeMap<i32, Process>) {
