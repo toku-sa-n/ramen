@@ -42,7 +42,6 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
             syscalls::Ty::UnmapPages => {
                 sys_unmap_pages(VirtAddr::new(a1), Bytes::new(a2.try_into().unwrap()))
             }
-            syscalls::Ty::Exit => sys_exit(),
             syscalls::Ty::TranslateAddress => sys_translate_address(VirtAddr::new(a1)).as_u64(),
             syscalls::Ty::Write => sys_write(
                 a1.try_into().unwrap(),
@@ -75,10 +74,6 @@ fn sys_map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
 fn sys_unmap_pages(start: VirtAddr, bytes: Bytes) -> u64 {
     crate::mem::unmap_pages(start, bytes);
     0
-}
-
-fn sys_exit() -> ! {
-    process::exit();
 }
 
 fn sys_translate_address(v: VirtAddr) -> PhysAddr {
