@@ -58,6 +58,6 @@ pub extern "x86-interrupt" fn h_81(
             call {}
             call {}
             mov rsp, rax
-        ", const INTERRUPT_STACK.as_u64(), sym syscall::prepare_arguments, sym apic::local::end_of_interrupt, sym process::switch, out("rax") _, out("rbx") _, out("rcx") _, out("rdx") _, out("rsi") _, out("rdi") _,  out("r8") _, out("r9") _, out("r10") _, out("r11") _, out("r12") _, out("r13") _, out("r14") _, out("r15") _);
+        ", const INTERRUPT_STACK.as_u64(), sym syscall::prepare_arguments_for_ipc, sym apic::local::end_of_interrupt, sym process::switch, out("rax") _, out("rbx") _, out("rcx") _, out("rdx") _, out("rsi") _, out("rdi") _,  out("r8") _, out("r9") _, out("r10") _, out("r11") _, out("r12") _, out("r13") _, out("r14") _, out("r15") _);
     }
 }

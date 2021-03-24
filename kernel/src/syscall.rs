@@ -23,6 +23,15 @@ pub(crate) unsafe fn prepare_arguments() {
     asm!("", in("rax") select_proper_syscall(syscall_index, a1, a2,a3))
 }
 
+pub(crate) unsafe fn prepare_arguments_for_ipc() {
+    let syscall_index: u64;
+    let a1: u64;
+    let a2: u64;
+
+    asm!("", out("rax") syscall_index, out("rdi") a1, out("rsi") a2);
+    handle_ipc(syscall_index, a1, a2);
+}
+
 /// SAFETY: This function is unsafe because invalid arguments may break memory safety.
 #[allow(clippy::too_many_lines)]
 #[allow(clippy::too_many_arguments)]
@@ -56,6 +65,14 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
         },
         None => panic!("Unsupported syscall index: {}", idx),
     }
+}
+
+fn handle_ipc(idx: u64, a1: u64, a2: u64) {
+    match FromPrimitive::from_u64(idx) {
+        Some(syscalls::Ty::Send) => sys_send(VirtAddr::new(a1), a2.try_into().unwrap()),
+        Some(syscalls::Ty::Receive) => sys_receive(VirtAddr::new(a1)),
+        _ => panic!("Not a system call related to IPC."),
+    };
 }
 
 fn sys_allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> VirtAddr {
