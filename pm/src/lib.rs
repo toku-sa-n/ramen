@@ -13,28 +13,28 @@ const PID: i32 = 1;
 const INITIAL_PROCESS_SLOT_NUMBER: usize = 200;
 
 pub fn main() {
-    let mut processes = BTreeMap::new();
+    let mut processes = ProcessCollection::default();
     init(&mut processes);
     main_loop(&mut processes);
 }
 
-fn init(processes: &mut BTreeMap<i32, Process>) {
+fn init(processes: &mut ProcessCollection) {
     add_initial_slots(processes);
 }
 
-fn add_initial_slots(processes: &mut BTreeMap<i32, Process>) {
+fn add_initial_slots(processes: &mut ProcessCollection) {
     for i in 0..INITIAL_PROCESS_SLOT_NUMBER {
         processes.insert(i.try_into().unwrap(), Process::new(i.try_into().unwrap()));
     }
 }
 
-fn main_loop(processes: &mut BTreeMap<i32, Process>) {
+fn main_loop(processes: &mut ProcessCollection) {
     loop {
         loop_iteration(processes)
     }
 }
 
-fn loop_iteration(processes: &mut BTreeMap<i32, Process>) {
+fn loop_iteration(processes: &mut ProcessCollection) {
     let m = syscalls::receive_from_any();
 
     if let Some(syscalls::Ty::GetPid) = FromPrimitive::from_u64(m.body.0) {
@@ -42,9 +42,9 @@ fn loop_iteration(processes: &mut BTreeMap<i32, Process>) {
     }
 }
 
-fn getpid(processes: &mut BTreeMap<i32, Process>, m: Message) {
+fn getpid(processes: &mut ProcessCollection, m: Message) {
     let pid = processes
-        .get(&m.header.sender)
+        .get(m.header.sender)
         .expect("No such process.")
         .pid;
     let h = message::Header::new(PID);
@@ -54,6 +54,18 @@ fn getpid(processes: &mut BTreeMap<i32, Process>, m: Message) {
     let to = m.header.sender;
 
     syscalls::send(reply, to);
+}
+
+#[derive(Default)]
+struct ProcessCollection(BTreeMap<i32, Process>);
+impl ProcessCollection {
+    fn get(&self, k: i32) -> Option<&Process> {
+        self.0.get(&k)
+    }
+
+    fn insert(&mut self, k: i32, p: Process) {
+        self.0.insert(k, p);
+    }
 }
 
 struct Process {
