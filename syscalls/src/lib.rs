@@ -146,8 +146,13 @@ pub fn getpid() -> i32 {
 }
 
 pub fn exit() -> ! {
-    let ty = Ty::Exit as u64;
-    unsafe { asm!("int 0x80", in("rax") ty, options(noreturn)) }
+    let body = message::Body(Ty::Exit as _, 0, 0, 0, 0);
+    let header = message::Header::default();
+    let m = Message::new(header, body);
+
+    send(m, 2);
+
+    unreachable!("The `exit` system call must not return.");
 }
 
 /// This method will return a null address if the address is not mapped.
