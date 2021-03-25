@@ -6,7 +6,7 @@
 extern crate log;
 extern crate alloc;
 
-use alloc::collections::BTreeMap;
+use alloc::collections::BTreeSet;
 
 pub fn main() {
     let mut c = ProcessCollection::default();
@@ -20,7 +20,7 @@ fn init(c: &mut ProcessCollection) {
         m = syscalls::receive_from_any();
         m.body.1 > 0
     } {
-        c.insert(k, Process);
+        c.insert(k);
         k += 1;
     }
 
@@ -29,11 +29,9 @@ fn init(c: &mut ProcessCollection) {
 }
 
 #[derive(Default)]
-struct ProcessCollection(BTreeMap<i32, Process>);
+struct ProcessCollection(BTreeSet<i32>);
 impl ProcessCollection {
-    fn insert(&mut self, k: i32, p: Process) {
-        self.0.insert(k, p);
+    fn insert(&mut self, k: i32) {
+        self.0.insert(k);
     }
 }
-
-struct Process;
