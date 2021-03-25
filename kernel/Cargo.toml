@@ -51,6 +51,7 @@ port_server = { path = "../port_server" }
 frame_manager = { path = "../frame_manager" }
 cstr_core = "0.2.3"
 pm = { path = "../pm" }
+fs_server = { path = "../fs_server" }
 
 [build-dependencies]
 cc = "1.0.67"
