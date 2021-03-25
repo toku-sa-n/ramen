@@ -5,7 +5,6 @@ use crate::{
     process,
 };
 use core::{convert::TryInto, ffi::c_void, slice};
-use message::Message;
 use num_traits::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{
@@ -25,13 +24,11 @@ fn main_loop() {
 
 fn loop_iteration() {
     let m = syscalls::receive_from_any();
-    let r = unsafe { select_proper_syscall(m.body.0, m.body.1, m.body.2, m.body.3) };
-
-    let body = message::Body(r, 0, 0, 0, 0);
-    let header = message::Header::new(2);
-    let reply = Message::new(header, body);
-
-    syscalls::send(reply, m.header.sender);
+    if let Some(syscalls::Ty::Exit) = FromPrimitive::from_u64(m.body.0) {
+        sys_exit();
+    } else {
+        panic!("Unrecognized message: {:?}", m);
+    }
 }
 
 /// SAFETY: This function is unsafe because invalid values in registers may break memory safety.
@@ -72,7 +69,6 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
             syscalls::Ty::UnmapPages => {
                 sys_unmap_pages(VirtAddr::new(a1), Bytes::new(a2.try_into().unwrap()))
             }
-            syscalls::Ty::Exit => sys_exit(),
             syscalls::Ty::TranslateAddress => sys_translate_address(VirtAddr::new(a1)).as_u64(),
             syscalls::Ty::Write => sys_write(
                 a1.try_into().unwrap(),
