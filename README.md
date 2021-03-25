@@ -27,7 +27,7 @@ cp /usr/share/edk2-ovmf/{OVMF_VARS.fd,OVMF_CODE.fd} /path/to/ramen
 git clone https://github.com/toku-sa-n/ramen
 cd ramen
 rustup override set nightly
-make release && make run
+make && ./run_qemu
 ```
 
 ## Run on your computer
@@ -39,7 +39,7 @@ Then run the following command:
 git clone https://github.com/toku-sa-n/ramen.git
 cd ramen
 rustup override set nightly
-make release
+make
 USB_DEVICE_PATH="/dev/sdx1" make copy_to_usb
 ```
 (/dev/sdx1 is the EFI partition you created.)

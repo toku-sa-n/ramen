@@ -20,12 +20,27 @@ pub fn main() {
 
 fn init(processes: &mut ProcessCollection) {
     add_initial_slots(processes);
+    tell_fs_end_of_sync();
 }
 
 fn add_initial_slots(processes: &mut ProcessCollection) {
     for i in 0..INITIAL_PROCESS_SLOT_NUMBER {
         processes.insert(i.try_into().unwrap(), Process::new(i.try_into().unwrap()));
+
+        let header = message::Header::default();
+        let body = message::Body(0, 1, 0, 0, 0);
+        let m = Message::new(header, body);
+
+        syscalls::send(m, 2);
     }
+}
+
+fn tell_fs_end_of_sync() {
+    let header = message::Header::default();
+    let body = message::Body(0, 0, 0, 0, 0);
+    let m = Message::new(header, body);
+
+    syscalls::send(m, 2);
 }
 
 fn main_loop(processes: &mut ProcessCollection) {
