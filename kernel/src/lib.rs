@@ -83,18 +83,22 @@ fn init(boot_info: &mut kernelboot::Info) {
 }
 
 fn add_processes() {
-    process::add(port_server::main, Privilege::Kernel);
-    process::add(pm::main, Privilege::User);
-    process::add(fs_server::main, Privilege::User);
-    process::add(run_tasks, Privilege::User);
+    process::add(port_server::main, Privilege::Kernel, "ps");
+    process::add(pm::main, Privilege::User, "pm");
+    process::add(fs_server::main, Privilege::User, "fs");
+    process::add(run_tasks, Privilege::User, "tasks");
 
     if cfg!(feature = "qemu_test") {
-        process::add(tests::main, Privilege::User);
-        process::add(tests::process::kernel_privilege_test, Privilege::Kernel);
-        process::add(tests::process::exit_test, Privilege::User);
+        process::add(tests::main, Privilege::User, "tests");
+        process::add(
+            tests::process::kernel_privilege_test,
+            Privilege::Kernel,
+            "ktest",
+        );
+        process::add(tests::process::exit_test, Privilege::User, "exittest");
 
         for _ in 0..100 {
-            process::add(tests::process::do_nothing, Privilege::User);
+            process::add(tests::process::do_nothing, Privilege::User, "stresstest");
         }
     }
 }
