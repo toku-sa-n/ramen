@@ -9,10 +9,8 @@ static PROCESSES: Spinlock<BTreeMap<process::SlotId, Process>> = Spinlock::new(B
 
 pub(in crate::process) fn add(p: Process) {
     let id = p.id();
-    PROCESSES
-        .lock()
-        .insert(id, p)
-        .expect_none("Duplicated process.");
+    let r = PROCESSES.lock().insert(id, p);
+    assert!(r.is_none(), "Duplicated process.");
 }
 
 pub(in crate::process) fn handle_running_mut<T, U>(f: T) -> U

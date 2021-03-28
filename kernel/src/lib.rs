@@ -2,7 +2,6 @@
 
 #![no_std]
 #![feature(
-    option_expect_none,
     int_bits_const,
     const_btree_new,
     async_closure,
