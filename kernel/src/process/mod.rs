@@ -29,8 +29,8 @@ pub(crate) fn assign_rax_from_register() {
     assign_rax(rax);
 }
 
-pub fn add(f: fn(), p: Privilege) {
-    push_process_to_queue(Process::new(f, p));
+pub fn add(f: fn(), p: Privilege, name: &'static str) {
+    push_process_to_queue(Process::new(f, p, name));
 }
 
 fn get_slot_id() -> i32 {
@@ -80,12 +80,14 @@ pub struct Process {
     flags: Flags,
     msg_ptr: Option<PhysAddr>,
     pids_try_to_send_this_process: VecDeque<SlotId>,
+
+    name: &'static str,
 }
 impl Process {
     const STACK_SIZE: u64 = Size4KiB::SIZE * 12;
 
     #[allow(clippy::too_many_lines)]
-    fn new(f: fn(), privilege: Privilege) -> Self {
+    fn new(f: fn(), privilege: Privilege, name: &'static str) -> Self {
         let mut tables = page_table::Collection::default();
         let stack = KpBox::new_slice(0, Self::STACK_SIZE.try_into().unwrap());
         let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
@@ -110,6 +112,7 @@ impl Process {
             flags: Flags::empty(),
             msg_ptr: None,
             pids_try_to_send_this_process: VecDeque::new(),
+            name,
         }
     }
 
