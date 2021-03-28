@@ -2,7 +2,6 @@
 
 #![no_std]
 #![feature(
-    int_bits_const,
     const_btree_new,
     async_closure,
     alloc_error_handler,
