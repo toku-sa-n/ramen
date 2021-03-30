@@ -48,7 +48,11 @@ impl Collection {
 
         let p1 = pt.entry(dir_i).or_insert_with(|| Self::create(p2, dir_i));
 
-        p1[table_i].set_addr(p.start_address(), Self::flags());
+        if p1[table_i].is_unused() {
+            p1[table_i].set_addr(p.start_address(), Self::flags());
+        } else {
+            panic!("Mapping is overlapped.")
+        }
     }
 
     fn create(parent: &mut PageTable, i: PageTableIndex) -> KpBox<PageTable> {
