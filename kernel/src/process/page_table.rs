@@ -22,7 +22,7 @@ impl Collection {
         self.pml4.phys_addr()
     }
 
-    pub(super) fn map_page_box<T: ?Sized>(&mut self, b: &KpBox<T>) {
+    pub(super) fn map_page_box(&mut self, b: &KpBox<impl ?Sized>) {
         for i in 0..b.bytes().as_num_of_pages::<Size4KiB>().as_usize() {
             let off = Size4KiB::SIZE * u64::try_from(i).unwrap();
             let v = Page::from_start_address(b.virt_addr() + off).expect("Page is not aligned.");
