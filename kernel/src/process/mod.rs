@@ -124,6 +124,7 @@ impl Process {
         }
     }
 
+    #[allow(clippy::too_many_lines)]
     fn binary(name: &'static str, privilege: Privilege) -> Self {
         let mut tables = page_table::Collection::default();
         let handler = crate::fs::get_handler(name);
