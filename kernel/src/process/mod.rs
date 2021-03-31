@@ -21,6 +21,7 @@ use x86_64::{
     structures::paging::{PageSize, Size4KiB},
     PhysAddr, VirtAddr,
 };
+use xmas_elf::ElfFile;
 
 pub(crate) fn assign_rax_from_register() {
     let rax;
@@ -29,9 +30,13 @@ pub(crate) fn assign_rax_from_register() {
     assign_rax(rax);
 }
 
-pub fn add(entry: fn(), p: Privilege, name: &'static str) {
+pub(super) fn add(entry: fn(), p: Privilege, name: &'static str) {
     let entry = VirtAddr::new((entry as usize).try_into().unwrap());
     push_process_to_queue(Process::new(entry, p, name));
+}
+
+pub(super) fn binary(name: &'static str, p: Privilege) {
+    push_process_to_queue(Process::binary(name, p));
 }
 
 fn get_slot_id() -> i32 {
@@ -77,6 +82,7 @@ pub struct Process {
     stack: KpBox<[u8]>,
     stack_frame: KpBox<StackFrame>,
     privilege: Privilege,
+    binary: Option<KpBox<[u8]>>,
 
     flags: Flags,
     msg_ptr: Option<PhysAddr>,
@@ -109,6 +115,47 @@ impl Process {
             stack,
             stack_frame,
             privilege,
+            binary: None,
+
+            flags: Flags::empty(),
+            msg_ptr: None,
+            pids_try_to_send_this_process: VecDeque::new(),
+            name,
+        }
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn binary(name: &'static str, privilege: Privilege) -> Self {
+        let mut tables = page_table::Collection::default();
+        let handler = crate::fs::get_handler(name);
+        let content = handler.content();
+        let content = KpBox::from(content);
+        tables.map_elf(&content);
+
+        let elf = ElfFile::new(&content).expect("Not a ELF file.");
+        let entry = VirtAddr::new(elf.header.pt2.entry_point());
+        info!("Entry address: {:?}", entry);
+
+        let stack = KpBox::new_slice(0, Self::STACK_SIZE.try_into().unwrap());
+        let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
+        let stack_frame = KpBox::from(match privilege {
+            Privilege::Kernel => StackFrame::kernel(entry, stack_bottom),
+            Privilege::User => StackFrame::user(entry, stack_bottom),
+        });
+        tables.map_page_box(&stack);
+        tables.map_page_box(&stack_frame);
+
+        let pml4_addr = tables.pml4_addr();
+
+        Self {
+            id: slot_id::generate(),
+            entry,
+            tables,
+            pml4_addr,
+            stack,
+            stack_frame,
+            privilege,
+            binary: Some(content),
 
             flags: Flags::empty(),
             msg_ptr: None,

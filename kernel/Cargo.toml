@@ -52,6 +52,7 @@ frame_manager = { path = "../frame_manager" }
 cstr_core = "0.2.3"
 pm = { path = "../pm" }
 fs_server = { path = "../fs_server" }
+xmas-elf = "0.7.0"
 
 [build-dependencies]
 cc = "1.0.67"

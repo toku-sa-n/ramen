@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::{mem, str};
+use core::{mem, slice, str};
 use cstr_core::CStr;
 use x86_64::VirtAddr;
 
@@ -15,6 +15,10 @@ pub(super) fn list_names() {
     }
 }
 
+pub(super) fn get_handler(name: &'static str) -> CpioArchievedFile {
+    iter().find(|x| x.name() == name).expect("No such file.")
+}
+
 fn iter() -> impl Iterator<Item = CpioArchievedFile> {
     Iter::default()
 }
@@ -27,10 +31,19 @@ fn initrd_addr() -> VirtAddr {
     VirtAddr::new(unsafe { &initrd as *const _ as _ })
 }
 
-struct CpioArchievedFile {
+pub(super) struct CpioArchievedFile {
     ptr: VirtAddr,
 }
 impl CpioArchievedFile {
+    pub(super) fn content(&self) -> &[u8] {
+        unsafe {
+            slice::from_raw_parts(
+                self.content_start().as_ptr(),
+                self.header().file_size().into(),
+            )
+        }
+    }
+
     unsafe fn new(ptr: VirtAddr) -> Self {
         assert_eq!(
             &ptr.as_ptr::<[u8; 6]>().read(),
@@ -52,6 +65,10 @@ impl CpioArchievedFile {
             let s = CStr::from_ptr(self.name_start().as_ptr()).to_str();
             s.expect("Failed to get the name of a file.")
         }
+    }
+
+    fn content_start(&self) -> VirtAddr {
+        self.name_start() + usize::from(self.header().name_size())
     }
 
     fn name_start(&self) -> VirtAddr {
