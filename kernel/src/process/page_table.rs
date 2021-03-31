@@ -7,8 +7,9 @@ use x86_64::{
     structures::paging::{
         Page, PageSize, PageTable, PageTableFlags, PageTableIndex, PhysFrame, Size4KiB,
     },
-    PhysAddr,
+    PhysAddr, VirtAddr,
 };
+use xmas_elf::ElfFile;
 
 #[derive(Debug)]
 pub(super) struct Collection {
@@ -29,6 +30,19 @@ impl Collection {
             let p =
                 PhysFrame::from_start_address(b.phys_addr() + off).expect("Frame is not aligned.");
             self.map(v, p);
+        }
+    }
+
+    pub(super) fn map_elf(&mut self, raw: &KpBox<[u8]>) {
+        let elf = ElfFile::new(raw).expect("Not a ELF file.");
+        for p in elf.program_iter() {
+            let virt = VirtAddr::new(p.virtual_addr());
+            let virt = Page::from_start_address(virt).expect("This address is not page-aligned.");
+            let phys = raw.phys_addr() + p.offset();
+            let phys =
+                PhysFrame::from_start_address(phys).expect("This address is not page-aligned.");
+
+            self.map(virt, phys);
         }
     }
 
