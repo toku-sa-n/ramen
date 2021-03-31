@@ -29,8 +29,9 @@ pub(crate) fn assign_rax_from_register() {
     assign_rax(rax);
 }
 
-pub fn add(f: fn(), p: Privilege, name: &'static str) {
-    push_process_to_queue(Process::new(f, p, name));
+pub fn add(entry: fn(), p: Privilege, name: &'static str) {
+    let entry = VirtAddr::new((entry as usize).try_into().unwrap());
+    push_process_to_queue(Process::new(entry, p, name));
 }
 
 fn get_slot_id() -> i32 {
@@ -70,7 +71,7 @@ fn set_temporary_stack_frame() {
 #[derive(Debug)]
 pub struct Process {
     id: SlotId,
-    f: fn(),
+    entry: VirtAddr,
     tables: page_table::Collection,
     pml4_addr: PhysAddr,
     stack: KpBox<[u8]>,
@@ -87,13 +88,13 @@ impl Process {
     const STACK_SIZE: u64 = Size4KiB::SIZE * 12;
 
     #[allow(clippy::too_many_lines)]
-    fn new(f: fn(), privilege: Privilege, name: &'static str) -> Self {
+    fn new(entry: VirtAddr, privilege: Privilege, name: &'static str) -> Self {
         let mut tables = page_table::Collection::default();
         let stack = KpBox::new_slice(0, Self::STACK_SIZE.try_into().unwrap());
         let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
         let stack_frame = KpBox::from(match privilege {
-            Privilege::Kernel => StackFrame::kernel(f, stack_bottom),
-            Privilege::User => StackFrame::user(f, stack_bottom),
+            Privilege::Kernel => StackFrame::kernel(entry, stack_bottom),
+            Privilege::User => StackFrame::user(entry, stack_bottom),
         });
         tables.map_page_box(&stack);
         tables.map_page_box(&stack_frame);
@@ -102,7 +103,7 @@ impl Process {
 
         Process {
             id: slot_id::generate(),
-            f,
+            entry,
             tables,
             pml4_addr,
             stack,

@@ -17,20 +17,20 @@ pub(super) struct StackFrame {
     interrupt: InterruptStackFrameValue,
 }
 impl StackFrame {
-    pub fn kernel(f: fn(), stack_pointer: VirtAddr) -> Self {
-        Self::new(f, stack_pointer, &Selectors::kernel())
+    pub fn kernel(entry: VirtAddr, stack_pointer: VirtAddr) -> Self {
+        Self::new(entry, stack_pointer, &Selectors::kernel())
     }
 
-    pub fn user(f: fn(), stack_pointer: VirtAddr) -> Self {
-        Self::new(f, stack_pointer, &Selectors::user())
+    pub fn user(entry: VirtAddr, stack_pointer: VirtAddr) -> Self {
+        Self::new(entry, stack_pointer, &Selectors::user())
     }
 
-    fn new(f: fn(), stack_pointer: VirtAddr, segs: &Selectors) -> Self {
+    fn new(entry: VirtAddr, stack_pointer: VirtAddr, segs: &Selectors) -> Self {
         let cpu_flags = (rflags::read() | RFlags::INTERRUPT_FLAG).bits();
         let instruction_pointer = VirtAddr::new((super::loader as usize).try_into().unwrap());
 
         Self {
-            regs: GeneralRegisters::new(f),
+            regs: GeneralRegisters::new(entry),
             interrupt: InterruptStackFrameValue {
                 instruction_pointer,
                 code_segment: segs.code.0.into(),
@@ -80,9 +80,9 @@ pub(super) struct GeneralRegisters {
     _rbp: u64,
 }
 impl GeneralRegisters {
-    fn new(f: fn()) -> Self {
+    fn new(entry: VirtAddr) -> Self {
         Self {
-            rdi: (f as usize).try_into().unwrap(),
+            rdi: entry.as_u64(),
             ..Self::default()
         }
     }
