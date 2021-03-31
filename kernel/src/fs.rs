@@ -48,12 +48,14 @@ impl CpioArchievedFile {
     }
 
     fn name(&self) -> &str {
-        let name_ptr = self.ptr + mem::size_of::<CpioHeader>();
-
         unsafe {
-            let s = CStr::from_ptr(name_ptr.as_ptr()).to_str();
+            let s = CStr::from_ptr(self.name_start().as_ptr()).to_str();
             s.expect("Failed to get the name of a file.")
         }
+    }
+
+    fn name_start(&self) -> VirtAddr {
+        self.ptr + mem::size_of::<CpioHeader>()
     }
 }
 
