@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::{mem, str};
+use core::{mem, slice, str};
 use cstr_core::CStr;
 use x86_64::VirtAddr;
 
@@ -52,6 +52,19 @@ impl CpioArchievedFile {
             let s = CStr::from_ptr(self.name_start().as_ptr()).to_str();
             s.expect("Failed to get the name of a file.")
         }
+    }
+
+    fn content(&self) -> &[u8] {
+        unsafe {
+            slice::from_raw_parts(
+                self.content_start().as_ptr(),
+                self.header().file_size().into(),
+            )
+        }
+    }
+
+    fn content_start(&self) -> VirtAddr {
+        self.name_start() + usize::from(self.header().name_size())
     }
 
     fn name_start(&self) -> VirtAddr {
