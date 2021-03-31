@@ -34,8 +34,8 @@ impl Collection {
     }
 
     pub(super) fn map_elf(&mut self, raw: &KpBox<[u8]>) {
-        let elf = ElfFile::new(raw).expect("Not a ELF file.");
-        for p in elf.program_iter() {
+        let elf_file = ElfFile::new(raw).expect("Not a ELF file.");
+        for p in elf_file.program_iter() {
             let virt = VirtAddr::new(p.virtual_addr());
             let virt = Page::from_start_address(virt).expect("This address is not page-aligned.");
             let phys = raw.phys_addr() + p.offset();
