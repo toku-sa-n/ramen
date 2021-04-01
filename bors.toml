@@ -1,2 +1,2 @@
-status = ["fmt", "clippy", "udeps", "test"]
+status = ["fmt", "clippy", "udeps", "test", "test_per_crate"]
 delete_merged_branches = true
