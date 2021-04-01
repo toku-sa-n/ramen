@@ -2,14 +2,15 @@
 
 use crate::mem::{allocator::kpbox::KpBox, paging::pml4::PML4};
 use alloc::collections::BTreeMap;
-use core::convert::TryFrom;
+use core::convert::{TryFrom, TryInto};
+use os_units::{Bytes, NumOfPages};
 use x86_64::{
     structures::paging::{
         Page, PageSize, PageTable, PageTableFlags, PageTableIndex, PhysFrame, Size4KiB,
     },
     PhysAddr, VirtAddr,
 };
-use xmas_elf::ElfFile;
+use xmas_elf::{program::ProgramHeader, ElfFile};
 
 #[derive(Debug)]
 pub(super) struct Collection {
@@ -36,13 +37,29 @@ impl Collection {
     pub(super) fn map_elf(&mut self, raw: &KpBox<[u8]>) {
         let elf_file = ElfFile::new(raw).expect("Not a ELF file.");
         for p in elf_file.program_iter() {
-            let virt = VirtAddr::new(p.virtual_addr());
-            let virt = Page::from_start_address(virt).expect("This address is not page-aligned.");
-            let phys = raw.phys_addr() + p.offset();
-            let phys =
-                PhysFrame::from_start_address(phys).expect("This address is not page-aligned.");
+            self.map_program_header(p, raw);
+        }
+    }
 
-            self.map(virt, phys);
+    fn map_program_header(&mut self, ph: ProgramHeader, raw: &KpBox<[u8]>) {
+        let virt_bottom = VirtAddr::new(ph.virtual_addr())
+            .align_down(Size4KiB::SIZE)
+            .as_u64();
+        let virt_top = VirtAddr::new(ph.virtual_addr() + ph.mem_size())
+            .align_up(Size4KiB::SIZE)
+            .as_u64();
+        let num_of_pages =
+            Bytes::new((virt_top - virt_bottom).try_into().unwrap()).as_num_of_pages::<Size4KiB>();
+
+        for i in 0..num_of_pages.as_usize() {
+            let offset = NumOfPages::<Size4KiB>::new(i).as_bytes().as_usize();
+            let v = VirtAddr::new(ph.virtual_addr()) + offset;
+            let v = Page::from_start_address(v).expect("This address is not aligned.");
+
+            let p = raw.phys_addr() + ph.offset() + offset;
+            let p = PhysFrame::from_start_address(p).expect("This address is not aligned.");
+
+            self.map(v, p);
         }
     }
 
