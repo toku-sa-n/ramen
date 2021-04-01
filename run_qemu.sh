@@ -39,8 +39,6 @@ then
     make test -j
     create_storage_image
 
-    find . -name Cargo.toml -printf '%h\n'|xargs -P 2 -I {} sh -c "cd {} && cargo test || exit 255"
-
     # QEMU exist with the exit code nonzero value even on success.
     set +e
     qemu-system-x86_64 ${parameters_for_testing}
