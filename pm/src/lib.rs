@@ -3,6 +3,7 @@
 #![no_std]
 
 extern crate alloc;
+extern crate ralib;
 
 use alloc::collections::BTreeMap;
 use core::convert::TryInto;
@@ -12,7 +13,10 @@ use num_traits::FromPrimitive;
 const PID: i32 = 1;
 const INITIAL_PROCESS_SLOT_NUMBER: usize = 200;
 
+#[no_mangle]
 pub fn main() {
+    ralib::init();
+
     let mut processes = ProcessCollection::default();
     init(&mut processes);
     main_loop(&mut processes);

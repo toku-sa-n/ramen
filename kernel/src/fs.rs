@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::{mem, slice, str};
+use core::{
+    convert::{TryFrom, TryInto},
+    mem, slice, str,
+};
 use cstr_core::CStr;
 use x86_64::VirtAddr;
 
@@ -36,12 +39,9 @@ pub(super) struct CpioArchievedFile {
 }
 impl CpioArchievedFile {
     pub(super) fn content(&self) -> &[u8] {
-        unsafe {
-            slice::from_raw_parts(
-                self.content_start().as_ptr(),
-                self.header().file_size().into(),
-            )
-        }
+        let p = self.content_start().as_ptr();
+        let sz: usize = self.header().file_size().try_into().unwrap();
+        unsafe { slice::from_raw_parts(p, sz) }
     }
 
     unsafe fn new(ptr: VirtAddr) -> Self {
@@ -89,7 +89,8 @@ impl Iterator for Iter {
             None
         } else {
             self.ptr += mem::size_of::<CpioHeader>()
-                + usize::from(f.header().name_size() + f.header().file_size());
+                + usize::try_from(u32::from(f.header().name_size()) + f.header().file_size())
+                    .unwrap();
             Some(f)
         }
     }
@@ -98,6 +99,13 @@ impl Default for Iter {
     fn default() -> Self {
         Self { ptr: initrd_addr() }
     }
+}
+
+macro_rules! byte_array_to_str {
+    ($slice:expr,$ty:ident) => {
+        let s = str::from_utf8($slice).expect("Not the valid UTF-8");
+        return $ty::from_str_radix(s, 8).expect("Radix is out of range.");
+    };
 }
 
 #[repr(C, packed)]
@@ -116,15 +124,10 @@ struct CpioHeader {
 }
 impl CpioHeader {
     fn name_size(&self) -> u16 {
-        byte_array_to_str(&self.namesize)
+        byte_array_to_str!(&self.namesize, u16);
     }
 
-    fn file_size(&self) -> u16 {
-        byte_array_to_str(&self.filesize)
+    fn file_size(&self) -> u32 {
+        byte_array_to_str!(&self.filesize, u32);
     }
-}
-
-fn byte_array_to_str(b: &[u8]) -> u16 {
-    let s = str::from_utf8(b).expect("Not the valid UTF-8");
-    u16::from_str_radix(s, 8).expect("Radix is out of range.")
 }

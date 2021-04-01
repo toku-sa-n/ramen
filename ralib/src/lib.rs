@@ -2,9 +2,10 @@
 
 #![no_std]
 #![allow(clippy::too_many_arguments)] // A workaround for the clippy's wrong warning.
+#![feature(alloc_error_handler)]
 
-use conquer_once::Lazy;
-use core::convert::TryInto;
+use conquer_once::spin::Lazy;
+use core::{alloc::Layout, convert::TryInto};
 use linked_list_allocator::LockedHeap;
 use os_units::{Bytes, NumOfPages};
 use page_box::PageBox;
@@ -44,4 +45,16 @@ fn init_heap() {
     let bytes = HEAP.bytes().as_usize();
 
     unsafe { a.init(start, bytes) }
+}
+
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    loop {
+        x86_64::instructions::nop()
+    }
+}
+
+#[alloc_error_handler]
+fn alloc_fail(l: Layout) -> ! {
+    panic!("Allocation failed: {:?}", l)
 }
