@@ -115,5 +115,5 @@ jobs:
       run: cp /usr/share/OVMF/OVMF_* .
 
     - name: Test
-      timeout-minutes: 5
+      timeout-minutes: 10
       run: ./run_qemu.sh -t
