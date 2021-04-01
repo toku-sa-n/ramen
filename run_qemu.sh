@@ -2,16 +2,11 @@
 
 set -e
 
-create_storage_image() {
-    mkdir -p build
-    dd if=/dev/zero of=build/storage.img count=10000
-}
-
 readonly common_parameters=" \
     -drive if=pflash,format=raw,file=OVMF_CODE.fd,readonly=on \
     -drive if=pflash,format=raw,file=OVMF_VARS.fd,readonly=on \
     -drive format=raw,file=build/ramen_os.img \
-    -drive id=usb,file=build/storage.img,if=none,format=raw \
+    -drive id=usb,file=gpt.img,if=none,format=raw \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     -device qemu-xhci,id=xhci \
     -device usb-kbd \
@@ -37,7 +32,6 @@ readonly parameters_for_testing=" \
 if [[ $1 == "-t" ]]
 then
     make test -j
-    create_storage_image
 
     # QEMU exist with the exit code nonzero value even on success.
     set +e
@@ -53,6 +47,5 @@ then
     fi
 else
     make build/ramen_os.img -j
-    create_storage_image
     qemu-system-x86_64 ${parameters_for_running_qemu}
 fi
