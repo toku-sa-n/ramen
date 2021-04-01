@@ -117,3 +117,34 @@ jobs:
     - name: Test
       timeout-minutes: 10
       run: ./run_qemu.sh -t
+  test_per_crate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install rust nightly
+      uses: actions-rs/toolchain@v1.0.6
+      with:
+        toolchain: nightly
+        components: rust-src
+        override: true
+
+    - uses: Swatinem/rust-cache@v1.2.0
+      with:
+        working-directory: kernel
+
+    - uses: Swatinem/rust-cache@v1.2.0
+      with:
+        working-directory: bootx64
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install mtools qemu-system-x86 ovmf
+
+    - name: Copy OVMF_*
+      run: cp /usr/share/OVMF/OVMF_* .
+
+    - name: Test
+      run: ./test_per_crate.sh
