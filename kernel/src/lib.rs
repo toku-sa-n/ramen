@@ -58,6 +58,8 @@ pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
 }
 
 fn init(boot_info: &mut kernelboot::Info) {
+    sysproc::init(&boot_info);
+
     vram::init(&boot_info);
 
     terminal::log::init().unwrap();
@@ -87,6 +89,7 @@ fn add_processes() {
     process::binary("build/pm.bin", Privilege::User);
     process::add(fs_server::main, Privilege::User, "fs");
     process::add(run_tasks, Privilege::User, "tasks");
+    process::add(sysproc::main, Privilege::Kernel, "sysproc");
 
     if cfg!(feature = "qemu_test") {
         process::add(tests::main, Privilege::User, "tests");
