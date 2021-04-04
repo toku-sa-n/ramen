@@ -87,7 +87,6 @@ fn add_processes() {
     process::binary("build/pm.bin", Privilege::User);
     process::add(fs_server::main, Privilege::User, "fs");
     process::add(run_tasks, Privilege::User, "tasks");
-    process::binary("build/example_server.bin", Privilege::User);
 
     if cfg!(feature = "qemu_test") {
         process::add(tests::main, Privilege::User, "tests");

@@ -3,17 +3,14 @@ SHELL			:= /bin/bash
 BUILD_DIR		:= build
 EFI_DIR			:= bootx64
 KERNEL_DIR		:= kernel
-SERVER_DIR		:= example_server
 PM_DIR			:= pm
 
 LD_SRC			:= $(KERNEL_DIR)/kernel.ld
 
 EFI_FILE		:= $(BUILD_DIR)/bootx64.efi
 KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
-EXAMPLE_SERVER	:= $(BUILD_DIR)/example_server.bin
 PM				:= $(BUILD_DIR)/pm.bin
 LIB_FILE		:= $(BUILD_DIR)/libramen_os.a
-SERVER_LIB		:= $(BUILD_DIR)/libexample_server.a
 PM_LIB			:= $(BUILD_DIR)/libpm.a
 IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
 
@@ -29,7 +26,7 @@ OVMF_VARS		:= OVMF_VARS.fd
 RUSTCFLAGS		:= --release
 LDFLAGS			:= -nostdlib -T $(LD_SRC)
 
-.PHONY:all copy_to_usb test clean $(LIB_FILE) $(EFI_FILE) $(EXAMPLE_SERVER) $(PM)
+.PHONY:all copy_to_usb test clean $(LIB_FILE) $(EFI_FILE) $(PM)
 .SUFFIXES:
 
 all:$(IMG_FILE)
@@ -69,20 +66,14 @@ $(LIB_FILE):$(INITRD)|$(BUILD_DIR)
 	# See: https://github.com/rust-lang/cargo/issues/2930
 	cd $(KERNEL_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(TEST_FLAG) $(RUSTCFLAGS)
 
-$(INITRD):$(EXAMPLE_SERVER) $(PM)|$(BUILD_DIR)
-	(echo $(EXAMPLE_SERVER);echo $(PM))|cpio -o > $@ --format=odc
+$(INITRD):$(PM)|$(BUILD_DIR)
+	echo $(PM)|cpio -o > $@ --format=odc
 
 $(PM):$(PM_LIB)|$(BUILD_DIR)
 	$(LD) -nostdlib -o $@ -e main $(PM_LIB)
 
 $(PM_LIB):|$(BUILD_DIR)
 	cd $(PM_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
-
-$(EXAMPLE_SERVER):$(SERVER_LIB)|$(BUILD_DIR)
-	$(LD) -nostdlib -o $@ -e main $(SERVER_LIB)
-
-$(SERVER_LIB):|$(BUILD_DIR)
-	cd $(SERVER_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 %.fd:
 	@echo "$@ not found"
