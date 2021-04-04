@@ -23,38 +23,42 @@ pub(crate) unsafe fn prepare_arguments() {
     asm!("", in("rax") select_proper_syscall(syscall_index, a1, a2,a3))
 }
 
-/// SAFETY: This function is unsafe because invalid arguments may break memory safety.
-#[allow(clippy::too_many_lines)]
 #[allow(clippy::too_many_arguments)]
 unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
-    match FromPrimitive::from_u64(idx) {
-        Some(s) => match s {
-            syscalls::Ty::AllocatePages => {
-                sys_allocate_pages(NumOfPages::new(a1.try_into().unwrap())).as_u64()
-            }
-            syscalls::Ty::DeallocatePages => {
-                sys_deallocate_pages(VirtAddr::new(a1), NumOfPages::new(a2.try_into().unwrap()))
-            }
-            syscalls::Ty::MapPages => {
-                sys_map_pages(PhysAddr::new(a1), Bytes::new(a2.try_into().unwrap())).as_u64()
-            }
-            syscalls::Ty::UnmapPages => {
-                sys_unmap_pages(VirtAddr::new(a1), Bytes::new(a2.try_into().unwrap()))
-            }
-            syscalls::Ty::Exit => sys_exit(),
-            syscalls::Ty::TranslateAddress => sys_translate_address(VirtAddr::new(a1)).as_u64(),
-            syscalls::Ty::Write => sys_write(
-                a1.try_into().unwrap(),
-                a2 as *const _,
-                a3.try_into().unwrap(),
-            )
-            .try_into()
-            .unwrap(),
-            syscalls::Ty::Send => sys_send(VirtAddr::new(a1), a2.try_into().unwrap()),
-            syscalls::Ty::Receive => sys_receive(VirtAddr::new(a1)),
-            _ => unreachable!("This sytem call should not be handled by the kernel itself."),
-        },
-        None => panic!("Unsupported syscall index: {}", idx),
+    if let Some(t) = FromPrimitive::from_u64(idx) {
+        select_proper_syscall_unchecked(t, a1, a2, a3)
+    } else {
+        panic!("Unrecognized system call index: {}", idx)
+    }
+}
+
+#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
+unsafe fn select_proper_syscall_unchecked(ty: syscalls::Ty, a1: u64, a2: u64, a3: u64) -> u64 {
+    match ty {
+        syscalls::Ty::AllocatePages => {
+            sys_allocate_pages(NumOfPages::new(a1.try_into().unwrap())).as_u64()
+        }
+        syscalls::Ty::DeallocatePages => {
+            sys_deallocate_pages(VirtAddr::new(a1), NumOfPages::new(a2.try_into().unwrap()))
+        }
+        syscalls::Ty::MapPages => {
+            sys_map_pages(PhysAddr::new(a1), Bytes::new(a2.try_into().unwrap())).as_u64()
+        }
+        syscalls::Ty::UnmapPages => {
+            sys_unmap_pages(VirtAddr::new(a1), Bytes::new(a2.try_into().unwrap()))
+        }
+        syscalls::Ty::Exit => sys_exit(),
+        syscalls::Ty::TranslateAddress => sys_translate_address(VirtAddr::new(a1)).as_u64(),
+        syscalls::Ty::Write => sys_write(
+            a1.try_into().unwrap(),
+            a2 as *const _,
+            a3.try_into().unwrap(),
+        )
+        .try_into()
+        .unwrap(),
+        syscalls::Ty::Send => sys_send(VirtAddr::new(a1), a2.try_into().unwrap()),
+        syscalls::Ty::Receive => sys_receive(VirtAddr::new(a1)),
+        _ => unreachable!("This sytem call should not be handled by the kernel itself."),
     }
 }
 
