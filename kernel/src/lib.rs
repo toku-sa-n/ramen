@@ -8,7 +8,6 @@
     linked_list_remove,
     const_fn,
     asm,
-    panic_info_message,
     start,
     naked_functions,
     abi_x86_interrupt
