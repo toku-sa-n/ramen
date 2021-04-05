@@ -66,10 +66,8 @@ impl Collection {
     fn map(&mut self, v: Page<Size4KiB>, p: PhysFrame) {
         let Self { pml4, pdpt, pd, pt } = self;
 
-        let pml4_i = v.p4_index();
-        let pdpt_i = v.p3_index();
-        let dir_i = v.p2_index();
-        let table_i = v.p1_index();
+        let (pml4_i, pdpt_i, dir_i, table_i) =
+            (v.p4_index(), v.p3_index(), v.p2_index(), v.p1_index());
 
         let p3 = pdpt
             .entry(pml4_i)
