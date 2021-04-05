@@ -12,6 +12,7 @@ use x86_64::{
 
 pub mod accessor;
 pub mod allocator;
+mod memcpy;
 pub mod paging;
 
 pub(super) fn init(mem_map: &[boot::MemoryDescriptor]) {
