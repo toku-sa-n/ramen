@@ -8,7 +8,6 @@ pub struct Writer {
     coord: Vec2<u32>,
     color: RGB8,
 }
-
 impl Writer {
     pub fn new(color: RGB8) -> Self {
         Self {
@@ -89,7 +88,6 @@ impl Writer {
         }
     }
 }
-
 impl core::fmt::Write for Writer {
     fn write_str(&mut self, s: &str) -> Result<(), core::fmt::Error> {
         self.print_str(s);
