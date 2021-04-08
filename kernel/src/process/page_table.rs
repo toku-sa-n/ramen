@@ -15,9 +15,9 @@ use xmas_elf::{program::ProgramHeader, ElfFile};
 #[derive(Debug)]
 pub(super) struct Collection {
     pml4: KpBox<PageTable>,
-    pdpt_collection: BTreeMap<PageTableIndex, KpBox<PageTable>>,
-    pd_collection: BTreeMap<PageTableIndex, KpBox<PageTable>>,
-    pt_collection: BTreeMap<PageTableIndex, KpBox<PageTable>>,
+    pdpt_collection: BTreeMap<PhysAddr, KpBox<PageTable>>,
+    pd_collection: BTreeMap<PhysAddr, KpBox<PageTable>>,
+    pt_collection: BTreeMap<PhysAddr, KpBox<PageTable>>,
 }
 impl Collection {
     pub(super) fn pml4_addr(&self) -> PhysAddr {
@@ -74,16 +74,46 @@ impl Collection {
         let (pml4_i, pdpt_i, dir_i, table_i) =
             (v.p4_index(), v.p3_index(), v.p2_index(), v.p1_index());
 
+        let pdpt_a = if pml4[pml4_i].is_unused() {
+            let pdpt: KpBox<PageTable> = KpBox::default();
+            let a = pdpt.phys_addr();
+            pml4[pml4_i].set_addr(a, Self::flags());
+            pdpt_collection.insert(a, pdpt);
+            a
+        } else {
+            pml4[pml4_i].addr()
+        };
+
         let pdpt = pdpt_collection
-            .entry(pml4_i)
+            .entry(pdpt_a)
             .or_insert_with(|| Self::create(pml4, pml4_i));
 
+        let dir_a = if pdpt[pdpt_i].is_unused() {
+            let dir: KpBox<PageTable> = KpBox::default();
+            let a = dir.phys_addr();
+            pdpt[pdpt_i].set_addr(a, Self::flags());
+            pd_collection.insert(a, dir);
+            a
+        } else {
+            pdpt[pdpt_i].addr()
+        };
+
         let pd = pd_collection
-            .entry(pdpt_i)
+            .entry(dir_a)
             .or_insert_with(|| Self::create(pdpt, pdpt_i));
 
+        let pt_a = if pd[dir_i].is_unused() {
+            let pt: KpBox<PageTable> = KpBox::default();
+            let a = pt.phys_addr();
+            pd[dir_i].set_addr(a, Self::flags());
+            pt_collection.insert(a, pt);
+            a
+        } else {
+            pd[dir_i].addr()
+        };
+
         let pt = pt_collection
-            .entry(dir_i)
+            .entry(pt_a)
             .or_insert_with(|| Self::create(pd, dir_i));
 
         Self::set_addr_to_pt(pt, table_i, p.start_address());
