@@ -15,9 +15,9 @@ use xmas_elf::{program::ProgramHeader, ElfFile};
 #[derive(Debug)]
 pub(super) struct Collection {
     pml4: KpBox<PageTable>,
-    pdpt_collection: BTreeMap<PageTableIndex, KpBox<PageTable>>,
-    pd_collection: BTreeMap<PageTableIndex, KpBox<PageTable>>,
-    pt_collection: BTreeMap<PageTableIndex, KpBox<PageTable>>,
+    pdpt_collection: BTreeMap<PhysAddr, KpBox<PageTable>>,
+    pd_collection: BTreeMap<PhysAddr, KpBox<PageTable>>,
+    pt_collection: BTreeMap<PhysAddr, KpBox<PageTable>>,
 }
 impl Collection {
     pub(super) fn pml4_addr(&self) -> PhysAddr {
@@ -71,32 +71,51 @@ impl Collection {
             pt_collection,
         } = self;
 
-        let (pml4_i, pdpt_i, dir_i, table_i) =
-            (v.p4_index(), v.p3_index(), v.p2_index(), v.p1_index());
+        let [pml4_i, pdpt_i, dir_i, table_i] =
+            [v.p4_index(), v.p3_index(), v.p2_index(), v.p1_index()];
+        let indexes = [pml4_i, pdpt_i, dir_i];
+        let mut collections = [pdpt_collection, pd_collection, pt_collection];
+        let mut current_table = pml4;
 
-        let pdpt = pdpt_collection
-            .entry(pml4_i)
-            .or_insert_with(|| Self::create(pml4, pml4_i));
+        for (&i, c) in indexes.iter().zip(collections.iter_mut()) {
+            current_table = Self::get_next_page_table(i, current_table, c)
+        }
 
-        let pd = pd_collection
-            .entry(pdpt_i)
-            .or_insert_with(|| Self::create(pdpt, pdpt_i));
-
-        let pt = pt_collection
-            .entry(dir_i)
-            .or_insert_with(|| Self::create(pd, dir_i));
-
-        Self::set_addr_to_pt(pt, table_i, p.start_address());
+        Self::set_addr_to_pt(current_table, table_i, p.start_address());
     }
 
-    fn create(parent: &mut PageTable, i: PageTableIndex) -> KpBox<PageTable> {
-        let t = KpBox::from(PageTable::new());
-        Self::map_transition(parent, &t, i);
-        t
+    fn get_next_page_table<'a>(
+        i: PageTableIndex,
+        table: &'a mut PageTable,
+        collection: &'a mut BTreeMap<PhysAddr, KpBox<PageTable>>,
+    ) -> &'a mut KpBox<PageTable> {
+        let next_table_a = Self::get_next_page_table_addr_or_create(i, table, collection);
+
+        collection.get_mut(&next_table_a).expect("No such table.")
     }
 
-    fn map_transition(from: &mut PageTable, to: &KpBox<PageTable>, i: PageTableIndex) {
-        from[i].set_addr(to.phys_addr(), Self::flags());
+    fn get_next_page_table_addr_or_create(
+        i: PageTableIndex,
+        table: &mut PageTable,
+        collection: &mut BTreeMap<PhysAddr, KpBox<PageTable>>,
+    ) -> PhysAddr {
+        if table[i].is_unused() {
+            Self::map_to_new_page_table_and_get_addr(i, table, collection)
+        } else {
+            table[i].addr()
+        }
+    }
+
+    fn map_to_new_page_table_and_get_addr(
+        i: PageTableIndex,
+        table: &mut PageTable,
+        collection: &mut BTreeMap<PhysAddr, KpBox<PageTable>>,
+    ) -> PhysAddr {
+        let next: KpBox<PageTable> = KpBox::default();
+        let a = next.phys_addr();
+        table[i].set_addr(a, Self::flags());
+        collection.insert(a, next);
+        a
     }
 
     fn flags() -> PageTableFlags {
