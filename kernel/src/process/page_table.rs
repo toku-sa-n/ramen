@@ -92,14 +92,22 @@ impl Collection {
         collection: &mut BTreeMap<PhysAddr, KpBox<PageTable>>,
     ) -> PhysAddr {
         if table[i].is_unused() {
-            let next: KpBox<PageTable> = KpBox::default();
-            let a = next.phys_addr();
-            table[i].set_addr(a, Self::flags());
-            collection.insert(a, next);
-            a
+            Self::map_to_new_page_table_and_get_addr(i, table, collection)
         } else {
             table[i].addr()
         }
+    }
+
+    fn map_to_new_page_table_and_get_addr(
+        i: PageTableIndex,
+        table: &mut PageTable,
+        collection: &mut BTreeMap<PhysAddr, KpBox<PageTable>>,
+    ) -> PhysAddr {
+        let next: KpBox<PageTable> = KpBox::default();
+        let a = next.phys_addr();
+        table[i].set_addr(a, Self::flags());
+        collection.insert(a, next);
+        a
     }
 
     fn flags() -> PageTableFlags {
