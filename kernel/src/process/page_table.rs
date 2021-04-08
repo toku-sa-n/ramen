@@ -74,20 +74,20 @@ impl Collection {
         let (pml4_i, pdpt_i, dir_i, table_i) =
             (v.p4_index(), v.p3_index(), v.p2_index(), v.p1_index());
 
-        let p3 = pdpt_collection
+        let pdpt = pdpt_collection
             .entry(pml4_i)
             .or_insert_with(|| Self::create(pml4, pml4_i));
 
-        let p2 = pd_collection
+        let pd = pd_collection
             .entry(pdpt_i)
-            .or_insert_with(|| Self::create(p3, pdpt_i));
+            .or_insert_with(|| Self::create(pdpt, pdpt_i));
 
-        let p1 = pt_collection
+        let pt = pt_collection
             .entry(dir_i)
-            .or_insert_with(|| Self::create(p2, dir_i));
+            .or_insert_with(|| Self::create(pd, dir_i));
 
-        if p1[table_i].is_unused() {
-            p1[table_i].set_addr(p.start_address(), Self::flags());
+        if pt[table_i].is_unused() {
+            pt[table_i].set_addr(p.start_address(), Self::flags());
         } else {
             panic!("Mapping is overlapped.")
         }
