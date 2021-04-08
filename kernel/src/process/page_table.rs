@@ -15,9 +15,9 @@ use xmas_elf::{program::ProgramHeader, ElfFile};
 #[derive(Debug)]
 pub(super) struct Collection {
     pml4: KpBox<PageTable>,
-    pdpt: BTreeMap<PageTableIndex, KpBox<PageTable>>,
-    pd: BTreeMap<PageTableIndex, KpBox<PageTable>>,
-    pt: BTreeMap<PageTableIndex, KpBox<PageTable>>,
+    pdpt_collection: BTreeMap<PageTableIndex, KpBox<PageTable>>,
+    pd_collection: BTreeMap<PageTableIndex, KpBox<PageTable>>,
+    pt_collection: BTreeMap<PageTableIndex, KpBox<PageTable>>,
 }
 impl Collection {
     pub(super) fn pml4_addr(&self) -> PhysAddr {
@@ -64,24 +64,29 @@ impl Collection {
     }
 
     fn map(&mut self, v: Page<Size4KiB>, p: PhysFrame) {
-        let Self { pml4, pdpt, pd, pt } = self;
+        let Self {
+            pml4,
+            pdpt_collection,
+            pd_collection,
+            pt_collection,
+        } = self;
 
         let (pml4_i, pdpt_i, dir_i, table_i) =
             (v.p4_index(), v.p3_index(), v.p2_index(), v.p1_index());
 
-        let p3 = pdpt
+        let pdpt = pdpt_collection
             .entry(pml4_i)
             .or_insert_with(|| Self::create(pml4, pml4_i));
 
-        let p2 = pd.entry(pdpt_i).or_insert_with(|| Self::create(p3, pdpt_i));
+        let pd = pd_collection
+            .entry(pdpt_i)
+            .or_insert_with(|| Self::create(pdpt, pdpt_i));
 
-        let p1 = pt.entry(dir_i).or_insert_with(|| Self::create(p2, dir_i));
+        let pt = pt_collection
+            .entry(dir_i)
+            .or_insert_with(|| Self::create(pd, dir_i));
 
-        if p1[table_i].is_unused() {
-            p1[table_i].set_addr(p.start_address(), Self::flags());
-        } else {
-            panic!("Mapping is overlapped.")
-        }
+        Self::set_addr_to_pt(pt, table_i, p.start_address());
     }
 
     fn create(parent: &mut PageTable, i: PageTableIndex) -> KpBox<PageTable> {
@@ -97,14 +102,22 @@ impl Collection {
     fn flags() -> PageTableFlags {
         PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE
     }
+
+    fn set_addr_to_pt(pt: &mut PageTable, i: PageTableIndex, a: PhysAddr) {
+        if pt[i].is_unused() {
+            pt[i].set_addr(a, Self::flags());
+        } else {
+            panic!("Mapping is overlapped.")
+        }
+    }
 }
 impl Default for Collection {
     fn default() -> Self {
         Self {
             pml4: Pml4Creator::default().create(),
-            pdpt: BTreeMap::default(),
-            pd: BTreeMap::default(),
-            pt: BTreeMap::default(),
+            pdpt_collection: BTreeMap::default(),
+            pd_collection: BTreeMap::default(),
+            pt_collection: BTreeMap::default(),
         }
     }
 }
