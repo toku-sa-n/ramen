@@ -78,12 +78,20 @@ impl Collection {
         let mut current_table = pml4;
 
         for (&i, c) in indexes.iter().zip(collections.iter_mut()) {
-            let next_table_a = Self::get_next_page_table_addr_or_create(i, &mut current_table, c);
-
-            current_table = c.get_mut(&next_table_a).expect("No such table.");
+            current_table = Self::get_next_page_table(i, current_table, c)
         }
 
         Self::set_addr_to_pt(current_table, table_i, p.start_address());
+    }
+
+    fn get_next_page_table<'a>(
+        i: PageTableIndex,
+        table: &'a mut PageTable,
+        collection: &'a mut BTreeMap<PhysAddr, KpBox<PageTable>>,
+    ) -> &'a mut KpBox<PageTable> {
+        let next_table_a = Self::get_next_page_table_addr_or_create(i, table, collection);
+
+        collection.get_mut(&next_table_a).expect("No such table.")
     }
 
     fn get_next_page_table_addr_or_create(
