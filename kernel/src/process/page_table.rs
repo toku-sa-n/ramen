@@ -71,62 +71,27 @@ impl Collection {
             pt_collection,
         } = self;
 
-        let (pml4_i, pdpt_i, dir_i, table_i) =
-            (v.p4_index(), v.p3_index(), v.p2_index(), v.p1_index());
+        let [pml4_i, pdpt_i, dir_i, table_i] =
+            [v.p4_index(), v.p3_index(), v.p2_index(), v.p1_index()];
+        let indexes = [pml4_i, pdpt_i, dir_i];
+        let mut collections = [pdpt_collection, pd_collection, pt_collection];
+        let mut current_table = pml4;
 
-        let pdpt_a = if pml4[pml4_i].is_unused() {
-            let pdpt: KpBox<PageTable> = KpBox::default();
-            let a = pdpt.phys_addr();
-            pml4[pml4_i].set_addr(a, Self::flags());
-            pdpt_collection.insert(a, pdpt);
-            a
-        } else {
-            pml4[pml4_i].addr()
-        };
+        for (&i, c) in indexes.iter().zip(collections.iter_mut()) {
+            let next_table_a = if current_table[i].is_unused() {
+                let next: KpBox<PageTable> = KpBox::default();
+                let a = next.phys_addr();
+                current_table[i].set_addr(a, Self::flags());
+                c.insert(a, next);
+                a
+            } else {
+                current_table[i].addr()
+            };
 
-        let pdpt = pdpt_collection
-            .entry(pdpt_a)
-            .or_insert_with(|| Self::create(pml4, pml4_i));
+            current_table = c.get_mut(&next_table_a).expect("No such table.");
+        }
 
-        let dir_a = if pdpt[pdpt_i].is_unused() {
-            let dir: KpBox<PageTable> = KpBox::default();
-            let a = dir.phys_addr();
-            pdpt[pdpt_i].set_addr(a, Self::flags());
-            pd_collection.insert(a, dir);
-            a
-        } else {
-            pdpt[pdpt_i].addr()
-        };
-
-        let pd = pd_collection
-            .entry(dir_a)
-            .or_insert_with(|| Self::create(pdpt, pdpt_i));
-
-        let pt_a = if pd[dir_i].is_unused() {
-            let pt: KpBox<PageTable> = KpBox::default();
-            let a = pt.phys_addr();
-            pd[dir_i].set_addr(a, Self::flags());
-            pt_collection.insert(a, pt);
-            a
-        } else {
-            pd[dir_i].addr()
-        };
-
-        let pt = pt_collection
-            .entry(pt_a)
-            .or_insert_with(|| Self::create(pd, dir_i));
-
-        Self::set_addr_to_pt(pt, table_i, p.start_address());
-    }
-
-    fn create(parent: &mut PageTable, i: PageTableIndex) -> KpBox<PageTable> {
-        let t = KpBox::from(PageTable::new());
-        Self::map_transition(parent, &t, i);
-        t
-    }
-
-    fn map_transition(from: &mut PageTable, to: &KpBox<PageTable>, i: PageTableIndex) {
-        from[i].set_addr(to.phys_addr(), Self::flags());
+        Self::set_addr_to_pt(current_table, table_i, p.start_address());
     }
 
     fn flags() -> PageTableFlags {
