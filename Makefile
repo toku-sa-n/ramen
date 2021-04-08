@@ -22,9 +22,6 @@ LD				:= ld
 RUSTC			:= cargo
 RM				:= rm -rf
 
-OVMF_CODE		:= OVMF_CODE.fd
-OVMF_VARS		:= OVMF_VARS.fd
-
 RUSTCFLAGS		:= --release
 LDFLAGS			:= -nostdlib -T $(LD_SRC)
 
