@@ -9,9 +9,9 @@ pub struct Writer {
     color: RGB8,
 }
 impl Writer {
-    pub fn new(color: RGB8) -> Self {
+    pub const fn new(color: RGB8) -> Self {
         Self {
-            coord: Vec2::zero(),
+            coord: Vec2 { x: 0, y: 0 },
             color,
         }
     }
