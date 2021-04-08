@@ -4,12 +4,12 @@ use super::{font, vram};
 use rgb::RGB8;
 use vek::Vec2;
 
-pub struct Writer {
+struct Writer {
     coord: Vec2<u32>,
     color: RGB8,
 }
 impl Writer {
-    pub const fn new(color: RGB8) -> Self {
+    const fn new(color: RGB8) -> Self {
         Self {
             coord: Vec2 { x: 0, y: 0 },
             color,
