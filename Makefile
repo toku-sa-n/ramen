@@ -74,10 +74,6 @@ $(PM):$(PM_LIB)|$(BUILD_DIR)
 $(PM_LIB):|$(BUILD_DIR)
 	cd $(PM_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
-%.fd:
-	@echo "$@ not found"
-	exit 1
-
 $(EFI_FILE):|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
