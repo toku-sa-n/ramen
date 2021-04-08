@@ -78,20 +78,28 @@ impl Collection {
         let mut current_table = pml4;
 
         for (&i, c) in indexes.iter().zip(collections.iter_mut()) {
-            let next_table_a = if current_table[i].is_unused() {
-                let next: KpBox<PageTable> = KpBox::default();
-                let a = next.phys_addr();
-                current_table[i].set_addr(a, Self::flags());
-                c.insert(a, next);
-                a
-            } else {
-                current_table[i].addr()
-            };
+            let next_table_a = Self::get_next_page_table_addr_or_create(i, &mut current_table, c);
 
             current_table = c.get_mut(&next_table_a).expect("No such table.");
         }
 
         Self::set_addr_to_pt(current_table, table_i, p.start_address());
+    }
+
+    fn get_next_page_table_addr_or_create(
+        i: PageTableIndex,
+        table: &mut PageTable,
+        collection: &mut BTreeMap<PhysAddr, KpBox<PageTable>>,
+    ) -> PhysAddr {
+        if table[i].is_unused() {
+            let next: KpBox<PageTable> = KpBox::default();
+            let a = next.phys_addr();
+            table[i].set_addr(a, Self::flags());
+            collection.insert(a, next);
+            a
+        } else {
+            table[i].addr()
+        }
     }
 
     fn flags() -> PageTableFlags {
