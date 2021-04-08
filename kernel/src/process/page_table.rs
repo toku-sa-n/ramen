@@ -86,11 +86,7 @@ impl Collection {
             .entry(dir_i)
             .or_insert_with(|| Self::create(pd, dir_i));
 
-        if pt[table_i].is_unused() {
-            pt[table_i].set_addr(p.start_address(), Self::flags());
-        } else {
-            panic!("Mapping is overlapped.")
-        }
+        Self::set_addr_to_pt(pt, table_i, p.start_address());
     }
 
     fn create(parent: &mut PageTable, i: PageTableIndex) -> KpBox<PageTable> {
@@ -105,6 +101,14 @@ impl Collection {
 
     fn flags() -> PageTableFlags {
         PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE
+    }
+
+    fn set_addr_to_pt(pt: &mut PageTable, i: PageTableIndex, a: PhysAddr) {
+        if pt[i].is_unused() {
+            pt[i].set_addr(a, Self::flags());
+        } else {
+            panic!("Mapping is overlapped.")
+        }
     }
 }
 impl Default for Collection {
