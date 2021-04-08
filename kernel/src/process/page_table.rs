@@ -15,9 +15,9 @@ use xmas_elf::{program::ProgramHeader, ElfFile};
 #[derive(Debug)]
 pub(super) struct Collection {
     pml4: KpBox<PageTable>,
-    pdpt: BTreeMap<PageTableIndex, KpBox<PageTable>>,
-    pd: BTreeMap<PageTableIndex, KpBox<PageTable>>,
-    pt: BTreeMap<PageTableIndex, KpBox<PageTable>>,
+    pdpt_collection: BTreeMap<PageTableIndex, KpBox<PageTable>>,
+    pd_collection: BTreeMap<PageTableIndex, KpBox<PageTable>>,
+    pt_collection: BTreeMap<PageTableIndex, KpBox<PageTable>>,
 }
 impl Collection {
     pub(super) fn pml4_addr(&self) -> PhysAddr {
@@ -64,18 +64,27 @@ impl Collection {
     }
 
     fn map(&mut self, v: Page<Size4KiB>, p: PhysFrame) {
-        let Self { pml4, pdpt, pd, pt } = self;
+        let Self {
+            pml4,
+            pdpt_collection,
+            pd_collection,
+            pt_collection,
+        } = self;
 
         let (pml4_i, pdpt_i, dir_i, table_i) =
             (v.p4_index(), v.p3_index(), v.p2_index(), v.p1_index());
 
-        let p3 = pdpt
+        let p3 = pdpt_collection
             .entry(pml4_i)
             .or_insert_with(|| Self::create(pml4, pml4_i));
 
-        let p2 = pd.entry(pdpt_i).or_insert_with(|| Self::create(p3, pdpt_i));
+        let p2 = pd_collection
+            .entry(pdpt_i)
+            .or_insert_with(|| Self::create(p3, pdpt_i));
 
-        let p1 = pt.entry(dir_i).or_insert_with(|| Self::create(p2, dir_i));
+        let p1 = pt_collection
+            .entry(dir_i)
+            .or_insert_with(|| Self::create(p2, dir_i));
 
         if p1[table_i].is_unused() {
             p1[table_i].set_addr(p.start_address(), Self::flags());
@@ -102,9 +111,9 @@ impl Default for Collection {
     fn default() -> Self {
         Self {
             pml4: Pml4Creator::default().create(),
-            pdpt: BTreeMap::default(),
-            pd: BTreeMap::default(),
-            pt: BTreeMap::default(),
+            pdpt_collection: BTreeMap::default(),
+            pd_collection: BTreeMap::default(),
+            pt_collection: BTreeMap::default(),
         }
     }
 }
