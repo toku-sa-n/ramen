@@ -1,19 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::writer::Writer;
-use conquer_once::spin::Lazy;
 use core::fmt::Write;
 use log::{Level, LevelFilter, Metadata, Record, SetLoggerError};
 use rgb::RGB8;
 use spinning_top::Spinlock;
 
-struct Logger;
-
 static LOGGER: Logger = Logger;
 
-static LOG_WRITER: Lazy<Spinlock<Writer>> =
-    Lazy::new(|| Spinlock::new(Writer::new(RGB8::new(0xff, 0xff, 0xff))));
+static LOG_WRITER: Spinlock<Writer> = Spinlock::new(Writer::new(RGB8::new(0xff, 0xff, 0xff)));
 
+struct Logger;
 impl log::Log for Logger {
     fn enabled(&self, metadata: &Metadata) -> bool {
         metadata.level() <= Level::Info
