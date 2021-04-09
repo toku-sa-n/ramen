@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::writer::Writer;
-use core::fmt::Write;
+use core::{fmt, fmt::Write};
 use log::{Level, LevelFilter, Metadata, Record, SetLoggerError};
 use rgb::RGB8;
 use spinning_top::Spinlock;
@@ -9,6 +9,28 @@ use spinning_top::Spinlock;
 static LOGGER: Logger = Logger;
 
 static LOG_WRITER: Spinlock<Writer> = Spinlock::new(Writer::new(RGB8::new(0xff, 0xff, 0xff)));
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => {
+        $crate::log::_print(core::format_args!($($arg)*))
+    };
+}
+
+#[macro_export]
+macro_rules! println{
+    () => {
+        print!("\n");
+    };
+    ($($arg:tt)*)=>{
+        print!("{}\n",core::format_args!($($arg)*));
+    }
+}
+
+#[doc(hidden)]
+pub fn _print(args: fmt::Arguments) {
+    write!(*LOG_WRITER.lock(), "{}", args).unwrap();
+}
 
 struct Logger;
 impl log::Log for Logger {
@@ -18,7 +40,7 @@ impl log::Log for Logger {
 
     fn log(&self, record: &Record) {
         if self.enabled(record.metadata()) {
-            writeln!(*LOG_WRITER.lock(), "{} - {}", record.level(), record.args()).unwrap();
+            println!("{} - {}", record.level(), record.args());
         }
     }
 

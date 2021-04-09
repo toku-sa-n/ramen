@@ -100,8 +100,7 @@ unsafe fn sys_write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
         let s = core::str::from_utf8(s);
 
         if let Ok(s) = s {
-            // TODO: rewrite with `write` macro.
-            info!("{}", s);
+            print!("{}", s);
 
             nbyte.try_into().unwrap()
         } else {
