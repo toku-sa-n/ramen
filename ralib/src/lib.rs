@@ -4,6 +4,8 @@
 #![allow(clippy::too_many_arguments)] // A workaround for the clippy's wrong warning.
 #![feature(alloc_error_handler)]
 
+mod io;
+
 use conquer_once::spin::Lazy;
 use core::{alloc::Layout, convert::TryInto};
 use linked_list_allocator::LockedHeap;
