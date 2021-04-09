@@ -23,7 +23,7 @@ RUSTC			:= cargo
 RM				:= rm -rf
 
 RUSTCFLAGS		:= --release
-LDFLAGS			:= -nostdlib -T $(KERNEL_LD)
+LDFLAGS			:= -nostdlib
 
 .PHONY:all copy_to_usb test clean $(KERNEL_LIB) $(EFI_FILE) $(PM)
 .SUFFIXES:
@@ -57,7 +57,7 @@ $(IMG_FILE):$(KERNEL_FILE) $(EFI_FILE)
 	mcopy -i $@ $(EFI_FILE) ::/efi/boot
 
 $(KERNEL_FILE):$(KERNEL_LIB) $(KERNEL_LD)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -o $@ $(KERNEL_LIB)
+	$(LD) $(LDFLAGS) -o $@ $(KERNEL_LIB) -T $(KERNEL_LD)
 
 $(KERNEL_LIB):$(INITRD)|$(BUILD_DIR)
 	# FIXME: Currently `cargo` tries to read `$(pwd)/.cargo/config.toml`, not
