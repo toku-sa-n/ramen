@@ -2,15 +2,28 @@ SHELL			:= /bin/bash
 
 BUILD_DIR		:= build
 
+CONFIG_TOML	:=	.cargo/config.toml
+CARGO_TOML	:=	Cargo.toml
+
 EFI_DIR			:= bootx64
+EFI_SRC	:=	$(shell find $(EFI_DIR)/src)
+EFI_SRC	+=	$(EFI_DIR)/$(CONFIG_TOML)
+EFI_SRC	+=	$(EFI_DIR)/$(CARGO_TOML)
 EFI_FILE		:= $(BUILD_DIR)/bootx64.efi
 
 KERNEL_DIR		:= kernel
+KERNEL_LIB_SRC	:=	$(shell find $(KERNEL_DIR)/src)
+KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/$(CONFIG_TOML)
+KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/$(CARGO_TOML)
+KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/build.rs
 KERNEL_LIB		:= $(BUILD_DIR)/libramen_os.a
 KERNEL_LD			:= $(KERNEL_DIR)/kernel.ld
 KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
 
 PM_DIR			:= pm
+PM_LIB_SRC	:=	$(shell find $(PM_DIR)/src)
+PM_LIB_SRC	+=	$(PM_DIR)/$(CONFIG_TOML)
+PM_LIB_SRC	+=	$(PM_DIR)/$(CARGO_TOML)
 PM_LIB			:= $(BUILD_DIR)/libpm.a
 PM				:= $(BUILD_DIR)/pm.bin
 
@@ -25,7 +38,7 @@ RM				:= rm -rf
 RUSTCFLAGS		:= --release
 LDFLAGS			:= -nostdlib
 
-.PHONY:all copy_to_usb test clean $(KERNEL_LIB) $(EFI_FILE) $(PM)
+.PHONY:all copy_to_usb test clean
 .SUFFIXES:
 
 all:$(IMG_FILE)
@@ -59,7 +72,7 @@ $(IMG_FILE):$(KERNEL_FILE) $(EFI_FILE)
 $(KERNEL_FILE):$(KERNEL_LIB) $(KERNEL_LD)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $(KERNEL_LIB) -T $(KERNEL_LD)
 
-$(KERNEL_LIB):$(INITRD)|$(BUILD_DIR)
+$(KERNEL_LIB):$(KERNEL_LIB_SRC) $(INITRD)|$(BUILD_DIR)
 	# FIXME: Currently `cargo` tries to read `$(pwd)/.cargo/config.toml`, not
 	# `$(dirname argument_of_--manifest-path)/.cargo/config.toml`.
 	# See: https://github.com/rust-lang/cargo/issues/2930
@@ -71,10 +84,10 @@ $(INITRD):$(PM)|$(BUILD_DIR)
 $(PM):$(PM_LIB)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ -e main $(PM_LIB)
 
-$(PM_LIB):|$(BUILD_DIR)
+$(PM_LIB):$(PM_LIB_SRC)|$(BUILD_DIR)
 	cd $(PM_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
-$(EFI_FILE):|$(BUILD_DIR)
+$(EFI_FILE):$(EFI_SRC)|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(BUILD_DIR):
