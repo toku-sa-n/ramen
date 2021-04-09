@@ -6,8 +6,8 @@ EFI_DIR			:= bootx64
 EFI_FILE		:= $(BUILD_DIR)/bootx64.efi
 
 KERNEL_DIR		:= kernel
-LIB_FILE		:= $(BUILD_DIR)/libramen_os.a
-LD_SRC			:= $(KERNEL_DIR)/kernel.ld
+KERNEL_LIB		:= $(BUILD_DIR)/libramen_os.a
+KERNEL_LD			:= $(KERNEL_DIR)/kernel.ld
 KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
 
 PM_DIR			:= pm
@@ -23,9 +23,9 @@ RUSTC			:= cargo
 RM				:= rm -rf
 
 RUSTCFLAGS		:= --release
-LDFLAGS			:= -nostdlib -T $(LD_SRC)
+LDFLAGS			:= -nostdlib -T $(KERNEL_LD)
 
-.PHONY:all copy_to_usb test clean $(LIB_FILE) $(EFI_FILE) $(PM)
+.PHONY:all copy_to_usb test clean $(KERNEL_LIB) $(EFI_FILE) $(PM)
 .SUFFIXES:
 
 all:$(IMG_FILE)
@@ -56,10 +56,10 @@ $(IMG_FILE):$(KERNEL_FILE) $(EFI_FILE)
 	mcopy -i $@ $(KERNEL_FILE) ::
 	mcopy -i $@ $(EFI_FILE) ::/efi/boot
 
-$(KERNEL_FILE):$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE)
+$(KERNEL_FILE):$(KERNEL_LIB) $(KERNEL_LD)|$(BUILD_DIR)
+	$(LD) $(LDFLAGS) -o $@ $(KERNEL_LIB)
 
-$(LIB_FILE):$(INITRD)|$(BUILD_DIR)
+$(KERNEL_LIB):$(INITRD)|$(BUILD_DIR)
 	# FIXME: Currently `cargo` tries to read `$(pwd)/.cargo/config.toml`, not
 	# `$(dirname argument_of_--manifest-path)/.cargo/config.toml`.
 	# See: https://github.com/rust-lang/cargo/issues/2930
