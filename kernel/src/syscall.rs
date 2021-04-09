@@ -99,14 +99,13 @@ unsafe fn sys_write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
         let s = slice::from_raw_parts(buf, nbyte.try_into().unwrap());
         let s = core::str::from_utf8(s);
 
-        match s {
-            Ok(s) => {
-                // TODO: rewrite with `write` macro.
-                info!("{}", s);
+        if let Ok(s) = s {
+            // TODO: rewrite with `write` macro.
+            info!("{}", s);
 
-                nbyte.try_into().unwrap()
-            }
-            Err(_) => 0,
+            nbyte.try_into().unwrap()
+        } else {
+            0
         }
     } else {
         unimplemented!("Not stdout");
