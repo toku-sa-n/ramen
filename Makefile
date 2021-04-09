@@ -1,17 +1,19 @@
 SHELL			:= /bin/bash
 
 BUILD_DIR		:= build
+
 EFI_DIR			:= bootx64
-KERNEL_DIR		:= kernel
-PM_DIR			:= pm
-
-LD_SRC			:= $(KERNEL_DIR)/kernel.ld
-
 EFI_FILE		:= $(BUILD_DIR)/bootx64.efi
-KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
-PM				:= $(BUILD_DIR)/pm.bin
+
+KERNEL_DIR		:= kernel
 LIB_FILE		:= $(BUILD_DIR)/libramen_os.a
+LD_SRC			:= $(KERNEL_DIR)/kernel.ld
+KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
+
+PM_DIR			:= pm
 PM_LIB			:= $(BUILD_DIR)/libpm.a
+PM				:= $(BUILD_DIR)/pm.bin
+
 IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
 
 INITRD			:= $(BUILD_DIR)/initrd.cpio
@@ -19,9 +21,6 @@ INITRD			:= $(BUILD_DIR)/initrd.cpio
 LD				:= ld
 RUSTC			:= cargo
 RM				:= rm -rf
-
-OVMF_CODE		:= OVMF_CODE.fd
-OVMF_VARS		:= OVMF_VARS.fd
 
 RUSTCFLAGS		:= --release
 LDFLAGS			:= -nostdlib -T $(LD_SRC)
@@ -74,10 +73,6 @@ $(PM):$(PM_LIB)|$(BUILD_DIR)
 
 $(PM_LIB):|$(BUILD_DIR)
 	cd $(PM_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
-
-%.fd:
-	@echo "$@ not found"
-	exit 1
 
 $(EFI_FILE):|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
