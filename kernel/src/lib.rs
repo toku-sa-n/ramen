@@ -35,6 +35,7 @@ mod panic;
 mod process;
 mod qemu;
 mod syscall;
+mod sysproc;
 mod tests;
 mod tss;
 
