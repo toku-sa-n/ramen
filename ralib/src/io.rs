@@ -20,9 +20,28 @@ macro_rules! println{
     }
 }
 
+pub(crate) fn init() {
+    let r = log::set_logger(&LOGGER).map(|_| log::set_max_level(log::LevelFilter::Info));
+    r.expect("Failed to initialize logger.");
+}
+
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
     let s = args.to_string();
 
     unsafe { syscalls::write(1, s.as_ptr().cast(), s.len().try_into().unwrap()) };
+}
+
+static LOGGER: Logger = Logger;
+struct Logger;
+impl log::Log for Logger {
+    fn enabled(&self, metadata: &log::Metadata) -> bool {
+        metadata.level() <= log::Level::Info
+    }
+
+    fn log(&self, record: &log::Record) {
+        println!("{} - {}", record.level(), record.args())
+    }
+
+    fn flush(&self) {}
 }
