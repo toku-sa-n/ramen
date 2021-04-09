@@ -69,7 +69,7 @@ $(INITRD):$(PM)|$(BUILD_DIR)
 	echo $(PM)|cpio -o > $@ --format=odc
 
 $(PM):$(PM_LIB)|$(BUILD_DIR)
-	$(LD) -nostdlib -o $@ -e main $(PM_LIB)
+	$(LD) $(LDFLAGS) -o $@ -e main $(PM_LIB)
 
 $(PM_LIB):|$(BUILD_DIR)
 	cd $(PM_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
