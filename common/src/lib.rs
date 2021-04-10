@@ -10,5 +10,3 @@ pub mod debug;
 pub mod kernelboot;
 pub mod mem;
 pub mod vram;
-
-extern crate x86_64;
