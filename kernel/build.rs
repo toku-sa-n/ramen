@@ -1,6 +1,8 @@
 use std::process::Command;
 
 fn main() {
+    println!("cargo:rerun-if-changed=../build/initrd.cpio");
+    println!("cargo:rerun-if-changed=src/initrd.s");
     touch_initrd().expect("Failed to `touch` the initrd cpio file.");
     cc::Build::new().file("src/initrd.s").compile("initrd");
 }
