@@ -11,20 +11,58 @@ EFI_SRC	+=	$(EFI_DIR)/$(CONFIG_TOML)
 EFI_SRC	+=	$(EFI_DIR)/$(CARGO_TOML)
 EFI_FILE		:= $(BUILD_DIR)/bootx64.efi
 
+TERMINAL_DIR	:=	terminal
+TERMINAL_SRC	:=	$(shell find $(TERMINAL_DIR)/src)
+TERMINAL_SRC	+=	$(TERMINAL_DIR)/$(CARGO_TOML)
+
+COMMON_DIR	:=	common
+COMMON_SRC	:=	$(shell find $(COMMON_DIR)/src)
+COMMON_SRC	+=	$(COMMON_DIR)/$(CARGO_TOML)
+
+SYSCALLS_DIR	:=	syscalls
+SYSCALLS_SRC	:=	$(shell find $(SYSCALLS_DIR)/src)
+SYSCALLS_SRC	+=	$(SYSCALLS_DIR)/$(CARGO_TOML)
+
+PAGE_BOX_DIR	:=	page_box
+PAGE_BOX_SRC	:=	$(shell find $(PAGE_BOX_DIR)/src)
+PAGE_BOX_SRC	+=	$(PAGE_BOX_DIR)/$(CARGO_TOML)
+
+MESSAGE_DIR	:=	message
+MESSAGE_SRC	:=	$(shell find $(MESSAGE_DIR)/src)
+MESSAGE_SRC	+=	$(MESSAGE_DIR)/$(CARGO_TOML)
+
+PORT_SERVER_DIR	:=	port_server
+PORT_SERVER_SRC	:=	$(shell find $(PORT_SERVER_DIR)/src)
+PORT_SERVER_SRC	+=	$(PORT_SERVER_DIR)/$(CARGO_TOML)
+
+FRAME_MANAGER_DIR	:=	frame_manager
+FRAME_MANAGER_SRC	:=	$(shell find $(FRAME_MANAGER_DIR)/src)
+FRAME_MANAGER_SRC	+=	$(FRAME_MANAGER_DIR)/$(CARGO_TOML)
+
+FS_SERVER_DIR	:=	fs_server
+FS_SERVER_SRC	:=	$(shell find $(FS_SERVER_DIR)/src)
+FS_SERVER_SRC	+=	$(FS_SERVER_DIR)/$(CARGO_TOML)
+
 KERNEL_DIR		:= kernel
 KERNEL_LIB_SRC	:=	$(shell find $(KERNEL_DIR)/src)
 KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/$(CONFIG_TOML)
 KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/$(CARGO_TOML)
 KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/build.rs
 KERNEL_LIB		:= $(BUILD_DIR)/libramen_os.a
+KERNEL_LIB_DEPENDENCIES_SRC	:=	$(TERMINAL_SRC) $(COMMON_SRC) $(SYSCALLS_SRC) $(PAGE_BOX_SRC) $(MESSAGE_SRC) $(PORT_SERVER_SRC) $(FRAME_MANAGER_SRC) $(FS_SERVER_SRC)
 KERNEL_LD			:= $(KERNEL_DIR)/kernel.ld
 KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
+
+RALIB_DIR	:=	ralib
+RALIB_SRC	:=	$(shell find $(RALIB_DIR)/src)
+RALIB_SRC	+=	$(RALIB_DIR)/$(CARGO_TOML)
 
 PM_DIR			:= pm
 PM_LIB_SRC	:=	$(shell find $(PM_DIR)/src)
 PM_LIB_SRC	+=	$(PM_DIR)/$(CONFIG_TOML)
 PM_LIB_SRC	+=	$(PM_DIR)/$(CARGO_TOML)
 PM_LIB			:= $(BUILD_DIR)/libpm.a
+PM_LIB_DEPENDENCIES_SRC	:=	$(MESSAGE_SRC) $(RALIB_SRC) $(SYSCALLS_SRC)
 PM				:= $(BUILD_DIR)/pm.bin
 
 IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
@@ -72,7 +110,7 @@ $(IMG_FILE):$(KERNEL_FILE) $(EFI_FILE)
 $(KERNEL_FILE):$(KERNEL_LIB) $(KERNEL_LD)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $(KERNEL_LIB) -T $(KERNEL_LD)
 
-$(KERNEL_LIB):$(KERNEL_LIB_SRC) $(INITRD)|$(BUILD_DIR)
+$(KERNEL_LIB):$(KERNEL_LIB_SRC) $(INITRD) $(KERNEL_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	# FIXME: Currently `cargo` tries to read `$(pwd)/.cargo/config.toml`, not
 	# `$(dirname argument_of_--manifest-path)/.cargo/config.toml`.
 	# See: https://github.com/rust-lang/cargo/issues/2930
@@ -84,7 +122,7 @@ $(INITRD):$(PM)|$(BUILD_DIR)
 $(PM):$(PM_LIB)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ -e main $(PM_LIB)
 
-$(PM_LIB):$(PM_LIB_SRC)|$(BUILD_DIR)
+$(PM_LIB):$(PM_LIB_SRC) $(PM_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(PM_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(EFI_FILE):$(EFI_SRC)|$(BUILD_DIR)
