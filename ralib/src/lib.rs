@@ -39,7 +39,6 @@ impl Default for Heap {
 
 pub fn init() {
     init_heap();
-    io::init();
 }
 
 fn init_heap() {
