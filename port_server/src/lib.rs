@@ -12,8 +12,14 @@ use num_traits::FromPrimitive;
 
 const PID: i32 = 0;
 
+#[no_mangle]
 pub fn main() {
+    init();
     main_loop();
+}
+
+fn init() {
+    ralib::init();
 }
 
 fn main_loop() {

@@ -31,10 +31,6 @@ MESSAGE_DIR	:=	message
 MESSAGE_SRC	:=	$(shell find $(MESSAGE_DIR)/src)
 MESSAGE_SRC	+=	$(MESSAGE_DIR)/$(CARGO_TOML)
 
-PORT_SERVER_DIR	:=	port_server
-PORT_SERVER_SRC	:=	$(shell find $(PORT_SERVER_DIR)/src)
-PORT_SERVER_SRC	+=	$(PORT_SERVER_DIR)/$(CARGO_TOML)
-
 FRAME_MANAGER_DIR	:=	frame_manager
 FRAME_MANAGER_SRC	:=	$(shell find $(FRAME_MANAGER_DIR)/src)
 FRAME_MANAGER_SRC	+=	$(FRAME_MANAGER_DIR)/$(CARGO_TOML)
@@ -56,6 +52,13 @@ KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
 RALIB_DIR	:=	ralib
 RALIB_SRC	:=	$(shell find $(RALIB_DIR)/src)
 RALIB_SRC	+=	$(RALIB_DIR)/$(CARGO_TOML)
+
+PORT_SERVER_DIR	:=	port_server
+PORT_SERVER_SRC	:=	$(shell find $(PORT_SERVER_DIR)/src)
+PORT_SERVER_SRC	+=	$(PORT_SERVER_DIR)/$(CARGO_TOML)
+PORT_SERVER_LIB	:=	$(BUILD_DIR)/libport_server.a
+PORT_SERVER_DEPENDENCIES_SRC	:=	$(MESSAGE_SRC) $(RALIB_SRC) $(SYSCALLS_SRC)
+PORT_SERVER	:=	$(BUILD_DIR)/port_server.bin
 
 PM_DIR			:= pm
 PM_LIB_SRC	:=	$(shell find $(PM_DIR)/src)
@@ -116,14 +119,20 @@ $(KERNEL_LIB):$(KERNEL_LIB_SRC) $(INITRD) $(KERNEL_LIB_DEPENDENCIES_SRC)|$(BUILD
 	# See: https://github.com/rust-lang/cargo/issues/2930
 	cd $(KERNEL_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(TEST_FLAG) $(RUSTCFLAGS)
 
-$(INITRD):$(PM)|$(BUILD_DIR)
-	echo $(PM)|cpio -o > $@ --format=odc
+$(INITRD):$(PM) $(PORT_SERVER)|$(BUILD_DIR)
+	(echo $(PM);echo $(PORT_SERVER))|cpio -o > $@ --format=odc
 
 $(PM):$(PM_LIB)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ -e main $(PM_LIB)
 
 $(PM_LIB):$(PM_LIB_SRC) $(PM_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(PM_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
+
+$(PORT_SERVER):$(PORT_SERVER_LIB)|$(BUILD_DIR)
+	$(LD) $(LDFLAGS) -o $@ -e main $^
+
+$(PORT_SERVER_LIB):$(PORT_SERVER_SRC) $(PORT_SERVER_DEPENDENCIES_SRC)|$(BUILD_DIR)
+	cd $(PORT_SERVER_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTFLAGS)
 
 $(EFI_FILE):$(EFI_SRC)|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
