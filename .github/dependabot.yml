@@ -39,15 +39,6 @@ updates:
   - dependency-type: direct
   - dependency-type: indirect
 - package-ecosystem: cargo
-  directory: "/heap"
-  schedule:
-    interval: daily
-    time: "20:00"
-  open-pull-requests-limit: 10
-  allow:
-  - dependency-type: direct
-  - dependency-type: indirect
-- package-ecosystem: cargo
   directory: "/page_box"
   schedule:
     interval: daily
@@ -67,6 +58,60 @@ updates:
   - dependency-type: indirect
 - package-ecosystem: cargo
   directory: "/terminal"
+  schedule:
+    interval: daily
+    time: "20:00"
+  open-pull-requests-limit: 10
+  allow:
+  - dependency-type: direct
+  - dependency-type: indirect
+- package-ecosystem: cargo
+  directory: "/ralib"
+  schedule:
+    interval: daily
+    time: "20:00"
+  open-pull-requests-limit: 10
+  allow:
+  - dependency-type: direct
+  - dependency-type: indirect
+- package-ecosystem: cargo
+  directory: "/fs_server"
+  schedule:
+    interval: daily
+    time: "20:00"
+  open-pull-requests-limit: 10
+  allow:
+  - dependency-type: direct
+  - dependency-type: indirect
+- package-ecosystem: cargo
+  directory: "/frame_manager"
+  schedule:
+    interval: daily
+    time: "20:00"
+  open-pull-requests-limit: 10
+  allow:
+  - dependency-type: direct
+  - dependency-type: indirect
+- package-ecosystem: cargo
+  directory: "/message"
+  schedule:
+    interval: daily
+    time: "20:00"
+  open-pull-requests-limit: 10
+  allow:
+  - dependency-type: direct
+  - dependency-type: indirect
+- package-ecosystem: cargo
+  directory: "/pm"
+  schedule:
+    interval: daily
+    time: "20:00"
+  open-pull-requests-limit: 10
+  allow:
+  - dependency-type: direct
+  - dependency-type: indirect
+- package-ecosystem: cargo
+  directory: "/port_server"
   schedule:
     interval: daily
     time: "20:00"
