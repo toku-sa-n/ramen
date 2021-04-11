@@ -39,6 +39,10 @@ pub(super) fn binary(name: &'static str, p: Privilege) {
     push_process_to_queue(Process::binary(name, p));
 }
 
+pub(crate) fn current_name() -> &'static str {
+    collections::process::handle_running(|p| p.name)
+}
+
 fn get_slot_id() -> i32 {
     collections::woken_pid::active_pid()
 }

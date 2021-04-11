@@ -52,10 +52,8 @@ fn init_heap() {
 }
 
 #[panic_handler]
-fn panic(_: &core::panic::PanicInfo) -> ! {
-    loop {
-        x86_64::instructions::nop()
-    }
+fn panic(i: &core::panic::PanicInfo) -> ! {
+    syscalls::panic(i);
 }
 
 #[alloc_error_handler]

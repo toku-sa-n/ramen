@@ -4,7 +4,7 @@
 #![feature(asm)]
 #![allow(clippy::missing_panics_doc)]
 
-use core::{convert::TryInto, ffi::c_void};
+use core::{convert::TryInto, ffi::c_void, panic::PanicInfo};
 use message::Message;
 use num_derive::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
@@ -203,6 +203,11 @@ pub unsafe fn write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
     .unwrap()
 }
 
+pub fn panic(info: &PanicInfo) -> ! {
+    unsafe { general_syscall(Ty::Panic, info as *const PanicInfo as _, 0, 0) };
+    unreachable!("The `panic` system call should not return.");
+}
+
 /// SAFETY: This function is unsafe if arguments are invalid.
 #[allow(clippy::too_many_arguments)]
 unsafe fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
@@ -234,4 +239,5 @@ pub enum Ty {
     Write,
     Send,
     Receive,
+    Panic,
 }
