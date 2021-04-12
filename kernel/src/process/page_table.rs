@@ -37,22 +37,20 @@ impl Collection {
     pub(super) fn map_elf(&mut self, raw: &KpBox<[u8]>) {
         let elf_file = ElfFile::new(raw).expect("Not a ELF file.");
         for p in elf_file.program_iter() {
-            self.map_program_header(p, raw);
+            self.map_segment(p, raw);
         }
     }
 
-    fn map_program_header(&mut self, ph: ProgramHeader, raw: &KpBox<[u8]>) {
-        let virt_bottom = VirtAddr::new(ph.virtual_addr())
-            .align_down(Size4KiB::SIZE)
-            .as_u64();
-        let virt_top = VirtAddr::new(ph.virtual_addr() + ph.mem_size())
-            .align_up(Size4KiB::SIZE)
-            .as_u64();
-        let num_of_pages =
-            Bytes::new((virt_top - virt_bottom).try_into().unwrap()).as_num_of_pages::<Size4KiB>();
+    fn map_segment(&mut self, ph: ProgramHeader, raw: &KpBox<[u8]>) {
+        let virt_bottom = Self::segment_page_aligned_start_addr(ph);
+        let virt_top = Self::segment_page_aligned_end_addr(ph);
+
+        let bytes = Bytes::new((virt_top - virt_bottom).try_into().unwrap());
+        let num_of_pages = bytes.as_num_of_pages::<Size4KiB>();
 
         for i in 0..num_of_pages.as_usize() {
             let offset = NumOfPages::<Size4KiB>::new(i).as_bytes().as_usize();
+
             let v = VirtAddr::new(ph.virtual_addr()) + offset;
             let v = Page::from_start_address(v).expect("This address is not aligned.");
 
@@ -61,6 +59,20 @@ impl Collection {
 
             self.map(v, p);
         }
+    }
+
+    fn segment_page_aligned_start_addr(ph: ProgramHeader) -> VirtAddr {
+        let a = VirtAddr::new(ph.virtual_addr());
+        assert!(
+            a.is_aligned(Size4KiB::SIZE),
+            "The start address of a segment is not page-aligned."
+        );
+        a
+    }
+
+    fn segment_page_aligned_end_addr(ph: ProgramHeader) -> VirtAddr {
+        let a = Self::segment_page_aligned_start_addr(ph) + ph.mem_size();
+        a.align_up(Size4KiB::SIZE)
     }
 
     fn map(&mut self, v: Page<Size4KiB>, p: PhysFrame) {
