@@ -42,12 +42,9 @@ impl Collection {
     }
 
     fn map_program_header(&mut self, ph: ProgramHeader, raw: &KpBox<[u8]>) {
-        let virt_bottom = VirtAddr::new(ph.virtual_addr())
-            .align_down(Size4KiB::SIZE)
-            .as_u64();
-        let virt_top = VirtAddr::new(ph.virtual_addr() + ph.mem_size())
-            .align_up(Size4KiB::SIZE)
-            .as_u64();
+        let virt_bottom = Self::segment_page_aligned_start_addr(ph).as_u64();
+        let virt_top = Self::segment_page_aligned_end_addr(ph).as_u64();
+
         let num_of_pages =
             Bytes::new((virt_top - virt_bottom).try_into().unwrap()).as_num_of_pages::<Size4KiB>();
 
@@ -61,6 +58,20 @@ impl Collection {
 
             self.map(v, p);
         }
+    }
+
+    fn segment_page_aligned_start_addr(ph: ProgramHeader) -> VirtAddr {
+        let a = VirtAddr::new(ph.virtual_addr());
+        assert!(
+            a.is_aligned(Size4KiB::SIZE),
+            "The start address of a segment is not page-aligned."
+        );
+        a
+    }
+
+    fn segment_page_aligned_end_addr(ph: ProgramHeader) -> VirtAddr {
+        let a = Self::segment_page_aligned_start_addr(ph) + ph.mem_size();
+        a.align_up(Size4KiB::SIZE)
     }
 
     fn map(&mut self, v: Page<Size4KiB>, p: PhysFrame) {
