@@ -45,8 +45,8 @@ impl Collection {
         let virt_bottom = Self::segment_page_aligned_start_addr(ph).as_u64();
         let virt_top = Self::segment_page_aligned_end_addr(ph).as_u64();
 
-        let num_of_pages =
-            Bytes::new((virt_top - virt_bottom).try_into().unwrap()).as_num_of_pages::<Size4KiB>();
+        let bytes = Bytes::new((virt_top - virt_bottom).try_into().unwrap());
+        let num_of_pages = bytes.as_num_of_pages::<Size4KiB>();
 
         for i in 0..num_of_pages.as_usize() {
             let offset = NumOfPages::<Size4KiB>::new(i).as_bytes().as_usize();
