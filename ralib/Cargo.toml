@@ -12,7 +12,7 @@ bench = false
 [dependencies]
 conquer-once = { version = "0.3.2", default-features = false }
 linked_list_allocator = "0.8.11"
-os_units = "0.3.0"
+os_units = "0.3.1"
 page_box = { path = "../page_box" }
 syscalls = { path = "../syscalls" }
-x86_64 = "0.13.4"
+x86_64 = "0.14.0"
