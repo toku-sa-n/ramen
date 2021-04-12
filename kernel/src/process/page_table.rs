@@ -50,6 +50,7 @@ impl Collection {
 
         for i in 0..num_of_pages.as_usize() {
             let offset = NumOfPages::<Size4KiB>::new(i).as_bytes().as_usize();
+
             let v = VirtAddr::new(ph.virtual_addr()) + offset;
             let v = Page::from_start_address(v).expect("This address is not aligned.");
 
