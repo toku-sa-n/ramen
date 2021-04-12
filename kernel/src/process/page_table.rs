@@ -37,11 +37,11 @@ impl Collection {
     pub(super) fn map_elf(&mut self, raw: &KpBox<[u8]>) {
         let elf_file = ElfFile::new(raw).expect("Not a ELF file.");
         for p in elf_file.program_iter() {
-            self.map_program_header(p, raw);
+            self.map_segment(p, raw);
         }
     }
 
-    fn map_program_header(&mut self, ph: ProgramHeader, raw: &KpBox<[u8]>) {
+    fn map_segment(&mut self, ph: ProgramHeader, raw: &KpBox<[u8]>) {
         let virt_bottom = Self::segment_page_aligned_start_addr(ph).as_u64();
         let virt_top = Self::segment_page_aligned_end_addr(ph).as_u64();
 
