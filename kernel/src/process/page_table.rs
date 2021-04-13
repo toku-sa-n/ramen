@@ -125,7 +125,7 @@ impl Collection {
     ) -> PhysAddr {
         let next: KpBox<PageTable> = KpBox::default();
         let a = next.phys_addr();
-        table[i].set_addr(a, Self::flags());
+        Self::set_addr_to_pt(table, i, a);
         collection.insert(a, next);
         a
     }
