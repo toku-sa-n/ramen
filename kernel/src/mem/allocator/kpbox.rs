@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use crate::mem::paging::pml4::PML4;
 use core::{
     convert::TryFrom,
     fmt,
@@ -13,8 +14,6 @@ use x86_64::{
     structures::paging::{Size4KiB, Translate},
     PhysAddr, VirtAddr,
 };
-
-use crate::mem::paging::pml4::PML4;
 
 pub struct KpBox<T: ?Sized> {
     virt: VirtAddr,
