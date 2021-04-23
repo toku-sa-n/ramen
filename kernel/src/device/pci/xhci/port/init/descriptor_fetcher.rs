@@ -8,6 +8,7 @@ use crate::device::pci::xhci::{
     structures::{context::Context, descriptor, descriptor::Descriptor},
 };
 use alloc::{sync::Arc, vec::Vec};
+use log::debug;
 use page_box::PageBox;
 use spinning_top::Spinlock;
 

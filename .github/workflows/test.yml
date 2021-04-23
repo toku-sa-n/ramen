@@ -6,7 +6,7 @@ on: [push, pull_request]
 
 env:
   CARGO_TERM_COLOR: always
-  RUSTFLAGS: -D warnings -D absolute_paths_not_starting_with_crate -D disjoint_capture_drop_reorder -D elided_lifetimes_in_paths -D explicit_outlives_requirements
+  RUSTFLAGS: -D warnings -D absolute_paths_not_starting_with_crate -D disjoint_capture_drop_reorder -D elided_lifetimes_in_paths -D explicit_outlives_requirements -D macro_use_extern_crate
 
 jobs:
   fmt:

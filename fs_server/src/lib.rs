@@ -2,11 +2,10 @@
 
 #![no_std]
 
-#[macro_use]
-extern crate log;
 extern crate alloc;
 
 use alloc::collections::BTreeSet;
+use log::info;
 
 pub fn main() {
     let mut c = ProcessCollection::default();

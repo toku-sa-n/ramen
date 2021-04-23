@@ -14,6 +14,7 @@ use bitflags::bitflags;
 use common::constant::INTERRUPT_STACK;
 use core::convert::TryInto;
 pub use exit::exit;
+use log::info;
 pub(crate) use slot_id::SlotId;
 use stack_frame::StackFrame;
 pub use switch::switch;

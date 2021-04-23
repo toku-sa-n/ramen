@@ -19,14 +19,8 @@
 #[macro_use]
 #[allow(unused_imports)]
 extern crate common;
-#[macro_use]
-extern crate terminal;
 extern crate alloc;
-#[macro_use]
-extern crate log;
 extern crate x86_64;
-#[macro_use]
-extern crate derive_builder;
 
 mod acpi;
 mod device;
@@ -46,6 +40,7 @@ use common::kernelboot;
 use device::pci::xhci;
 use futures_intrusive::sync::{GenericMutex, GenericMutexGuard};
 use interrupt::{apic, idt, timer};
+use log::info;
 use multitask::{executor::Executor, task::Task};
 use process::Privilege;
 use spinning_top::RawSpinlock;

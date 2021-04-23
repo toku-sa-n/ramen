@@ -7,6 +7,7 @@ use crate::{
 use core::{convert::TryInto, ffi::c_void, panic::PanicInfo, slice};
 use num_traits::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
+use terminal::print;
 use x86_64::{
     structures::paging::{Size4KiB, Translate},
     PhysAddr, VirtAddr,

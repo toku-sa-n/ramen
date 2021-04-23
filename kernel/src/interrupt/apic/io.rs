@@ -5,6 +5,7 @@ use crate::mem::{accessor::Single, allocator};
 use acpi::{platform::IoApic, AcpiTables, InterruptModel};
 use bit_field::BitField;
 use core::convert::TryInto;
+use derive_builder::Builder;
 use x86_64::PhysAddr;
 
 /// Currently this OS does not support multiple I/O APIC.

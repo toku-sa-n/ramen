@@ -7,6 +7,7 @@ use conquer_once::spin::Lazy;
 use core::{future::Future, pin::Pin, task::Poll};
 use futures_util::task::AtomicWaker;
 use init::fully_operational::FullyOperational;
+use log::{info, warn};
 use spinning_top::Spinlock;
 
 mod class_driver;

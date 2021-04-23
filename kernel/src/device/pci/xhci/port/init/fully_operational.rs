@@ -10,6 +10,7 @@ use crate::device::pci::xhci::{
 };
 use alloc::vec::Vec;
 use core::slice;
+use log::debug;
 use page_box::PageBox;
 use xhci::context::EndpointType;
 

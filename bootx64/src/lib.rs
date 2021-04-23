@@ -13,8 +13,6 @@ pub mod jump;
 pub mod mem;
 pub mod rsdp;
 
-#[macro_use]
-extern crate log;
 extern crate alloc;
 
 pub use init::init;
