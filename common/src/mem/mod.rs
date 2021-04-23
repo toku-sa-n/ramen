@@ -6,6 +6,7 @@ use core::{ptr::NonNull, slice};
 use uefi::table::boot;
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct Map {
     ptr: NonNull<boot::MemoryDescriptor>,
     num_descriptors: usize,

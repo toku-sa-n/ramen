@@ -7,6 +7,7 @@ use crate::{
 use os_units::Bytes;
 use x86_64::{PhysAddr, VirtAddr};
 
+#[derive(Copy, Clone)]
 pub struct PhysRange {
     start: PhysAddr,
     bytes: Bytes,
