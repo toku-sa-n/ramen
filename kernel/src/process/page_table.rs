@@ -2,7 +2,11 @@
 
 use crate::mem::{allocator::kpbox::KpBox, paging::pml4::PML4};
 use alloc::collections::BTreeMap;
-use core::convert::{TryFrom, TryInto};
+use core::{
+    convert::{TryFrom, TryInto},
+    ptr,
+};
+use log::info;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{
     structures::paging::{
@@ -34,11 +38,8 @@ impl Collection {
         }
     }
 
-    pub(super) fn map_elf(&mut self, raw: &KpBox<[u8]>) {
-        let elf_file = ElfFile::new(raw).expect("Not a ELF file.");
-        for p in elf_file.program_iter() {
-            self.map_segment(p, raw);
-        }
+    pub(super) fn map_elf(&mut self, name: &str) -> KpBox<[u8]> {
+        ElfMapper::new(name, self).map()
     }
 
     fn map_segment(&mut self, ph: ProgramHeader<'_>, raw: &KpBox<[u8]>) {
@@ -151,6 +152,112 @@ impl Default for Collection {
             pd_collection: BTreeMap::default(),
             pt_collection: BTreeMap::default(),
         }
+    }
+}
+
+struct ElfMapper<'a> {
+    c: &'a mut Collection,
+    raw: KpBox<[u8]>,
+    output: KpBox<[u8]>,
+}
+impl<'a> ElfMapper<'a> {
+    fn new(name: &str, c: &'a mut Collection) -> Self {
+        let handler = crate::fs::get_handler(name);
+        let raw = handler.content();
+        let raw = KpBox::from(raw);
+
+        let output_bytes = Self::memory_size(&raw);
+
+        Self {
+            c,
+            raw,
+            output: KpBox::new_slice(0_u8, output_bytes),
+        }
+    }
+
+    fn map(mut self) -> KpBox<[u8]> {
+        let raw = self.raw.clone();
+        let elf = ElfFile::new(&raw);
+        let elf = elf.expect("Not an ELF file.");
+
+        for ph in elf.program_iter() {
+            let is_gnu_stack = ph.virtual_addr() == 0;
+            if !is_gnu_stack {
+                self.map_with_ph(&ph);
+            }
+        }
+
+        self.output
+    }
+
+    fn map_with_ph(&mut self, ph: &ProgramHeader) {
+        self.copy_from_raw_to_output(ph);
+        self.add_mapping_to_collection(ph);
+    }
+
+    fn copy_from_raw_to_output(&mut self, ph: &ProgramHeader) {
+        let src = self.raw.virt_addr() + ph.offset();
+
+        let dst = ph.virtual_addr() - self.elf_bottom().as_u64() + self.output.virt_addr().as_u64();
+        let dst = VirtAddr::new(dst);
+
+        let count: usize = ph.file_size().try_into().unwrap();
+
+        unsafe { ptr::copy_nonoverlapping(src.as_ptr(), dst.as_mut_ptr::<u8>(), count) }
+    }
+
+    fn add_mapping_to_collection(&mut self, ph: &ProgramHeader) {
+        let offset = ph.virtual_addr() - self.elf_bottom().as_u64();
+
+        let v = ph.virtual_addr();
+        let v = VirtAddr::new(v);
+
+        let p = self.output.phys_addr().as_u64() + offset;
+        let p = PhysAddr::new(p);
+
+        let bytes: usize = ph.mem_size().try_into().unwrap();
+        let bytes = Bytes::new(bytes);
+        let num_of_pages: NumOfPages<Size4KiB> = bytes.as_num_of_pages();
+
+        info!("{:?} -> {:?}", v, p);
+        for i in 0..num_of_pages.as_usize() {
+            let offset = NumOfPages::<Size4KiB>::new(i).as_bytes().as_usize();
+            let v = Page::from_start_address(v + offset);
+            let v = v.expect("Page is not aligned.");
+
+            let p = PhysFrame::from_start_address(p + offset);
+            let p = p.expect("PhysFrame is not aligned.");
+
+            self.c.map(v, p);
+        }
+    }
+
+    fn elf_bottom(&self) -> VirtAddr {
+        let elf = ElfFile::new(&self.raw);
+        let elf = elf.expect("Not an ELF file.");
+
+        let first_section = elf.program_header(0);
+        let first_section = first_section.expect("Section header not found.");
+
+        VirtAddr::new(first_section.virtual_addr())
+    }
+
+    fn memory_size(elf_raw: &[u8]) -> usize {
+        let elf = ElfFile::new(elf_raw);
+        let elf = elf.expect("Not an ELF file.");
+
+        let first_section = elf.program_header(0);
+        let first_section = first_section.expect("Section header not found.");
+
+        let elf_bottom = first_section.virtual_addr();
+        let elf_bottom = VirtAddr::new(elf_bottom);
+
+        let elf_top = elf
+            .program_iter()
+            .fold(0, |x, a| x.max(a.virtual_addr() + a.mem_size()));
+        let elf_top = VirtAddr::new(elf_top);
+
+        usize::try_from(elf_top - elf_bottom).unwrap()
     }
 }
 

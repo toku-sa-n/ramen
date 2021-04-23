@@ -135,7 +135,7 @@ impl Process {
         let handler = crate::fs::get_handler(name);
         let content = handler.content();
         let content = KpBox::from(content);
-        tables.map_elf(&content);
+        tables.map_elf(name);
 
         let elf = ElfFile::new(&content).expect("Not a ELF file.");
         let entry = VirtAddr::new(elf.header.pt2.entry_point());
