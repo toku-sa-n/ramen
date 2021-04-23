@@ -16,7 +16,7 @@ fn print_banner() {
     error!("*************");
 }
 
-fn print_info(i: &core::panic::PanicInfo) {
+fn print_info(i: &core::panic::PanicInfo<'_>) {
     error!("{}", i);
 }
 

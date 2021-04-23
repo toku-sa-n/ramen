@@ -15,7 +15,7 @@ pub(super) enum TypeSpec<'a> {
 }
 
 impl<'a> TypeSpec<'a> {
-    pub(super) fn new(registers: &'a Registers, common: &Common) -> Self {
+    pub(super) fn new(registers: &'a Registers, common: &Common<'_>) -> Self {
         match common.bridge_type() {
             BridgeType::NonBridge => TypeSpec::NonBridge(non_bridge::TypeSpec::new(registers)),
             e => panic!("Not implemented: {:?}\ncommon:{:?}", e, common),
