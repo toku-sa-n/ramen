@@ -3,7 +3,7 @@
 use crate::qemu;
 
 #[panic_handler]
-fn panic(i: &core::panic::PanicInfo) -> ! {
+fn panic(i: &core::panic::PanicInfo<'_>) -> ! {
     print_banner();
     print_info(i);
 
