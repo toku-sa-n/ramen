@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use core::{convert::TryInto, ptr, ptr::NonNull, slice};
+use log::info;
 use uefi::{
     table::{boot, boot::MemoryType, Boot, SystemTable},
     Handle, ResultExt,

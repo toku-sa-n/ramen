@@ -9,6 +9,7 @@ use core::{
 };
 use elf_rs::Elf;
 use file::{FileInfo, FileType};
+use log::info;
 use os_units::Bytes;
 use uefi::{
     proto::media::{

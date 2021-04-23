@@ -2,6 +2,7 @@
 
 use common::vram;
 use core::mem::MaybeUninit;
+use log::info;
 use uefi::{
     proto::console::{gop, gop::PixelFormat},
     table::boot,
