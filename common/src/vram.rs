@@ -15,7 +15,7 @@ pub struct Info {
 }
 
 impl Info {
-    pub fn new_from_gop(gop: &mut gop::GraphicsOutput) -> Self {
+    pub fn new_from_gop(gop: &mut gop::GraphicsOutput<'_>) -> Self {
         let resolution: Vec2<usize> = gop.current_mode_info().resolution().into();
 
         Self {

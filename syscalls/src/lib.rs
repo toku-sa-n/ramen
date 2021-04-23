@@ -203,8 +203,8 @@ pub unsafe fn write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
     .unwrap()
 }
 
-pub fn panic(info: &PanicInfo) -> ! {
-    unsafe { general_syscall(Ty::Panic, info as *const PanicInfo as _, 0, 0) };
+pub fn panic(info: &PanicInfo<'_>) -> ! {
+    unsafe { general_syscall(Ty::Panic, info as *const PanicInfo<'_> as _, 0, 0) };
     unreachable!("The `panic` system call should not return.");
 }
 
