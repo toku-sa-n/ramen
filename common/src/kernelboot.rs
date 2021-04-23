@@ -6,6 +6,7 @@ use uefi::table::boot;
 use x86_64::{PhysAddr, VirtAddr};
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct Info {
     entry_addr: VirtAddr,
     vram_info: vram::Info,
