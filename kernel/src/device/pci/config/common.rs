@@ -21,7 +21,7 @@ impl<'a> Common<'a> {
         self.header_type().bridge_type()
     }
 
-    fn class(&self) -> Class {
+    fn class(&self) -> Class<'_> {
         Class::new(self.registers)
     }
 

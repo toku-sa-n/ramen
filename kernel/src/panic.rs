@@ -3,7 +3,7 @@
 use crate::qemu;
 
 #[panic_handler]
-fn panic(i: &core::panic::PanicInfo) -> ! {
+fn panic(i: &core::panic::PanicInfo<'_>) -> ! {
     print_banner();
     print_info(i);
 
@@ -16,7 +16,7 @@ fn print_banner() {
     error!("*************");
 }
 
-fn print_info(i: &core::panic::PanicInfo) {
+fn print_info(i: &core::panic::PanicInfo<'_>) {
     error!("{}", i);
 }
 

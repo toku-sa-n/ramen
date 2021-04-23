@@ -41,7 +41,7 @@ impl Collection {
         }
     }
 
-    fn map_segment(&mut self, ph: ProgramHeader, raw: &KpBox<[u8]>) {
+    fn map_segment(&mut self, ph: ProgramHeader<'_>, raw: &KpBox<[u8]>) {
         let virt_bottom = Self::segment_page_aligned_start_addr(ph);
         let virt_top = Self::segment_page_aligned_end_addr(ph);
 
@@ -61,7 +61,7 @@ impl Collection {
         }
     }
 
-    fn segment_page_aligned_start_addr(ph: ProgramHeader) -> VirtAddr {
+    fn segment_page_aligned_start_addr(ph: ProgramHeader<'_>) -> VirtAddr {
         let a = VirtAddr::new(ph.virtual_addr());
         assert!(
             a.is_aligned(Size4KiB::SIZE),
@@ -70,7 +70,7 @@ impl Collection {
         a
     }
 
-    fn segment_page_aligned_end_addr(ph: ProgramHeader) -> VirtAddr {
+    fn segment_page_aligned_end_addr(ph: ProgramHeader<'_>) -> VirtAddr {
         let a = Self::segment_page_aligned_start_addr(ph) + ph.mem_size();
         a.align_up(Size4KiB::SIZE)
     }

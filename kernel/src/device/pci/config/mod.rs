@@ -30,11 +30,11 @@ impl Space {
         self.type_spec().base_address(index)
     }
 
-    fn type_spec(&self) -> TypeSpec {
+    fn type_spec(&self) -> TypeSpec<'_> {
         TypeSpec::new(&self.registers, &self.common())
     }
 
-    fn common(&self) -> Common {
+    fn common(&self) -> Common<'_> {
         Common::new(&self.registers)
     }
 }

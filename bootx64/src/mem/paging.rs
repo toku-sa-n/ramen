@@ -67,7 +67,7 @@ fn remove_table_protection() {
     }
 }
 
-fn map_virt_to_phys(region: &reserved::Range, allocator: &mut AllocatorWithEfiMemoryMap) {
+fn map_virt_to_phys(region: &reserved::Range, allocator: &mut AllocatorWithEfiMemoryMap<'_>) {
     let p4 = unsafe { &mut *(RECUR_PML4_ADDR.as_mut_ptr()) };
     let mut p4 = RecursivePageTable::new(p4).unwrap();
 
