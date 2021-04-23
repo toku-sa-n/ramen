@@ -52,7 +52,7 @@ fn init_heap() {
 }
 
 #[panic_handler]
-fn panic(i: &core::panic::PanicInfo) -> ! {
+fn panic(i: &core::panic::PanicInfo<'_>) -> ! {
     syscalls::panic(i);
 }
 

@@ -21,7 +21,7 @@ macro_rules! println{
 }
 
 #[doc(hidden)]
-pub fn _print(args: fmt::Arguments) {
+pub fn _print(args: fmt::Arguments<'_>) {
     let s = args.to_string();
 
     unsafe { syscalls::write(1, s.as_ptr().cast(), s.len().try_into().unwrap()) };
