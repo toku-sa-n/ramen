@@ -71,7 +71,8 @@ impl Collection {
     }
 
     fn segment_page_aligned_end_addr(ph: ProgramHeader<'_>) -> VirtAddr {
-        let a = Self::segment_page_aligned_start_addr(ph) + ph.mem_size();
+        let a = ph.virtual_addr() + ph.mem_size();
+        let a = VirtAddr::new(a);
         a.align_up(Size4KiB::SIZE)
     }
 
