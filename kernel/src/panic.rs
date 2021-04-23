@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::qemu;
+use log::error;
 
 #[panic_handler]
 fn panic(i: &core::panic::PanicInfo<'_>) -> ! {

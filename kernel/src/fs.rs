@@ -5,6 +5,7 @@ use core::{
     mem, slice, str,
 };
 use cstr_core::CStr;
+use log::info;
 use x86_64::VirtAddr;
 
 pub(super) fn list_names() {

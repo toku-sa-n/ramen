@@ -5,6 +5,7 @@ use crate::device::pci::xhci::{
     structures::descriptor::{Configuration, Descriptor},
 };
 use alloc::vec::Vec;
+use log::info;
 use page_box::PageBox;
 use xhci::context::EndpointType;
 

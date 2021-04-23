@@ -4,6 +4,7 @@ pub(super) mod command_data_block;
 pub(super) mod response;
 
 use command_data_block::CommandDataBlock;
+use derive_builder::Builder;
 use num_derive::FromPrimitive;
 
 #[repr(C, packed)]
