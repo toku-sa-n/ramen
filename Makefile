@@ -38,6 +38,9 @@ FRAME_MANAGER_SRC	+=	$(FRAME_MANAGER_DIR)/$(CARGO_TOML)
 FS_SERVER_DIR	:=	fs_server
 FS_SERVER_SRC	:=	$(shell find $(FS_SERVER_DIR)/src)
 FS_SERVER_SRC	+=	$(FS_SERVER_DIR)/$(CARGO_TOML)
+FS_SERVER_LIB	:=	$(BUILD_DIR)/libfs_server.a
+FS_SERVER_LIB_DEPENDENCIES_SRC	:=	$(SYSCALLS_SRC) $(RALIB_SRC) $(MESSAGE_SRC)
+FS_SERVER	:=	$(BUILD_DIR)/fs_server.bin
 
 KERNEL_DIR		:= kernel
 KERNEL_LIB_SRC	:=	$(shell find $(KERNEL_DIR)/src)
@@ -119,8 +122,8 @@ $(KERNEL_LIB):$(KERNEL_LIB_SRC) $(INITRD) $(KERNEL_LIB_DEPENDENCIES_SRC)|$(BUILD
 	# See: https://github.com/rust-lang/cargo/issues/2930
 	cd $(KERNEL_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(TEST_FLAG) $(RUSTCFLAGS)
 
-$(INITRD):$(PM) $(PORT_SERVER)|$(BUILD_DIR)
-	(echo $(PM);echo $(PORT_SERVER))|cpio -o > $@ --format=odc
+$(INITRD):$(PM) $(PORT_SERVER) $(FS_SERVER)|$(BUILD_DIR)
+	(echo $(PM); echo $(PORT_SERVER); echo $(FS_SERVER))|cpio -o > $@ --format=odc
 
 $(PM):$(PM_LIB)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ -e main $(PM_LIB)
@@ -133,6 +136,12 @@ $(PORT_SERVER):$(PORT_SERVER_LIB)|$(BUILD_DIR)
 
 $(PORT_SERVER_LIB):$(PORT_SERVER_SRC) $(PORT_SERVER_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(PORT_SERVER_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
+
+$(FS_SERVER):$(FS_SERVER_LIB)|$(BUILD_DIR)
+	$(LD) $(LDFLAGS) -o $@ -e main $^
+
+$(FS_SERVER_LIB):$(FS_SERVER_SRC) $(FS_SERVER_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
+	cd $(FS_SERVER_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(EFI_FILE):$(EFI_SRC)|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)

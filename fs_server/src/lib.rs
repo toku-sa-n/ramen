@@ -7,7 +7,10 @@ extern crate alloc;
 use alloc::collections::BTreeSet;
 use log::info;
 
+#[no_mangle]
 pub fn main() {
+    ralib::init();
+
     let mut c = ProcessCollection::default();
     init(&mut c);
 }
