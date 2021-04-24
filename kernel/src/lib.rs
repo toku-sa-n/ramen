@@ -79,7 +79,7 @@ fn init(boot_info: &mut kernelboot::Info) {
 fn add_processes() {
     process::binary("build/port_server.bin", Privilege::Kernel);
     process::binary("build/pm.bin", Privilege::User);
-    process::binary("build/fs_server.bin", Privilege::User);
+    process::binary("build/fs.bin", Privilege::User);
     process::add(run_tasks, Privilege::User, "tasks");
 
     if cfg!(feature = "qemu_test") {
