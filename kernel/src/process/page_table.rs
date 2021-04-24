@@ -38,7 +38,7 @@ impl Collection {
         }
     }
 
-    pub(super) fn map_elf(&mut self, name: &str) -> KpBox<[u8]> {
+    pub(super) fn map_elf(&mut self, name: &str) -> (KpBox<[u8]>, VirtAddr) {
         ElfMapper::new(name, self).map()
     }
 
@@ -140,10 +140,14 @@ impl<'a> ElfMapper<'a> {
         }
     }
 
-    fn map(mut self) -> KpBox<[u8]> {
+    fn map(mut self) -> (KpBox<[u8]>, VirtAddr) {
         let raw = self.raw.clone();
+
         let elf_file = ElfFile::new(&raw);
         let elf_file = elf_file.expect("Not an ELF file.");
+
+        let entry = elf_file.header.pt2.entry_point();
+        let entry = VirtAddr::new(entry);
 
         for ph in elf_file.program_iter() {
             let is_gnu_stack = ph.virtual_addr() == 0;
@@ -152,7 +156,7 @@ impl<'a> ElfMapper<'a> {
             }
         }
 
-        self.output
+        (self.output, entry)
     }
 
     fn map_with_ph(&mut self, ph: &ProgramHeader<'_>) {
