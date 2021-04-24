@@ -81,7 +81,7 @@ fn init(boot_info: &mut kernelboot::Info) {
 }
 
 fn add_processes() {
-    process::add(port_server::main, Privilege::Kernel, "ps");
+    process::binary("build/port_server.bin", Privilege::Kernel);
     process::binary("build/pm.bin", Privilege::User);
     process::add(fs_server::main, Privilege::User, "fs");
     process::add(run_tasks, Privilege::User, "tasks");
