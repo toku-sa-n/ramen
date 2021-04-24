@@ -1,11 +1,11 @@
 [package]
-name = "fs_server"
+name = "fs"
 version = "0.1.0"
 authors = ["toku-sa-n <tokusan441@gmail.com>"]
 edition = "2018"
 
 [lib]
-name = "fs_server"
+name = "fs"
 crate-type = ["staticlib"]
 test = false
 bench = false

@@ -35,12 +35,12 @@ FRAME_MANAGER_DIR	:=	frame_manager
 FRAME_MANAGER_SRC	:=	$(shell find $(FRAME_MANAGER_DIR)/src)
 FRAME_MANAGER_SRC	+=	$(FRAME_MANAGER_DIR)/$(CARGO_TOML)
 
-FS_SERVER_DIR	:=	fs_server
-FS_SERVER_SRC	:=	$(shell find $(FS_SERVER_DIR)/src)
-FS_SERVER_SRC	+=	$(FS_SERVER_DIR)/$(CARGO_TOML)
-FS_SERVER_LIB	:=	$(BUILD_DIR)/libfs_server.a
-FS_SERVER_LIB_DEPENDENCIES_SRC	:=	$(SYSCALLS_SRC) $(RALIB_SRC) $(MESSAGE_SRC)
-FS_SERVER	:=	$(BUILD_DIR)/fs_server.bin
+FS_DIR	:=	fs
+FS_SRC	:=	$(shell find $(FS_DIR)/src)
+FS_SRC	+=	$(FS_DIR)/$(CARGO_TOML)
+FS_LIB	:=	$(BUILD_DIR)/libfs.a
+FS_LIB_DEPENDENCIES_SRC	:=	$(SYSCALLS_SRC) $(RALIB_SRC) $(MESSAGE_SRC)
+FS	:=	$(BUILD_DIR)/fs.bin
 
 KERNEL_DIR		:= kernel
 KERNEL_LIB_SRC	:=	$(shell find $(KERNEL_DIR)/src)
@@ -48,7 +48,7 @@ KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/$(CONFIG_TOML)
 KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/$(CARGO_TOML)
 KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/build.rs
 KERNEL_LIB		:= $(BUILD_DIR)/libramen_os.a
-KERNEL_LIB_DEPENDENCIES_SRC	:=	$(TERMINAL_SRC) $(COMMON_SRC) $(SYSCALLS_SRC) $(PAGE_BOX_SRC) $(MESSAGE_SRC) $(PORT_SERVER_SRC) $(FRAME_MANAGER_SRC) $(FS_SERVER_SRC)
+KERNEL_LIB_DEPENDENCIES_SRC	:=	$(TERMINAL_SRC) $(COMMON_SRC) $(SYSCALLS_SRC) $(PAGE_BOX_SRC) $(MESSAGE_SRC) $(PORT_SERVER_SRC) $(FRAME_MANAGER_SRC) $(FS_SRC)
 KERNEL_LD			:= $(KERNEL_DIR)/kernel.ld
 KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
 
@@ -122,8 +122,8 @@ $(KERNEL_LIB):$(KERNEL_LIB_SRC) $(INITRD) $(KERNEL_LIB_DEPENDENCIES_SRC)|$(BUILD
 	# See: https://github.com/rust-lang/cargo/issues/2930
 	cd $(KERNEL_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(TEST_FLAG) $(RUSTCFLAGS)
 
-$(INITRD):$(PM) $(PORT_SERVER) $(FS_SERVER)|$(BUILD_DIR)
-	(echo $(PM); echo $(PORT_SERVER); echo $(FS_SERVER))|cpio -o > $@ --format=odc
+$(INITRD):$(PM) $(PORT_SERVER) $(FS)|$(BUILD_DIR)
+	(echo $(PM); echo $(PORT_SERVER); echo $(FS))|cpio -o > $@ --format=odc
 
 $(PM):$(PM_LIB)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ -e main $(PM_LIB)
@@ -137,11 +137,11 @@ $(PORT_SERVER):$(PORT_SERVER_LIB)|$(BUILD_DIR)
 $(PORT_SERVER_LIB):$(PORT_SERVER_SRC) $(PORT_SERVER_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(PORT_SERVER_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
-$(FS_SERVER):$(FS_SERVER_LIB)|$(BUILD_DIR)
+$(FS):$(FS_LIB)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ -e main $^
 
-$(FS_SERVER_LIB):$(FS_SERVER_SRC) $(FS_SERVER_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
-	cd $(FS_SERVER_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
+$(FS_LIB):$(FS_SRC) $(FS_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
+	cd $(FS_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(EFI_FILE):$(EFI_SRC)|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
