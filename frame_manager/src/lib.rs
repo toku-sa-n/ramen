@@ -188,7 +188,7 @@ impl fmt::Debug for Frames {
     }
 }
 
-fn is_conventional(ty: boot::MemoryType) -> bool {
+fn is_conventional(ty: MemoryType) -> bool {
     ty == MemoryType::CONVENTIONAL
 }
 
