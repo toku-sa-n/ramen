@@ -104,7 +104,10 @@ impl Collection {
         if pt[i].is_unused() {
             pt[i].set_addr(a, Self::flags());
         } else {
-            panic!("Mapping is overlapped.")
+            panic!(
+                "Mapping is overlapped. Entry: {:?}, index: {:?}, addr: {:?}",
+                pt[i], i, a
+            )
         }
     }
 }
