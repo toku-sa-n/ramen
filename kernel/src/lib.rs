@@ -16,9 +16,6 @@
 // A workaround for the `derive_builder` crate.
 #![allow(clippy::default_trait_access)]
 
-#[macro_use]
-#[allow(unused_imports)]
-extern crate common;
 extern crate alloc;
 
 mod acpi;
