@@ -27,7 +27,7 @@ unsafe impl FrameAllocator<Size4KiB> for AllocatorWithEfiMemoryMap<'_> {
         for descriptor in self.mem_map.iter_mut() {
             if descriptor.ty == MemoryType::CONVENTIONAL && descriptor.page_count > 0 {
                 let addr = PhysAddr::new(descriptor.phys_start);
-                descriptor.phys_start += Size4KiB::SIZE as u64;
+                descriptor.phys_start += Size4KiB::SIZE;
                 descriptor.page_count -= 1;
 
                 return Some(PhysFrame::containing_address(addr));
