@@ -6,7 +6,7 @@ on: [push, pull_request]
 
 env:
   CARGO_TERM_COLOR: always
-  RUSTFLAGS: -D warnings -D absolute_paths_not_starting_with_crate -D disjoint_capture_drop_reorder -D elided_lifetimes_in_paths -D explicit_outlives_requirements -D macro_use_extern_crate -D meta_variable_misuse -D missing_abi -D missing_copy_implementations -D missing_debug_implementations -D non_ascii_idents -D pointer_structural_match -D semicolon_in_expressions_from_macros -D single_use_lifetimes -D trivial_casts -D trivial_numeric_casts -D unaligned_references -D unreachable_pub -D unused_extern_crates -D unused_import_braces -D unused_lifetimes
+  RUSTFLAGS: -D warnings -D absolute_paths_not_starting_with_crate -D disjoint_capture_drop_reorder -D elided_lifetimes_in_paths -D explicit_outlives_requirements -D macro_use_extern_crate -D meta_variable_misuse -D missing_abi -D missing_copy_implementations -D missing_debug_implementations -D non_ascii_idents -D pointer_structural_match -D semicolon_in_expressions_from_macros -D single_use_lifetimes -D trivial_casts -D trivial_numeric_casts -D unaligned_references -D unreachable_pub -D unused_extern_crates -D unused_import_braces -D unused_lifetimes -D unused_qualifications
 
 jobs:
   fmt:
