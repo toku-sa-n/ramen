@@ -125,7 +125,7 @@ impl Receiver {
         Self::wake_sender(src_pid);
     }
 
-    fn src_pid() -> super::SlotId {
+    fn src_pid() -> SlotId {
         collections::process::handle_running_mut(|p| {
             p.pids_try_to_send_this_process
                 .pop_front()
@@ -133,14 +133,14 @@ impl Receiver {
         })
     }
 
-    fn copy_msg(&self, src_slot_id: super::SlotId) {
+    fn copy_msg(&self, src_slot_id: SlotId) {
         let src = collections::process::handle(src_slot_id, |p| p.msg_ptr);
         let src = src.expect("The message pointer of the sender is not set.");
 
         unsafe { copy_msg(src, self.msg_buf, src_slot_id) }
     }
 
-    fn wake_sender(src_pid: super::SlotId) {
+    fn wake_sender(src_pid: SlotId) {
         collections::process::handle_mut(src_pid, |p| {
             p.flags -= super::Flags::SENDING;
             p.msg_ptr = None;
@@ -172,7 +172,7 @@ impl Receiver {
 /// # Safety
 ///
 /// `src` and `dst` must be the correct addresses where a message is located and copied.
-unsafe fn copy_msg(src: PhysAddr, dst: PhysAddr, sender_slot_id: super::SlotId) {
+unsafe fn copy_msg(src: PhysAddr, dst: PhysAddr, sender_slot_id: SlotId) {
     let mut src: Single<Message> = mem::accessor::kernel(src);
     let mut dst = mem::accessor::kernel(dst);
 
