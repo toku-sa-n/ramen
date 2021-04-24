@@ -5,6 +5,7 @@ use core::{
     mem, slice, str,
 };
 use cstr_core::CStr;
+use log::info;
 use x86_64::VirtAddr;
 
 pub(super) fn list_names() {
@@ -18,7 +19,7 @@ pub(super) fn list_names() {
     }
 }
 
-pub(super) fn get_handler(name: &'static str) -> CpioArchievedFile {
+pub(super) fn get_handler(name: &str) -> CpioArchievedFile {
     iter().find(|x| x.name() == name).expect("No such file.")
 }
 

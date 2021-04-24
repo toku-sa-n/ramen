@@ -39,6 +39,7 @@ impl Default for Heap {
 
 pub fn init() {
     init_heap();
+    io::init();
 }
 
 fn init_heap() {
@@ -52,7 +53,7 @@ fn init_heap() {
 }
 
 #[panic_handler]
-fn panic(i: &core::panic::PanicInfo) -> ! {
+fn panic(i: &core::panic::PanicInfo<'_>) -> ! {
     syscalls::panic(i);
 }
 

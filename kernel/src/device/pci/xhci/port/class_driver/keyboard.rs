@@ -5,6 +5,7 @@ use crate::device::pci::xhci::{
     structures::descriptor::{Configuration, Descriptor},
 };
 use alloc::{string::String, vec::Vec};
+use log::info;
 use page_box::PageBox;
 use spinning_top::Spinlock;
 use xhci::context::EndpointType;

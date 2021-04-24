@@ -7,6 +7,7 @@ use crate::{
 use core::{convert::TryInto, ffi::c_void, panic::PanicInfo, slice};
 use num_traits::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
+use terminal::print;
 use x86_64::{
     structures::paging::{Size4KiB, Translate},
     PhysAddr, VirtAddr,
@@ -58,7 +59,7 @@ unsafe fn select_proper_syscall_unchecked(ty: syscalls::Ty, a1: u64, a2: u64, a3
         .unwrap(),
         syscalls::Ty::Send => sys_send(VirtAddr::new(a1), a2.try_into().unwrap()),
         syscalls::Ty::Receive => sys_receive(VirtAddr::new(a1)),
-        syscalls::Ty::Panic => sys_panic(a1 as *const PanicInfo),
+        syscalls::Ty::Panic => sys_panic(a1 as *const PanicInfo<'_>),
         _ => unreachable!("This sytem call should not be handled by the kernel itself."),
     }
 }
@@ -122,7 +123,7 @@ fn sys_receive(m: VirtAddr) -> u64 {
     0
 }
 
-unsafe fn sys_panic(i: *const PanicInfo) -> ! {
+unsafe fn sys_panic(i: *const PanicInfo<'_>) -> ! {
     let name = process::current_name();
 
     panic!("The process {} paniced: {}", name, *i);

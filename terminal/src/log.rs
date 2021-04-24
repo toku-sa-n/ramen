@@ -28,17 +28,17 @@ macro_rules! println{
 }
 
 #[doc(hidden)]
-pub fn _print(args: fmt::Arguments) {
+pub fn _print(args: fmt::Arguments<'_>) {
     write!(*LOG_WRITER.lock(), "{}", args).unwrap();
 }
 
 struct Logger;
 impl log::Log for Logger {
-    fn enabled(&self, metadata: &Metadata) -> bool {
+    fn enabled(&self, metadata: &Metadata<'_>) -> bool {
         metadata.level() <= Level::Info
     }
 
-    fn log(&self, record: &Record) {
+    fn log(&self, record: &Record<'_>) {
         if self.enabled(record.metadata()) {
             println!("{} - {}", record.level(), record.args());
         }

@@ -2,6 +2,7 @@
 
 use common::vram;
 use core::mem::MaybeUninit;
+use log::info;
 use uefi::{
     proto::console::{gop, gop::PixelFormat},
     table::boot,
@@ -18,13 +19,13 @@ pub fn init(boot_services: &boot::BootServices) -> vram::Info {
 
 fn fetch_gop<'a>(boot_services: &boot::BootServices) -> &'a mut gop::GraphicsOutput<'a> {
     let gop = boot_services
-        .locate_protocol::<gop::GraphicsOutput>()
+        .locate_protocol::<gop::GraphicsOutput<'_>>()
         .expect_success("Your computer does not support Graphics Output Protocol!");
 
     unsafe { &mut *gop.get() }
 }
 
-fn set_resolution(gop: &mut gop::GraphicsOutput) {
+fn set_resolution(gop: &mut gop::GraphicsOutput<'_>) {
     let (width, height, mode) = get_the_maximum_resolution_and_mode(gop);
 
     gop.set_mode(&mode)
@@ -33,7 +34,7 @@ fn set_resolution(gop: &mut gop::GraphicsOutput) {
     info!("width: {} height: {}", width, height);
 }
 
-fn get_the_maximum_resolution_and_mode(gop: &gop::GraphicsOutput) -> (usize, usize, gop::Mode) {
+fn get_the_maximum_resolution_and_mode(gop: &gop::GraphicsOutput<'_>) -> (usize, usize, gop::Mode) {
     let mut max_height = 0;
     let mut max_width = 0;
     let mut preferred_mode = MaybeUninit::<gop::Mode>::uninit();

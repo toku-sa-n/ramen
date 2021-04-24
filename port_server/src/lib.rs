@@ -2,11 +2,9 @@
 
 #![no_std]
 
-#[macro_use]
-extern crate log;
-
 mod port;
 
+use log::warn;
 use message::Message;
 use num_traits::FromPrimitive;
 

@@ -60,7 +60,7 @@ impl Executor {
         }
     }
 
-    fn generate_waker(&mut self, id: task::Id) -> Context {
+    fn generate_waker(&mut self, id: task::Id) -> Context<'_> {
         let Self { waker_collection } = self;
 
         let waker = waker_collection

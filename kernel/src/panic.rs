@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::qemu;
+use log::error;
 
 #[panic_handler]
-fn panic(i: &core::panic::PanicInfo) -> ! {
+fn panic(i: &core::panic::PanicInfo<'_>) -> ! {
     print_banner();
     print_info(i);
 
@@ -16,7 +17,7 @@ fn print_banner() {
     error!("*************");
 }
 
-fn print_info(i: &core::panic::PanicInfo) {
+fn print_info(i: &core::panic::PanicInfo<'_>) {
     error!("{}", i);
 }
 

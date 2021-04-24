@@ -5,6 +5,7 @@ use crate::device::pci::xhci::structures::{descriptor, registers, ring::transfer
 use alloc::{sync::Arc, vec::Vec};
 use core::convert::TryInto;
 use futures_util::task::AtomicWaker;
+use log::debug;
 use page_box::PageBox;
 use spinning_top::Spinlock;
 use x86_64::PhysAddr;

@@ -3,6 +3,7 @@
 use crate::mem::{accessor::Single, allocator};
 use acpi::{platform::address::AddressSpace, AcpiTables};
 use core::convert::TryInto;
+use log::info;
 use x86_64::{instructions::port::PortReadOnly, PhysAddr};
 
 const LVT_TIMER: PhysAddr = PhysAddr::new_truncate(0xfee0_0320);

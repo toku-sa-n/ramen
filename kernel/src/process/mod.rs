@@ -21,7 +21,6 @@ use x86_64::{
     structures::paging::{PageSize, Size4KiB},
     PhysAddr, VirtAddr,
 };
-use xmas_elf::ElfFile;
 
 pub(crate) fn assign_rax_from_register() {
     let rax;
@@ -131,14 +130,7 @@ impl Process {
     #[allow(clippy::too_many_lines)]
     fn binary(name: &'static str, privilege: Privilege) -> Self {
         let mut tables = page_table::Collection::default();
-        let handler = crate::fs::get_handler(name);
-        let content = handler.content();
-        let content = KpBox::from(content);
-        tables.map_elf(&content);
-
-        let elf = ElfFile::new(&content).expect("Not a ELF file.");
-        let entry = VirtAddr::new(elf.header.pt2.entry_point());
-        info!("Entry address: {:?}", entry);
+        let (content, entry) = tables.map_elf(name);
 
         let stack = KpBox::new_slice(0, Self::STACK_SIZE.try_into().unwrap());
         let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
