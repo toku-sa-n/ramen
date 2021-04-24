@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::qemu;
+use core::{fmt::Write, format_args};
 use log::error;
+use uart_16550::SerialPort;
 
 #[panic_handler]
 fn panic(i: &core::panic::PanicInfo<'_>) -> ! {
@@ -18,6 +20,10 @@ fn print_banner() {
 }
 
 fn print_info(i: &core::panic::PanicInfo<'_>) {
+    let mut s = unsafe { SerialPort::new(0x3f8) };
+    s.init();
+    s.write_fmt(format_args!("{}\n", i)).unwrap();
+
     error!("{}", i);
 }
 
