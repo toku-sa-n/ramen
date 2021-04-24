@@ -6,7 +6,6 @@ use core::{
     convert::{TryFrom, TryInto},
     ptr,
 };
-use log::info;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{
     structures::paging::{
@@ -188,7 +187,6 @@ impl<'a> ElfMapper<'a> {
         let bytes = Bytes::new(bytes);
         let num_of_pages: NumOfPages<Size4KiB> = bytes.as_num_of_pages();
 
-        info!("{:?} -> {:?}", v, p);
         for i in 0..num_of_pages.as_usize() {
             let offset = NumOfPages::<Size4KiB>::new(i).as_bytes().as_usize();
             let v = Page::from_start_address(v + offset);
