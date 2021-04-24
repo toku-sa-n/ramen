@@ -19,7 +19,7 @@ pub(super) fn list_names() {
     }
 }
 
-pub(super) fn get_handler(name: &'static str) -> CpioArchievedFile {
+pub(super) fn get_handler(name: &str) -> CpioArchievedFile {
     iter().find(|x| x.name() == name).expect("No such file.")
 }
 
