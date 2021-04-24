@@ -155,12 +155,12 @@ impl<'a> ElfMapper<'a> {
         self.output
     }
 
-    fn map_with_ph(&mut self, ph: &ProgramHeader) {
+    fn map_with_ph(&mut self, ph: &ProgramHeader<'_>) {
         self.copy_from_raw_to_output(ph);
         self.add_mapping_to_collection(ph);
     }
 
-    fn copy_from_raw_to_output(&mut self, ph: &ProgramHeader) {
+    fn copy_from_raw_to_output(&mut self, ph: &ProgramHeader<'_>) {
         let src = self.raw.virt_addr() + ph.offset();
 
         let dst = ph.virtual_addr() - self.elf_bottom().as_u64() + self.output.virt_addr().as_u64();
@@ -171,7 +171,7 @@ impl<'a> ElfMapper<'a> {
         unsafe { ptr::copy_nonoverlapping(src.as_ptr(), dst.as_mut_ptr::<u8>(), count) }
     }
 
-    fn add_mapping_to_collection(&mut self, ph: &ProgramHeader) {
+    fn add_mapping_to_collection(&mut self, ph: &ProgramHeader<'_>) {
         let offset = ph.virtual_addr() - self.elf_bottom().as_u64();
 
         let v = ph.virtual_addr();
