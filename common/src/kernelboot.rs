@@ -54,7 +54,7 @@ impl Info {
 
     #[must_use]
     pub fn get() -> Self {
-        unsafe { ptr::read(INIT_RSP.as_mut_ptr() as _) }
+        unsafe { ptr::read(INIT_RSP.as_mut_ptr::<Self>()) }
     }
 
     #[must_use]
