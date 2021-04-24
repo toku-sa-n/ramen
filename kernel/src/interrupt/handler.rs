@@ -5,7 +5,7 @@ use crate::{process, syscall};
 use common::constant::INTERRUPT_STACK;
 use x86_64::structures::idt::InterruptStackFrame;
 
-pub extern "x86-interrupt" fn h_20(_: InterruptStackFrame) {
+pub(crate) extern "x86-interrupt" fn h_20(_: InterruptStackFrame) {
     // Here, the stack pointer points the stack frame of the current task. By cloberring registers,
     // the state will be stored on the stack frame.
     //
@@ -22,7 +22,7 @@ pub extern "x86-interrupt" fn h_20(_: InterruptStackFrame) {
     }
 }
 
-pub extern "x86-interrupt" fn h_80(_: InterruptStackFrame) {
+pub(crate) extern "x86-interrupt" fn h_80(_: InterruptStackFrame) {
     // Here, the stack pointer points the stack frame of the current task. By cloberring registers,
     // the state will be stored on the stack frame.
     //
@@ -42,7 +42,7 @@ pub extern "x86-interrupt" fn h_80(_: InterruptStackFrame) {
 }
 
 // For IPC.
-pub extern "x86-interrupt" fn h_81(_: InterruptStackFrame) {
+pub(crate) extern "x86-interrupt" fn h_81(_: InterruptStackFrame) {
     // SAFETY: This operation is safe. After calling the `switch` function, `rax` contains the address to the top of the stack frame of
     // the new process. It does not violate any memory safety.
     unsafe {

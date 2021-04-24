@@ -7,7 +7,7 @@ use os_units::Bytes;
 use x86_64::{PhysAddr, VirtAddr};
 
 #[derive(Clone)]
-pub struct Mapper;
+pub(crate) struct Mapper;
 impl AcpiHandler for Mapper {
     unsafe fn map_physical_region<U>(&self, p_addr: usize, sz: usize) -> PhysicalMapping<Self, U> {
         let p = PhysAddr::new(p_addr.try_into().unwrap());

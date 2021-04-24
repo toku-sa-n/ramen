@@ -16,7 +16,7 @@ pub(in crate::device::pci::xhci) enum Descriptor {
     Hid,
 }
 impl Descriptor {
-    pub fn from_slice(raw: &[u8]) -> Result<Self, Error> {
+    pub(crate) fn from_slice(raw: &[u8]) -> Result<Self, Error> {
         assert_eq!(raw.len(), raw[0].into());
         match FromPrimitive::from_u8(raw[1]) {
             Some(t) => {
@@ -39,7 +39,7 @@ impl Descriptor {
 
 #[derive(Copy, Clone, Default, Debug)]
 #[repr(C, packed)]
-pub struct Device {
+pub(crate) struct Device {
     len: u8,
     descriptor_type: u8,
     cd_usb: u16,
@@ -94,7 +94,7 @@ impl Configuration {
 
 #[derive(Copy, Clone, Default, Debug)]
 #[repr(C, packed)]
-pub struct Interface {
+pub(crate) struct Interface {
     len: u8,
     descriptor_type: u8,
     interface_number: u8,
@@ -106,7 +106,7 @@ pub struct Interface {
     interface: u8,
 }
 impl Interface {
-    pub fn ty(&self) -> (u8, u8, u8) {
+    pub(crate) fn ty(&self) -> (u8, u8, u8) {
         (
             self.interface_class,
             self.interface_subclass,
@@ -117,16 +117,16 @@ impl Interface {
 
 #[derive(Copy, Clone, Default, Debug)]
 #[repr(C, packed)]
-pub struct Endpoint {
+pub(crate) struct Endpoint {
     len: u8,
     descriptor_type: u8,
-    pub endpoint_address: u8,
-    pub attributes: u8,
-    pub max_packet_size: u16,
-    pub interval: u8,
+    pub(crate) endpoint_address: u8,
+    pub(crate) attributes: u8,
+    pub(crate) max_packet_size: u16,
+    pub(crate) interval: u8,
 }
 impl Endpoint {
-    pub fn ty(self) -> EndpointType {
+    pub(crate) fn ty(self) -> EndpointType {
         EndpointType::from_u8(if self.attributes == 0 {
             4
         } else {
@@ -140,14 +140,14 @@ impl Endpoint {
         .expect("EndpointType must be convertible from `attributes` and `endpoint_address`.")
     }
 
-    pub fn doorbell_value(self) -> u32 {
+    pub(crate) fn doorbell_value(self) -> u32 {
         2 * u32::from(self.endpoint_address.get_bits(0..=3))
             + self.endpoint_address.get_bit(7) as u32
     }
 }
 
 #[derive(FromPrimitive)]
-pub enum Ty {
+pub(crate) enum Ty {
     Device = 1,
     Configuration = 2,
     Str = 3,
@@ -157,6 +157,6 @@ pub enum Ty {
 }
 
 #[derive(Debug)]
-pub enum Error {
+pub(crate) enum Error {
     UnrecognizedType(u8),
 }

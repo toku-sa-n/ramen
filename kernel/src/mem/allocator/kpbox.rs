@@ -15,7 +15,7 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
-pub struct KpBox<T: ?Sized> {
+pub(crate) struct KpBox<T: ?Sized> {
     virt: VirtAddr,
     bytes: Bytes,
     _marker: PhantomData<T>,
@@ -86,7 +86,7 @@ impl<T> KpBox<[T]>
 where
     T: Clone,
 {
-    pub fn new_slice(x: T, num_of_elements: usize) -> Self {
+    pub(crate) fn new_slice(x: T, num_of_elements: usize) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>() * num_of_elements);
         let mut page_box = Self::from_bytes(bytes);
         page_box.write_all_elements_with_same_value(x);
@@ -170,7 +170,7 @@ impl<T: Copy> From<&[T]> for KpBox<[T]> {
 
 impl<T: ?Sized> KpBox<T> {
     #[must_use]
-    pub fn virt_addr(&self) -> VirtAddr {
+    pub(crate) fn virt_addr(&self) -> VirtAddr {
         self.virt
     }
 
@@ -178,14 +178,14 @@ impl<T: ?Sized> KpBox<T> {
     ///
     /// This method panics if the `KpBox` is not mapped.
     #[must_use]
-    pub fn phys_addr(&self) -> PhysAddr {
+    pub(crate) fn phys_addr(&self) -> PhysAddr {
         PML4.lock()
             .translate_addr(self.virt)
             .expect("This KpBox is not mapped.")
     }
 
     #[must_use]
-    pub fn bytes(&self) -> Bytes {
+    pub(crate) fn bytes(&self) -> Bytes {
         self.bytes
     }
 

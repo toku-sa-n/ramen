@@ -3,10 +3,10 @@
 use crate::qemu;
 use core::sync::atomic::Ordering;
 
-pub mod process;
+pub(crate) mod process;
 mod syscall;
 
-pub fn main() {
+pub(crate) fn main() {
     self::syscall::main();
 
     while !process::SWITCH_TEST_SUCCESS.load(Ordering::Relaxed) {}

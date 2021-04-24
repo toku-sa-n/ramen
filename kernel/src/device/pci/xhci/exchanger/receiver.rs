@@ -112,17 +112,17 @@ impl Receiver {
 }
 
 #[derive(Debug)]
-pub enum Error {
+pub(crate) enum Error {
     AddrAlreadyRegistered,
     NoSuchAddress,
 }
 
-pub struct ReceiveFuture {
+pub(crate) struct ReceiveFuture {
     addr_to_trb: PhysAddr,
     waker: Arc<Spinlock<AtomicWaker>>,
 }
 impl ReceiveFuture {
-    pub fn new(addr_to_trb: PhysAddr, waker: Arc<Spinlock<AtomicWaker>>) -> Self {
+    pub(crate) fn new(addr_to_trb: PhysAddr, waker: Arc<Spinlock<AtomicWaker>>) -> Self {
         Self { addr_to_trb, waker }
     }
 }

@@ -14,7 +14,7 @@ macro_rules! change_stack {
     };
 }
 
-pub fn exit() -> ! {
+pub(crate) fn exit() -> ! {
     change_stack!();
     super::set_temporary_stack_frame();
     // TODO: Call this. Currently this calling will cause a panic because the `KBox` is not mapped

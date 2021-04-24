@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pub mod bar;
+pub(crate) mod bar;
 mod common;
-pub mod type_spec;
+pub(crate) mod type_spec;
 
 use self::common::Common;
 use bar::Bar;
@@ -11,22 +11,22 @@ use type_spec::TypeSpec;
 use x86_64::PhysAddr;
 
 #[derive(Debug)]
-pub struct Space {
+pub(crate) struct Space {
     registers: Registers,
 }
 
 impl Space {
-    pub fn new(bus: Bus, device: Device) -> Option<Self> {
+    pub(crate) fn new(bus: Bus, device: Device) -> Option<Self> {
         Some(Self {
             registers: Registers::new(bus, device)?,
         })
     }
 
-    pub fn is_xhci(&self) -> bool {
+    pub(crate) fn is_xhci(&self) -> bool {
         self.common().is_xhci()
     }
 
-    pub fn base_address(&self, index: bar::Index) -> PhysAddr {
+    pub(crate) fn base_address(&self, index: bar::Index) -> PhysAddr {
         self.type_spec().base_address(index)
     }
 
@@ -40,7 +40,7 @@ impl Space {
 }
 
 #[derive(Debug)]
-pub struct Registers {
+pub(crate) struct Registers {
     bus: Bus,
     device: Device,
 }
@@ -105,10 +105,10 @@ impl ConfigAddress {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct Bus(u32);
+pub(crate) struct Bus(u32);
 impl Bus {
-    pub const MAX: u32 = 256;
-    pub fn new(bus: u32) -> Self {
+    pub(crate) const MAX: u32 = 256;
+    pub(crate) fn new(bus: u32) -> Self {
         assert!(bus < Self::MAX);
         Self(bus)
     }
@@ -119,10 +119,10 @@ impl Bus {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct Device(u32);
+pub(crate) struct Device(u32);
 impl Device {
-    pub const MAX: u32 = 32;
-    pub fn new(device: u32) -> Self {
+    pub(crate) const MAX: u32 = 32;
+    pub(crate) fn new(device: u32) -> Self {
         assert!(device < Self::MAX);
         Self(device)
     }
@@ -133,22 +133,22 @@ impl Device {
 }
 
 #[derive(Copy, Clone)]
-pub struct Function(u32);
+pub(crate) struct Function(u32);
 impl Function {
-    pub fn zero() -> Self {
+    pub(crate) fn zero() -> Self {
         Self(0)
     }
 
-    pub fn as_u32(self) -> u32 {
+    pub(crate) fn as_u32(self) -> u32 {
         self.0
     }
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct RegisterIndex(usize);
+pub(crate) struct RegisterIndex(usize);
 impl RegisterIndex {
     const MAX: usize = 64;
-    pub fn new(offset: usize) -> Self {
+    pub(crate) fn new(offset: usize) -> Self {
         assert!(offset < Self::MAX, "Too large register index: {}", offset);
         Self(offset)
     }

@@ -21,7 +21,7 @@ use xhci::ring::{trb, trb::event};
 
 mod segment_table;
 
-pub async fn task(mut ring: Ring) {
+pub(crate) async fn task(mut ring: Ring) {
     debug!("This is the Event ring task.");
     while let Some(trb) = ring.next().await {
         info!("TRB: {:?}", trb);
@@ -38,12 +38,12 @@ pub async fn task(mut ring: Ring) {
 #[allow(clippy::cast_possible_truncation)]
 const MAX_NUM_OF_TRB_IN_QUEUE: u16 = Size4KiB::SIZE as u16 / trb::BYTES as u16;
 
-pub struct Ring {
+pub(crate) struct Ring {
     segment_table: SegmentTable,
     raw: Raw,
 }
 impl<'a> Ring {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         let max_num_of_erst = registers::handle(|r| {
             r.capability
                 .hcsparams2
@@ -57,7 +57,7 @@ impl<'a> Ring {
         }
     }
 
-    pub fn init(&mut self) {
+    pub(crate) fn init(&mut self) {
         self.init_dequeue_ptr();
         self.init_tbl();
     }

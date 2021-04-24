@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pub mod config;
-pub mod xhci;
+pub(crate) mod config;
+pub(crate) mod xhci;
 
 use config::{Bus, Device};
 
-pub fn iter_devices() -> impl Iterator<Item = config::Space> {
+pub(crate) fn iter_devices() -> impl Iterator<Item = config::Space> {
     IterPciDevices::new(0, 0)
 }
 

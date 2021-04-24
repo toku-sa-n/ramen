@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pub mod apic;
-pub mod handler;
-pub mod idt;
-pub mod timer;
+pub(crate) mod apic;
+pub(crate) mod handler;
+pub(crate) mod idt;
+pub(crate) mod timer;

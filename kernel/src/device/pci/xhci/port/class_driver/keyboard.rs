@@ -28,7 +28,7 @@ pub(in crate::device::pci::xhci::port) async fn task(eps: FullyOperational) {
     }
 }
 
-pub struct Keyboard {
+pub(crate) struct Keyboard {
     ep: FullyOperational,
     buf: PageBox<[u8; 8]>,
 }

@@ -7,13 +7,13 @@ pub(super) fn exists() -> bool {
     super::iter_xhc().next().is_some()
 }
 
-pub fn init() {
+pub(crate) fn init() {
     get_ownership_from_bios();
     stop_and_reset();
     set_num_of_enabled_slots();
 }
 
-pub fn run() {
+pub(crate) fn run() {
     registers::handle(|r| {
         let o = &mut r.operational;
         o.usbcmd.update(|u| u.set_run_stop(true));
@@ -21,7 +21,7 @@ pub fn run() {
     });
 }
 
-pub fn ensure_no_error_occurs() {
+pub(crate) fn ensure_no_error_occurs() {
     registers::handle(|r| {
         let s = r.operational.usbsts.read();
 

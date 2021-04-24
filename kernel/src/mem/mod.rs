@@ -10,9 +10,9 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
-pub mod accessor;
-pub mod allocator;
-pub mod paging;
+pub(crate) mod accessor;
+pub(crate) mod allocator;
+pub(crate) mod paging;
 
 pub(super) fn init(mem_map: &[boot::MemoryDescriptor]) {
     allocator::heap::init();

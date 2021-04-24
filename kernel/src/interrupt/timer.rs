@@ -12,7 +12,7 @@ const CURRENT_COUNT: PhysAddr = PhysAddr::new_truncate(0xfee0_0390);
 const DIVIDE_CONFIG: PhysAddr = PhysAddr::new_truncate(0xfee0_03e0);
 const TIMER_VECTOR: u8 = 0x20;
 
-pub fn init(table: &AcpiTables<allocator::acpi::Mapper>) {
+pub(crate) fn init(table: &AcpiTables<allocator::acpi::Mapper>) {
     let mut local_apic_tm = LocalApic::new(table);
     local_apic_tm.init();
 }
@@ -74,7 +74,7 @@ struct AcpiPm {
     supported: SupportedBits,
 }
 impl AcpiPm {
-    pub fn new(table: &AcpiTables<allocator::acpi::Mapper>) -> Self {
+    pub(crate) fn new(table: &AcpiTables<allocator::acpi::Mapper>) -> Self {
         let pm_timer = table.platform_info().unwrap().pm_timer.unwrap();
         let reader = match pm_timer.base.address_space {
             AddressSpace::SystemMemory => Reader::Memory(MemoryReader::new(table)),
@@ -92,7 +92,7 @@ impl AcpiPm {
         }
     }
 
-    pub fn wait_milliseconds(&mut self, t: u32) {
+    pub(crate) fn wait_milliseconds(&mut self, t: u32) {
         const FREQUENCY: u32 = 3_579_545;
         let start = self.reader.read();
         let mut end = start.wrapping_add(FREQUENCY.wrapping_mul(t / 1000));

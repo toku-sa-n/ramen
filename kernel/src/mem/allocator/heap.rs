@@ -12,11 +12,11 @@ extern "C" {
 }
 
 #[global_allocator]
-pub static ALLOCATOR: LockedHeap = LockedHeap::empty();
+pub(crate) static ALLOCATOR: LockedHeap = LockedHeap::empty();
 
 // Using UEFI's `allocate_pages` doesn't work for allocating larger memory. It returns out of
 // resrouces.
-pub fn init() {
+pub(crate) fn init() {
     let s: *const usize = unsafe { &HEAP_START };
     let s = s as usize;
 

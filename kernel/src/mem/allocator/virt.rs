@@ -9,7 +9,7 @@ use x86_64::{
     VirtAddr,
 };
 
-pub fn search_free_addr(num_pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
+pub(crate) fn search_free_addr(num_pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
     let mut cnt = 0;
     let mut start = None;
     for addr in
