@@ -16,7 +16,7 @@ macro_rules! println{
         print!("\n");
     };
     ($($arg:tt)*)=>{
-        print!("{}\n",core::format_args!($($arg)*));
+        print!("{}\n",core::format_args!($($arg)*))
     }
 }
 
