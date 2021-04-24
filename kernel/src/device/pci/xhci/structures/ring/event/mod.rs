@@ -42,7 +42,7 @@ pub(crate) struct Ring {
     segment_table: SegmentTable,
     raw: Raw,
 }
-impl<'a> Ring {
+impl Ring {
     pub(crate) fn new() -> Self {
         let max_num_of_erst = registers::handle(|r| {
             r.capability
@@ -86,7 +86,7 @@ impl<'a> Ring {
         self.segment_table.iter_mut()
     }
 }
-impl<'a> Stream for Ring {
+impl Stream for Ring {
     type Item = event::Allowed;
 
     fn poll_next(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
