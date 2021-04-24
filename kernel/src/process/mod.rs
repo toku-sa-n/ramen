@@ -13,10 +13,10 @@ use alloc::collections::VecDeque;
 use bitflags::bitflags;
 use common::constant::INTERRUPT_STACK;
 use core::convert::TryInto;
-pub use exit::exit;
+pub(crate) use exit::exit;
 pub(crate) use slot_id::SlotId;
 use stack_frame::StackFrame;
-pub use switch::switch;
+pub(crate) use switch::switch;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB},
     PhysAddr, VirtAddr,
@@ -77,7 +77,7 @@ fn set_temporary_stack_frame() {
 }
 
 #[derive(Debug)]
-pub struct Process {
+pub(crate) struct Process {
     id: SlotId,
     entry: VirtAddr,
     tables: page_table::Collection,
@@ -186,7 +186,7 @@ bitflags! {
 }
 
 #[derive(Debug)]
-pub enum Privilege {
+pub(crate) enum Privilege {
     Kernel,
     User,
 }

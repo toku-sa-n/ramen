@@ -13,18 +13,18 @@ use alloc::collections::BTreeMap;
 use core::task::{Context, Poll, Waker};
 use task::Task;
 
-pub struct Executor {
+pub(crate) struct Executor {
     waker_collection: BTreeMap<task::Id, Waker>,
 }
 
 impl Executor {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             waker_collection: BTreeMap::new(),
         }
     }
 
-    pub fn run(&mut self) -> ! {
+    pub(crate) fn run(&mut self) -> ! {
         loop {
             self.run_woken_tasks();
         }

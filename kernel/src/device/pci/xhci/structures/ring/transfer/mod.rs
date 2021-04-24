@@ -9,19 +9,19 @@ use xhci::ring::{trb, trb::transfer};
 
 const SIZE_OF_RING: usize = 256;
 
-pub struct Ring {
+pub(crate) struct Ring {
     raw: Raw,
 }
 impl Ring {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self { raw: Raw::new() }
     }
 
-    pub fn phys_addr(&self) -> PhysAddr {
+    pub(crate) fn phys_addr(&self) -> PhysAddr {
         self.raw.phys_addr()
     }
 
-    pub fn enqueue(&mut self, trbs: &[transfer::Allowed]) -> Vec<PhysAddr> {
+    pub(crate) fn enqueue(&mut self, trbs: &[transfer::Allowed]) -> Vec<PhysAddr> {
         self.raw.enqueue_trbs(trbs)
     }
 }

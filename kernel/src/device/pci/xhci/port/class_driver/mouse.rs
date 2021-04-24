@@ -27,7 +27,7 @@ pub(in crate::device::pci::xhci::port) async fn task(eps: FullyOperational) {
     }
 }
 
-pub struct Mouse {
+pub(crate) struct Mouse {
     ep: FullyOperational,
     buf: PageBox<[i8; 4]>,
 }

@@ -10,7 +10,7 @@ use crate::{
 use conquer_once::spin::Lazy;
 use x86_64::registers::model_specific::Star;
 
-pub static GDT: Lazy<Gdt> = Lazy::new(|| {
+pub(crate) static GDT: Lazy<Gdt> = Lazy::new(|| {
     let mut gdt = GlobalDescriptorTable::new();
     let kernel_code = gdt.add_entry(Descriptor::kernel_code_segment());
     let kernel_data = gdt.add_entry(Descriptor::kernel_data_segment());
@@ -31,16 +31,16 @@ pub static GDT: Lazy<Gdt> = Lazy::new(|| {
     }
 });
 
-pub struct Gdt {
+pub(crate) struct Gdt {
     table: GlobalDescriptorTable,
-    pub kernel_data: SegmentSelector,
-    pub kernel_code: SegmentSelector,
-    pub user_code: SegmentSelector,
-    pub user_data: SegmentSelector,
+    pub(crate) kernel_data: SegmentSelector,
+    pub(crate) kernel_code: SegmentSelector,
+    pub(crate) user_code: SegmentSelector,
+    pub(crate) user_data: SegmentSelector,
     tss_selector: SegmentSelector,
 }
 
-pub fn init() {
+pub(crate) fn init() {
     GDT.table.load();
     unsafe {
         segmentation::set_cs(GDT.kernel_code);

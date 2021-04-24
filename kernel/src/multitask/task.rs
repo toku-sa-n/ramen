@@ -22,25 +22,25 @@ use spinning_top::Spinlock;
 pub(super) static COLLECTION: Lazy<Spinlock<Collection>> =
     Lazy::new(|| Spinlock::new(Collection::new()));
 
-pub struct Collection {
+pub(crate) struct Collection {
     tasks: BTreeMap<Id, Task>,
     woken_task_ids: Arc<ArrayQueue<Id>>,
 }
 impl Collection {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             tasks: BTreeMap::new(),
             woken_task_ids: Arc::new(ArrayQueue::new(100)),
         }
     }
 
-    pub fn add_task_as_woken(&mut self, task: Task) {
+    pub(crate) fn add_task_as_woken(&mut self, task: Task) {
         let id = task.id();
         self.push_task(task);
         self.push_woken_task_id(id);
     }
 
-    pub fn add_task_as_sleep(&mut self, task: Task) {
+    pub(crate) fn add_task_as_sleep(&mut self, task: Task) {
         self.push_task(task);
     }
 
@@ -57,28 +57,28 @@ impl Collection {
             .expect("Woken task id queue is full.");
     }
 
-    pub fn pop_woken_task_id(&mut self) -> Option<Id> {
+    pub(crate) fn pop_woken_task_id(&mut self) -> Option<Id> {
         self.woken_task_ids.pop()
     }
 
-    pub fn remove_task(&mut self, id: Id) -> Option<Task> {
+    pub(crate) fn remove_task(&mut self, id: Id) -> Option<Task> {
         self.tasks.remove(&id)
     }
 
-    pub fn create_waker(&mut self, id: Id) -> Waker {
+    pub(crate) fn create_waker(&mut self, id: Id) -> Waker {
         Waker::from(Arc::new(TaskWaker::new(id, self.woken_task_ids.clone())))
     }
 }
 
 // task::Waker conflicts with alloc::task::Waker.
 #[allow(clippy::module_name_repetitions)]
-pub struct TaskWaker {
+pub(crate) struct TaskWaker {
     id: Id,
     woken_task_ids: Arc<ArrayQueue<Id>>,
 }
 
 impl TaskWaker {
-    pub fn new(id: Id, woken_task_ids: Arc<ArrayQueue<Id>>) -> Self {
+    pub(crate) fn new(id: Id, woken_task_ids: Arc<ArrayQueue<Id>>) -> Self {
         Self { id, woken_task_ids }
     }
 
@@ -100,7 +100,7 @@ impl Wake for TaskWaker {
 }
 
 #[derive(PartialOrd, PartialEq, Ord, Eq, Copy, Clone, Debug)]
-pub struct Id(u64);
+pub(crate) struct Id(u64);
 
 impl Id {
     fn new() -> Self {
@@ -109,14 +109,14 @@ impl Id {
     }
 }
 
-pub struct Task {
+pub(crate) struct Task {
     id: Id,
     future: Pin<Box<dyn Future<Output = ()> + Send>>,
     polling: bool,
 }
 
 impl Task {
-    pub fn new(future: impl Future<Output = ()> + 'static + Send) -> Self {
+    pub(crate) fn new(future: impl Future<Output = ()> + 'static + Send) -> Self {
         Self {
             id: Id::new(),
             future: Box::pin(future),
@@ -124,7 +124,7 @@ impl Task {
         }
     }
 
-    pub fn new_poll(future: impl Future<Output = ()> + 'static + Send) -> Self {
+    pub(crate) fn new_poll(future: impl Future<Output = ()> + 'static + Send) -> Self {
         Self {
             id: Id::new(),
             future: Box::pin(future),
@@ -132,11 +132,11 @@ impl Task {
         }
     }
 
-    pub fn poll(&mut self, context: &mut Context<'_>) -> Poll<()> {
+    pub(crate) fn poll(&mut self, context: &mut Context<'_>) -> Poll<()> {
         self.future.as_mut().poll(context)
     }
 
-    pub fn polling(&self) -> bool {
+    pub(crate) fn polling(&self) -> bool {
         self.polling
     }
 

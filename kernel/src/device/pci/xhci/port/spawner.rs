@@ -47,4 +47,4 @@ fn mark_as_spawned(p: u8) {
 }
 
 #[derive(Debug)]
-pub struct PortNotConnected;
+pub(crate) struct PortNotConnected;

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pub const WIDTH: u32 = 8;
-pub const HEIGHT: u32 = 16;
+pub(crate) const WIDTH: u32 = 8;
+pub(crate) const HEIGHT: u32 = 16;
 const NUM: u32 = 256;
-pub const FONTS: [[[bool; WIDTH as usize]; HEIGHT as usize]; NUM as usize] = [
+pub(crate) const FONTS: [[[bool; WIDTH as usize]; HEIGHT as usize]; NUM as usize] = [
     [
         [false, false, false, false, false, false, false, false],
         [false, false, false, false, false, false, false, false],

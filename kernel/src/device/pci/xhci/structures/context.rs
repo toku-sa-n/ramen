@@ -7,8 +7,8 @@ use xhci::context::{byte32, byte64, DeviceHandler, InputControlHandler, InputHan
 use super::registers;
 
 pub(in crate::device::pci::xhci) struct Context {
-    pub input: Input,
-    pub output: PageBox<Device>,
+    pub(crate) input: Input,
+    pub(crate) output: PageBox<Device>,
 }
 impl Default for Context {
     fn default() -> Self {
@@ -19,26 +19,26 @@ impl Default for Context {
     }
 }
 
-pub enum Input {
+pub(crate) enum Input {
     Byte64(PageBox<byte64::Input>),
     Byte32(PageBox<byte32::Input>),
 }
 impl Input {
-    pub fn control_mut(&mut self) -> &mut dyn InputControlHandler {
+    pub(crate) fn control_mut(&mut self) -> &mut dyn InputControlHandler {
         match self {
             Self::Byte32(b32) => b32.control_mut(),
             Self::Byte64(b64) => b64.control_mut(),
         }
     }
 
-    pub fn device_mut(&mut self) -> &mut dyn DeviceHandler {
+    pub(crate) fn device_mut(&mut self) -> &mut dyn DeviceHandler {
         match self {
             Self::Byte32(b32) => b32.device_mut(),
             Self::Byte64(b64) => b64.device_mut(),
         }
     }
 
-    pub fn phys_addr(&self) -> PhysAddr {
+    pub(crate) fn phys_addr(&self) -> PhysAddr {
         match self {
             Self::Byte32(b32) => b32.phys_addr(),
             Self::Byte64(b64) => b64.phys_addr(),

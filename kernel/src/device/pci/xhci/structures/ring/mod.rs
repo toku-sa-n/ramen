@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pub mod command;
-pub mod event;
-pub mod transfer;
+pub(crate) mod command;
+pub(crate) mod event;
+pub(crate) mod transfer;
 
 #[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Debug)]
 pub struct CycleBit(bool);

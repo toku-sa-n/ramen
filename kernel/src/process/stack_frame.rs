@@ -17,11 +17,11 @@ pub(super) struct StackFrame {
     interrupt: InterruptStackFrameValue,
 }
 impl StackFrame {
-    pub fn kernel(entry: VirtAddr, stack_pointer: VirtAddr) -> Self {
+    pub(crate) fn kernel(entry: VirtAddr, stack_pointer: VirtAddr) -> Self {
         Self::new(entry, stack_pointer, &Selectors::kernel())
     }
 
-    pub fn user(entry: VirtAddr, stack_pointer: VirtAddr) -> Self {
+    pub(crate) fn user(entry: VirtAddr, stack_pointer: VirtAddr) -> Self {
         Self::new(entry, stack_pointer, &Selectors::user())
     }
 

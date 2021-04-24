@@ -8,14 +8,14 @@ use core::{
 use x86_64::PhysAddr;
 
 #[derive(Debug, Copy, Clone, Default)]
-pub struct Bar(u32);
+pub(crate) struct Bar(u32);
 
 impl Bar {
-    pub fn new(bar: u32) -> Self {
+    pub(crate) fn new(bar: u32) -> Self {
         Self(bar)
     }
 
-    pub fn base_addr(self, upper: Option<Bar>) -> Option<PhysAddr> {
+    pub(crate) fn base_addr(self, upper: Option<Bar>) -> Option<PhysAddr> {
         match upper {
             Some(upper) => match self.ty() {
                 BarType::Bar64Bit => self.base_addr_64(upper),
@@ -54,9 +54,9 @@ impl Bar {
 }
 
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq, Ord, Eq)]
-pub struct Index(u32);
+pub(crate) struct Index(u32);
 impl Index {
-    pub fn new(index: u32) -> Self {
+    pub(crate) fn new(index: u32) -> Self {
         assert!(index < 6);
         Self(index)
     }

@@ -2,9 +2,9 @@
 
 use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
-pub static SWITCH_TEST_SUCCESS: AtomicBool = AtomicBool::new(false);
+pub(crate) static SWITCH_TEST_SUCCESS: AtomicBool = AtomicBool::new(false);
 
-pub fn count_switch() {
+pub(crate) fn count_switch() {
     const EXIT_GOAL: usize = 500;
     static COUNTER: AtomicUsize = AtomicUsize::new(0);
     COUNTER.fetch_add(1, Ordering::Relaxed);
@@ -14,14 +14,14 @@ pub fn count_switch() {
     }
 }
 
-pub fn kernel_privilege_test() {
+pub(crate) fn kernel_privilege_test() {
     loop {
         x86_64::instructions::hlt()
     }
 }
 
-pub fn exit_test() {
+pub(crate) fn exit_test() {
     syscalls::exit();
 }
 
-pub fn do_nothing() {}
+pub(crate) fn do_nothing() {}

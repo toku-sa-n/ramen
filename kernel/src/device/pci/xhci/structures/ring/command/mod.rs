@@ -13,19 +13,19 @@ use xhci::ring::{trb, trb::command};
 #[allow(clippy::cast_possible_truncation)]
 const NUM_OF_TRBS: usize = Size4KiB::SIZE as usize / trb::BYTES;
 
-pub struct Ring {
+pub(crate) struct Ring {
     raw: Raw,
 }
 impl Ring {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self { raw: Raw::new() }
     }
 
-    pub fn init(&mut self) {
+    pub(crate) fn init(&mut self) {
         Initializer::new(self).init();
     }
 
-    pub fn enqueue(&mut self, trb: command::Allowed) -> PhysAddr {
+    pub(crate) fn enqueue(&mut self, trb: command::Allowed) -> PhysAddr {
         let a = self.raw.enqueue(trb);
         Self::notify_command_is_sent();
         a

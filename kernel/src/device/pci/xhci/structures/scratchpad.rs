@@ -11,7 +11,7 @@ use x86_64::PhysAddr;
 
 static SCRATCHPAD: OnceCell<Scratchpad> = OnceCell::uninit();
 
-pub fn init() {
+pub(crate) fn init() {
     if Scratchpad::exists() {
         init_static();
     }

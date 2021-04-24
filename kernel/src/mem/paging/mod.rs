@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pub mod pml4;
+pub(crate) mod pml4;
 
 use common::constant::RECUR_PML4_ADDR;
 use x86_64::structures::paging::PageTable;
 
-pub fn mark_pages_as_unused() {
+pub(crate) fn mark_pages_as_unused() {
     let page_table = unsafe { &mut *(RECUR_PML4_ADDR.as_mut_ptr::<PageTable>()) };
 
     // Entry 510 and 511 are used by kernel.

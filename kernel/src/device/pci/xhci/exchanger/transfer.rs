@@ -101,7 +101,7 @@ impl Sender {
         self.issue_trbs(&[setup.into(), status.into()]).await;
     }
 
-    pub async fn get_configuration_descriptor(&mut self) -> PageBox<[u8]> {
+    pub(crate) async fn get_configuration_descriptor(&mut self) -> PageBox<[u8]> {
         let b = PageBox::new_slice(0, 4096);
 
         let (setup, data, status) = Self::trbs_for_getting_descriptors(
@@ -114,7 +114,7 @@ impl Sender {
         b
     }
 
-    pub async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
+    pub(crate) async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
         let t = *Normal::default()
             .set_data_buffer_pointer(b.phys_addr().as_u64())
             .set_trb_transfer_length(b.bytes().as_usize().try_into().unwrap())
@@ -223,16 +223,16 @@ impl Channel {
     }
 }
 
-pub struct DoorbellWriter {
+pub(crate) struct DoorbellWriter {
     slot_id: u8,
     val: u32,
 }
 impl DoorbellWriter {
-    pub fn new(slot_id: u8, val: u32) -> Self {
+    pub(crate) fn new(slot_id: u8, val: u32) -> Self {
         Self { slot_id, val }
     }
 
-    pub fn write(&mut self) {
+    pub(crate) fn write(&mut self) {
         registers::handle(|r| {
             r.doorbell.update_at(self.slot_id.into(), |d| {
                 d.set_doorbell_target(self.val.try_into().unwrap())
@@ -241,15 +241,15 @@ impl DoorbellWriter {
     }
 }
 
-pub struct DescTyIdx {
+pub(crate) struct DescTyIdx {
     ty: descriptor::Ty,
     i: u8,
 }
 impl DescTyIdx {
-    pub fn new(ty: descriptor::Ty, i: u8) -> Self {
+    pub(crate) fn new(ty: descriptor::Ty, i: u8) -> Self {
         Self { ty, i }
     }
-    pub fn bits(self) -> u16 {
+    pub(crate) fn bits(self) -> u16 {
         (self.ty as u16) << 8 | u16::from(self.i)
     }
 }

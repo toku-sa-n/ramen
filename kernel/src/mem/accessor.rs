@@ -5,9 +5,9 @@ use core::{convert::TryInto, num::NonZeroUsize};
 use os_units::Bytes;
 use x86_64::{PhysAddr, VirtAddr};
 
-pub type Single<T> = accessor::Single<T, Mappers>;
+pub(crate) type Single<T> = accessor::Single<T, Mappers>;
 
-pub unsafe fn kernel<T>(phys_base: PhysAddr) -> Single<T>
+pub(crate) unsafe fn kernel<T>(phys_base: PhysAddr) -> Single<T>
 where
     T: Copy,
 {
@@ -15,7 +15,7 @@ where
 }
 
 #[derive(Copy, Clone)]
-pub struct Mappers {
+pub(crate) struct Mappers {
     mapper: fn(PhysAddr, Bytes) -> VirtAddr,
     unmapper: fn(VirtAddr, Bytes),
 }
@@ -27,7 +27,7 @@ impl Mappers {
         }
     }
 
-    pub fn user() -> Self {
+    pub(crate) fn user() -> Self {
         Self {
             mapper: syscalls::map_pages,
             unmapper: syscalls::unmap_pages,

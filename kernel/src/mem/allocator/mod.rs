@@ -9,13 +9,13 @@ use x86_64::{
 
 use super::paging::pml4::PML4;
 
-pub mod acpi;
-pub mod heap;
-pub mod kpbox;
-pub mod phys;
-pub mod virt;
+pub(crate) mod acpi;
+pub(crate) mod heap;
+pub(crate) mod kpbox;
+pub(crate) mod phys;
+pub(crate) mod virt;
 
-pub fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
+pub(crate) fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
     let phys_addr = allocate_phys(num_of_pages)?;
 
     let virt_addr = super::map_pages(phys_addr, num_of_pages.as_bytes());
@@ -23,7 +23,7 @@ pub fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
     Some(virt_addr)
 }
 
-pub fn deallocate_pages(virt: VirtAddr, num_of_pages: NumOfPages<Size4KiB>) {
+pub(crate) fn deallocate_pages(virt: VirtAddr, num_of_pages: NumOfPages<Size4KiB>) {
     deallocate_phys(virt);
     deallocate_virt(virt, num_of_pages);
 }

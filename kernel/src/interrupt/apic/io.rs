@@ -131,7 +131,7 @@ impl TriggerMode {
     }
 }
 
-pub fn init(table: &AcpiTables<allocator::acpi::Mapper>) {
+pub(crate) fn init(table: &AcpiTables<allocator::acpi::Mapper>) {
     pic::disable();
     let platform_info = table.platform_info().unwrap();
     let interrupt = platform_info.interrupt_model;

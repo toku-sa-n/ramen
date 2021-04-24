@@ -48,7 +48,7 @@ impl ResetPort {
     }
 }
 
-pub fn try_spawn(port_idx: u8) -> Result<(), spawner::PortNotConnected> {
+pub(crate) fn try_spawn(port_idx: u8) -> Result<(), spawner::PortNotConnected> {
     spawner::try_spawn(port_idx)
 }
 
@@ -81,7 +81,7 @@ async fn init_port_and_slot_exclusively(port_number: u8) -> FullyOperational {
     fully_operational
 }
 
-pub fn spawn_all_connected_port_tasks() {
+pub(crate) fn spawn_all_connected_port_tasks() {
     spawner::spawn_all_connected_ports();
 }
 

@@ -20,7 +20,7 @@ const SLAVE_ICW3: PortWriteOnly<u8> = SLAVE_DATA;
 const MASTER_ICW4: PortWriteOnly<u8> = MASTER_DATA;
 const SLAVE_ICW4: PortWriteOnly<u8> = SLAVE_DATA;
 
-pub fn disable() {
+pub(crate) fn disable() {
     pic_init_mode();
     remap_pic();
     set_slave_offset();
