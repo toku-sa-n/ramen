@@ -21,7 +21,7 @@ pub(crate) fn register(port_id: usize, a: PhysAddr) {
 pub(crate) struct DeviceContextBaseAddressArray {
     arr: PageBox<[PhysAddr]>,
 }
-impl<'a> DeviceContextBaseAddressArray {
+impl DeviceContextBaseAddressArray {
     fn new() -> Self {
         let arr = PageBox::new_slice(PhysAddr::zero(), Self::num_of_slots());
         Self { arr }
