@@ -14,12 +14,6 @@ pub(crate) fn count_switch() {
     }
 }
 
-pub(crate) fn kernel_privilege_test() {
-    loop {
-        x86_64::instructions::hlt()
-    }
-}
-
 pub(crate) fn exit_test() {
     syscalls::exit();
 }
