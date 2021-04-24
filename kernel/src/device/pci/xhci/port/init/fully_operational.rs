@@ -17,7 +17,7 @@ use xhci::context::EndpointType;
 pub(in super::super) struct FullyOperational {
     descriptors: Vec<Descriptor>,
     def_ep: endpoint::Default,
-    eps: Vec<endpoint::NonDefault>,
+    eps: Vec<NonDefault>,
 }
 impl FullyOperational {
     pub(super) fn new(i: EndpointsInitializer) -> Self {
