@@ -42,41 +42,6 @@ impl Collection {
         ElfMapper::new(name, self).map()
     }
 
-    fn map_segment(&mut self, ph: ProgramHeader<'_>, raw: &KpBox<[u8]>) {
-        let virt_bottom = Self::segment_page_aligned_start_addr(ph);
-        let virt_top = Self::segment_page_aligned_end_addr(ph);
-
-        let bytes = Bytes::new((virt_top - virt_bottom).try_into().unwrap());
-        let num_of_pages = bytes.as_num_of_pages::<Size4KiB>();
-
-        for i in 0..num_of_pages.as_usize() {
-            let offset = NumOfPages::<Size4KiB>::new(i).as_bytes().as_usize();
-
-            let v = VirtAddr::new(ph.virtual_addr()) + offset;
-            let v = Page::from_start_address(v).expect("This address is not aligned.");
-
-            let p = raw.phys_addr() + ph.offset() + offset;
-            let p = PhysFrame::from_start_address(p).expect("This address is not aligned.");
-
-            self.map(v, p);
-        }
-    }
-
-    fn segment_page_aligned_start_addr(ph: ProgramHeader<'_>) -> VirtAddr {
-        let a = VirtAddr::new(ph.virtual_addr());
-        assert!(
-            a.is_aligned(Size4KiB::SIZE),
-            "The start address of a segment is not page-aligned."
-        );
-        a
-    }
-
-    fn segment_page_aligned_end_addr(ph: ProgramHeader<'_>) -> VirtAddr {
-        let a = ph.virtual_addr() + ph.mem_size();
-        let a = VirtAddr::new(a);
-        a.align_up(Size4KiB::SIZE)
-    }
-
     fn map(&mut self, v: Page<Size4KiB>, p: PhysFrame) {
         let Self {
             pml4,
