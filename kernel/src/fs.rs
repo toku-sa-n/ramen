@@ -32,7 +32,8 @@ fn initrd_addr() -> VirtAddr {
         static initrd: usize;
     }
 
-    VirtAddr::new(unsafe { &initrd as *const _ as _ })
+    let a: *const usize = unsafe { &initrd };
+    VirtAddr::new(a as _)
 }
 
 pub(super) struct CpioArchievedFile {
