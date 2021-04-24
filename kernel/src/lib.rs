@@ -84,11 +84,6 @@ fn add_processes() {
 
     if cfg!(feature = "qemu_test") {
         process::add(tests::main, Privilege::User, "tests");
-        process::add(
-            tests::process::kernel_privilege_test,
-            Privilege::Kernel,
-            "ktest",
-        );
         process::add(tests::process::exit_test, Privilege::User, "exittest");
 
         for _ in 0..100 {
