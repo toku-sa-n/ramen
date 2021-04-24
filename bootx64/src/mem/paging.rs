@@ -22,7 +22,7 @@ impl<'a> AllocatorWithEfiMemoryMap<'a> {
     }
 }
 
-unsafe impl<'a> FrameAllocator<Size4KiB> for AllocatorWithEfiMemoryMap<'a> {
+unsafe impl FrameAllocator<Size4KiB> for AllocatorWithEfiMemoryMap<'_> {
     fn allocate_frame(&mut self) -> Option<PhysFrame> {
         for descriptor in self.mem_map.iter_mut() {
             if descriptor.ty == MemoryType::CONVENTIONAL && descriptor.page_count > 0 {
