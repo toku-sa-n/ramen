@@ -19,24 +19,19 @@ impl Descriptor {
     pub fn from_slice(raw: &[u8]) -> Result<Self, Error> {
         assert_eq!(raw.len(), raw[0].into());
         match FromPrimitive::from_u8(raw[1]) {
-            Some(t) => match t {
-                // SAFETY: This operation is safe because the length of `raw` is equivalent to the
-                // one of the descriptor.
-                Ty::Device => Ok(Self::Device(unsafe {
-                    ptr::read((raw as *const [u8]).cast())
-                })),
-                Ty::Configuration => Ok(Self::Configuration(unsafe {
-                    ptr::read((raw as *const [u8]).cast())
-                })),
-                Ty::Str => Ok(Self::Str),
-                Ty::Interface => Ok(Self::Interface(unsafe {
-                    ptr::read((raw as *const [u8]).cast())
-                })),
-                Ty::Endpoint => Ok(Self::Endpoint(unsafe {
-                    ptr::read((raw as *const [u8]).cast())
-                })),
-                Ty::Hid => Ok(Self::Hid),
-            },
+            Some(t) => {
+                let raw: *const [u8] = raw;
+                match t {
+                    // SAFETY: This operation is safe because the length of `raw` is equivalent to the
+                    // one of the descriptor.
+                    Ty::Device => Ok(Self::Device(unsafe { ptr::read(raw.cast()) })),
+                    Ty::Configuration => Ok(Self::Configuration(unsafe { ptr::read(raw.cast()) })),
+                    Ty::Str => Ok(Self::Str),
+                    Ty::Interface => Ok(Self::Interface(unsafe { ptr::read(raw.cast()) })),
+                    Ty::Endpoint => Ok(Self::Endpoint(unsafe { ptr::read(raw.cast()) })),
+                    Ty::Hid => Ok(Self::Hid),
+                }
+            }
             None => Err(Error::UnrecognizedType(raw[1])),
         }
     }

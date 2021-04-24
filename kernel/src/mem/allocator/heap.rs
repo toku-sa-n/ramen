@@ -17,8 +17,11 @@ pub static ALLOCATOR: LockedHeap = LockedHeap::empty();
 // Using UEFI's `allocate_pages` doesn't work for allocating larger memory. It returns out of
 // resrouces.
 pub fn init() {
-    let s = unsafe { &HEAP_START as *const usize as usize };
-    let e = unsafe { &HEAP_END as *const usize as usize };
+    let s: *const usize = unsafe { &HEAP_START };
+    let s = s as usize;
+
+    let e: *const usize = unsafe { &HEAP_END };
+    let e = e as usize;
 
     unsafe { ALLOCATOR.lock().init(s, e - s) }
 }

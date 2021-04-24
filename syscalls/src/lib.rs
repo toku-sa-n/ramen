@@ -159,7 +159,9 @@ pub fn translate_address(a: VirtAddr) -> PhysAddr {
 
 pub fn send(m: Message, to: i32) {
     let ty = Ty::Send as u64;
-    let a1 = &m as *const Message as u64;
+    let a1 = &m;
+    let a1: *const Message = a1;
+    let a1: u64 = a1 as _;
     let a2 = to;
     let a3 = 0;
     unsafe {
@@ -174,7 +176,9 @@ pub fn receive_from_any() -> Message {
     let mut m = Message::default();
 
     let ty = Ty::Receive as u64;
-    let a1 = &mut m as *mut Message as u64;
+    let a1 = &mut m;
+    let a1: *mut Message = a1;
+    let a1: u64 = a1 as _;
     let a2 = 0;
     let a3 = 0;
 
@@ -204,7 +208,8 @@ pub unsafe fn write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
 }
 
 pub fn panic(info: &PanicInfo<'_>) -> ! {
-    unsafe { general_syscall(Ty::Panic, info as *const PanicInfo<'_> as _, 0, 0) };
+    let info: *const PanicInfo<'_> = info;
+    unsafe { general_syscall(Ty::Panic, info as _, 0, 0) };
     unreachable!("The `panic` system call should not return.");
 }
 
