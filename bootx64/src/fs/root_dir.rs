@@ -6,7 +6,7 @@ use uefi::{
     ResultExt,
 };
 
-pub fn open(boot_services: &boot::BootServices) -> file::Directory {
+pub(crate) fn open(boot_services: &boot::BootServices) -> file::Directory {
     let simple_file_system = boot_services
         .locate_protocol::<fs::SimpleFileSystem>()
         .expect_success("Failed to prepare simple file system.");
