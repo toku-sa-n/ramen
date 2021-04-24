@@ -17,5 +17,3 @@ pub(crate) fn count_switch() {
 pub(crate) fn exit_test() {
     syscalls::exit();
 }
-
-pub(crate) fn do_nothing() {}
