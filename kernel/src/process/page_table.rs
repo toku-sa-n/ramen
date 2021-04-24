@@ -142,10 +142,10 @@ impl<'a> ElfMapper<'a> {
 
     fn map(mut self) -> KpBox<[u8]> {
         let raw = self.raw.clone();
-        let elf = ElfFile::new(&raw);
-        let elf = elf.expect("Not an ELF file.");
+        let elf_file = ElfFile::new(&raw);
+        let elf_file = elf_file.expect("Not an ELF file.");
 
-        for ph in elf.program_iter() {
+        for ph in elf_file.program_iter() {
             let is_gnu_stack = ph.virtual_addr() == 0;
             if !is_gnu_stack {
                 self.map_with_ph(&ph);
@@ -198,10 +198,10 @@ impl<'a> ElfMapper<'a> {
     }
 
     fn elf_bottom(&self) -> VirtAddr {
-        let elf = ElfFile::new(&self.raw);
-        let elf = elf.expect("Not an ELF file.");
+        let elf_file = ElfFile::new(&self.raw);
+        let elf_file = elf_file.expect("Not an ELF file.");
 
-        let first_section = elf.program_header(0);
+        let first_section = elf_file.program_header(0);
         let first_section = first_section.expect("Section header not found.");
 
         VirtAddr::new(first_section.virtual_addr())
