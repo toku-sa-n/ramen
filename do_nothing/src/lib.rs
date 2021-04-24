@@ -2,7 +2,7 @@
 
 #![no_std]
 
-extern crate ralib;
+extern crate ralib as _;
 
 #[no_mangle]
 pub fn main() {}
