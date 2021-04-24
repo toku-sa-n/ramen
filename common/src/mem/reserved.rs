@@ -7,7 +7,7 @@ use crate::{
 use os_units::Bytes;
 use x86_64::{PhysAddr, VirtAddr};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct PhysRange {
     start: PhysAddr,
     bytes: Bytes,
@@ -21,7 +21,7 @@ impl PhysRange {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Map([Range; 3]);
 impl Map {
     #[must_use]
@@ -43,7 +43,7 @@ impl Map {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Range {
     virt: VirtAddr,
     phys: PhysAddr,

@@ -4,7 +4,7 @@ pub mod command;
 pub mod event;
 pub mod transfer;
 
-#[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Debug)]
 pub struct CycleBit(bool);
 impl CycleBit {
     pub fn new(val: bool) -> Self {

@@ -6,7 +6,7 @@ use uefi::proto::console::gop;
 use vek::Vec2;
 use x86_64::PhysAddr;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 #[repr(C)]
 pub struct Info {
     bpp: u32,
