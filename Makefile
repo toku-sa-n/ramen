@@ -71,6 +71,14 @@ PM_LIB			:= $(BUILD_DIR)/libpm.a
 PM_LIB_DEPENDENCIES_SRC	:=	$(MESSAGE_SRC) $(RALIB_SRC) $(SYSCALLS_SRC)
 PM				:= $(BUILD_DIR)/pm.bin
 
+DO_NOTHING_DIR	:=	do_nothing
+DO_NOTHING_SRC	:=	$(shell find $(DO_NOTHING_DIR)/src)
+DO_NOTHING_SRC	+=	$(DO_NOTHING_DIR)/$(CARGO_TOML)
+DO_NOTHING_SRC	+=	$(DO_NOTHING_DIR)/$(CONFIG_TOML)
+DO_NOTHING_LIB	:=	$(BUILD_DIR)/libdo_nothing.a
+DO_NOTHING_DEPENDENCIES_SRC	:=	$(RALIB_SRC)
+DO_NOTHING	:=	$(BUILD_DIR)/do_nothing.bin
+
 IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
 
 INITRD			:= $(BUILD_DIR)/initrd.cpio
@@ -122,8 +130,8 @@ $(KERNEL_LIB):$(KERNEL_LIB_SRC) $(INITRD) $(KERNEL_LIB_DEPENDENCIES_SRC)|$(BUILD
 	# See: https://github.com/rust-lang/cargo/issues/2930
 	cd $(KERNEL_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(TEST_FLAG) $(RUSTCFLAGS)
 
-$(INITRD):$(PM) $(PORT_SERVER) $(FS)|$(BUILD_DIR)
-	(echo $(PM); echo $(PORT_SERVER); echo $(FS))|cpio -o > $@ --format=odc
+$(INITRD):$(PM) $(PORT_SERVER) $(FS) $(DO_NOTHING)|$(BUILD_DIR)
+	(echo $(PM); echo $(PORT_SERVER); echo $(FS); echo $(DO_NOTHING))|cpio -o > $@ --format=odc
 
 $(PM):$(PM_LIB)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ -e main $(PM_LIB)
@@ -145,6 +153,12 @@ $(FS_LIB):$(FS_SRC) $(FS_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 
 $(EFI_FILE):$(EFI_SRC)|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
+
+$(DO_NOTHING):$(DO_NOTHING_LIB)|$(BUILD_DIR)
+	$(LD) $(LDFLAGS) -o $@ -e main $^
+
+$(DO_NOTHING_LIB):$(DO_NOTHING_SRC) $(DO_NOTHING_DEPENDENCIES_SRC)|$(BUILD_DIR)
+	cd $(DO_NOTHING_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(BUILD_DIR):
 	mkdir $@ -p
