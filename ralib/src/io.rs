@@ -35,11 +35,11 @@ pub fn _print(args: fmt::Arguments<'_>) {
 static LOGGER: Logger = Logger;
 struct Logger;
 impl log::Log for Logger {
-    fn enabled(&self, metadata: &log::Metadata) -> bool {
+    fn enabled(&self, metadata: &log::Metadata<'_>) -> bool {
         metadata.level() <= log::Level::Info
     }
 
-    fn log(&self, record: &log::Record) {
+    fn log(&self, record: &log::Record<'_>) {
         println!("{} - {}", record.level(), record.args())
     }
 
