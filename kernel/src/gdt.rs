@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{
-    tss::TSS,
-    x86_64::{
-        instructions::{segmentation, tables},
-        structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector},
-    },
-};
+use crate::tss::TSS;
 use conquer_once::spin::Lazy;
-use x86_64::registers::model_specific::Star;
+use x86_64::{
+    instructions::{segmentation, tables},
+    registers::model_specific::Star,
+    structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector},
+};
 
 pub(crate) static GDT: Lazy<Gdt> = Lazy::new(|| {
     let mut gdt = GlobalDescriptorTable::new();

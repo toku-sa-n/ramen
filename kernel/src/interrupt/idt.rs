@@ -2,9 +2,9 @@
 
 // See P.114
 
-use crate::{interrupt, x86_64::structures::idt::InterruptDescriptorTable};
+use crate::interrupt;
 use conquer_once::spin::Lazy;
-use x86_64::PrivilegeLevel;
+use x86_64::{structures::idt::InterruptDescriptorTable, PrivilegeLevel};
 
 static IDT: Lazy<InterruptDescriptorTable> = Lazy::new(|| {
     let mut idt = InterruptDescriptorTable::new();

@@ -20,7 +20,6 @@
 #[allow(unused_imports)]
 extern crate common;
 extern crate alloc;
-extern crate x86_64;
 
 mod acpi;
 mod device;

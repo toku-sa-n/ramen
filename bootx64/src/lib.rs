@@ -13,6 +13,6 @@ pub mod jump;
 pub mod mem;
 pub mod rsdp;
 
-extern crate alloc;
+extern crate alloc as _;
 
 pub use init::init;
