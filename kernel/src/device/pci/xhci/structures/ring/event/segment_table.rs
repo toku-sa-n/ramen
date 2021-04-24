@@ -7,6 +7,7 @@ use core::{
 use page_box::PageBox;
 use x86_64::PhysAddr;
 
+#[derive(Debug)]
 pub struct SegmentTable(PageBox<[Entry]>);
 impl SegmentTable {
     pub fn new(len: usize) -> Self {
@@ -47,7 +48,7 @@ impl<'a> IntoIterator for &'a mut SegmentTable {
 }
 
 #[repr(C, packed)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Entry {
     base_address: u64,
     segment_size: u64,
