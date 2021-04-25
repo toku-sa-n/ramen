@@ -26,13 +26,6 @@ impl Mappers {
             unmapper: super::unmap_pages,
         }
     }
-
-    pub(crate) fn user() -> Self {
-        Self {
-            mapper: syscalls::map_pages,
-            unmapper: syscalls::unmap_pages,
-        }
-    }
 }
 impl Mapper for Mappers {
     unsafe fn map(&mut self, phys_start: usize, bytes: usize) -> NonZeroUsize {

@@ -31,14 +31,10 @@ mod tests;
 mod tss;
 
 use common::kernelboot;
-use futures_intrusive::sync::{GenericMutex, GenericMutexGuard};
 use interrupt::{apic, idt, timer};
 use log::info;
 use process::Privilege;
-use spinning_top::RawSpinlock;
 use terminal::vram;
-pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
-pub type FuturelockGuard<'a, T> = GenericMutexGuard<'a, RawSpinlock, T>;
 
 #[no_mangle]
 #[start]
