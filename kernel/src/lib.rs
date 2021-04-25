@@ -13,8 +13,6 @@
     abi_x86_interrupt
 )]
 #![deny(clippy::pedantic, clippy::all)]
-// A workaround for the `derive_builder` crate.
-#![allow(clippy::default_trait_access)]
 
 extern crate alloc;
 
