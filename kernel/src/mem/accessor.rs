@@ -17,16 +17,13 @@ where
 pub(crate) struct Mapper;
 impl accessor::Mapper for Mapper {
     unsafe fn map(&mut self, phys_start: usize, bytes: usize) -> NonZeroUsize {
-        NonZeroUsize::new(
-            super::map_pages(
-                PhysAddr::new(phys_start.try_into().unwrap()),
-                Bytes::new(bytes),
-            )
-            .as_u64()
-            .try_into()
-            .unwrap(),
-        )
-        .unwrap()
+        let phys_start = PhysAddr::new(phys_start.try_into().unwrap());
+        let bytes = Bytes::new(bytes);
+
+        let v = super::map_pages(phys_start, bytes);
+        let v: usize = v.as_u64().try_into().unwrap();
+
+        NonZeroUsize::new(v).expect("Failed to map pages.")
     }
 
     fn unmap(&mut self, virt_start: usize, bytes: usize) {
