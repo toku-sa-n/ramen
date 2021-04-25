@@ -10,6 +10,10 @@ pub type Single<T> = accessor::Single<T, Mapper>;
 ///
 /// - `phys_base` must be correct.
 /// - The caller must ensure that the returned accessor is the only thing to access the memory address.
+///
+/// # Panics
+///
+/// This method panics if `phys_base` is not aligned as the type `T` requires.
 pub unsafe fn single<T>(phys_base: PhysAddr) -> Single<T>
 where
     T: Copy,
