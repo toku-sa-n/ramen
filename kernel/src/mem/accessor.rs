@@ -27,9 +27,9 @@ impl accessor::Mapper for Mapper {
     }
 
     fn unmap(&mut self, virt_start: usize, bytes: usize) {
-        super::unmap_pages(
-            VirtAddr::new(virt_start.try_into().unwrap()),
-            Bytes::new(bytes),
-        )
+        let virt_start = VirtAddr::new(virt_start.try_into().unwrap());
+        let bytes = Bytes::new(bytes);
+
+        super::unmap_pages(virt_start, bytes)
     }
 }
