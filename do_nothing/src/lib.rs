@@ -5,4 +5,6 @@
 extern crate ralib as _;
 
 #[no_mangle]
-pub fn main() {}
+pub fn main() {
+    syscalls::exit();
+}
