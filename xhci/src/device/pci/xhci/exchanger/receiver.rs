@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use alloc::{collections::BTreeMap, sync::Arc};
+use conquer_once::spin::Lazy;
 use core::{
     future::Future,
     pin::Pin,
@@ -11,7 +12,7 @@ use spinning_top::{Spinlock, SpinlockGuard};
 use x86_64::PhysAddr;
 use xhci::ring::trb::event;
 
-static RECEIVER: Spinlock<Receiver> = Spinlock::new(Receiver::new());
+static RECEIVER: Lazy<Spinlock<Receiver>> = Lazy::new(|| Spinlock::new(Receiver::new()));
 
 pub(in crate::device::pci::xhci) fn add_entry(
     trb_a: PhysAddr,
@@ -35,7 +36,7 @@ struct Receiver {
     wakers: BTreeMap<PhysAddr, Arc<Spinlock<AtomicWaker>>>,
 }
 impl Receiver {
-    const fn new() -> Self {
+    fn new() -> Self {
         Self {
             trbs: BTreeMap::new(),
             wakers: BTreeMap::new(),

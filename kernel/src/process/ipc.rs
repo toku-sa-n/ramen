@@ -173,8 +173,8 @@ impl Receiver {
 ///
 /// `src` and `dst` must be the correct addresses where a message is located and copied.
 unsafe fn copy_msg(src: PhysAddr, dst: PhysAddr, sender_slot_id: SlotId) {
-    let mut src: Single<Message> = mem::accessor::kernel(src);
-    let mut dst = mem::accessor::kernel(dst);
+    let mut src: Single<Message> = mem::accessor::new(src);
+    let mut dst = mem::accessor::new(dst);
 
     src.update(|m| m.header.sender = sender_slot_id);
     dst.write(src.read());

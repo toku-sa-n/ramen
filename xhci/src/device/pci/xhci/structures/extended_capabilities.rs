@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::registers;
-use crate::mem::accessor::Mappers;
 use conquer_once::spin::OnceCell;
 use core::convert::TryInto;
+use ralib::mem::accessor::Mapper;
 use spinning_top::Spinlock;
 use x86_64::PhysAddr;
 use xhci::{extended_capabilities, ExtendedCapability};
 
-static EXTENDED_CAPABILITIES: OnceCell<Spinlock<Option<extended_capabilities::List<Mappers>>>> =
+static EXTENDED_CAPABILITIES: OnceCell<Spinlock<Option<extended_capabilities::List<Mapper>>>> =
     OnceCell::uninit();
 
 pub(in crate::device::pci::xhci) unsafe fn init(mmio_base: PhysAddr) {
@@ -19,14 +19,14 @@ pub(in crate::device::pci::xhci) unsafe fn init(mmio_base: PhysAddr) {
             Spinlock::new(extended_capabilities::List::new(
                 mmio_base.as_u64().try_into().unwrap(),
                 hccparams1,
-                Mappers::user(),
+                Mapper,
             ))
         })
         .expect("Failed to initialize `EXTENDED_CAPABILITIES`.");
 }
 
 pub(in crate::device::pci::xhci) fn iter() -> Option<
-    impl Iterator<Item = Result<ExtendedCapability<Mappers>, extended_capabilities::NotSupportedId>>,
+    impl Iterator<Item = Result<ExtendedCapability<Mapper>, extended_capabilities::NotSupportedId>>,
 > {
     Some(
         EXTENDED_CAPABILITIES
