@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
-#![feature(const_btree_new)]
 // A workaround for the `derive_builder` crate.
 #![allow(clippy::default_trait_access)]
 
