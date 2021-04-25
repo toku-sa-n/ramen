@@ -66,7 +66,7 @@ fn add_processes() {
         process::add(tests::process::exit_test, Privilege::User, "exittest");
 
         for _ in 0..100 {
-            process::add(tests::process::do_nothing, Privilege::User, "stresstest");
+            process::binary("build/do_nothing.bin", Privilege::User);
         }
     }
 }

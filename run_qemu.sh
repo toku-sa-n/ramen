@@ -14,8 +14,8 @@ readonly common_parameters=" \
     -device usb-storage,drive=usb \
     -no-reboot \
     -m 4G \
-    -d int \
     --trace events=trace.event \
+    -d int \
     "
 
 readonly parameters_for_running_qemu=" \
@@ -26,7 +26,8 @@ readonly parameters_for_running_qemu=" \
 
 readonly parameters_for_testing=" \
     $common_parameters \
-    -nographic \
+    -serial stdio \
+    -display none \
     "
 
 if [[ $1 == "-t" ]]
