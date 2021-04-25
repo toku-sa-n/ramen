@@ -17,3 +17,4 @@ log = "0.4.14"
 page_box = { path = "../page_box" }
 syscalls = { path = "../syscalls" }
 x86_64 = "0.14.0"
+accessor = "0.3.0"

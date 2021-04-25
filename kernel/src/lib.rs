@@ -1,30 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
-#![feature(
-    const_btree_new,
-    async_closure,
-    alloc_error_handler,
-    linked_list_remove,
-    const_fn,
-    asm,
-    start,
-    naked_functions,
-    abi_x86_interrupt
-)]
+#![feature(const_btree_new, alloc_error_handler, asm, start, abi_x86_interrupt)]
 #![deny(clippy::pedantic, clippy::all)]
-// A workaround for the `derive_builder` crate.
-#![allow(clippy::default_trait_access)]
 
 extern crate alloc;
 
 mod acpi;
-mod device;
 mod fs;
 mod gdt;
 mod interrupt;
 mod mem;
-mod multitask;
 mod panic;
 mod process;
 mod qemu;
@@ -33,16 +19,10 @@ mod tests;
 mod tss;
 
 use common::kernelboot;
-use device::pci::xhci;
-use futures_intrusive::sync::{GenericMutex, GenericMutexGuard};
 use interrupt::{apic, idt, timer};
 use log::info;
-use multitask::{executor::Executor, task::Task};
 use process::Privilege;
-use spinning_top::RawSpinlock;
 use terminal::vram;
-pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
-pub type FuturelockGuard<'a, T> = GenericMutexGuard<'a, RawSpinlock, T>;
 
 #[no_mangle]
 #[start]
@@ -80,7 +60,7 @@ fn add_processes() {
     process::binary("build/port_server.bin", Privilege::Kernel);
     process::binary("build/pm.bin", Privilege::User);
     process::binary("build/fs.bin", Privilege::User);
-    process::add(run_tasks, Privilege::User, "tasks");
+    process::binary("build/xhci.bin", Privilege::User);
 
     if cfg!(feature = "qemu_test") {
         process::add(tests::main, Privilege::User, "tests");
@@ -95,11 +75,4 @@ fn add_processes() {
 fn cause_timer_interrupt() -> ! {
     // SAFETY: This interrupt is handled correctly.
     unsafe { asm!("int 0x20", options(noreturn)) }
-}
-
-fn run_tasks() {
-    multitask::add(Task::new(xhci::task()));
-
-    let mut executor = Executor::new();
-    executor.run();
 }

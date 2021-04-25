@@ -30,23 +30,17 @@ log = "0.4.14"
 vek = { version = "0.15.0", default-features = false, features = ["libm"] }
 rgb = "0.8.25"
 uefi = "0.8.0"
-crossbeam-queue = { version = "0.3.1", default-features = false, features = ["alloc"] }
-futures-util = { version = "0.3.13", default-features = false, features = ["alloc"] }
 os_units = "0.3.1"
 bit_field = "0.10.1"
-futures-intrusive = { version = "0.4.0", default-features = false, features = ["alloc"] }
 num-traits = { version = "0.2.14", default-features = false }
 num-derive = "0.3.3"
 acpi = "2.2.0"
-derive_builder = { version = "0.10.2", default-features = false }
 syscalls = { path = "../syscalls" }
 page_box = { path = "../page_box" }
 terminal = { path = "../terminal" }
-xhci = "0.5.2"
 accessor = "0.3.0"
 message = { path = "../message" }
 bitflags = "1.2.1"
-byteorder = { version = "1.4.3", default-features = false }
 frame_manager = { path = "../frame_manager" }
 cstr_core = "0.2.3"
 xmas-elf = "0.7.0"

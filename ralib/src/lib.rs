@@ -5,6 +5,7 @@
 #![feature(alloc_error_handler)]
 
 pub mod io;
+pub mod mem;
 
 extern crate alloc;
 
