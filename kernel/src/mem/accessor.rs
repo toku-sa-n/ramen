@@ -1,36 +1,24 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use accessor::mapper::Mapper;
 use core::{convert::TryInto, num::NonZeroUsize};
 use os_units::Bytes;
 use x86_64::{PhysAddr, VirtAddr};
 
-pub(crate) type Single<T> = accessor::Single<T, Mappers>;
+pub(crate) type Single<T> = accessor::Single<T, Mapper>;
 
 pub(crate) unsafe fn kernel<T>(phys_base: PhysAddr) -> Single<T>
 where
     T: Copy,
 {
-    accessor::Single::new(phys_base.as_u64().try_into().unwrap(), Mappers::kernel())
+    accessor::Single::new(phys_base.as_u64().try_into().unwrap(), Mapper)
 }
 
 #[derive(Copy, Clone)]
-pub(crate) struct Mappers {
-    mapper: fn(PhysAddr, Bytes) -> VirtAddr,
-    unmapper: fn(VirtAddr, Bytes),
-}
-impl Mappers {
-    fn kernel() -> Self {
-        Self {
-            mapper: super::map_pages,
-            unmapper: super::unmap_pages,
-        }
-    }
-}
-impl Mapper for Mappers {
+pub(crate) struct Mapper;
+impl accessor::Mapper for Mapper {
     unsafe fn map(&mut self, phys_start: usize, bytes: usize) -> NonZeroUsize {
         NonZeroUsize::new(
-            (self.mapper)(
+            super::map_pages(
                 PhysAddr::new(phys_start.try_into().unwrap()),
                 Bytes::new(bytes),
             )
@@ -42,7 +30,7 @@ impl Mapper for Mappers {
     }
 
     fn unmap(&mut self, virt_start: usize, bytes: usize) {
-        (self.unmapper)(
+        super::unmap_pages(
             VirtAddr::new(virt_start.try_into().unwrap()),
             Bytes::new(bytes),
         )
