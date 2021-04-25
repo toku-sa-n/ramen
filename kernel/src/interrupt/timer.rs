@@ -28,10 +28,10 @@ struct LocalApic {
 impl LocalApic {
     fn new(table: &AcpiTables<allocator::acpi::Mapper>) -> Self {
         // SAFETY: These operations are safe because the addresses are the correct ones.
-        let lvt_timer = unsafe { crate::mem::accessor::kernel::<u32>(LVT_TIMER) };
-        let initial_count = unsafe { crate::mem::accessor::kernel::<u32>(INITIAL_COUNT) };
-        let current_count = unsafe { crate::mem::accessor::kernel::<u32>(CURRENT_COUNT) };
-        let divide_config = unsafe { crate::mem::accessor::kernel::<u32>(DIVIDE_CONFIG) };
+        let lvt_timer = unsafe { crate::mem::accessor::new::<u32>(LVT_TIMER) };
+        let initial_count = unsafe { crate::mem::accessor::new::<u32>(INITIAL_COUNT) };
+        let current_count = unsafe { crate::mem::accessor::new::<u32>(CURRENT_COUNT) };
+        let divide_config = unsafe { crate::mem::accessor::new::<u32>(DIVIDE_CONFIG) };
         let pm = AcpiPm::new(table);
 
         Self {
@@ -148,7 +148,7 @@ impl MemoryReader {
         let b = table.platform_info().unwrap().pm_timer.unwrap().base;
         Self {
             // SAFETY: This operation is safe as the address is generated from `AcpiTables`.
-            addr: unsafe { crate::mem::accessor::kernel(PhysAddr::new(b.address)) },
+            addr: unsafe { crate::mem::accessor::new(PhysAddr::new(b.address)) },
         }
     }
 

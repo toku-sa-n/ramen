@@ -6,7 +6,7 @@ use x86_64::{PhysAddr, VirtAddr};
 
 pub(crate) type Single<T> = accessor::Single<T, Mapper>;
 
-pub(crate) unsafe fn kernel<T>(phys_base: PhysAddr) -> Single<T>
+pub(crate) unsafe fn new<T>(phys_base: PhysAddr) -> Single<T>
 where
     T: Copy,
 {

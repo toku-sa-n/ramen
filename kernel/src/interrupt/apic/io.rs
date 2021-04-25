@@ -28,8 +28,8 @@ impl Registers {
         let io_apic_base = PhysAddr::new(io_apics[0].address.into());
 
         Self {
-            addr: crate::mem::accessor::kernel(io_apic_base),
-            data: crate::mem::accessor::kernel(io_apic_base + 0x10_usize),
+            addr: crate::mem::accessor::new(io_apic_base),
+            data: crate::mem::accessor::new(io_apic_base + 0x10_usize),
         }
     }
 
