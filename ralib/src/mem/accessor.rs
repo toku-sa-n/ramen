@@ -17,7 +17,7 @@ where
     Single::new(phys_base.as_u64().try_into().unwrap(), Mapper)
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Mapper;
 impl accessor::Mapper for Mapper {
     unsafe fn map(&mut self, phys_start: usize, bytes: usize) -> NonZeroUsize {
