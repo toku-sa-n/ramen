@@ -26,14 +26,7 @@ impl accessor::Mapper for Mapper {
 
         let a = syscalls::map_pages(phys_start, bytes);
 
-        if a.is_null() {
-            panic!(
-                "Failed to map pages while creating a `Mapper`. phys_start: {:?}, bytes: {:?}",
-                phys_start, bytes
-            )
-        } else {
-            NonZeroUsize::new(a.as_u64().try_into().unwrap()).expect("Must be nonzero.")
-        }
+        NonZeroUsize::new(a.as_u64().try_into().unwrap()).expect("Failed to map pages.")
     }
 
     fn unmap(&mut self, virt_start: usize, bytes: usize) {
