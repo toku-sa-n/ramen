@@ -3,9 +3,11 @@
 use super::woken_pid;
 use crate::{process, process::Process};
 use alloc::collections::BTreeMap;
+use conquer_once::spin::Lazy;
 use spinning_top::{Spinlock, SpinlockGuard};
 
-static PROCESSES: Spinlock<BTreeMap<process::SlotId, Process>> = Spinlock::new(BTreeMap::new());
+static PROCESSES: Lazy<Spinlock<BTreeMap<process::SlotId, Process>>> =
+    Lazy::new(|| Spinlock::new(BTreeMap::new()));
 
 pub(in crate::process) fn add(p: Process) {
     let id = p.id();

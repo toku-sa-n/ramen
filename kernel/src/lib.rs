@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
-#![feature(const_btree_new, alloc_error_handler, asm, start, abi_x86_interrupt)]
+#![feature(alloc_error_handler, asm, start, abi_x86_interrupt)]
 #![deny(clippy::pedantic, clippy::all)]
 
 extern crate alloc;
