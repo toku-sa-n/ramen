@@ -3,6 +3,28 @@ name = "xhci"
 version = "0.1.0"
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "xhci"
+crate-type = ["staticlib"]
+test = false
+bench = false
 
 [dependencies]
+accessor = "0.3.0"
+bit_field = "0.10.1"
+byteorder = { version = "1.4.3", default-features = false }
+conquer-once = { version = "0.3.2", default-features = false }
+crossbeam-queue = { version = "0.3.1", features = ["alloc"], default-features = false }
+derive_builder = { version = "0.10.2", default-features = false }
+futures-intrusive = { version = "0.4.0", features = ["alloc"], default-features = false }
+futures-util = { version = "0.3.14", features = ["alloc"], default-features = false }
+log = "0.4.14"
+num-derive = "0.3.3"
+num-traits = { version = "0.2.14", default-features = false }
+os_units = "0.3.1"
+page_box = { path = "../page_box" }
+ralib = { path = "../ralib" }
+spinning_top = { version = "0.2.3", features = ["nightly"] }
+syscalls = { path = "../syscalls" }
+x86_64 = "0.14.0"
+xhci = "0.5.6"

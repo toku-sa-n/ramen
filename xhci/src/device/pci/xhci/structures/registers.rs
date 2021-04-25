@@ -1,22 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::mem::accessor::Mappers;
 use conquer_once::spin::OnceCell;
 use core::convert::TryInto;
+use ralib::mem::accessor::Mapper;
 use spinning_top::Spinlock;
 use x86_64::PhysAddr;
 use xhci::Registers;
 
-static REGISTERS: OnceCell<Spinlock<Registers<Mappers>>> = OnceCell::uninit();
+static REGISTERS: OnceCell<Spinlock<Registers<Mapper>>> = OnceCell::uninit();
 
 pub(in crate::device::pci::xhci) unsafe fn init(mmio_base: PhysAddr) {
+    let mmio_base: usize = mmio_base.as_u64().try_into().unwrap();
+
     REGISTERS
-        .try_init_once(|| {
-            Spinlock::new(Registers::new(
-                mmio_base.as_u64().try_into().unwrap(),
-                Mappers::user(),
-            ))
-        })
+        .try_init_once(|| Spinlock::new(Registers::new(mmio_base, Mapper)))
         .expect("Failed to initialize `REGISTERS`.")
 }
 
@@ -30,7 +27,7 @@ pub(in crate::device::pci::xhci) unsafe fn init(mmio_base: PhysAddr) {
 /// deadlocks.
 pub(in crate::device::pci::xhci) fn handle<T, U>(f: T) -> U
 where
-    T: FnOnce(&mut Registers<Mappers>) -> U,
+    T: FnOnce(&mut Registers<Mapper>) -> U,
 {
     let mut r = REGISTERS.try_get().unwrap().lock();
     f(&mut r)
