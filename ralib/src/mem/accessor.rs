@@ -14,6 +14,7 @@ pub type Single<T> = accessor::Single<T, Mapper>;
 /// # Panics
 ///
 /// This method panics if `phys_base` is not aligned as the type `T` requires.
+#[must_use]
 pub unsafe fn single<T>(phys_base: PhysAddr) -> Single<T>
 where
     T: Copy,
