@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
-#![feature(alloc_error_handler, asm, start, abi_x86_interrupt)]
+#![feature(alloc_error_handler, asm, abi_x86_interrupt)]
 #![deny(clippy::pedantic, clippy::all)]
 
 extern crate alloc;
@@ -25,7 +25,6 @@ use process::Privilege;
 use terminal::vram;
 
 #[no_mangle]
-#[start]
 pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
     init(&mut boot_info);
     cause_timer_interrupt();
