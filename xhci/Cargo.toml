@@ -21,7 +21,7 @@ futures-util = { version = "0.3.14", features = ["alloc"], default-features = fa
 log = "0.4.14"
 num-derive = "0.3.3"
 num-traits = { version = "0.2.14", default-features = false }
-os_units = "0.3.1"
+os_units = "0.4.0"
 page_box = { path = "../page_box" }
 ralib = { path = "../ralib" }
 spinning_top = { version = "0.2.3", features = ["nightly"] }
