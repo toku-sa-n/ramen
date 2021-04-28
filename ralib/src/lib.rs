@@ -22,8 +22,6 @@ static HEAP: Lazy<Heap> = Lazy::new(Heap::default);
 
 struct Heap(PageBox<[u8]>);
 impl Heap {
-    const NUM_PAGES: NumOfPages<Size4KiB> = NumOfPages::new(16);
-
     fn start(&self) -> VirtAddr {
         self.0.virt_addr()
     }
@@ -34,7 +32,8 @@ impl Heap {
 }
 impl Default for Heap {
     fn default() -> Self {
-        Self(PageBox::new_slice(0, Self::NUM_PAGES.as_bytes().as_usize()))
+        let num_pages = NumOfPages::<Size4KiB>::new(16);
+        Self(PageBox::new_slice(0, num_pages.as_bytes().as_usize()))
     }
 }
 
