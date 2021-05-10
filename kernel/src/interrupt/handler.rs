@@ -18,7 +18,7 @@ pub(crate) extern "x86-interrupt" fn h_20(_: InterruptStackFrame) {
             call {}
             call {}
             mov rsp, rax
-        ", const INTERRUPT_STACK.as_u64(), sym apic::local::end_of_interrupt, sym process::switch, out("rax") _, out("rbx") _, out("rcx") _, out("rdx") _, out("rsi") _, out("rdi") _,  out("r8") _, out("r9") _, out("r10") _, out("r11") _, out("r12") _, out("r13") _, out("r14") _, out("r15") _);
+        ", const INTERRUPT_STACK.as_u64(), sym apic::local::end_of_interrupt, sym process::switch, out("rax") _, out("rcx") _, out("rdx") _, out("rsi") _, out("rdi") _,  out("r8") _, out("r9") _, out("r10") _, out("r11") _, out("r12") _, out("r13") _, out("r14") _, out("r15") _);
     }
 }
 
@@ -37,7 +37,7 @@ pub(crate) extern "x86-interrupt" fn h_80(_: InterruptStackFrame) {
             call {}
             call {}
             mov rsp, rax
-        ", const INTERRUPT_STACK.as_u64(), sym syscall::prepare_arguments, sym process::assign_rax_from_register, sym apic::local::end_of_interrupt, sym process::switch, out("rax") _, out("rbx") _, out("rcx") _, out("rdx") _, out("rsi") _, out("rdi") _,  out("r8") _, out("r9") _, out("r10") _, out("r11") _, out("r12") _, out("r13") _, out("r14") _, out("r15") _);
+        ", const INTERRUPT_STACK.as_u64(), sym syscall::prepare_arguments, sym process::assign_rax_from_register, sym apic::local::end_of_interrupt, sym process::switch, out("rax") _, out("rcx") _, out("rdx") _, out("rsi") _, out("rdi") _,  out("r8") _, out("r9") _, out("r10") _, out("r11") _, out("r12") _, out("r13") _, out("r14") _, out("r15") _);
     }
 }
 
@@ -53,6 +53,6 @@ pub(crate) extern "x86-interrupt" fn h_81(_: InterruptStackFrame) {
             call {}
             call {}
             mov rsp, rax
-        ", const INTERRUPT_STACK.as_u64(), sym syscall::prepare_arguments, sym apic::local::end_of_interrupt, sym process::switch, out("rax") _, out("rbx") _, out("rcx") _, out("rdx") _, out("rsi") _, out("rdi") _,  out("r8") _, out("r9") _, out("r10") _, out("r11") _, out("r12") _, out("r13") _, out("r14") _, out("r15") _);
+        ", const INTERRUPT_STACK.as_u64(), sym syscall::prepare_arguments, sym apic::local::end_of_interrupt, sym process::switch, out("rax") _, out("rcx") _, out("rdx") _, out("rsi") _, out("rdi") _,  out("r8") _, out("r9") _, out("r10") _, out("r11") _, out("r12") _, out("r13") _, out("r14") _, out("r15") _);
     }
 }
