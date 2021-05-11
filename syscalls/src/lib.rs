@@ -1,14 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
-#![feature(asm)]
 #![allow(clippy::missing_panics_doc)]
+#![feature(asm)]
 
 use core::{convert::TryInto, ffi::c_void, panic::PanicInfo};
 use message::Message;
 use num_derive::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
+
+extern "C" {
+    fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64;
+}
 
 /// # Safety
 ///
@@ -213,22 +217,12 @@ pub fn panic(info: &PanicInfo<'_>) -> ! {
     unreachable!("The `panic` system call should not return.");
 }
 
-/// SAFETY: This function is unsafe if arguments are invalid.
-#[allow(clippy::too_many_arguments)]
-unsafe fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
-    let ty = ty as u64;
-    let r: u64;
-    asm!("int 0x80",
-        inout("rax") ty => r, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
-        out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
-    r
-}
-
 fn receive_ack() {
     let _ = receive_from_any();
 }
 
 #[derive(Copy, Clone, FromPrimitive, Debug)]
+#[repr(u64)]
 pub enum Ty {
     Inb,
     Outb,
