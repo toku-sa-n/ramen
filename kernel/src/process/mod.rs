@@ -6,7 +6,7 @@ pub(crate) mod ipc;
 mod page_table;
 mod slot_id;
 mod stack_frame;
-mod switch;
+pub(crate) mod switch;
 
 use crate::{mem::allocator::kpbox::KpBox, tss::TSS};
 use alloc::collections::VecDeque;
@@ -94,7 +94,7 @@ pub(crate) struct Process {
     name: &'static str,
 }
 impl Process {
-    const STACK_SIZE: u64 = Size4KiB::SIZE * 12;
+    const STACK_SIZE: u64 = Size4KiB::SIZE * 4;
 
     #[allow(clippy::too_many_lines)]
     fn new(entry: VirtAddr, privilege: Privilege, name: &'static str) -> Self {
