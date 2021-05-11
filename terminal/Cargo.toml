@@ -10,6 +10,6 @@ edition = "2018"
 common = { path = "../common" }
 conquer-once = { version = "0.3.2", default-features = false }
 log = "0.4.14"
-rgb = "0.8.25"
-spinning_top = { version = "0.2.2", features = ["nightly"] }
+rgb = "0.8.27"
+spinning_top = { version = "0.2.3", features = ["nightly"] }
 vek = { version = "0.15.0", default-features = false, features = ["libm"] }

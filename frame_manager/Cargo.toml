@@ -9,5 +9,5 @@ edition = "2018"
 [dependencies]
 bit_field = "0.10.1"
 os_units = "0.4.0"
-uefi = "0.8.0"
-x86_64 = "0.14.0"
+uefi = "0.8.1"
+x86_64 = "0.14.1"

@@ -37,7 +37,8 @@ pub(crate) fn ensure_no_error_occurs() {
 fn get_ownership_from_bios() {
     if let Some(iter) = extended_capabilities::iter() {
         for c in iter.filter_map(Result::ok) {
-            if let ExtendedCapability::UsbLegacySupportCapability(mut l) = c {
+            if let ExtendedCapability::UsbLegacySupport(mut u) = c {
+                let l = &mut u.usblegsup;
                 l.update(|s| s.set_hc_os_owned_semaphore(true));
 
                 while l.read().hc_bios_owned_semaphore() || !l.read().hc_os_owned_semaphore() {}
