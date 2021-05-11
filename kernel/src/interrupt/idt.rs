@@ -111,6 +111,4 @@ pub(crate) fn init() {
             base: VirtAddr::from_ptr(&*IDT),
         })
     }
-
-    log::info!("IDT: {:X?}", IDT.0[0x20]);
 }
