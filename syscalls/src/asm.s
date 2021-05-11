@@ -59,3 +59,8 @@ message_syscall:
     pop rdi
     pop rax
     ret
+
+    .global exit_syscall
+exit_syscall:
+    mov rax, rdi
+    int 0x80

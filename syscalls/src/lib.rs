@@ -2,7 +2,6 @@
 
 #![no_std]
 #![allow(clippy::missing_panics_doc)]
-#![feature(asm)]
 
 use core::{convert::TryInto, ffi::c_void, panic::PanicInfo};
 use message::Message;
@@ -13,6 +12,7 @@ use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 extern "C" {
     fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64;
     fn message_syscall(ty: Ty, a1: u64, a2: u64, a3: u64);
+    fn exit_syscall(ty: Ty) -> !;
 }
 
 /// # Safety
@@ -151,8 +151,7 @@ pub fn getpid() -> i32 {
 }
 
 pub fn exit() -> ! {
-    let ty = Ty::Exit as u64;
-    unsafe { asm!("int 0x80", in("rax") ty, options(noreturn)) }
+    unsafe { exit_syscall(Ty::Exit) }
 }
 
 /// This method will return a null address if the address is not mapped.
