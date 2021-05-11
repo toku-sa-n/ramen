@@ -94,7 +94,7 @@ pub(crate) struct Process {
     name: &'static str,
 }
 impl Process {
-    const STACK_SIZE: u64 = Size4KiB::SIZE * 12;
+    const STACK_SIZE: u64 = Size4KiB::SIZE * 8;
 
     #[allow(clippy::too_many_lines)]
     fn new(entry: VirtAddr, privilege: Privilege, name: &'static str) -> Self {
