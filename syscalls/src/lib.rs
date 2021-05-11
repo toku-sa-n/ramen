@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
-#![feature(asm)]
 #![allow(clippy::missing_panics_doc)]
 
 use core::{convert::TryInto, ffi::c_void, panic::PanicInfo};
@@ -9,6 +8,12 @@ use message::Message;
 use num_derive::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
+
+extern "C" {
+    fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64;
+    fn message_syscall(ty: Ty, a1: u64, a2: u64, a3: u64);
+    fn exit_syscall(ty: Ty) -> !;
+}
 
 /// # Safety
 ///
@@ -146,8 +151,7 @@ pub fn getpid() -> i32 {
 }
 
 pub fn exit() -> ! {
-    let ty = Ty::Exit as u64;
-    unsafe { asm!("int 0x80", in("rax") ty, options(noreturn)) }
+    unsafe { exit_syscall(Ty::Exit) }
 }
 
 /// This method will return a null address if the address is not mapped.
@@ -158,35 +162,28 @@ pub fn translate_address(a: VirtAddr) -> PhysAddr {
 }
 
 pub fn send(m: Message, to: i32) {
-    let ty = Ty::Send as u64;
+    let ty = Ty::Send;
     let a1 = &m;
     let a1: *const Message = a1;
     let a1: u64 = a1 as _;
-    let a2 = to;
+    let a2: u64 = to.try_into().unwrap();
     let a3 = 0;
-    unsafe {
-        asm!("int 0x81",
-        inout("rax") ty => _, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
-        out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
-    }
+
+    unsafe { message_syscall(ty, a1, a2, a3) }
 }
 
 #[must_use]
 pub fn receive_from_any() -> Message {
     let mut m = Message::default();
 
-    let ty = Ty::Receive as u64;
+    let ty = Ty::Receive;
     let a1 = &mut m;
     let a1: *mut Message = a1;
     let a1: u64 = a1 as _;
     let a2 = 0;
     let a3 = 0;
 
-    unsafe {
-        asm!("int 0x81",
-        inout("rax") ty => _, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
-        out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
-    }
+    unsafe { message_syscall(ty, a1, a2, a3) }
 
     m
 }
@@ -213,22 +210,12 @@ pub fn panic(info: &PanicInfo<'_>) -> ! {
     unreachable!("The `panic` system call should not return.");
 }
 
-/// SAFETY: This function is unsafe if arguments are invalid.
-#[allow(clippy::too_many_arguments)]
-unsafe fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
-    let ty = ty as u64;
-    let r: u64;
-    asm!("int 0x80",
-        inout("rax") ty => r, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
-        out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
-    r
-}
-
 fn receive_ack() {
     let _ = receive_from_any();
 }
 
 #[derive(Copy, Clone, FromPrimitive, Debug)]
+#[repr(u64)]
 pub enum Ty {
     Inb,
     Outb,
