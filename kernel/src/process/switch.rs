@@ -7,7 +7,8 @@ use super::{
 use crate::{tests, tss::TSS};
 use x86_64::{registers::control::Cr3, structures::paging::PhysFrame, VirtAddr};
 
-pub(crate) fn switch() -> VirtAddr {
+#[no_mangle]
+pub extern "C" fn switch() -> VirtAddr {
     if cfg!(feature = "qemu_test") {
         tests::process::count_switch();
     }

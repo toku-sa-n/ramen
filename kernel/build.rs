@@ -5,6 +5,9 @@ fn main() {
     println!("cargo:rerun-if-changed=src/initrd.s");
     touch_initrd().expect("Failed to `touch` the initrd cpio file.");
     cc::Build::new().file("src/initrd.s").compile("initrd");
+    cc::Build::new()
+        .file("src/interrupt/handler.s")
+        .compile("handler");
 }
 
 fn touch_initrd() -> Result<(), std::io::Error> {

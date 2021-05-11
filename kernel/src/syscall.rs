@@ -14,7 +14,8 @@ use x86_64::{
 };
 
 /// SAFETY: This function is unsafe because invalid values in registers may break memory safety.
-pub(crate) unsafe fn prepare_arguments() {
+#[no_mangle]
+pub unsafe extern "C" fn prepare_arguments() {
     let syscall_index: u64;
     let a1: u64;
     let a2: u64;

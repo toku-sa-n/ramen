@@ -6,7 +6,7 @@ pub(crate) mod ipc;
 mod page_table;
 mod slot_id;
 mod stack_frame;
-mod switch;
+pub mod switch;
 
 use crate::{mem::allocator::kpbox::KpBox, tss::TSS};
 use alloc::collections::VecDeque;
@@ -22,7 +22,8 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
-pub(crate) fn assign_rax_from_register() {
+#[no_mangle]
+pub extern "C" fn assign_rax_from_register() {
     let rax;
     unsafe { asm!("", out("rax") rax) }
 
