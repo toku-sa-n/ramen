@@ -22,8 +22,7 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
-#[no_mangle]
-pub extern "C" fn assign_rax_from_register() {
+pub(crate) fn assign_rax_from_register() {
     let rax;
     unsafe { asm!("", out("rax") rax) }
 

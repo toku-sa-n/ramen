@@ -24,10 +24,6 @@ use log::info;
 use process::Privilege;
 use terminal::vram;
 
-pub use apic::local::end_of_interrupt;
-pub use process::{assign_rax_from_register, switch};
-pub use syscall::prepare_arguments;
-
 #[no_mangle]
 pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
     init(&mut boot_info);
