@@ -8,8 +8,8 @@ license = "GPL-3.0-or-later"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-uefi = "0.8.0"
-x86_64 = "0.14.0"
+uefi = "0.8.1"
+x86_64 = "0.14.1"
 os_units = "0.4.0"
 vek = { version = "0.15.0", default-features = false, features = ["libm"] }
 conquer-once = { version = "0.3.2", default-features = false }
