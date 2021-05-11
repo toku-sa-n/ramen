@@ -9,8 +9,9 @@
     .text
     .code64
 
-    .global h_20
-h_20:
+    .global h_20_asm
+    .extern h_20
+h_20_asm:
     push rbp
     mov rbp, rsp
     push r15
@@ -29,8 +30,7 @@ h_20:
     push rax
 
     mov rsp, INTERRUPT_STACK
-    call end_of_interrupt
-    call switch
+    call h_20
     mov rsp, rax
 
     pop rax

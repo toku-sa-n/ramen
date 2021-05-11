@@ -10,7 +10,7 @@ use x86_64::{
 };
 
 extern "C" {
-    fn h_20();
+    fn h_20_asm();
     fn h_80();
     fn h_81();
 }
@@ -18,7 +18,7 @@ extern "C" {
 static IDT: Lazy<Idt> = Lazy::new(|| {
     let mut idt = Idt::new();
 
-    idt.0[0x20].set_handler(h_20);
+    idt.0[0x20].set_handler(h_20_asm);
     idt.0[0x20].set_stack_index(0);
 
     idt.0[0x80].set_handler(h_80);
