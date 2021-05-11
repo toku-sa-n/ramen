@@ -51,8 +51,9 @@ h_20_asm:
     pop rbp
     iretq
 
-    .global h_80
-h_80:
+    .global h_80_asm
+    .extern h_80
+h_80_asm:
     push rbp
     mov rbp, rsp
     push r15
@@ -71,10 +72,7 @@ h_80:
     push rax
 
     mov rsp, INTERRUPT_STACK
-    call prepare_arguments
-    call assign_rax_from_register
-    call end_of_interrupt
-    call switch
+    call h_80
     mov rsp, rax
 
     pop rax
