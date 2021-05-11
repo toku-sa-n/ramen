@@ -6,7 +6,7 @@ pub(crate) mod ipc;
 mod page_table;
 mod slot_id;
 mod stack_frame;
-pub mod switch;
+pub(crate) mod switch;
 
 use crate::{mem::allocator::kpbox::KpBox, tss::TSS};
 use alloc::collections::VecDeque;
