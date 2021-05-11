@@ -13,3 +13,10 @@ pub extern "C" fn h_80() -> u64 {
     local::end_of_interrupt();
     process::switch().as_u64()
 }
+
+#[no_mangle]
+pub extern "C" fn h_81() -> u64 {
+    unsafe { syscall::prepare_arguments() }
+    local::end_of_interrupt();
+    process::switch().as_u64()
+}

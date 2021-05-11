@@ -12,7 +12,7 @@ use x86_64::{
 extern "C" {
     fn h_20_asm();
     fn h_80_asm();
-    fn h_81();
+    fn h_81_asm();
 }
 
 static IDT: Lazy<Idt> = Lazy::new(|| {
@@ -25,7 +25,7 @@ static IDT: Lazy<Idt> = Lazy::new(|| {
     idt.0[0x80].set_stack_index(0);
     idt.0[0x80].set_privilege_level(PrivilegeLevel::Ring3);
 
-    idt.0[0x81].set_handler(h_81);
+    idt.0[0x81].set_handler(h_81_asm);
     idt.0[0x81].set_stack_index(0);
     idt.0[0x81].set_privilege_level(PrivilegeLevel::Ring3);
 
