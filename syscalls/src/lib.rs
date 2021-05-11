@@ -12,6 +12,7 @@ use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 
 extern "C" {
     fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64;
+    fn message_syscall(ty: Ty, a1: u64, a2: u64, a3: u64);
 }
 
 /// # Safety
@@ -162,35 +163,28 @@ pub fn translate_address(a: VirtAddr) -> PhysAddr {
 }
 
 pub fn send(m: Message, to: i32) {
-    let ty = Ty::Send as u64;
+    let ty = Ty::Send;
     let a1 = &m;
     let a1: *const Message = a1;
     let a1: u64 = a1 as _;
-    let a2 = to;
+    let a2: u64 = to as _;
     let a3 = 0;
-    unsafe {
-        asm!("int 0x81",
-        inout("rax") ty => _, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
-        out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
-    }
+
+    unsafe { message_syscall(ty, a1, a2, a3) }
 }
 
 #[must_use]
 pub fn receive_from_any() -> Message {
     let mut m = Message::default();
 
-    let ty = Ty::Receive as u64;
+    let ty = Ty::Receive;
     let a1 = &mut m;
     let a1: *mut Message = a1;
     let a1: u64 = a1 as _;
     let a2 = 0;
     let a3 = 0;
 
-    unsafe {
-        asm!("int 0x81",
-        inout("rax") ty => _, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
-        out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
-    }
+    unsafe { message_syscall(ty, a1, a2, a3) }
 
     m
 }
