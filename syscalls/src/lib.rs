@@ -166,7 +166,7 @@ pub fn send(m: Message, to: i32) {
     let a1 = &m;
     let a1: *const Message = a1;
     let a1: u64 = a1 as _;
-    let a2: u64 = to as _;
+    let a2: u64 = to.try_into().unwrap();
     let a3 = 0;
 
     unsafe { message_syscall(ty, a1, a2, a3) }
