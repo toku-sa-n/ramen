@@ -73,7 +73,11 @@ fn sys_unmap_pages(start: VirtAddr, bytes: Bytes) -> u64 {
 }
 
 fn sys_exit() -> ! {
-    process::exit();
+    extern "C" {
+        fn prepare_exit_syscall() -> !;
+    }
+
+    unsafe { prepare_exit_syscall() }
 }
 
 fn sys_translate_address(v: VirtAddr) -> PhysAddr {
