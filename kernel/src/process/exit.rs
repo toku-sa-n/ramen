@@ -26,5 +26,9 @@ pub(crate) fn exit() -> ! {
 }
 
 fn cause_timer_interrupt() -> ! {
-    unsafe { asm!("int 0x20", options(noreturn)) }
+    extern "C" {
+        fn cause_timer_interrupt_asm() -> !;
+    }
+
+    unsafe { cause_timer_interrupt_asm() }
 }
