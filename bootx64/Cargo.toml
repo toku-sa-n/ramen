@@ -19,6 +19,6 @@ log = "0.4.14"
 uefi = { version = "0.8.1", features = ["logger"] }
 uefi-services = "0.5.1"
 common = { path = "../common/" }
-x86_64 = "0.14.1"
+x86_64 = { version = "0.14.1", default-features = false }
 elf_rs = "0.1.3"
 os_units = "0.4.0"
