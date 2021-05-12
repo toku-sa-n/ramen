@@ -13,19 +13,9 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
-/// SAFETY: This function is unsafe because invalid values in registers may break memory safety.
-pub(crate) unsafe fn prepare_arguments() -> u64 {
-    let syscall_index: u64;
-    let a1: u64;
-    let a2: u64;
-    let a3: u64;
-
-    asm!("", out("rax") syscall_index, out("rdi") a1, out("rsi") a2,out("rdx") a3);
-    select_proper_syscall(syscall_index, a1, a2, a3)
-}
-
+#[no_mangle]
 #[allow(clippy::too_many_arguments)]
-unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
+unsafe extern "C" fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
     if let Some(t) = FromPrimitive::from_u64(idx) {
         select_proper_syscall_unchecked(t, a1, a2, a3)
     } else {
