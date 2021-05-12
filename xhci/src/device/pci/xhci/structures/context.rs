@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use super::registers;
 use page_box::PageBox;
 use x86_64::PhysAddr;
-use xhci::context::{byte32, byte64, DeviceHandler, InputControlHandler, InputHandler};
-
-use super::registers;
+use xhci::context::{
+    Device32Byte, Device64Byte, DeviceHandler, Input32Byte, Input64Byte, InputControlHandler,
+    InputHandler,
+};
 
 pub(in crate::device::pci::xhci) struct Context {
     pub(crate) input: Input,
@@ -20,8 +22,8 @@ impl Default for Context {
 }
 
 pub(crate) enum Input {
-    Byte64(PageBox<byte64::Input>),
-    Byte32(PageBox<byte32::Input>),
+    Byte64(PageBox<Input64Byte>),
+    Byte32(PageBox<Input32Byte>),
 }
 impl Input {
     pub(crate) fn control_mut(&mut self) -> &mut dyn InputControlHandler {
@@ -48,23 +50,23 @@ impl Input {
 impl Default for Input {
     fn default() -> Self {
         if csz() {
-            Self::Byte64(byte64::Input::default().into())
+            Self::Byte64(Input64Byte::default().into())
         } else {
-            Self::Byte32(byte32::Input::default().into())
+            Self::Byte32(Input32Byte::default().into())
         }
     }
 }
 
 pub(in crate::device::pci::xhci) enum Device {
-    Byte64(PageBox<byte64::Device>),
-    Byte32(PageBox<byte32::Device>),
+    Byte64(PageBox<Device64Byte>),
+    Byte32(PageBox<Device32Byte>),
 }
 impl Default for Device {
     fn default() -> Self {
         if csz() {
-            Self::Byte64(byte64::Device::default().into())
+            Self::Byte64(Device64Byte::default().into())
         } else {
-            Self::Byte32(byte32::Device::default().into())
+            Self::Byte32(Device32Byte::default().into())
         }
     }
 }
