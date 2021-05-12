@@ -27,4 +27,4 @@ ralib = { path = "../ralib" }
 spinning_top = { version = "0.2.3", features = ["nightly"] }
 syscalls = { path = "../syscalls" }
 x86_64 = "0.14.1"
-xhci = "0.7.0"
+xhci = { branch = "rewrite_trb", version = "0.8.0" }

@@ -35,8 +35,7 @@ impl Sender {
 
         let setup = *transfer_trb::SetupStage::default()
             .set_transfer_type(TransferType::In)
-            .set_trb_transfer_length(8)
-            .set_interrupt_on_completion(false)
+            .clear_interrupt_on_completion()
             .set_request_type(0x80)
             .set_request(6)
             .set_value(0x0100)
@@ -45,10 +44,10 @@ impl Sender {
         let data = *transfer_trb::DataStage::default()
             .set_direction(Direction::In)
             .set_trb_transfer_length(8)
-            .set_interrupt_on_completion(false)
+            .clear_interrupt_on_completion()
             .set_data_buffer_pointer(b.phys_addr().as_u64());
 
-        let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion(true);
+        let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion();
 
         self.issue_trbs(&[setup.into(), data.into(), status.into()])
             .await;
@@ -59,14 +58,13 @@ impl Sender {
     pub(in crate::device::pci::xhci) async fn set_configure(&mut self, config_val: u8) {
         let setup = *transfer_trb::SetupStage::default()
             .set_transfer_type(TransferType::No)
-            .set_trb_transfer_length(8)
-            .set_interrupt_on_completion(false)
+            .clear_interrupt_on_completion()
             .set_request_type(0)
             .set_request(9)
             .set_value(config_val.into())
             .set_length(0);
 
-        let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion(true);
+        let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion();
 
         self.issue_trbs(&[setup.into(), status.into()]).await;
     }
@@ -74,14 +72,13 @@ impl Sender {
     pub(in crate::device::pci::xhci) async fn set_idle(&mut self) {
         let setup = *transfer_trb::SetupStage::default()
             .set_transfer_type(TransferType::No)
-            .set_trb_transfer_length(8)
-            .set_interrupt_on_completion(false)
+            .clear_interrupt_on_completion()
             .set_request_type(0x21)
             .set_request(0x0a)
             .set_value(0)
             .set_length(0);
 
-        let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion(true);
+        let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion();
 
         self.issue_trbs(&[setup.into(), status.into()]).await;
     }
@@ -89,14 +86,13 @@ impl Sender {
     pub(in crate::device::pci::xhci) async fn set_boot_protocol(&mut self) {
         let setup = *transfer_trb::SetupStage::default()
             .set_transfer_type(TransferType::No)
-            .set_trb_transfer_length(8)
-            .set_interrupt_on_completion(false)
+            .clear_interrupt_on_completion()
             .set_request_type(0b0010_0001)
             .set_request(0x0b)
             .set_value(0)
             .set_length(0);
 
-        let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion(true);
+        let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion();
 
         self.issue_trbs(&[setup.into(), status.into()]).await;
     }
@@ -118,7 +114,7 @@ impl Sender {
         let t = *Normal::default()
             .set_data_buffer_pointer(b.phys_addr().as_u64())
             .set_trb_transfer_length(b.bytes().as_usize().try_into().unwrap())
-            .set_interrupt_on_completion(true);
+            .set_interrupt_on_completion();
         debug!("Normal TRB: {:X?}", t);
         self.issue_trbs(&[t.into()]).await;
     }
@@ -136,7 +132,6 @@ impl Sender {
             .set_request(Request::GetDescriptor as u8)
             .set_value(t.bits())
             .set_length(b.bytes().as_usize().try_into().unwrap())
-            .set_trb_transfer_length(8)
             .set_transfer_type(TransferType::In);
 
         let data = *transfer_trb::DataStage::default()
@@ -144,7 +139,7 @@ impl Sender {
             .set_trb_transfer_length(b.bytes().as_usize().try_into().unwrap())
             .set_direction(Direction::In);
 
-        let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion(true);
+        let status = *transfer_trb::StatusStage::default().set_interrupt_on_completion();
 
         (setup.into(), data.into(), status.into())
     }
