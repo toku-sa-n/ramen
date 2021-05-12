@@ -72,6 +72,9 @@ fn add_processes() {
 }
 
 fn cause_timer_interrupt() -> ! {
-    // SAFETY: This interrupt is handled correctly.
-    unsafe { asm!("int 0x20", options(noreturn)) }
+    extern "C" {
+        fn cause_timer_interrupt_asm() -> !;
+    }
+
+    unsafe { cause_timer_interrupt_asm() }
 }
