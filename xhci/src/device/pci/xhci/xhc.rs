@@ -16,7 +16,9 @@ pub(crate) fn init() {
 pub(crate) fn run() {
     registers::handle(|r| {
         let o = &mut r.operational;
-        o.usbcmd.update(|u| u.set_run_stop(true));
+        o.usbcmd.update(|u| {
+            u.set_run_stop();
+        });
         while o.usbsts.read().hc_halted() {}
     });
 }
@@ -39,7 +41,9 @@ fn get_ownership_from_bios() {
         for c in iter.filter_map(Result::ok) {
             if let ExtendedCapability::UsbLegacySupport(mut u) = c {
                 let l = &mut u.usblegsup;
-                l.update(|s| s.set_hc_os_owned_semaphore(true));
+                l.update(|s| {
+                    s.set_hc_os_owned_semaphore();
+                });
 
                 while l.read().hc_bios_owned_semaphore() || !l.read().hc_os_owned_semaphore() {}
             }
@@ -55,7 +59,9 @@ fn stop_and_reset() {
 
 fn stop() {
     registers::handle(|r| {
-        r.operational.usbcmd.update(|u| u.set_run_stop(false));
+        r.operational.usbcmd.update(|u| {
+            u.clear_run_stop();
+        });
     })
 }
 
@@ -71,9 +77,9 @@ fn reset() {
 
 fn start_resetting() {
     registers::handle(|r| {
-        r.operational
-            .usbcmd
-            .update(|u| u.set_host_controller_reset(true))
+        r.operational.usbcmd.update(|u| {
+            u.set_host_controller_reset();
+        })
     })
 }
 
@@ -96,9 +102,9 @@ fn wait_until_ready() {
 fn set_num_of_enabled_slots() {
     let n = num_of_device_slots();
     registers::handle(|r| {
-        r.operational
-            .config
-            .update(|c| c.set_max_device_slots_enabled(n));
+        r.operational.config.update(|c| {
+            c.set_max_device_slots_enabled(n);
+        });
     })
 }
 

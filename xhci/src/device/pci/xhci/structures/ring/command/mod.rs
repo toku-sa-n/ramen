@@ -37,7 +37,9 @@ impl Ring {
 
     fn notify_command_is_sent() {
         registers::handle(|r| {
-            r.doorbell.update_at(0, |r| r.set_doorbell_target(0));
+            r.doorbell.update_at(0, |r| {
+                r.set_doorbell_target(0);
+            });
         })
     }
 }
@@ -129,7 +131,7 @@ impl<'a> Initializer<'a> {
             // 0, this will cause writing 0 to fields.
             r.operational.crcr.update(|c| {
                 c.set_command_ring_pointer(a.as_u64());
-                c.set_ring_cycle_state(true);
+                c.set_ring_cycle_state();
             });
         })
     }

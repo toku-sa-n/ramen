@@ -235,7 +235,7 @@ impl DoorbellWriter {
     pub(crate) fn write(&mut self) {
         registers::handle(|r| {
             r.doorbell.update_at(self.slot_id.into(), |d| {
-                d.set_doorbell_target(self.val.try_into().unwrap())
+                d.set_doorbell_target(self.val.try_into().unwrap());
             })
         });
     }

@@ -58,7 +58,7 @@ impl MaxPacketSizeSetter {
 
     fn set_max_packet_size(&mut self, s: u16) {
         let mut cx = self.cx.lock();
-        let ep_0 = cx.input.device_mut().endpoint0_mut();
+        let ep_0 = cx.input.device_mut().endpoint_mut(1);
 
         ep_0.set_max_packet_size(s);
     }
@@ -67,7 +67,7 @@ impl MaxPacketSizeSetter {
         let mut cx = self.cx.lock();
         let i = &mut cx.input;
 
-        i.control_mut().set_aflag(1);
+        i.control_mut().set_add_context_flag(1);
 
         exchanger::command::evaluate_context(i.phys_addr(), self.slot_number).await
     }
