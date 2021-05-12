@@ -22,13 +22,6 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
-pub(crate) fn assign_rax_from_register() {
-    let rax;
-    unsafe { asm!("", out("rax") rax) }
-
-    assign_rax(rax);
-}
-
 pub(super) fn add(entry: fn(), p: Privilege, name: &'static str) {
     let entry = VirtAddr::new((entry as usize).try_into().unwrap());
     push_process_to_queue(Process::new(entry, p, name));
@@ -68,7 +61,7 @@ pub(super) fn loader(f: fn()) -> ! {
     syscalls::exit();
 }
 
-fn assign_rax(rax: u64) {
+pub(crate) fn assign_to_rax(rax: u64) {
     collections::process::handle_running_mut(|p| (*p.stack_frame).regs.rax = rax);
 }
 

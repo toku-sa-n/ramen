@@ -14,14 +14,14 @@ use x86_64::{
 };
 
 /// SAFETY: This function is unsafe because invalid values in registers may break memory safety.
-pub(crate) unsafe fn prepare_arguments() {
+pub(crate) unsafe fn prepare_arguments() -> u64 {
     let syscall_index: u64;
     let a1: u64;
     let a2: u64;
     let a3: u64;
 
     asm!("", out("rax") syscall_index, out("rdi") a1, out("rsi") a2,out("rdx") a3);
-    asm!("", in("rax") select_proper_syscall(syscall_index, a1, a2,a3))
+    select_proper_syscall(syscall_index, a1, a2, a3)
 }
 
 #[allow(clippy::too_many_arguments)]

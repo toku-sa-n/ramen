@@ -8,15 +8,15 @@ extern "C" fn h_20() -> u64 {
 
 #[no_mangle]
 extern "C" fn h_80() -> u64 {
-    unsafe { syscall::prepare_arguments() }
-    process::assign_rax_from_register();
+    let v = unsafe { syscall::prepare_arguments() };
+    process::assign_to_rax(v);
     local::end_of_interrupt();
     process::switch().as_u64()
 }
 
 #[no_mangle]
 extern "C" fn h_81() -> u64 {
-    unsafe { syscall::prepare_arguments() }
+    unsafe { syscall::prepare_arguments() };
     local::end_of_interrupt();
     process::switch().as_u64()
 }
