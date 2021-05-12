@@ -7,7 +7,7 @@ license = "GPL-3.0-or-later"
 
 [dependencies]
 uefi = "0.8.1"
-x86_64 = "0.14.1"
+x86_64 = { version = "0.14.1", default-features = false }
 os_units = "0.4.0"
 vek = { version = "0.15.0", default-features = false, features = ["libm"] }
 conquer-once = { version = "0.3.2", default-features = false }
