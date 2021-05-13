@@ -4,12 +4,10 @@ version = "0.1.0"
 authors = ["toku-sa-n <tokusan441@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 common = { path = "../common" }
 conquer-once = { version = "0.3.2", default-features = false }
 log = "0.4.14"
-rgb = "0.8.25"
-spinning_top = { version = "0.2.2", features = ["nightly"] }
+rgb = "0.8.27"
+spinning_top = { version = "0.2.3", features = ["nightly"] }
 vek = { version = "0.15.0", default-features = false, features = ["libm"] }

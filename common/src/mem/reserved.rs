@@ -72,7 +72,7 @@ impl Range {
     #[must_use]
     fn stack(phys: PhysAddr) -> Self {
         Self {
-            virt: STACK_LOWER,
+            virt: *STACK_LOWER,
             phys,
             bytes: NUM_OF_PAGES_STACK.as_bytes(),
         }

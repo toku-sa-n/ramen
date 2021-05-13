@@ -22,19 +22,18 @@ bench = false
 [dependencies]
 common = { path = "../common" }
 conquer-once = { version = "0.3.2", default-features = false }
-spinning_top = { version = "0.2.2", features = ["nightly"] }
-qemu-exit = "1.0.2"
-x86_64 = "0.14.0"
-linked_list_allocator = "0.8.11"
+spinning_top = "0.2.3"
+x86_64 = { version = "0.14.1", default-features = false }
+linked_list_allocator = "0.9.0"
 log = "0.4.14"
 vek = { version = "0.15.0", default-features = false, features = ["libm"] }
-rgb = "0.8.25"
-uefi = "0.8.0"
-os_units = "0.3.1"
+rgb = "0.8.27"
+uefi = "0.9.0"
+os_units = "0.4.0"
 bit_field = "0.10.1"
 num-traits = { version = "0.2.14", default-features = false }
 num-derive = "0.3.3"
-acpi = "2.2.0"
+acpi = "2.3.1"
 syscalls = { path = "../syscalls" }
 page_box = { path = "../page_box" }
 terminal = { path = "../terminal" }
@@ -44,7 +43,7 @@ bitflags = "1.2.1"
 frame_manager = { path = "../frame_manager" }
 cstr_core = "0.2.3"
 xmas-elf = "0.7.0"
-uart_16550 = "0.2.12"
+uart_16550 = "0.2.13"
 
 [build-dependencies]
 cc = "1.0.67"
