@@ -94,8 +94,8 @@ impl<'a> InputContextInitializer<'a> {
 
     fn init_input_control(&mut self) {
         let input_control = self.context.input.control_mut();
-        input_control.set_aflag(0);
-        input_control.set_aflag(1);
+        input_control.set_add_context_flag(0);
+        input_control.set_add_context_flag(1);
     }
 
     fn init_input_slot(&mut self) {
@@ -121,12 +121,12 @@ impl<'a> Ep0ContextInitializer<'a> {
 
     fn init(self) {
         let s = self.get_max_packet_size();
-        let ep_0 = self.cx.input.device_mut().endpoint0_mut();
+        let ep_0 = self.cx.input.device_mut().endpoint_mut(1);
 
         ep_0.set_endpoint_type(EndpointType::Control);
         ep_0.set_max_packet_size(s);
-        ep_0.set_transfer_ring_dequeue_pointer(self.ep.ring_addr().as_u64());
-        ep_0.set_dequeue_cycle_state(true);
+        ep_0.set_tr_dequeue_pointer(self.ep.ring_addr().as_u64());
+        ep_0.set_dequeue_cycle_state();
         ep_0.set_error_count(3);
     }
 
