@@ -23,7 +23,9 @@ impl Resetter {
     }
 
     fn start_resetting(&self) {
-        self.update_port_register(|r| r.portsc.set_port_reset(true));
+        self.update_port_register(|r| {
+            r.portsc.set_port_reset();
+        });
     }
 
     fn wait_until_reset_is_completed(&self) {
@@ -31,7 +33,7 @@ impl Resetter {
     }
 
     fn reset_completed(&self) -> bool {
-        self.read_port_register(|r| r.portsc.port_reset_changed())
+        self.read_port_register(|r| r.portsc.port_reset_change())
     }
 
     fn read_port_register<T, U>(&self, f: T) -> U

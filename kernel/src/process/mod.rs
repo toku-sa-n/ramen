@@ -13,7 +13,6 @@ use alloc::collections::VecDeque;
 use bitflags::bitflags;
 use common::constant::INTERRUPT_STACK;
 use core::convert::TryInto;
-pub(crate) use exit::exit;
 pub(crate) use slot_id::SlotId;
 use stack_frame::StackFrame;
 pub(crate) use switch::switch;
@@ -21,13 +20,6 @@ use x86_64::{
     structures::paging::{PageSize, Size4KiB},
     PhysAddr, VirtAddr,
 };
-
-pub(crate) fn assign_rax_from_register() {
-    let rax;
-    unsafe { asm!("", out("rax") rax) }
-
-    assign_rax(rax);
-}
 
 pub(super) fn add(entry: fn(), p: Privilege, name: &'static str) {
     let entry = VirtAddr::new((entry as usize).try_into().unwrap());
@@ -68,7 +60,7 @@ pub(super) fn loader(f: fn()) -> ! {
     syscalls::exit();
 }
 
-fn assign_rax(rax: u64) {
+pub(crate) fn assign_to_rax(rax: u64) {
     collections::process::handle_running_mut(|p| (*p.stack_frame).regs.rax = rax);
 }
 

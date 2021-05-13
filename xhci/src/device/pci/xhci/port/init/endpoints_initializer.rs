@@ -112,9 +112,9 @@ impl<'a> ContextInitializer<'a> {
         let dci: usize = self.calculate_dci().into();
         let c = self.cx.input.control_mut();
 
-        c.set_aflag(0);
-        c.clear_aflag(1); // See xHCI dev manual 4.6.6.
-        c.set_aflag(dci);
+        c.set_add_context_flag(0);
+        c.clear_add_context_flag(1); // See xHCI dev manual 4.6.6.
+        c.set_add_context_flag(dci);
     }
 
     fn calculate_dci(&self) -> u8 {
@@ -133,8 +133,8 @@ impl<'a> ContextInitializer<'a> {
         match ep_ty {
             EndpointType::Control => self.init_for_control(),
             EndpointType::BulkOut | EndpointType::BulkIn => self.init_for_bulk(),
-            EndpointType::IsochronousOut
-            | EndpointType::IsochronousIn
+            EndpointType::IsochOut
+            | EndpointType::IsochIn
             | EndpointType::InterruptOut
             | EndpointType::InterruptIn => self.init_for_isoch_or_interrupt(),
             EndpointType::NotValid => unreachable!("Not Valid Endpoint should not exist."),
@@ -154,8 +154,8 @@ impl<'a> ContextInitializer<'a> {
 
         c.set_max_packet_size(sz);
         c.set_error_count(3);
-        c.set_transfer_ring_dequeue_pointer(a.as_u64());
-        c.set_dequeue_cycle_state(true);
+        c.set_tr_dequeue_pointer(a.as_u64());
+        c.set_dequeue_cycle_state();
     }
 
     fn init_for_bulk(&mut self) {
@@ -169,8 +169,8 @@ impl<'a> ContextInitializer<'a> {
         c.set_max_burst_size(0);
         c.set_error_count(3);
         c.set_max_primary_streams(0);
-        c.set_transfer_ring_dequeue_pointer(a.as_u64());
-        c.set_dequeue_cycle_state(true);
+        c.set_tr_dequeue_pointer(a.as_u64());
+        c.set_dequeue_cycle_state();
     }
 
     fn is_bulk(&self) -> bool {
@@ -194,20 +194,20 @@ impl<'a> ContextInitializer<'a> {
         c.set_max_burst_size(((sz & 0x1800) >> 11).try_into().unwrap());
         c.set_mult(0);
 
-        if let EndpointType::IsochronousOut | EndpointType::IsochronousIn = t {
+        if let EndpointType::IsochOut | EndpointType::IsochIn = t {
             c.set_error_count(0);
         } else {
             c.set_error_count(3);
         }
-        c.set_transfer_ring_dequeue_pointer(a.as_u64());
-        c.set_dequeue_cycle_state(true);
+        c.set_tr_dequeue_pointer(a.as_u64());
+        c.set_dequeue_cycle_state();
     }
 
     fn is_isoch_or_interrupt(&self) -> bool {
         let t = self.ep.ty();
         [
-            EndpointType::IsochronousOut,
-            EndpointType::IsochronousIn,
+            EndpointType::IsochOut,
+            EndpointType::IsochIn,
             EndpointType::InterruptOut,
             EndpointType::InterruptIn,
         ]
@@ -221,7 +221,7 @@ impl<'a> ContextInitializer<'a> {
         let i = self.ep.interval;
 
         let i = if let PortSpeed::FullSpeed | PortSpeed::LowSpeed = s {
-            if let EndpointType::IsochronousOut | EndpointType::IsochronousIn = t {
+            if let EndpointType::IsochOut | EndpointType::IsochIn = t {
                 i + 2
             } else {
                 i + 3
@@ -245,14 +245,10 @@ impl<'a> ContextInitializer<'a> {
 
     fn ep_cx(&mut self) -> &mut dyn EndpointHandler {
         let ep_i: usize = self.ep.endpoint_address.get_bits(0..=3).into();
-        let is_input = self.ep.endpoint_address.get_bit(7);
-        let context_inout = self.cx.input.device_mut().endpoints_mut(ep_i);
+        let is_input: usize = self.ep.endpoint_address.get_bit(7) as _;
+        let dpi = 2 * ep_i + is_input;
 
-        if is_input {
-            context_inout.input_mut()
-        } else {
-            context_inout.output_mut()
-        }
+        self.cx.input.device_mut().endpoint_mut(dpi)
     }
 }
 
@@ -272,6 +268,7 @@ fn descriptors_to_endpoints(
     descriptors
         .iter()
         .filter_map(|desc| {
+            let _ = &f;
             if let Descriptor::Endpoint(e) = desc {
                 let d = DoorbellWriter::new(f.slot_number(), e.doorbell_value());
                 let s = transfer::Sender::new(d);

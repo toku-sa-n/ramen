@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use qemu_exit::QEMUExit;
+extern "C" {
+    fn exit_qemu_as_success() -> !;
+    fn exit_qemu_as_failure() -> !;
+}
 
 pub(crate) fn exit_success() -> ! {
-    qemu_exit::X86::new(0xf4, 33).exit_success();
+    unsafe { exit_qemu_as_success() }
 }
 
 pub(crate) fn exit_failure() -> ! {
-    qemu_exit::X86::new(0xf4, 33).exit_failure();
+    unsafe { exit_qemu_as_failure() }
 }
