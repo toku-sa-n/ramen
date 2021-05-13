@@ -182,6 +182,8 @@ impl Raw {
 
     fn update_deq_p_with_xhci(&self) {
         registers::handle(|r| {
+            let _ = &self;
+
             r.interrupt_register_set.update_at(0, |r| {
                 r.erdp
                     .set_event_ring_dequeue_pointer(self.next_trb_addr().as_u64())

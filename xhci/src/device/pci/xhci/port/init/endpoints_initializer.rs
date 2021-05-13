@@ -268,6 +268,7 @@ fn descriptors_to_endpoints(
     descriptors
         .iter()
         .filter_map(|desc| {
+            let _ = &f;
             if let Descriptor::Endpoint(e) = desc {
                 let d = DoorbellWriter::new(f.slot_number(), e.doorbell_value());
                 let s = transfer::Sender::new(d);
