@@ -37,7 +37,9 @@ impl Ring {
 
     fn notify_command_is_sent() {
         registers::handle(|r| {
-            r.doorbell.update_at(0, |r| r.set_doorbell_target(0));
+            r.doorbell.update_at(0, |r| {
+                r.set_doorbell_target(0);
+            });
         })
     }
 }
@@ -62,7 +64,7 @@ impl Raw {
     }
 
     fn enqueue(&mut self, mut trb: command::Allowed) -> PhysAddr {
-        trb.set_cycle_bit(self.c.into());
+        self.set_cycle_bit(&mut trb);
         self.write_trb(trb);
         let trb_a = self.enq_addr();
         self.increment();
@@ -91,7 +93,7 @@ impl Raw {
         // Don't call `enqueue`. It will return an `Err` value as there is no space for link TRB.
         let t = *Link::default().set_ring_segment_pointer(self.head_addr().as_u64());
         let mut t = command::Allowed::Link(t);
-        t.set_cycle_bit(self.c.into());
+        self.set_cycle_bit(&mut t);
         self.raw[self.enq_p] = t.into_raw();
     }
 
@@ -111,6 +113,14 @@ impl Raw {
     fn len(&self) -> usize {
         self.raw.len()
     }
+
+    fn set_cycle_bit(&self, trb: &mut command::Allowed) {
+        if self.c == CycleBit::new(true) {
+            trb.set_cycle_bit();
+        } else {
+            trb.clear_cycle_bit();
+        }
+    }
 }
 
 struct Initializer<'a> {
@@ -129,7 +139,7 @@ impl<'a> Initializer<'a> {
             // 0, this will cause writing 0 to fields.
             r.operational.crcr.update(|c| {
                 c.set_command_ring_pointer(a.as_u64());
-                c.set_ring_cycle_state(true);
+                c.set_ring_cycle_state();
             });
         })
     }
