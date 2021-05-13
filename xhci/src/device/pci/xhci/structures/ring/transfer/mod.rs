@@ -45,7 +45,7 @@ impl Raw {
     }
 
     fn enqueue(&mut self, mut trb: transfer::Allowed) -> PhysAddr {
-        trb.set_cycle_bit(self.c.into());
+        self.set_cycle_bit(&mut trb);
         self.write_trb_on_memory(trb);
         let addr_to_trb = self.addr_to_enqueue_ptr();
         self.increment_enqueue_ptr();
@@ -82,12 +82,20 @@ impl Raw {
     fn append_link_trb(&mut self) {
         let t = *Link::default().set_ring_segment_pointer(self.phys_addr().as_u64());
         let mut t = transfer::Allowed::Link(t);
-        t.set_cycle_bit(self.c.into());
+        self.set_cycle_bit(&mut t);
         self.ring[self.enq_p] = t.into_raw();
     }
 
     fn move_enqueue_ptr_to_the_beginning(&mut self) {
         self.enq_p = 0;
         self.c.toggle();
+    }
+
+    fn set_cycle_bit(&self, trb: &mut transfer::Allowed) {
+        if self.c == CycleBit::new(true) {
+            trb.set_cycle_bit();
+        } else {
+            trb.clear_cycle_bit();
+        }
     }
 }

@@ -17,7 +17,7 @@ conquer-once = { version = "0.3.2", default-features = false }
 crossbeam-queue = { version = "0.3.1", features = ["alloc"], default-features = false }
 derive_builder = { version = "0.10.2", default-features = false }
 futures-intrusive = { version = "0.4.0", features = ["alloc"], default-features = false }
-futures-util = { version = "0.3.14", features = ["alloc"], default-features = false }
+futures-util = { version = "0.3.15", features = ["alloc"], default-features = false }
 log = "0.4.14"
 num-derive = "0.3.3"
 num-traits = { version = "0.2.14", default-features = false }
@@ -27,4 +27,4 @@ ralib = { path = "../ralib" }
 spinning_top = { version = "0.2.3", features = ["nightly"] }
 syscalls = { path = "../syscalls" }
 x86_64 = "0.14.1"
-xhci = "0.6.0"
+xhci = "0.8.0"
