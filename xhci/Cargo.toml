@@ -26,5 +26,5 @@ page_box = { path = "../page_box" }
 ralib = { path = "../ralib" }
 spinning_top = { version = "0.2.3", features = ["nightly"] }
 syscalls = { path = "../syscalls" }
-x86_64 = "0.14.1"
+x86_64 = { version = "0.14.1", default-features = false }
 xhci = "0.8.0"
