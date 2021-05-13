@@ -185,6 +185,7 @@ impl Raw {
             let _ = &self;
 
             r.interrupt_register_set.update_at(0, |r| {
+                let _ = &self;
                 r.erdp
                     .set_event_ring_dequeue_pointer(self.next_trb_addr().as_u64())
             })
