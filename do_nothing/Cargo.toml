@@ -11,4 +11,5 @@ bench = false
 
 [dependencies]
 ralib = { path = "../ralib" }
+syscalls = { path = "../syscalls" }
 

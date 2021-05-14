@@ -76,7 +76,7 @@ DO_NOTHING_SRC	:=	$(shell find $(DO_NOTHING_DIR)/src)
 DO_NOTHING_SRC	+=	$(DO_NOTHING_DIR)/$(CARGO_TOML)
 DO_NOTHING_SRC	+=	$(DO_NOTHING_DIR)/$(CONFIG_TOML)
 DO_NOTHING_LIB	:=	$(BUILD_DIR)/libdo_nothing.a
-DO_NOTHING_DEPENDENCIES_SRC	:=	$(RALIB_SRC)
+DO_NOTHING_DEPENDENCIES_SRC	:=	$(RALIB_SRC) $(SYSCALLS_SRC)
 DO_NOTHING	:=	$(BUILD_DIR)/do_nothing.bin
 
 XHCI_DIR	:=	xhci
@@ -137,7 +137,7 @@ $(KERNEL_LIB):$(KERNEL_LIB_SRC) $(INITRD) $(KERNEL_LIB_DEPENDENCIES_SRC)|$(BUILD
 	# `$(dirname argument_of_--manifest-path)/.cargo/config.toml`.
 	# See: https://github.com/rust-lang/cargo/issues/2930
 	cd $(KERNEL_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(TEST_FLAG) $(RUSTCFLAGS)
-  
+
 $(INITRD):$(PM) $(PORT_SERVER) $(FS) $(DO_NOTHING) $(XHCI)|$(BUILD_DIR)
 	(echo $(PM); echo $(PORT_SERVER); echo $(FS); echo $(DO_NOTHING); echo $(XHCI))|cpio -o > $@ --format=odc
 

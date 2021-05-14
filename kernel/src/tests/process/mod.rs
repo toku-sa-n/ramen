@@ -13,7 +13,3 @@ pub(crate) fn count_switch() {
         SWITCH_TEST_SUCCESS.fetch_or(true, Ordering::Relaxed);
     }
 }
-
-pub(crate) fn exit_test() {
-    syscalls::exit();
-}
