@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{collections, SlotId};
+use super::{collections, get_slot_id, ReceiveFrom, SlotId};
 use crate::{mem, mem::accessor::Single};
 use mem::paging::pml4::PML4;
 use message::Message;
@@ -10,8 +10,12 @@ pub(crate) fn send(msg: VirtAddr, to: SlotId) {
     Sender::new(msg, to).send()
 }
 
-pub(crate) fn receive(msg_buf: VirtAddr) {
-    Receiver::new(msg_buf).receive()
+pub(crate) fn receive_from_any(msg_buf: VirtAddr) {
+    Receiver::new_from_any(msg_buf).receive()
+}
+
+pub(crate) fn receive_from(msg_buf: VirtAddr, from: SlotId) {
+    Receiver::new_from(msg_buf, from).receive()
 }
 
 struct Sender {
@@ -34,7 +38,9 @@ impl Sender {
     }
 
     fn is_receiver_waiting(&self) -> bool {
-        collections::process::handle(self.to, |p| p.waiting_message() && p.msg_ptr.is_some())
+        collections::process::handle(self.to, |p| {
+            [Some(ReceiveFrom::Id(get_slot_id())), Some(ReceiveFrom::Any)].contains(&p.receive_from)
+        })
     }
 
     fn copy_msg_and_wake(&self) {
@@ -47,20 +53,20 @@ impl Sender {
         let dst = collections::process::handle(self.to, |p| p.msg_ptr);
         let dst = dst.expect("Message destination address is not specified.");
 
-        unsafe { copy_msg(self.msg, dst, super::get_slot_id()) }
+        unsafe { copy_msg(self.msg, dst, get_slot_id()) }
     }
 
     fn remove_msg_buf() {
         collections::process::handle_running_mut(|p| {
             p.msg_ptr = None;
-            p.flags -= super::Flags::SENDING;
+            p.send_to = None;
         })
     }
 
     fn wake_dst(&self) {
         collections::process::handle_mut(self.to, |p| {
-            p.flags -= super::Flags::RECEIVING;
             p.msg_ptr = None;
+            p.receive_from = None;
         });
         collections::woken_pid::push(self.to);
     }
@@ -68,7 +74,7 @@ impl Sender {
     fn set_msg_buf_and_sleep(&self) {
         self.set_msg_buf();
         self.add_self_as_trying_to_send();
-        Self::mark_as_sending();
+        self.mark_as_sending();
         sleep();
     }
 
@@ -83,51 +89,75 @@ impl Sender {
     }
 
     fn add_self_as_trying_to_send(&self) {
-        let pid = super::get_slot_id();
+        let pid = get_slot_id();
         collections::process::handle_mut(self.to, |p| {
-            p.pids_try_to_send_this_process.push_back(pid)
+            p.pids_try_to_send_this_process.push_back(pid);
         });
     }
 
-    fn mark_as_sending() {
-        collections::process::handle_running_mut(|p| p.flags |= super::Flags::SENDING)
+    fn mark_as_sending(&self) {
+        collections::process::handle_running_mut(|p| p.send_to = Some(self.to))
     }
 }
 
 struct Receiver {
     msg_buf: PhysAddr,
+    from: ReceiveFrom,
 }
 impl Receiver {
-    fn new(msg_buf: VirtAddr) -> Self {
+    fn new_from_any(msg_buf: VirtAddr) -> Self {
         let msg_buf = virt_to_phys(msg_buf);
-        Self { msg_buf }
+
+        Self {
+            msg_buf,
+            from: ReceiveFrom::Any,
+        }
+    }
+
+    fn new_from(msg_buf: VirtAddr, from: SlotId) -> Self {
+        let msg_buf = virt_to_phys(msg_buf);
+
+        Self {
+            msg_buf,
+            from: ReceiveFrom::Id(from),
+        }
     }
 
     fn receive(self) {
-        if Self::is_sender_waiting() {
+        if self.is_sender_waiting() {
             self.copy_msg_and_wake();
         } else {
             self.set_msg_buf_and_sleep();
         }
     }
 
-    fn is_sender_waiting() -> bool {
-        collections::process::handle_running(|p| !p.pids_try_to_send_this_process.is_empty())
+    fn is_sender_waiting(&self) -> bool {
+        use collections::process::{handle, handle_running};
+
+        if let ReceiveFrom::Id(id) = self.from {
+            handle(id, |p| p.send_to == Some(id))
+        } else {
+            handle_running(|p| !p.pids_try_to_send_this_process.is_empty())
+        }
     }
 
     fn copy_msg_and_wake(&self) {
-        let src_pid = Self::src_pid();
+        let src_pid = self.src_pid();
 
         self.copy_msg(src_pid);
         Self::wake_sender(src_pid);
     }
 
-    fn src_pid() -> SlotId {
-        collections::process::handle_running_mut(|p| {
-            p.pids_try_to_send_this_process
-                .pop_front()
-                .expect("No process is waiting to send.")
-        })
+    fn src_pid(&self) -> SlotId {
+        if let ReceiveFrom::Id(id) = self.from {
+            id
+        } else {
+            collections::process::handle_running_mut(|p| {
+                p.pids_try_to_send_this_process
+                    .pop_front()
+                    .expect("No process is waiting to send.")
+            })
+        }
     }
 
     fn copy_msg(&self, src_slot_id: SlotId) {
@@ -139,15 +169,15 @@ impl Receiver {
 
     fn wake_sender(src_pid: SlotId) {
         collections::process::handle_mut(src_pid, |p| {
-            p.flags -= super::Flags::SENDING;
             p.msg_ptr = None;
+            p.send_to = None;
         });
         collections::woken_pid::push(src_pid);
     }
 
     fn set_msg_buf_and_sleep(&self) {
         self.set_msg_buf();
-        Self::mark_as_receiving();
+        self.mark_as_receiving();
         sleep();
     }
 
@@ -161,8 +191,8 @@ impl Receiver {
         })
     }
 
-    fn mark_as_receiving() {
-        collections::process::handle_running_mut(|p| p.flags |= super::Flags::RECEIVING)
+    fn mark_as_receiving(&self) {
+        collections::process::handle_running_mut(|p| p.receive_from = Some(self.from))
     }
 }
 

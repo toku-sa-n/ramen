@@ -27,7 +27,7 @@ pub unsafe fn inb(port: u16) -> u8 {
 
     send(m, 0);
 
-    let reply = receive_from_any();
+    let reply = receive_from(0);
 
     reply.body.0.try_into().unwrap()
 }
@@ -43,7 +43,7 @@ pub unsafe fn inl(port: u16) -> u32 {
 
     send(m, 0);
 
-    let reply = receive_from_any();
+    let reply = receive_from(0);
 
     reply.body.0.try_into().unwrap()
 }
@@ -59,7 +59,7 @@ pub unsafe fn outb(port: u16, value: u8) {
 
     send(m, 0);
 
-    receive_ack();
+    receive_ack(0);
 }
 
 /// # Safety
@@ -73,7 +73,7 @@ pub unsafe fn outl(port: u16, value: u32) {
 
     send(m, 0);
 
-    receive_ack();
+    receive_ack(0);
 }
 
 #[must_use]
@@ -145,7 +145,7 @@ pub fn getpid() -> i32 {
 
     send(m, 1);
 
-    let reply = receive_from_any();
+    let reply = receive_from(1);
 
     reply.body.0.try_into().unwrap()
 }
@@ -176,7 +176,7 @@ pub fn send(m: Message, to: i32) {
 pub fn receive_from_any() -> Message {
     let mut m = Message::default();
 
-    let ty = Ty::Receive;
+    let ty = Ty::ReceiveFromAny;
     let a1 = &mut m;
     let a1: *mut Message = a1;
     let a1: u64 = a1 as _;
@@ -184,6 +184,18 @@ pub fn receive_from_any() -> Message {
     let a3 = 0;
 
     unsafe { message_syscall(ty, a1, a2, a3) }
+
+    m
+}
+
+#[must_use]
+pub fn receive_from(from: i32) -> Message {
+    let mut m = Message::default();
+
+    let m_ptr: *mut Message = &mut m;
+    let m_ptr: u64 = m_ptr as _;
+
+    unsafe { message_syscall(Ty::ReceiveFrom, m_ptr, from.try_into().unwrap(), 0) }
 
     m
 }
@@ -210,8 +222,8 @@ pub fn panic(info: &PanicInfo<'_>) -> ! {
     unreachable!("The `panic` system call should not return.");
 }
 
-fn receive_ack() {
-    let _ = receive_from_any();
+fn receive_ack(from: i32) {
+    let _ = receive_from(from);
 }
 
 #[derive(Copy, Clone, FromPrimitive, Debug)]
@@ -230,6 +242,7 @@ pub enum Ty {
     TranslateAddress,
     Write,
     Send,
-    Receive,
+    ReceiveFromAny,
+    ReceiveFrom,
     Panic,
 }

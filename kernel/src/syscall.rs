@@ -2,7 +2,7 @@
 
 use crate::{
     mem::{allocator, paging::pml4::PML4},
-    process,
+    process::{self, SlotId},
 };
 use core::{convert::TryInto, ffi::c_void, panic::PanicInfo, slice};
 use num_traits::FromPrimitive;
@@ -48,7 +48,8 @@ unsafe fn select_proper_syscall_unchecked(ty: syscalls::Ty, a1: u64, a2: u64, a3
         .try_into()
         .unwrap(),
         syscalls::Ty::Send => sys_send(VirtAddr::new(a1), a2.try_into().unwrap()),
-        syscalls::Ty::Receive => sys_receive(VirtAddr::new(a1)),
+        syscalls::Ty::ReceiveFromAny => sys_receive_from_any(VirtAddr::new(a1)),
+        syscalls::Ty::ReceiveFrom => sys_receive_from(VirtAddr::new(a1), a2.try_into().unwrap()),
         syscalls::Ty::Panic => sys_panic(a1 as *const PanicInfo<'_>),
         _ => unreachable!("This sytem call should not be handled by the kernel itself."),
     }
@@ -107,13 +108,18 @@ unsafe fn sys_write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
     }
 }
 
-fn sys_send(m: VirtAddr, to: process::SlotId) -> u64 {
+fn sys_send(m: VirtAddr, to: SlotId) -> u64 {
     process::ipc::send(m, to);
     0
 }
 
-fn sys_receive(m: VirtAddr) -> u64 {
-    process::ipc::receive(m);
+fn sys_receive_from_any(m: VirtAddr) -> u64 {
+    process::ipc::receive_from_any(m);
+    0
+}
+
+fn sys_receive_from(m: VirtAddr, from: SlotId) -> u64 {
+    process::ipc::receive_from(m, from);
     0
 }
 

@@ -10,7 +10,6 @@ pub(crate) mod switch;
 
 use crate::{mem::allocator::kpbox::KpBox, tss::TSS};
 use alloc::collections::VecDeque;
-use bitflags::bitflags;
 use common::constant::INTERRUPT_STACK;
 use core::convert::TryInto;
 pub(crate) use slot_id::SlotId;
@@ -79,9 +78,13 @@ pub(crate) struct Process {
     privilege: Privilege,
     binary: Option<KpBox<[u8]>>,
 
-    flags: Flags,
     msg_ptr: Option<PhysAddr>,
+
+    send_to: Option<SlotId>,
+    receive_from: Option<ReceiveFrom>,
+
     pids_try_to_send_this_process: VecDeque<SlotId>,
+    pids_try_to_receive_from_this_process: VecDeque<SlotId>,
 
     name: &'static str,
 }
@@ -112,9 +115,13 @@ impl Process {
             privilege,
             binary: None,
 
-            flags: Flags::empty(),
             msg_ptr: None,
+
+            send_to: None,
+            receive_from: None,
+
             pids_try_to_send_this_process: VecDeque::new(),
+            pids_try_to_receive_from_this_process: VecDeque::new(),
             name,
         }
     }
@@ -145,19 +152,19 @@ impl Process {
             privilege,
             binary: Some(content),
 
-            flags: Flags::empty(),
             msg_ptr: None,
+
+            send_to: None,
+            receive_from: None,
+
             pids_try_to_send_this_process: VecDeque::new(),
+            pids_try_to_receive_from_this_process: VecDeque::new(),
             name,
         }
     }
 
     fn id(&self) -> SlotId {
         self.id
-    }
-
-    fn waiting_message(&self) -> bool {
-        self.flags.contains(Flags::RECEIVING)
     }
 
     fn stack_frame_top_addr(&self) -> VirtAddr {
@@ -170,15 +177,14 @@ impl Process {
     }
 }
 
-bitflags! {
-    struct Flags:u32{
-        const SENDING=0b0001;
-        const RECEIVING=0b0010;
-    }
-}
-
 #[derive(Debug)]
 pub(crate) enum Privilege {
     Kernel,
     User,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+pub(crate) enum ReceiveFrom {
+    Any,
+    Id(SlotId),
 }
