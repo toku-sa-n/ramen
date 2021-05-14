@@ -2,3 +2,9 @@
 name = "fm"
 version = "0.1.0"
 edition = "2018"
+
+[lib]
+name = "fm"
+crate-type = ["staticlib"]
+test = false
+bench = false
