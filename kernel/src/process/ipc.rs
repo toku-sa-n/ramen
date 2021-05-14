@@ -20,10 +20,7 @@ struct Sender {
 }
 impl Sender {
     fn new(msg: VirtAddr, to: SlotId) -> Self {
-        let msg = PML4
-            .lock()
-            .translate_addr(msg)
-            .expect("Failed to get the physical address of a message.");
+        let msg = virt_to_phys(msg);
 
         Self { msg, to }
     }
