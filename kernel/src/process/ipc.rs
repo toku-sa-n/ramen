@@ -14,6 +14,10 @@ pub(crate) fn receive_from_any(msg_buf: VirtAddr) {
     Receiver::new_from_any(msg_buf).receive()
 }
 
+pub(crate) fn receive_from(msg_buf: VirtAddr, from: SlotId) {
+    Receiver::new_from(msg_buf, from).receive()
+}
+
 struct Sender {
     msg: PhysAddr,
     to: SlotId,
@@ -107,6 +111,15 @@ impl Receiver {
         Self {
             msg_buf,
             from: ReceiveFrom::Any,
+        }
+    }
+
+    fn new_from(msg_buf: VirtAddr, from: SlotId) -> Self {
+        let msg_buf = virt_to_phys(msg_buf);
+
+        Self {
+            msg_buf,
+            from: ReceiveFrom::Id(from),
         }
     }
 

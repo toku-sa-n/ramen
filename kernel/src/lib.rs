@@ -62,6 +62,7 @@ fn add_processes() {
     process::binary("build/fs.bin", Privilege::User);
     process::binary("build/xhci.bin", Privilege::User);
     process::add(sysproc::main, Privilege::Kernel, "sysproc");
+    process::add(do_nothing, Privilege::User, "do_nothing");
 
     if cfg!(feature = "qemu_test") {
         process::add(tests::main, Privilege::User, "tests");
@@ -79,4 +80,10 @@ fn cause_timer_interrupt() -> ! {
     }
 
     unsafe { cause_timer_interrupt_asm() }
+}
+
+fn do_nothing() {
+    loop {
+        x86_64::instructions::nop()
+    }
 }
