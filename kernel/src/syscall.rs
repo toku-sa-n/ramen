@@ -108,7 +108,7 @@ unsafe fn sys_write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
     }
 }
 
-fn sys_send(m: VirtAddr, to: process::SlotId) -> u64 {
+fn sys_send(m: VirtAddr, to: SlotId) -> u64 {
     process::ipc::send(m, to);
     0
 }
