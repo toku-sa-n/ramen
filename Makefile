@@ -137,24 +137,24 @@ $(KERNEL_LIB):$(KERNEL_LIB_SRC) $(INITRD) $(KERNEL_LIB_DEPENDENCIES_SRC)|$(BUILD
 	# `$(dirname argument_of_--manifest-path)/.cargo/config.toml`.
 	# See: https://github.com/rust-lang/cargo/issues/2930
 	cd $(KERNEL_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(TEST_FLAG) $(RUSTCFLAGS)
-  
+
 $(INITRD):$(PM) $(PORT_SERVER) $(FS) $(DO_NOTHING) $(XHCI)|$(BUILD_DIR)
 	(echo $(PM); echo $(PORT_SERVER); echo $(FS); echo $(DO_NOTHING); echo $(XHCI))|cpio -o > $@ --format=odc
 
 $(PM):$(PM_LIB)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -o $@ -e main $(PM_LIB)
+	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $(PM_LIB)
 
 $(PM_LIB):$(PM_LIB_SRC) $(PM_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(PM_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(PORT_SERVER):$(PORT_SERVER_LIB)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -o $@ -e main $^
+	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $^
 
 $(PORT_SERVER_LIB):$(PORT_SERVER_SRC) $(PORT_SERVER_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(PORT_SERVER_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(FS):$(FS_LIB)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -o $@ -e main $^
+	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $^
 
 $(FS_LIB):$(FS_SRC) $(FS_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(FS_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
@@ -163,13 +163,13 @@ $(EFI_FILE):$(EFI_SRC)|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(DO_NOTHING):$(DO_NOTHING_LIB)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -o $@ -e main $^
+	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $^
 
 $(DO_NOTHING_LIB):$(DO_NOTHING_SRC) $(DO_NOTHING_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(DO_NOTHING_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(XHCI):$(XHCI_LIB)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -o $@ -e main $^
+	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $^
 
 $(XHCI_LIB):$(XHCI_SRC) $(XHCI_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(XHCI_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
