@@ -7,7 +7,6 @@
 extern crate alloc;
 
 mod acpi;
-mod sysproc;
 mod fs;
 mod gdt;
 mod interrupt;
@@ -16,6 +15,7 @@ mod panic;
 mod process;
 mod qemu;
 mod syscall;
+mod sysproc;
 mod tests;
 mod tss;
 
@@ -61,7 +61,7 @@ fn add_processes() {
     process::binary("build/pm.bin", Privilege::User);
     process::binary("build/fs.bin", Privilege::User);
     process::binary("build/xhci.bin", Privilege::User);
-    process::add(sysproc::main,Privilege::Kernel,"sysproc");
+    process::add(sysproc::main, Privilege::Kernel, "sysproc");
 
     if cfg!(feature = "qemu_test") {
         process::add(tests::main, Privilege::User, "tests");
