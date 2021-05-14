@@ -7,6 +7,7 @@
 extern crate alloc;
 
 mod acpi;
+mod sysproc;
 mod fs;
 mod gdt;
 mod interrupt;
