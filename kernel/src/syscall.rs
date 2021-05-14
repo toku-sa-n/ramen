@@ -45,8 +45,8 @@ unsafe fn select_proper_syscall_unchecked(ty: syscalls::Ty, a1: u64, a2: u64, a3
             a2 as *const _,
             a3.try_into().unwrap(),
         )
-        .try_into()
-        .unwrap(),
+            .try_into()
+            .unwrap(),
         syscalls::Ty::Send => sys_send(VirtAddr::new(a1), a2.try_into().unwrap()),
         syscalls::Ty::Receive => sys_receive(VirtAddr::new(a1)),
         syscalls::Ty::Panic => sys_panic(a1 as *const PanicInfo<'_>),
@@ -113,7 +113,7 @@ fn sys_send(m: VirtAddr, to: process::SlotId) -> u64 {
 }
 
 fn sys_receive(m: VirtAddr) -> u64 {
-    process::ipc::receive(m);
+    process::ipc::receive_from_any(m);
     0
 }
 

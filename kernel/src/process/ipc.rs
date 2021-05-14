@@ -10,7 +10,7 @@ pub(crate) fn send(msg: VirtAddr, to: SlotId) {
     Sender::new(msg, to).send()
 }
 
-pub(crate) fn receive(msg_buf: VirtAddr) {
+pub(crate) fn receive_from_any(msg_buf: VirtAddr) {
     Receiver::new(msg_buf).receive()
 }
 
