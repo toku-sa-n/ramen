@@ -134,6 +134,11 @@ impl FrameDeallocator<Size4KiB> for FrameManager {
         self.free(addr);
     }
 }
+impl From<Vec<Frames>> for FrameManager {
+    fn from(f: Vec<Frames>) -> Self {
+        Self(f)
+    }
+}
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub struct Frames {
