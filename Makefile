@@ -183,7 +183,7 @@ $(XHCI_LIB):$(XHCI_SRC) $(XHCI_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(XHCI_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(FM):$(FM_LIB)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $^
+	$(LD) $(LDFLAGS) -T $(FM_DIR)/fm.ld -o $@ -e main $^
 
 $(FM_LIB):$(FM_SRC) $(FM_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(FM_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
