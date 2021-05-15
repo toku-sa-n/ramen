@@ -30,6 +30,10 @@ impl FrameManager {
         }
     }
 
+    pub fn frames(&self) -> Vec<Frames> {
+        self.0.clone()
+    }
+
     fn init_for_descriptor(&mut self, descriptor: &boot::MemoryDescriptor) {
         let start = PhysAddr::new(descriptor.phys_start);
         let num = NumOfPages::new(descriptor.page_count.try_into().unwrap());
@@ -130,15 +134,20 @@ impl FrameDeallocator<Size4KiB> for FrameManager {
         self.free(addr);
     }
 }
+impl From<Vec<Frames>> for FrameManager {
+    fn from(f: Vec<Frames>) -> Self {
+        Self(f)
+    }
+}
 
-#[derive(PartialEq, Eq)]
-struct Frames {
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub struct Frames {
     start: PhysAddr,
     num_of_pages: NumOfPages<Size4KiB>,
     available: bool,
 }
 impl Frames {
-    fn new_for_available(start: PhysAddr, num_of_pages: NumOfPages<Size4KiB>) -> Self {
+    pub fn new_for_available(start: PhysAddr, num_of_pages: NumOfPages<Size4KiB>) -> Self {
         Self {
             start,
             num_of_pages,
@@ -146,13 +155,24 @@ impl Frames {
         }
     }
 
-    #[cfg(test)]
-    fn new_for_used(start: PhysAddr, num_of_pages: NumOfPages<Size4KiB>) -> Self {
+    pub fn new_for_used(start: PhysAddr, num_of_pages: NumOfPages<Size4KiB>) -> Self {
         Self {
             start,
             num_of_pages,
             available: false,
         }
+    }
+
+    pub fn start(&self) -> PhysAddr {
+        self.start
+    }
+
+    pub fn num_of_pages(&self) -> NumOfPages<Size4KiB> {
+        self.num_of_pages
+    }
+
+    pub fn available(&self) -> bool {
+        self.available
     }
 
     fn is_splittable(&self, requested: NumOfPages<Size4KiB>) -> bool {
