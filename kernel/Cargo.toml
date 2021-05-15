@@ -44,6 +44,7 @@ frame_manager = { path = "../frame_manager" }
 cstr_core = "0.2.3"
 xmas-elf = "0.7.0"
 uart_16550 = "0.2.13"
+fm_message = { path = "../fm_message" }
 
 [build-dependencies]
 cc = "1.0.67"
