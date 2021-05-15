@@ -30,6 +30,10 @@ impl FrameManager {
         }
     }
 
+    pub fn iter(&self) -> impl Iterator<Item = &Frames> {
+        self.0.iter()
+    }
+
     fn init_for_descriptor(&mut self, descriptor: &boot::MemoryDescriptor) {
         let start = PhysAddr::new(descriptor.phys_start);
         let num = NumOfPages::new(descriptor.page_count.try_into().unwrap());
@@ -132,7 +136,7 @@ impl FrameDeallocator<Size4KiB> for FrameManager {
 }
 
 #[derive(PartialEq, Eq)]
-struct Frames {
+pub struct Frames {
     start: PhysAddr,
     num_of_pages: NumOfPages<Size4KiB>,
     available: bool,
