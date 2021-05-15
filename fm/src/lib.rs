@@ -58,22 +58,26 @@ impl Syncer {
 
             !Self::sync_finished(m)
         } {
-            let start = PhysAddr::new(m.body.1);
-            let num_of_pages = NumOfPages::new(m.body.2.try_into().unwrap());
-            let available = match m.body.3 {
-                0 => false,
-                1 => true,
-                _ => unreachable!("`available` is neither 0 nor 1."),
-            };
-
-            let frames = if available {
-                Frames::new_for_available(start, num_of_pages)
-            } else {
-                Frames::new_for_used(start, num_of_pages)
-            };
-
-            self.0.push(frames);
+            self.push_frame(m);
         }
+    }
+
+    fn push_frame(&mut self, m: Message) {
+        let start = PhysAddr::new(m.body.1);
+        let num_of_pages = NumOfPages::new(m.body.2.try_into().unwrap());
+        let available = match m.body.3 {
+            0 => false,
+            1 => true,
+            _ => unreachable!("`available` is neither 0 nor 1."),
+        };
+
+        let frames = if available {
+            Frames::new_for_available(start, num_of_pages)
+        } else {
+            Frames::new_for_used(start, num_of_pages)
+        };
+
+        self.0.push(frames);
     }
 
     fn sync_finished(m: Message) -> bool {
