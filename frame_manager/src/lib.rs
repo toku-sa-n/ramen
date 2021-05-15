@@ -158,6 +158,18 @@ impl Frames {
         }
     }
 
+    pub fn start(&self) -> PhysAddr {
+        self.start
+    }
+
+    pub fn num_of_pages(&self) -> NumOfPages<Size4KiB> {
+        self.num_of_pages
+    }
+
+    pub fn available(&self) -> bool {
+        self.available
+    }
+
     fn is_splittable(&self, requested: NumOfPages<Size4KiB>) -> bool {
         self.num_of_pages > requested
     }
