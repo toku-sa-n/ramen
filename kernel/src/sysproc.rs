@@ -14,6 +14,7 @@ pub(crate) fn main() {
 fn sync_with_fm() {
     start_sync_with_fm();
     send_frame_ranges();
+    end_sync_with_fm();
 }
 
 fn start_sync_with_fm() {
@@ -34,6 +35,12 @@ fn send_frame_range(f: &Frames) {
     let availble = f.available();
 
     let b = message::Body(fm_message::Ty::AddFrames as _, start, num, availble as _, 0);
+    send_to_fm(b);
+}
+
+fn end_sync_with_fm() {
+    let b = message::Body(fm_message::Ty::EndInitialization as _, 0, 0, 0, 0);
+
     send_to_fm(b);
 }
 
