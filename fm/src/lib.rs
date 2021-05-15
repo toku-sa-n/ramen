@@ -28,28 +28,29 @@ fn init() {
 }
 
 fn sync_with_sysproc() {
-    start_sync_with_sysproc();
     Syncer::default().sync();
-}
-
-fn start_sync_with_sysproc() {
-    let m = receive_from_sysproc();
-
-    assert_eq!(
-        m.body.0,
-        fm_message::Ty::StartInitialization as _,
-        "Failed to receive the Start Initialization message from the sysproc."
-    );
 }
 
 #[derive(Default)]
 struct Syncer(Vec<Frames>);
 impl Syncer {
     fn sync(mut self) {
+        Self::receive_start_initialization();
+
         self.receive_memory_map();
 
         let r = FRAME_MANAGER.try_init_once(|| Spinlock::new(self.0.into()));
         r.expect("Failed to initialize `FRAME_MANAGER`.");
+    }
+
+    fn receive_start_initialization() {
+        let m = receive_from_sysproc();
+
+        assert_eq!(
+            m.body.0,
+            fm_message::Ty::StartInitialization as _,
+            "Failed to receive the Start Initialization message from the sysproc."
+        );
     }
 
     fn receive_memory_map(&mut self) {
