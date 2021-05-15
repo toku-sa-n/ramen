@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use alloc::vec::Vec;
 use core::ops::DerefMut;
-use frame_manager::FrameManager;
+use frame_manager::{FrameManager, Frames};
 use os_units::NumOfPages;
 use spinning_top::Spinlock;
 use uefi::table::boot;
@@ -14,6 +15,10 @@ static FRAME_MANAGER: Spinlock<FrameManager> = Spinlock::new(FrameManager::new()
 
 pub(crate) fn init(mem_map: &[boot::MemoryDescriptor]) {
     FRAME_MANAGER.lock().init(mem_map);
+}
+
+pub(crate) fn frames() -> Vec<Frames> {
+    lock_manager().frames()
 }
 
 pub(in super::super) fn allocator(

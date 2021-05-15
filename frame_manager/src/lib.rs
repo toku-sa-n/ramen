@@ -30,8 +30,8 @@ impl FrameManager {
         }
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &Frames> {
-        self.0.iter()
+    pub fn frames(&self) -> Vec<Frames> {
+        self.0.clone()
     }
 
     fn init_for_descriptor(&mut self, descriptor: &boot::MemoryDescriptor) {
@@ -135,7 +135,7 @@ impl FrameDeallocator<Size4KiB> for FrameManager {
     }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub struct Frames {
     start: PhysAddr,
     num_of_pages: NumOfPages<Size4KiB>,
