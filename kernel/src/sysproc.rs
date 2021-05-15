@@ -1,4 +1,4 @@
-use crate::mem::allocator::phys;
+use message::Message;
 
 pub(crate) fn main() {
     sync_with_fm();
@@ -13,7 +13,7 @@ fn sync_with_fm() {
 
 fn start_sync_with_fm() {
     let h = message::Header::default();
-    let b = message::Body(fm_message::Ty::StartInitialization, 0, 0, 0, 0);
+    let b = message::Body(fm_message::Ty::StartInitialization as _, 0, 0, 0, 0);
     let m = Message::new(h, b);
 
     syscalls::send(m, 4);
