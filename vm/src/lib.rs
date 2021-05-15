@@ -1,4 +1,8 @@
 mod heap;
 
+extern crate ralib as _;
+
 #[no_mangle]
-fn main() {}
+fn main() {
+    heap::init();
+}
