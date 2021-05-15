@@ -8,3 +8,6 @@ name = "fm"
 crate-type = ["staticlib"]
 test = false
 bench = false
+
+[dependencies]
+ralib = { path = "../ralib", default-features = false }
