@@ -29,7 +29,7 @@ fn init() {
 
 fn sync_with_sysproc() {
     start_sync_with_sysproc();
-    Syncer::default().init();
+    Syncer::default().sync();
 }
 
 fn start_sync_with_sysproc() {
@@ -45,7 +45,7 @@ fn start_sync_with_sysproc() {
 #[derive(Default)]
 struct Syncer(Vec<Frames>);
 impl Syncer {
-    fn init(mut self) {
+    fn sync(mut self) {
         let mut m;
 
         while {
