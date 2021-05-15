@@ -49,7 +49,7 @@ fn init_frame_manager() {
     while {
         m = receive_from_sysproc();
 
-        m.body.0 != fm_message::Ty::EndInitialization as u64
+        !sync_finished(m)
     } {
         let start = PhysAddr::new(m.body.1);
         let num_of_pages = NumOfPages::new(m.body.2.try_into().unwrap());
@@ -70,6 +70,10 @@ fn init_frame_manager() {
 
     let r = FRAME_MANAGER.try_init_once(|| Spinlock::new(v.into()));
     r.expect("Failed to initialize `FRAME_MANAGER`.");
+}
+
+fn sync_finished(m: Message) -> bool {
+    m.body.0 == fm_message::Ty::EndInitialization as u64
 }
 
 fn receive_from_sysproc() -> Message {
