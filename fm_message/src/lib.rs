@@ -4,9 +4,9 @@ use num_derive::FromPrimitive;
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash, FromPrimitive)]
 pub enum Ty {
-    StartInitialization,
+    StartSync,
     AddFrames,
-    EndInitialization,
+    EndSync,
     Allocate,
     Free,
 }

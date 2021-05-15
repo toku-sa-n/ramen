@@ -48,7 +48,7 @@ impl Syncer {
 
         assert_eq!(
             m.body.0,
-            fm_message::Ty::StartInitialization as _,
+            fm_message::Ty::StartSync as _,
             "Failed to receive the Start Initialization message from the sysproc."
         );
     }
@@ -80,7 +80,7 @@ impl Syncer {
     }
 
     fn sync_finished(m: Message) -> bool {
-        m.body.0 == fm_message::Ty::EndInitialization as u64
+        m.body.0 == fm_message::Ty::EndSync as u64
     }
 }
 

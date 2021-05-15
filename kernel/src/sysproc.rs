@@ -18,7 +18,7 @@ fn sync_with_fm() {
 }
 
 fn start_sync_with_fm() {
-    let b = message::Body(fm_message::Ty::StartInitialization as _, 0, 0, 0, 0);
+    let b = message::Body(fm_message::Ty::StartSync as _, 0, 0, 0, 0);
 
     send_to_fm(b);
 }
@@ -39,7 +39,7 @@ fn send_frame_range(f: &Frames) {
 }
 
 fn end_sync_with_fm() {
-    let b = message::Body(fm_message::Ty::EndInitialization as _, 0, 0, 0, 0);
+    let b = message::Body(fm_message::Ty::EndSync as _, 0, 0, 0, 0);
 
     send_to_fm(b);
 }
