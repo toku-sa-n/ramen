@@ -142,7 +142,7 @@ pub struct Frames {
     available: bool,
 }
 impl Frames {
-    fn new_for_available(start: PhysAddr, num_of_pages: NumOfPages<Size4KiB>) -> Self {
+    pub fn new_for_available(start: PhysAddr, num_of_pages: NumOfPages<Size4KiB>) -> Self {
         Self {
             start,
             num_of_pages,
@@ -150,8 +150,7 @@ impl Frames {
         }
     }
 
-    #[cfg(test)]
-    fn new_for_used(start: PhysAddr, num_of_pages: NumOfPages<Size4KiB>) -> Self {
+    pub fn new_for_used(start: PhysAddr, num_of_pages: NumOfPages<Size4KiB>) -> Self {
         Self {
             start,
             num_of_pages,
