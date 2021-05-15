@@ -91,7 +91,7 @@ FM_DIR	:=	fm
 FM_LIB_SRC	:=	$(shell find $(FM_DIR)/src)
 FM_LIB_SRC	+=	$(FM_DIR)/$(CONFIG_TOML)
 FM_LIB_SRC	+=	$(FM_DIR)/$(CARGO_TOML)
-FM_LIB	+=	$(BUILD_DIR)/libfm.a
+FM_LIB	:=	$(BUILD_DIR)/libfm.a
 FM_LIB_DEPENDENCIES_SRC	:=	$(RALIB_SRC)
 FM	:=	$(BUILD_DIR)/fm.bin
 
@@ -185,7 +185,7 @@ $(XHCI_LIB):$(XHCI_SRC) $(XHCI_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 $(FM):$(FM_LIB)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -T $(FM_DIR)/fm.ld -o $@ -e main $^
 
-$(FM_LIB):$(FM_SRC) $(FM_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
+$(FM_LIB):$(FM_LIB_SRC) $(FM_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(FM_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(BUILD_DIR):
