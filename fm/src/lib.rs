@@ -51,7 +51,7 @@ impl Syncer {
         while {
             m = receive_from_sysproc();
 
-            !sync_finished(m)
+            !Self::sync_finished(m)
         } {
             let start = PhysAddr::new(m.body.1);
             let num_of_pages = NumOfPages::new(m.body.2.try_into().unwrap());
@@ -73,10 +73,10 @@ impl Syncer {
         let r = FRAME_MANAGER.try_init_once(|| Spinlock::new(self.0.into()));
         r.expect("Failed to initialize `FRAME_MANAGER`.");
     }
-}
 
-fn sync_finished(m: Message) -> bool {
-    m.body.0 == fm_message::Ty::EndInitialization as u64
+    fn sync_finished(m: Message) -> bool {
+        m.body.0 == fm_message::Ty::EndInitialization as u64
+    }
 }
 
 fn receive_from_sysproc() -> Message {
