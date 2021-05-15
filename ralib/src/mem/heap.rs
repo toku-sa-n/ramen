@@ -1,5 +1,5 @@
 use conquer_once::spin::Lazy;
-use core::{alloc::Layout, convert::TryInto};
+use core::convert::TryInto;
 use linked_list_allocator::LockedHeap;
 use os_units::{Bytes, NumOfPages};
 use page_box::PageBox;
@@ -34,9 +34,4 @@ pub(crate) fn init() {
     let bytes = HEAP.bytes().as_usize();
 
     unsafe { a.init(start, bytes) }
-}
-
-#[alloc_error_handler]
-fn alloc_fail(l: Layout) -> ! {
-    panic!("Allocation failed: {:?}", l)
 }
