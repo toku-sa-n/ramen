@@ -46,6 +46,13 @@ fn start_sync_with_sysproc() {
 struct Syncer(Vec<Frames>);
 impl Syncer {
     fn sync(mut self) {
+        self.receive_memory_map();
+
+        let r = FRAME_MANAGER.try_init_once(|| Spinlock::new(self.0.into()));
+        r.expect("Failed to initialize `FRAME_MANAGER`.");
+    }
+
+    fn receive_memory_map(&mut self) {
         let mut m;
 
         while {
@@ -69,9 +76,6 @@ impl Syncer {
 
             self.0.push(frames);
         }
-
-        let r = FRAME_MANAGER.try_init_once(|| Spinlock::new(self.0.into()));
-        r.expect("Failed to initialize `FRAME_MANAGER`.");
     }
 
     fn sync_finished(m: Message) -> bool {
