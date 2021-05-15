@@ -36,11 +36,8 @@ struct Syncer(Vec<Frames>);
 impl Syncer {
     fn sync(mut self) {
         Self::receive_start_initialization();
-
         self.receive_memory_map();
-
-        let r = FRAME_MANAGER.try_init_once(|| Spinlock::new(self.0.into()));
-        r.expect("Failed to initialize `FRAME_MANAGER`.");
+        self.init_global_frame_manager();
     }
 
     fn receive_start_initialization() {
@@ -81,6 +78,11 @@ impl Syncer {
 
     fn sync_finished(m: Message) -> bool {
         m.body.0 == fm_message::Ty::EndSync as u64
+    }
+
+    fn init_global_frame_manager(self) {
+        let r = FRAME_MANAGER.try_init_once(|| Spinlock::new(self.0.into()));
+        r.expect("Failed to initialize `FRAME_MANAGER`.");
     }
 }
 
