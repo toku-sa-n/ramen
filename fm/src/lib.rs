@@ -29,7 +29,7 @@ fn init() {
 
 fn sync_with_sysproc() {
     start_sync_with_sysproc();
-    Initializer::init();
+    Initializer::default().init();
 }
 
 fn start_sync_with_sysproc() {
@@ -45,9 +45,8 @@ fn start_sync_with_sysproc() {
 #[derive(Default)]
 struct Initializer(Vec<Frames>);
 impl Initializer {
-    fn init() {
+    fn init(mut self) {
         let mut m;
-        let mut v = Vec::new();
 
         while {
             m = receive_from_sysproc();
@@ -68,10 +67,10 @@ impl Initializer {
                 Frames::new_for_used(start, num_of_pages)
             };
 
-            v.push(frames);
+            self.0.push(frames);
         }
 
-        let r = FRAME_MANAGER.try_init_once(|| Spinlock::new(v.into()));
+        let r = FRAME_MANAGER.try_init_once(|| Spinlock::new(self.0.into()));
         r.expect("Failed to initialize `FRAME_MANAGER`.");
     }
 }
