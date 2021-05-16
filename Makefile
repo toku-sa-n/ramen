@@ -171,7 +171,7 @@ $(EFI_FILE):$(EFI_SRC)|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(DO_NOTHING):$(DO_NOTHING_LIB)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $^
+	$(LD) $(LDFLAGS) -Ttext 0xc00000 -o $@ -e main $^
 
 $(DO_NOTHING_LIB):$(DO_NOTHING_SRC) $(DO_NOTHING_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(DO_NOTHING_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
