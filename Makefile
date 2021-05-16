@@ -87,6 +87,14 @@ XHCI_LIB	:=	$(BUILD_DIR)/libxhci.a
 XHCI_LIB_DEPENDENCIES_SRC	:=	$(PAGE_BOX_SRC) $(RALIB_SRC) $(SYSCALLS_SRC)
 XHCI	:=	$(BUILD_DIR)/xhci.bin
 
+VM_DIR	:=	vm
+VM_LIB_SRC	:=	$(shell find $(VM_DIR)/src)
+VM_LIB_SRC	+=	$(VM_DIR)/$(CONFIG_TOML)
+VM_LIB_SRC	+=	$(VM_DIR)/$(CARGO_TOML)
+VM_LIB	:=	$(BUILD_DIR)/libvm.a
+VM_LIB_DEPENDENCIES_SRC	:=	$(RALIB_SRC) $(SYSCALLS_SRC)
+VM	:=	$(BUILD_DIR)/vm.bin
+
 IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
 
 INITRD			:= $(BUILD_DIR)/initrd.cpio
@@ -138,8 +146,8 @@ $(KERNEL_LIB):$(KERNEL_LIB_SRC) $(INITRD) $(KERNEL_LIB_DEPENDENCIES_SRC)|$(BUILD
 	# See: https://github.com/rust-lang/cargo/issues/2930
 	cd $(KERNEL_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(TEST_FLAG) $(RUSTCFLAGS)
 
-$(INITRD):$(PM) $(PORT_SERVER) $(FS) $(DO_NOTHING) $(XHCI)|$(BUILD_DIR)
-	(echo $(PM); echo $(PORT_SERVER); echo $(FS); echo $(DO_NOTHING); echo $(XHCI))|cpio -o > $@ --format=odc
+$(INITRD):$(PM) $(PORT_SERVER) $(FS) $(DO_NOTHING) $(XHCI) $(VM)|$(BUILD_DIR)
+	(echo $(PM); echo $(PORT_SERVER); echo $(FS); echo $(DO_NOTHING); echo $(XHCI); echo $(VM))|cpio -o > $@ --format=odc
 
 $(PM):$(PM_LIB)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $(PM_LIB)
@@ -173,6 +181,12 @@ $(XHCI):$(XHCI_LIB)|$(BUILD_DIR)
 
 $(XHCI_LIB):$(XHCI_SRC) $(XHCI_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(XHCI_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
+
+$(VM):$(VM_LIB)|$(BUILD_DIR)
+	$(LD) $(LDFLAGS) -T $(VM_DIR)/vm.ld -o $@ $^
+
+$(VM_LIB):$(VM_LIB_SRC) $(VM_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
+	cd $(VM_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(BUILD_DIR):
 	mkdir $@ -p

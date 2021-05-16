@@ -1,3 +1,5 @@
+#![no_std]
+
 mod heap;
 
 extern crate ralib as _;
