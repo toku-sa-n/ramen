@@ -3,7 +3,7 @@
 #![cfg_attr(not(test), no_std)]
 
 use core::{
-    convert::TryFrom,
+    convert::{TryFrom, TryInto},
     fmt,
     marker::PhantomData,
     mem,
@@ -11,7 +11,10 @@ use core::{
     ptr, slice,
 };
 use os_units::Bytes;
-use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
+use x86_64::{
+    structures::paging::{PageSize, Size4KiB},
+    PhysAddr, VirtAddr,
+};
 
 mod alloc;
 
@@ -75,6 +78,7 @@ where
 }
 impl<T> From<T> for PageBox<T> {
     fn from(x: T) -> Self {
+        assert_alignment(&x);
         let bytes = Bytes::new(mem::size_of::<T>());
         let mut page_box = Self::from_bytes(bytes);
         page_box.write_initial_value(x);
@@ -87,6 +91,7 @@ where
     T: Clone,
 {
     pub fn new_slice(x: T, num_of_elements: usize) -> Self {
+        assert_alignment(&x);
         let bytes = Bytes::new(mem::size_of::<T>() * num_of_elements);
         let mut page_box = Self::from_bytes(bytes);
         page_box.write_all_elements_with_same_value(x);
@@ -241,4 +246,11 @@ mod tests {
 
         assert_eq!(*b, *s);
     }
+}
+
+fn assert_alignment<T>(x: &T) {
+    assert!(
+        mem::align_of_val(x) <= Size4KiB::SIZE.try_into().unwrap(),
+        "The minimum alignment must be less than 4096."
+    );
 }
