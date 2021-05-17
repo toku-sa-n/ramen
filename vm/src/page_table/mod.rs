@@ -1,4 +1,5 @@
 mod boxed;
 mod collection;
 
-use boxed::Boxed;
+pub(crate) use boxed::Boxed;
+pub(crate) use collection::Collection;
