@@ -1,8 +1,9 @@
 use core::ops::{Deref, DerefMut};
-use x86_64::{structures::paging::PageTable, VirtAddr};
+use x86_64::{structures::paging::PageTable, PhysAddr, VirtAddr};
 
 pub(super) struct Boxed {
     virt: VirtAddr,
+    phys: PhysAddr,
 }
 impl Deref for Boxed {
     type Target = PageTable;
