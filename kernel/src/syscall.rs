@@ -32,6 +32,10 @@ unsafe fn select_proper_syscall_unchecked(ty: syscalls::Ty, a1: u64, a2: u64, a3
         syscalls::Ty::DeallocatePages => {
             sys_deallocate_pages(VirtAddr::new(a1), NumOfPages::new(a2.try_into().unwrap()))
         }
+        syscalls::Ty::AllocatePhysFrame => {
+            sys_allocate_phys_frame(NumOfPages::new(a1.try_into().unwrap())).as_u64()
+        }
+        syscalls::Ty::DeallocatePhysFrame => sys_deallocate_phys_frame(PhysAddr::new(a1)),
         syscalls::Ty::MapPages => {
             sys_map_pages(PhysAddr::new(a1), Bytes::new(a2.try_into().unwrap())).as_u64()
         }
@@ -61,6 +65,15 @@ fn sys_allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> VirtAddr {
 
 fn sys_deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) -> u64 {
     allocator::deallocate_pages(virt, pages);
+    0
+}
+
+fn sys_allocate_phys_frame(pages: NumOfPages<Size4KiB>) -> PhysAddr {
+    allocator::allocate_phys(pages).expect("OOM")
+}
+
+fn sys_deallocate_phys_frame(phys: PhysAddr) -> u64 {
+    allocator::deallocate_phys_from_phys_addr(phys);
     0
 }
 

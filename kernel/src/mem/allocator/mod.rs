@@ -28,12 +28,16 @@ pub(crate) fn deallocate_pages(virt: VirtAddr, num_of_pages: NumOfPages<Size4KiB
     deallocate_virt(virt, num_of_pages);
 }
 
-fn allocate_phys(num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
+pub(crate) fn allocate_phys(num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
     phys::alloc(num_of_pages)
 }
 
-fn deallocate_phys(virt: VirtAddr) {
+pub(crate) fn deallocate_phys(virt: VirtAddr) {
     let phys = PML4.lock().translate_addr(virt).unwrap();
+    phys::free(phys);
+}
+
+pub(crate) fn deallocate_phys_from_phys_addr(phys: PhysAddr) {
     phys::free(phys);
 }
 

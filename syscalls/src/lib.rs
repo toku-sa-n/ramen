@@ -108,6 +108,21 @@ pub fn deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) {
 }
 
 #[must_use]
+pub fn allocate_phys_frame(pages: NumOfPages<Size4KiB>) -> PhysAddr {
+    let pages: u64 = pages.as_usize().try_into().unwrap();
+    let a = unsafe { general_syscall(Ty::AllocatePhysFrame, pages, 0, 0) };
+
+    PhysAddr::new(a)
+}
+
+pub fn deallocate_phys_frame(phys: PhysAddr, pages: NumOfPages<Size4KiB>) {
+    let phys = phys.as_u64();
+    let pages: u64 = pages.as_usize().try_into().unwrap();
+
+    unsafe { general_syscall(Ty::DeallocatePhysFrame, phys, pages, 0) };
+}
+
+#[must_use]
 pub fn map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
     // SAFETY: This operation is safe as the all arguments are propertly passed.
     VirtAddr::new(unsafe {
@@ -235,6 +250,8 @@ pub enum Ty {
     Outl,
     AllocatePages,
     DeallocatePages,
+    AllocatePhysFrame,
+    DeallocatePhysFrame,
     MapPages,
     UnmapPages,
     GetPid,
