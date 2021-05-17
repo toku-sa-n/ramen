@@ -2,5 +2,5 @@ mod boxed;
 mod collection;
 
 pub(crate) use boxed::Boxed;
-mod map;
+mod mapper;
 pub(crate) use collection::Collection;
