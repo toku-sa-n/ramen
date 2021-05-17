@@ -20,3 +20,13 @@ fn map(page: Page, frame: PhysFrame, flags: PageTableFlags) {
     let flush = r.expect("Failed to map a page.");
     flush.flush();
 }
+
+fn unmap(page: Page) {
+    let m = MAPPER.try_lock();
+    let mut m = m.expect("Failed to lock `MAPPER`");
+
+    let r = m.unmap(page);
+    let (_, flush) = r.expect("Failed to unmap a page.");
+
+    flush.flush();
+}
