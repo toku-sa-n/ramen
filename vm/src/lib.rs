@@ -1,8 +1,8 @@
 #![no_std]
 
 mod heap;
-mod page_box;
 mod process;
+mod table_box;
 
 extern crate ralib as _;
 
