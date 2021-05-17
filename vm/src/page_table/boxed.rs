@@ -1,7 +1,7 @@
 use core::ops::{Deref, DerefMut};
 use x86_64::{structures::paging::PageTable, VirtAddr};
 
-struct Boxed {
+pub(super) struct Boxed {
     virt: VirtAddr,
 }
 impl Deref for Boxed {
