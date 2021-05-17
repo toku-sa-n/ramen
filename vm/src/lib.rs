@@ -4,6 +4,7 @@ mod heap;
 mod page_table;
 mod process;
 
+extern crate alloc;
 extern crate ralib as _;
 
 #[no_mangle]
