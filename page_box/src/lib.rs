@@ -251,6 +251,6 @@ mod tests {
 fn assert_alignment<T>(x: &T) {
     assert!(
         mem::align_of_val(x) <= Size4KiB::SIZE.try_into().unwrap(),
-        "The minimum alignment must be less than 4096."
+        "The minimum alignment must be less than or equal to 4096."
     );
 }
