@@ -1,4 +1,4 @@
-use core::ops::Deref;
+use core::ops::{Deref, DerefMut};
 use x86_64::{structures::paging::PageTable, VirtAddr};
 
 struct TableBox {
@@ -9,5 +9,10 @@ impl Deref for TableBox {
 
     fn deref(&self) -> &Self::Target {
         unsafe { &*self.virt.as_ptr() }
+    }
+}
+impl DerefMut for TableBox {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { &mut *self.virt.as_mut_ptr() }
     }
 }
