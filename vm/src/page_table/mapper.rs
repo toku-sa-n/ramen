@@ -19,7 +19,7 @@ static MAPPER: Lazy<Spinlock<RecursivePageTable>> = Lazy::new(|| {
     Spinlock::new(t)
 });
 
-fn map_frame(frame: PhysFrame, flags: PageTableFlags) -> VirtAddr {
+pub(crate) fn map_frame(frame: PhysFrame, flags: PageTableFlags) -> VirtAddr {
     let v = find_unused_virt_addr();
     let p = Page::from_start_address(v);
     let p = p.expect("Address is not page-aligned.");
