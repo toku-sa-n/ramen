@@ -3,7 +3,6 @@
 mod heap;
 mod page_table;
 mod process;
-mod table_box;
 
 extern crate ralib as _;
 
