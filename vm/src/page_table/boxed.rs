@@ -35,3 +35,8 @@ impl DerefMut for Boxed {
         unsafe { &mut *self.page.start_address().as_mut_ptr() }
     }
 }
+impl Drop for Boxed {
+    fn drop(&mut self) {
+        mapper::unmap(self.page);
+    }
+}
