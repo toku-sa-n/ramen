@@ -1,5 +1,6 @@
 #![no_std]
 
+mod frame;
 mod heap;
 mod page_table;
 mod process;
