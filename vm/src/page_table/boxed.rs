@@ -1,14 +1,11 @@
 use crate::page_table::mapper;
 use core::ops::{Deref, DerefMut};
 use os_units::NumOfPages;
-use x86_64::{
-    structures::paging::{PageTable, PageTableFlags, PhysFrame},
-    PhysAddr, VirtAddr,
-};
+use x86_64::structures::paging::{Page, PageTable, PageTableFlags, PhysFrame};
 
 pub(crate) struct Boxed {
-    virt: VirtAddr,
-    phys: PhysAddr,
+    page: Page,
+    frame: PhysFrame,
 }
 impl Boxed {
     fn new() -> Self {
@@ -20,19 +17,21 @@ impl Boxed {
             PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
 
         let virt = mapper::map_frame(frame, flags);
+        let page = Page::from_start_address(virt);
+        let page = page.expect("The virtual address is not page-aligned");
 
-        Self { virt, phys }
+        Self { page, frame }
     }
 }
 impl Deref for Boxed {
     type Target = PageTable;
 
     fn deref(&self) -> &Self::Target {
-        unsafe { &*self.virt.as_ptr() }
+        unsafe { &*self.page.start_address().as_ptr() }
     }
 }
 impl DerefMut for Boxed {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { &mut *self.virt.as_mut_ptr() }
+        unsafe { &mut *self.page.start_address().as_mut_ptr() }
     }
 }
