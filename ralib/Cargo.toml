@@ -20,5 +20,5 @@ os_units = "0.4.0"
 log = "0.4.14"
 page_box = { path = "../page_box" }
 syscalls = { path = "../syscalls" }
-x86_64 = { version = "0.14.1", default-features = false }
+x86_64 = { version = "0.14.3", default-features = false }
 accessor = "0.3.0"

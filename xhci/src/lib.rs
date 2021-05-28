@@ -32,13 +32,13 @@ mod xhc;
 pub fn main() {
     ralib::init();
 
-    multitask::add(Task::new(task()));
+    init();
 
     let mut executor = Executor::new();
     executor.run();
 }
 
-pub(crate) async fn task() {
+pub(crate) fn init() {
     if xhc::exists() {
         init_and_spawn_tasks();
     }
