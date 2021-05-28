@@ -24,7 +24,7 @@ num-traits = { version = "0.2.14", default-features = false }
 os_units = "0.4.0"
 page_box = { path = "../page_box" }
 ralib = { path = "../ralib" }
-spinning_top = { version = "0.2.3", features = ["nightly"] }
+spinning_top = { version = "0.2.4", features = ["nightly"] }
 syscalls = { path = "../syscalls" }
-x86_64 = { version = "0.14.1", default-features = false }
-xhci = "0.8.0"
+x86_64 = { version = "0.14.3", default-features = false }
+xhci = "0.8.2"
