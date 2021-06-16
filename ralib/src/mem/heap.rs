@@ -33,5 +33,7 @@ pub(crate) fn init() {
     let start: usize = HEAP.start().as_u64().try_into().unwrap();
     let bytes = HEAP.bytes().as_usize();
 
-    unsafe { a.init(start, bytes) };
+    unsafe {
+        a.init(start, bytes);
+    }
 }
