@@ -17,9 +17,7 @@ pub(crate) struct Space {
 
 impl Space {
     pub(crate) fn new(bus: Bus, device: Device) -> Option<Self> {
-        Some(Self {
-            registers: Registers::new(bus, device)?,
-        })
+        Registers::new(bus, device).map(|registers| Self { registers })
     }
 
     pub(crate) fn is_xhci(&self) -> bool {
