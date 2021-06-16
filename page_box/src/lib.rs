@@ -104,7 +104,9 @@ where
 
             // SAFETY: This operation is safe. The memory ptr points is allocated and is aligned
             // because the first elements is page-aligned.
-            unsafe { ptr::write(ptr as *mut T, x.clone()) }
+            unsafe {
+                ptr::write(ptr as *mut T, x.clone());
+            }
         }
     }
 
