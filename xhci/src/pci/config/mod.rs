@@ -2,6 +2,7 @@
 
 pub(crate) mod bar;
 mod common;
+mod extended_capability;
 pub(crate) mod type_spec;
 
 use self::common::Common;
