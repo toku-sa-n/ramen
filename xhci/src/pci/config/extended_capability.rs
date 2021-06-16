@@ -6,6 +6,11 @@ struct Iter {
     registers: Registers,
     index: RegisterIndex,
 }
+impl Iter {
+    fn new(registers: Registers, index: RegisterIndex) -> Self {
+        Self { registers, index }
+    }
+}
 impl Iterator for Iter {
     type Item = u8;
 
