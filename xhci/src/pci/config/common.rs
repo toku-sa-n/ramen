@@ -117,3 +117,19 @@ impl<'a> Status<'a> {
         raw.try_into().unwrap()
     }
 }
+
+#[derive(Debug)]
+struct CapabilityPointer<'a> {
+    registers: &'a Registers,
+}
+impl<'a> CapabilityPointer<'a> {
+    fn new(registers: &'a Registers) -> Self {
+        Self { registers }
+    }
+
+    fn get(&self) -> u8 {
+        let raw = self.registers.get(RegisterIndex::new(0xd)).get_bits(0..=7);
+
+        raw.try_into().unwrap()
+    }
+}
