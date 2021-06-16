@@ -21,12 +21,20 @@ impl<'a> Common<'a> {
         self.header_type().bridge_type()
     }
 
+    pub(super) fn capability_list_exists(&self) -> bool {
+        self.status().capability_list_exists()
+    }
+
     fn class(&self) -> Class<'_> {
         Class::new(self.registers)
     }
 
     fn header_type(&self) -> HeaderType {
         HeaderType::new(self.registers)
+    }
+
+    fn status(&self) -> Status {
+        Status::new(self.registers)
     }
 }
 
@@ -87,5 +95,25 @@ impl<'a> Class<'a> {
 
     fn raw(&self) -> u32 {
         self.registers.get(RegisterIndex::new(2))
+    }
+}
+
+#[derive(Debug)]
+struct Status<'a> {
+    registers: &'a Registers,
+}
+impl<'a> Status<'a> {
+    fn new(registers: &'a Registers) -> Self {
+        Self { registers }
+    }
+
+    fn capability_list_exists(&self) -> bool {
+        self.raw().get_bit(4)
+    }
+
+    fn raw(&self) -> u16 {
+        let raw = self.registers.get(RegisterIndex::new(1)).get_bits(16..=31);
+
+        raw.try_into().unwrap()
     }
 }
