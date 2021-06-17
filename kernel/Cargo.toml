@@ -42,7 +42,7 @@ message = { path = "../message" }
 bitflags = "1.2.1"
 frame_manager = { path = "../frame_manager" }
 cstr_core = "0.2.3"
-xmas-elf = "0.7.0"
+xmas-elf = "0.8.0"
 uart_16550 = "0.2.14"
 
 [build-dependencies]
