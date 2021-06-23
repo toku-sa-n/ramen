@@ -31,6 +31,15 @@ impl Space {
         self.type_spec().base_address(index)
     }
 
+    pub(crate) fn iter_capability_list(&self) -> Option<impl Iterator<Item = u8> + '_> {
+        self.common().capability_list_exists().then(|| {
+            let ptr = self.common().capability_pointer().get();
+            let index = RegisterIndex::new((ptr >> 2).into());
+
+            extended_capability::Iter::new(&self.registers, index)
+        })
+    }
+
     fn type_spec(&self) -> TypeSpec<'_> {
         TypeSpec::new(&self.registers, &self.common())
     }

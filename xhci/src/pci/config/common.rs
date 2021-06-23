@@ -46,7 +46,7 @@ impl<'a> Common<'a> {
         Status::new(self.registers)
     }
 
-    fn capability_pointer(&self) -> CapabilityPointer {
+    pub(super) fn capability_pointer(&self) -> CapabilityPointer {
         CapabilityPointer::new(self.registers)
     }
 }
@@ -132,7 +132,7 @@ impl<'a> Status<'a> {
 }
 
 #[derive(Debug)]
-struct CapabilityPointer<'a> {
+pub(super) struct CapabilityPointer<'a> {
     registers: &'a Registers,
 }
 impl<'a> CapabilityPointer<'a> {
@@ -140,7 +140,7 @@ impl<'a> CapabilityPointer<'a> {
         Self { registers }
     }
 
-    fn get(&self) -> u8 {
+    pub(super) fn get(&self) -> u8 {
         let raw = self.registers.get(RegisterIndex::new(0xd)).get_bits(0..=7);
 
         raw.try_into().unwrap()
