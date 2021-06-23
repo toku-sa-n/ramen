@@ -65,7 +65,7 @@ impl FrameManager {
             "Insufficient number of frames."
         );
 
-        self.split_frames_unchecked(i, num_of_pages)
+        self.split_frames_unchecked(i, num_of_pages);
     }
 
     fn split_frames_unchecked(&mut self, i: usize, requested: NumOfPages<Size4KiB>) {

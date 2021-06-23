@@ -36,16 +36,24 @@ fn handle_message(m: Message) {
     if let Some(t) = t {
         select_system_calls(m, t);
     } else {
-        warn!("Unrecognized message: {:?}", m)
+        warn!("Unrecognized message: {:?}", m);
     }
 }
 
 fn select_system_calls(m: Message, t: syscalls::Ty) {
     match t {
-        syscalls::Ty::Inb => unsafe { reply_inb(m) },
-        syscalls::Ty::Inl => unsafe { reply_inl(m) },
-        syscalls::Ty::Outb => unsafe { reply_outb(m) },
-        syscalls::Ty::Outl => unsafe { reply_outl(m) },
+        syscalls::Ty::Inb => unsafe {
+            reply_inb(m);
+        },
+        syscalls::Ty::Inl => unsafe {
+            reply_inl(m);
+        },
+        syscalls::Ty::Outb => unsafe {
+            reply_outb(m);
+        },
+        syscalls::Ty::Outl => unsafe {
+            reply_outl(m);
+        },
         _ => panic!("Not supported: {:?}", t),
     }
 }

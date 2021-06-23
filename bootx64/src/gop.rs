@@ -43,10 +43,12 @@ fn get_the_maximum_resolution_and_mode(gop: &gop::GraphicsOutput<'_>) -> (usize,
         let mode = mode.expect("Failed to get gop mode.");
 
         let (width, height) = mode.info().resolution();
-        if height > max_height && width > max_width && is_usable_gop_mode(&mode.info()) {
+        if height > max_height && width > max_width && is_usable_gop_mode(mode.info()) {
             max_height = height;
             max_width = width;
-            unsafe { preferred_mode.as_mut_ptr().write(mode) }
+            unsafe {
+                preferred_mode.as_mut_ptr().write(mode);
+            }
         }
     }
 

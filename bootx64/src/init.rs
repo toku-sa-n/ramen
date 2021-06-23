@@ -6,8 +6,8 @@ use uefi::{
 };
 
 pub fn init(system_table: &SystemTable<Boot>) {
-    init_uefi_utils(&system_table);
-    reset_console(&system_table);
+    init_uefi_utils(system_table);
+    reset_console(system_table);
 }
 
 fn init_uefi_utils(system_table: &SystemTable<Boot>) {
