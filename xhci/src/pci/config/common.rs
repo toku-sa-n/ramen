@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{RegisterIndex, Registers};
+use super::{extended_capability, RegisterIndex, Registers};
 use bit_field::BitField;
 use core::convert::{TryFrom, TryInto};
 
@@ -21,6 +21,15 @@ impl<'a> Common<'a> {
         self.header_type().bridge_type()
     }
 
+    pub(super) fn iter_capability_list(&self) -> Option<impl Iterator<Item = u8> + '_> {
+        self.capability_list_exists().then(|| {
+            let ptr = self.capability_pointer().get();
+            let index = RegisterIndex::new((ptr >> 2).into());
+
+            extended_capability::Iter::new(self.registers, index)
+        })
+    }
+
     pub(super) fn capability_list_exists(&self) -> bool {
         self.status().capability_list_exists()
     }
@@ -35,6 +44,10 @@ impl<'a> Common<'a> {
 
     fn status(&self) -> Status {
         Status::new(self.registers)
+    }
+
+    fn capability_pointer(&self) -> CapabilityPointer {
+        CapabilityPointer::new(self.registers)
     }
 }
 

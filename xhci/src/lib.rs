@@ -82,10 +82,8 @@ fn spawn_tasks(e: event::Ring) {
 
 fn iter_xhc() -> impl Iterator<Item = PhysAddr> {
     pci::iter_devices().filter_map(|device| {
-        if device.is_xhci() {
-            Some(device.base_address(bar::Index::new(0)))
-        } else {
-            None
-        }
+        device
+            .is_xhci()
+            .then(|| device.base_address(bar::Index::new(0)))
     })
 }

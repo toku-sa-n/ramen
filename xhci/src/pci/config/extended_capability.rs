@@ -2,16 +2,16 @@ use crate::pci::config::{RegisterIndex, Registers};
 use bit_field::BitField;
 use core::convert::{TryFrom, TryInto};
 
-struct Iter {
-    registers: Registers,
+pub(super) struct Iter<'a> {
+    registers: &'a Registers,
     index: RegisterIndex,
 }
-impl Iter {
-    fn new(registers: Registers, index: RegisterIndex) -> Self {
+impl<'a> Iter<'a> {
+    pub(super) fn new(registers: &'a Registers, index: RegisterIndex) -> Self {
         Self { registers, index }
     }
 }
-impl Iterator for Iter {
+impl<'a> Iterator for Iter<'a> {
     type Item = u8;
 
     fn next(&mut self) -> Option<Self::Item> {
