@@ -1,30 +1,35 @@
-use crate::pci::config::{RegisterIndex, Registers};
+use crate::{
+    msi_x::MsiX,
+    pci::config::{RegisterIndex, Registers},
+};
 use bit_field::BitField;
-use core::convert::{TryFrom, TryInto};
+use core::convert::TryFrom;
 
 pub(super) struct Iter<'a> {
     registers: &'a Registers,
-    index: RegisterIndex,
+    index: Option<RegisterIndex>,
 }
 impl<'a> Iter<'a> {
     pub(super) fn new(registers: &'a Registers, index: RegisterIndex) -> Self {
-        Self { registers, index }
+        Self {
+            registers,
+            index: Some(index),
+        }
     }
 }
 impl<'a> Iterator for Iter<'a> {
-    type Item = u8;
+    type Item = Option<MsiX<'a>>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let raw = self.registers.get(self.index);
+        let index = self.index?;
+
+        let raw = self.registers.get(index);
+
+        let id = raw.get_bits(0..=7);
+
         let next = raw.get_bits(8..=15);
+        self.index = (next == 0).then(|| index + usize::try_from(next >> 2).unwrap());
 
-        if next == 0 {
-            None
-        } else {
-            self.index =
-                RegisterIndex::new(self.index.as_usize() + usize::try_from(next >> 2).unwrap());
-
-            Some(raw.get_bits(0..=7).try_into().unwrap())
-        }
+        Some(MsiX::new(self.registers, index))
     }
 }

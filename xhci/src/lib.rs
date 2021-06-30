@@ -16,12 +16,12 @@ use structures::{
     ring::{command, event},
     scratchpad,
 };
-use x86_64::PhysAddr;
 
 pub(crate) type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 pub(crate) type FuturelockGuard<'a, T> = GenericMutexGuard<'a, RawSpinlock, T>;
 
 mod exchanger;
+mod msi_x;
 mod multitask;
 mod pci;
 mod port;
@@ -45,7 +45,9 @@ pub(crate) fn init() {
 }
 
 fn init_statics() {
-    let a = iter_xhc().next().expect("xHC does not exist.");
+    let device = iter_xhc().next().expect("xHC does not exist.");
+
+    let a = device.base_address(bar::Index::new(0));
 
     // SAFETY: BAR 0 address is passed.
     unsafe {
@@ -80,10 +82,6 @@ fn spawn_tasks(e: event::Ring) {
     multitask::add(Task::new_poll(event::task(e)));
 }
 
-fn iter_xhc() -> impl Iterator<Item = PhysAddr> {
-    pci::iter_devices().filter_map(|device| {
-        device
-            .is_xhci()
-            .then(|| device.base_address(bar::Index::new(0)))
-    })
+fn iter_xhc() -> impl Iterator<Item = pci::config::Space> {
+    pci::iter_devices().filter(|device| device.is_xhci())
 }

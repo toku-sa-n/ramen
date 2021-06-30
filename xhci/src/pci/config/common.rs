@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{extended_capability, RegisterIndex, Registers};
+use crate::msi_x::MsiX;
 use bit_field::BitField;
 use core::convert::{TryFrom, TryInto};
 
@@ -21,7 +22,9 @@ impl<'a> Common<'a> {
         self.header_type().bridge_type()
     }
 
-    pub(super) fn iter_capability_list(&self) -> Option<impl Iterator<Item = u8> + '_> {
+    pub(super) fn iter_capability_list(
+        &self,
+    ) -> Option<impl Iterator<Item = Option<MsiX<'_>>> + '_> {
         self.capability_list_exists().then(|| {
             let ptr = self.capability_pointer().get();
             let index = RegisterIndex::new((ptr >> 2).into());

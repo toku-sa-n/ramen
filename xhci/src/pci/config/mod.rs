@@ -5,8 +5,9 @@ mod common;
 mod extended_capability;
 pub(crate) mod type_spec;
 
-use self::common::Common;
+use crate::msi_x::MsiX;
 use bar::Bar;
+use common::Common;
 use core::{convert::TryFrom, ops::Add};
 use type_spec::TypeSpec;
 use x86_64::PhysAddr;
@@ -31,7 +32,9 @@ impl Space {
         self.type_spec().base_address(index)
     }
 
-    pub(crate) fn iter_capability_list(&self) -> Option<impl Iterator<Item = u8> + '_> {
+    pub(crate) fn iter_capability_list(
+        &self,
+    ) -> Option<impl Iterator<Item = Option<MsiX<'_>>> + '_> {
         self.common().capability_list_exists().then(|| {
             let ptr = self.common().capability_pointer().get();
             let index = RegisterIndex::new((ptr >> 2).into());
@@ -55,6 +58,22 @@ pub(crate) struct Registers {
     device: Device,
 }
 impl Registers {
+    pub(crate) fn edit(&self, index: RegisterIndex, f: impl FnOnce(&mut u32)) {
+        let mut v = self.get(index);
+        f(&mut v);
+        self.set(index, v);
+    }
+
+    pub(crate) fn get(&self, index: RegisterIndex) -> u32 {
+        let accessor = ConfigAddress::new(self.bus, self.device, Function::zero(), index);
+        unsafe { accessor.read() }
+    }
+
+    pub(crate) fn set(&self, index: RegisterIndex, v: u32) {
+        let accessor = ConfigAddress::new(self.bus, self.device, Function::zero(), index);
+        unsafe { accessor.write(v) }
+    }
+
     fn new(bus: Bus, device: Device) -> Option<Self> {
         if Self::valid(bus, device) {
             Some(Self { bus, device })
@@ -68,11 +87,6 @@ impl Registers {
         let id = unsafe { config_addr.read() };
 
         id != !0
-    }
-
-    fn get(&self, index: RegisterIndex) -> u32 {
-        let accessor = ConfigAddress::new(self.bus, self.device, Function::zero(), index);
-        unsafe { accessor.read() }
     }
 }
 
@@ -111,6 +125,12 @@ impl ConfigAddress {
     unsafe fn read(&self) -> u32 {
         syscalls::outl(Self::PORT_CONFIG_ADDR, self.as_u32());
         syscalls::inl(Self::PORT_CONFIG_DATA)
+    }
+
+    /// SAFETY: `self` must contain the valid config address.
+    unsafe fn write(&self, v: u32) {
+        syscalls::outl(Self::PORT_CONFIG_ADDR, self.as_u32());
+        syscalls::outl(Self::PORT_CONFIG_DATA, v);
     }
 }
 
