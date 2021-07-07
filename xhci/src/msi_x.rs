@@ -8,7 +8,7 @@ pub(crate) struct MsiX<'a> {
 }
 impl<'a> MsiX<'a> {
     pub(crate) fn new(registers: &'a Registers, base: RegisterIndex) -> Option<Self> {
-        let ty = registers.get(base).get_bits(0..=8);
+        let ty = registers.get(base).get_bits(0..=7);
         (ty == 0x11).then(|| Self { registers, base })
     }
 
