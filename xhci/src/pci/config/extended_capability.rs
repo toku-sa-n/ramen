@@ -3,7 +3,7 @@ use crate::{
     pci::config::{RegisterIndex, Registers},
 };
 use bit_field::BitField;
-use core::convert::TryFrom;
+use core::convert::TryInto;
 
 pub(super) struct Iter<'a> {
     registers: &'a Registers,
@@ -28,7 +28,7 @@ impl<'a> Iterator for Iter<'a> {
         let id = raw.get_bits(0..=7);
 
         let next = raw.get_bits(8..=15);
-        self.index = (next != 0).then(|| index + usize::try_from(next >> 2).unwrap());
+        self.index = (next != 0).then(|| RegisterIndex::new((next >> 2).try_into().unwrap()));
 
         Some(MsiX::new(self.registers, index))
     }
