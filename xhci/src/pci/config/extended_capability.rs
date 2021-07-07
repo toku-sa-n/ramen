@@ -28,7 +28,7 @@ impl<'a> Iterator for Iter<'a> {
         let id = raw.get_bits(0..=7);
 
         let next = raw.get_bits(8..=15);
-        self.index = (next == 0).then(|| index + usize::try_from(next >> 2).unwrap());
+        self.index = (next != 0).then(|| index + usize::try_from(next >> 2).unwrap());
 
         Some(MsiX::new(self.registers, index))
     }
