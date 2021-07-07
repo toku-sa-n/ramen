@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{RegisterIndex, Registers};
+use super::{extended_capability, RegisterIndex, Registers};
+use crate::msi_x::MsiX;
 use bit_field::BitField;
 use core::convert::{TryFrom, TryInto};
 
@@ -21,12 +22,35 @@ impl<'a> Common<'a> {
         self.header_type().bridge_type()
     }
 
+    pub(super) fn iter_capability_list(
+        &self,
+    ) -> Option<impl Iterator<Item = Option<MsiX<'_>>> + '_> {
+        self.capability_list_exists().then(|| {
+            let ptr = self.capability_pointer().get();
+            let index = RegisterIndex::new((ptr >> 2).into());
+
+            extended_capability::Iter::new(self.registers, index)
+        })
+    }
+
+    pub(super) fn capability_list_exists(&self) -> bool {
+        self.status().capability_list_exists()
+    }
+
     fn class(&self) -> Class<'_> {
         Class::new(self.registers)
     }
 
     fn header_type(&self) -> HeaderType {
         HeaderType::new(self.registers)
+    }
+
+    fn status(&self) -> Status {
+        Status::new(self.registers)
+    }
+
+    pub(super) fn capability_pointer(&self) -> CapabilityPointer {
+        CapabilityPointer::new(self.registers)
     }
 }
 
@@ -87,5 +111,41 @@ impl<'a> Class<'a> {
 
     fn raw(&self) -> u32 {
         self.registers.get(RegisterIndex::new(2))
+    }
+}
+
+#[derive(Debug)]
+struct Status<'a> {
+    registers: &'a Registers,
+}
+impl<'a> Status<'a> {
+    fn new(registers: &'a Registers) -> Self {
+        Self { registers }
+    }
+
+    fn capability_list_exists(&self) -> bool {
+        self.raw().get_bit(4)
+    }
+
+    fn raw(&self) -> u16 {
+        let raw = self.registers.get(RegisterIndex::new(1)).get_bits(16..=31);
+
+        raw.try_into().unwrap()
+    }
+}
+
+#[derive(Debug)]
+pub(super) struct CapabilityPointer<'a> {
+    registers: &'a Registers,
+}
+impl<'a> CapabilityPointer<'a> {
+    fn new(registers: &'a Registers) -> Self {
+        Self { registers }
+    }
+
+    pub(super) fn get(&self) -> u8 {
+        let raw = self.registers.get(RegisterIndex::new(0xd)).get_bits(0..=7);
+
+        raw.try_into().unwrap()
     }
 }
