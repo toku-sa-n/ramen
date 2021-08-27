@@ -48,7 +48,7 @@ fn tell_fs_end_of_sync() {
 
 fn main_loop(processes: &mut ProcessCollection) {
     loop {
-        loop_iteration(processes)
+        loop_iteration(processes);
     }
 }
 

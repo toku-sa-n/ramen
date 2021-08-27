@@ -56,7 +56,7 @@ impl Collection {
         let mut current_table = pml4;
 
         for (&i, c) in indexes.iter().zip(collections.iter_mut()) {
-            current_table = Self::get_next_page_table(i, current_table, c)
+            current_table = Self::get_next_page_table(i, current_table, c);
         }
 
         Self::set_addr_to_pt(current_table, table_i, p.start_address());

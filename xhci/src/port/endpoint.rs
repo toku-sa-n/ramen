@@ -62,7 +62,7 @@ impl NonDefault {
     }
 
     pub(super) async fn issue_normal_trb<T: ?Sized>(&mut self, b: &PageBox<T>) {
-        self.sender.issue_normal_trb(b).await
+        self.sender.issue_normal_trb(b).await;
     }
 }
 

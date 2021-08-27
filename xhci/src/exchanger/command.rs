@@ -19,7 +19,7 @@ static SENDER: OnceCell<Futurelock<Sender>> = OnceCell::uninit();
 pub(crate) fn init(r: Arc<Spinlock<command::Ring>>) {
     SENDER
         .try_init_once(|| Futurelock::new(Sender::new(r), true))
-        .expect("`Sender` is initialized more than once.")
+        .expect("`Sender` is initialized more than once.");
 }
 
 pub(crate) async fn enable_device_slot() -> u8 {
@@ -126,6 +126,6 @@ fn panic_on_error(n: &str, c: event::Allowed) {
             panic!("{} command failed: {:?}", n, c.completion_code());
         }
     } else {
-        unreachable!("The Command Completion TRB is the only TRB to receive in response to the Command TRBs.")
+        unreachable!("The Command Completion TRB is the only TRB to receive in response to the Command TRBs.");
     }
 }

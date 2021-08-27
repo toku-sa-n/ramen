@@ -86,13 +86,13 @@ pub(crate) fn spawn_all_connected_port_tasks() {
 }
 
 fn max_num() -> u8 {
-    registers::handle(|r| r.capability.hcsparams1.read().number_of_ports())
+    registers::handle(|r| r.capability.hcsparams1.read_volatile().number_of_ports())
 }
 
 fn connected(port_number: u8) -> bool {
     registers::handle(|r| {
         r.port_register_set
-            .read_at((port_number - 1).into())
+            .read_volatile_at((port_number - 1).into())
             .portsc
             .current_connect_status()
     })

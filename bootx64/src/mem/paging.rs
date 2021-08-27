@@ -63,7 +63,7 @@ fn remove_table_protection() {
     unsafe {
         Cr0::update(|flags| {
             flags.remove(Cr0Flags::WRITE_PROTECT);
-        })
+        });
     }
 }
 

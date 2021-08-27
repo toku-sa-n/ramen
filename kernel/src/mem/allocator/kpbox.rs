@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-
+#![allow(clippy::type_repetition_in_bounds)]
 use crate::mem::paging::pml4::PML4;
 use core::{
     convert::TryFrom,

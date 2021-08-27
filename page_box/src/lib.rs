@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![cfg_attr(not(test), no_std)]
-
+#![allow(clippy::type_repetition_in_bounds)]
 use core::{
     convert::{TryFrom, TryInto},
     fmt,

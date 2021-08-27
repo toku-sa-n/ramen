@@ -3,7 +3,10 @@
 use crate::tss::TSS;
 use conquer_once::spin::Lazy;
 use x86_64::{
-    instructions::{segmentation, tables},
+    instructions::{
+        segmentation::{Segment, CS, DS, ES, FS, GS, SS},
+        tables,
+    },
     registers::model_specific::Star,
     structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector},
 };
@@ -41,13 +44,12 @@ pub(crate) struct Gdt {
 pub(crate) fn init() {
     GDT.table.load();
     unsafe {
-        segmentation::set_cs(GDT.kernel_code);
-
-        segmentation::load_ds(GDT.kernel_data);
-        segmentation::load_es(GDT.kernel_data);
-        segmentation::load_fs(GDT.kernel_data);
-        segmentation::load_gs(GDT.kernel_data);
-        segmentation::load_ss(GDT.kernel_data);
+        CS::set_reg(GDT.kernel_code);
+        DS::set_reg(GDT.kernel_data);
+        ES::set_reg(GDT.kernel_data);
+        FS::set_reg(GDT.kernel_data);
+        GS::set_reg(GDT.kernel_data);
+        SS::set_reg(GDT.kernel_data);
         tables::load_tss(GDT.tss_selector);
     }
 

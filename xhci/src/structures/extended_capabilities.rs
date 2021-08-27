@@ -12,7 +12,7 @@ static EXTENDED_CAPABILITIES: OnceCell<Spinlock<Option<extended_capabilities::Li
     OnceCell::uninit();
 
 pub(crate) unsafe fn init(mmio_base: PhysAddr) {
-    let hccparams1 = registers::handle(|r| r.capability.hccparams1.read());
+    let hccparams1 = registers::handle(|r| r.capability.hccparams1.read_volatile());
 
     EXTENDED_CAPABILITIES
         .try_init_once(|| {

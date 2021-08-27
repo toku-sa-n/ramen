@@ -19,7 +19,7 @@ pub(crate) fn add_entry(trb_a: PhysAddr, waker: Arc<Spinlock<AtomicWaker>>) -> R
 }
 
 pub(crate) fn receive(t: event::Allowed) {
-    lock().receive(t)
+    lock().receive(t);
 }
 
 fn lock() -> SpinlockGuard<'static, Receiver> {

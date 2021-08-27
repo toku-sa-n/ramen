@@ -40,7 +40,7 @@ impl log::Log for Logger {
     }
 
     fn log(&self, record: &log::Record<'_>) {
-        println!("{} - {}", record.level(), record.args())
+        println!("{} - {}", record.level(), record.args());
     }
 
     fn flush(&self) {}

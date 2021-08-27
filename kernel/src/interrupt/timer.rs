@@ -52,20 +52,21 @@ impl LocalApic {
     fn get_frequency(&mut self) {
         const MAX_COUNT: u32 = !0;
 
-        self.divide_config.write(0b1011);
-        self.lvt_timer.write(1 << 16 | 32);
-        self.initial_count.write(MAX_COUNT);
+        self.divide_config.write_volatile(0b1011);
+        self.lvt_timer.write_volatile(1 << 16 | 32);
+        self.initial_count.write_volatile(MAX_COUNT);
         self.pm.wait_milliseconds(100);
 
-        self.frequency = Some((MAX_COUNT - self.current_count.read()) * 10);
+        self.frequency = Some((MAX_COUNT - self.current_count.read_volatile()) * 10);
     }
 
     fn set_modes(&mut self) {
         let f = self.frequency.expect("Get the frequency first.");
         info!("Frequency: {}", f);
-        self.divide_config.write(3);
-        self.lvt_timer.write(u32::from(TIMER_VECTOR) | (1 << 17));
-        self.initial_count.write(f * 10);
+        self.divide_config.write_volatile(3);
+        self.lvt_timer
+            .write_volatile(u32::from(TIMER_VECTOR) | (1 << 17));
+        self.initial_count.write_volatile(f * 10);
     }
 }
 
@@ -153,7 +154,7 @@ impl MemoryReader {
     }
 
     fn read(&mut self) -> u32 {
-        self.addr.read()
+        self.addr.read_volatile()
     }
 }
 

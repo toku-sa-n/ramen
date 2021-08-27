@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
+#![allow(clippy::blocks_in_if_conditions)]
 
 extern crate alloc;
 

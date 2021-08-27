@@ -16,11 +16,11 @@ pub(super) unsafe fn inl(m: Message) -> u32 {
 }
 
 pub(super) unsafe fn outb(m: Message) {
-    write_to_port::<u8>(m)
+    write_to_port::<u8>(m);
 }
 
 pub(super) unsafe fn outl(m: Message) {
-    write_to_port::<u32>(m)
+    write_to_port::<u32>(m);
 }
 
 unsafe fn read_from_port<T: PortRead>(m: Message) -> T {

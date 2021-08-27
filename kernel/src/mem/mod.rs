@@ -40,7 +40,7 @@ pub(super) fn map_pages(start: PhysAddr, object_size: Bytes) -> VirtAddr {
             PML4.lock()
                 .map_to(page, frame, flag, &mut *phys::allocator())
                 .unwrap()
-                .flush()
+                .flush();
         }
     }
 

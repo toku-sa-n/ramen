@@ -14,7 +14,7 @@ pub(crate) unsafe fn init(mmio_base: PhysAddr) {
 
     REGISTERS
         .try_init_once(|| Spinlock::new(Registers::new(mmio_base, Mapper)))
-        .expect("Failed to initialize `REGISTERS`.")
+        .expect("Failed to initialize `REGISTERS`.");
 }
 
 /// Handle xHCI registers.

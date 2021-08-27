@@ -29,6 +29,6 @@ impl AcpiHandler for Mapper {
     fn unmap_physical_region<T>(&self, region: &PhysicalMapping<Self, T>) {
         let virt = VirtAddr::new(region.virtual_start.as_ptr() as u64);
         let bytes = Bytes::new(region.region_length);
-        mem::unmap_pages(virt, bytes)
+        mem::unmap_pages(virt, bytes);
     }
 }
