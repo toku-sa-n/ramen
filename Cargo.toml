@@ -1,0 +1,25 @@
+[workspace]
+members = [
+    "bootx64",
+    "kernel",
+    "libs/common",
+    "libs/frame_manager",
+    "libs/message",
+    "libs/page_box",
+    "libs/ralib",
+    "libs/syscalls",
+    "libs/terminal",
+    "servers/do_nothing",
+    "servers/fs",
+    "servers/pm",
+    "servers/port_server",
+    "servers/vm",
+    "servers/xhci",
+]
+resolver = "2"
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
