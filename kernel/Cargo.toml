@@ -1,5 +1,5 @@
 [package]
-name = "ramen"
+name = "kernel"
 version = "0.3.0"
 authors = ["toku-sa-n <tokusan441@gmail.com>"]
 edition = "2018"
@@ -14,7 +14,7 @@ opt-level = 3
 lto = true
 
 [lib]
-name = "ramen_os"
+name = "kernel"
 crate-type = ["staticlib"]
 test = false
 bench = false
