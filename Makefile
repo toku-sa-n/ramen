@@ -47,10 +47,9 @@ KERNEL_LIB_SRC	:=	$(shell find $(KERNEL_DIR)/src)
 KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/$(CONFIG_TOML)
 KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/$(CARGO_TOML)
 KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/build.rs
-KERNEL_LIB		:= $(BUILD_DIR)/libkernel.a
 KERNEL_LIB_DEPENDENCIES_SRC	:=	$(TERMINAL_SRC) $(COMMON_SRC) $(SYSCALLS_SRC) $(PAGE_BOX_SRC) $(MESSAGE_SRC) $(PORT_SERVER_SRC) $(FRAME_MANAGER_SRC) $(FS_SRC)
 KERNEL_LD			:= $(KERNEL_DIR)/kernel.ld
-KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
+KERNEL		:= $(BUILD_DIR)/kernel
 
 RALIB_DIR	:=	ralib
 RALIB_SRC	:=	$(shell find $(RALIB_DIR)/src)
@@ -111,14 +110,14 @@ LDFLAGS			:= -nostdlib
 
 all:$(IMG_FILE)
 
-copy_to_usb:$(KERNEL_FILE) $(EFI_FILE)
+copy_to_usb:$(KERNEL) $(EFI_FILE)
 ifeq ($(USB_DEVICE_PATH),)
 	echo 'Specify device path by $$USB_DEVICE_PATH environment variable.' >&2
 else
 	sudo mount $(USB_DEVICE_PATH) /mnt
 	sudo mkdir -p /mnt/efi/boot
 	sudo cp $(EFI_FILE) /mnt/efi/boot/
-	sudo cp $(KERNEL_FILE) /mnt/
+	sudo cp $(KERNEL) /mnt/
 	sudo umount /mnt
 endif
 
@@ -126,7 +125,7 @@ test:
 	make clean
 	make $(IMG_FILE) TEST_FLAG=--features=qemu_test
 
-$(IMG_FILE):$(KERNEL_FILE) $(EFI_FILE)
+$(IMG_FILE):$(KERNEL) $(EFI_FILE)
 	dd if=/dev/zero of=$@ bs=1k count=28800
 	mformat -i $@ -h 200 -t 500 -s 144::
 	# Cannot replace these mmd and mcopy with `make copy_to_usb` because `mount` needs `sudo`
@@ -134,13 +133,10 @@ $(IMG_FILE):$(KERNEL_FILE) $(EFI_FILE)
 	# the only way to edit image file without `sudo`.
 	mmd -i $@ ::/efi
 	mmd -i $@ ::/efi/boot
-	mcopy -i $@ $(KERNEL_FILE) ::
+	mcopy -i $@ $(KERNEL) ::
 	mcopy -i $@ $(EFI_FILE) ::/efi/boot
 
-$(KERNEL_FILE):$(KERNEL_LIB) $(KERNEL_LD)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -o $@ $(KERNEL_LIB) -T $(KERNEL_LD)
-
-$(KERNEL_LIB):$(KERNEL_LIB_SRC) $(INITRD) $(KERNEL_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
+$(KERNEL):$(KERNEL_LIB_SRC) $(INITRD) $(KERNEL_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	# FIXME: Currently `cargo` tries to read `$(pwd)/.cargo/config.toml`, not
 	# `$(dirname argument_of_--manifest-path)/.cargo/config.toml`.
 	# See: https://github.com/rust-lang/cargo/issues/2930

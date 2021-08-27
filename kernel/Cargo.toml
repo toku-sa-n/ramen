@@ -5,6 +5,15 @@ authors = ["toku-sa-n <tokusan441@gmail.com>"]
 edition = "2018"
 license = "GPL-3.0-or-later"
 
+[[bin]]
+name = "kernel"
+test = false
+bench = false
+
+[lib]
+test = false
+bench = false
+
 [features]
 default = []
 qemu_test = []
@@ -12,12 +21,6 @@ qemu_test = []
 [profile.release]
 opt-level = 3
 lto = true
-
-[lib]
-name = "kernel"
-crate-type = ["staticlib"]
-test = false
-bench = false
 
 [dependencies]
 common = { path = "../common" }

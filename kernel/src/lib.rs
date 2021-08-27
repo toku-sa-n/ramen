@@ -25,13 +25,10 @@ use log::info;
 use process::Privilege;
 use terminal::vram;
 
-#[no_mangle]
-pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
-    init(&mut boot_info);
-    cause_timer_interrupt();
-}
-
-fn init(boot_info: &mut kernelboot::Info) {
+/// # Panics
+///
+/// This function panics if the logging initialization fails.
+pub fn init(boot_info: &mut kernelboot::Info) {
     vram::init(boot_info);
 
     terminal::log::init().unwrap();
@@ -56,6 +53,14 @@ fn init(boot_info: &mut kernelboot::Info) {
     add_processes();
 }
 
+pub fn cause_timer_interrupt() -> ! {
+    extern "C" {
+        fn cause_timer_interrupt_asm() -> !;
+    }
+
+    unsafe { cause_timer_interrupt_asm() }
+}
+
 fn add_processes() {
     process::binary("build/port_server.bin", Privilege::Kernel);
     process::binary("build/pm.bin", Privilege::User);
@@ -73,14 +78,6 @@ fn add_processes() {
             process::binary("build/do_nothing.bin", Privilege::User);
         }
     }
-}
-
-fn cause_timer_interrupt() -> ! {
-    extern "C" {
-        fn cause_timer_interrupt_asm() -> !;
-    }
-
-    unsafe { cause_timer_interrupt_asm() }
 }
 
 fn do_nothing() {
