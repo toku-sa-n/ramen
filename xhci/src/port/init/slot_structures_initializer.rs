@@ -57,11 +57,11 @@ impl SlotStructuresInitializer {
     }
 
     fn init_input_context(&self) {
-        InputContextInitializer::new(&mut self.cx.lock(), self.port_number).init()
+        InputContextInitializer::new(&mut self.cx.lock(), self.port_number).init();
     }
 
     fn init_endpoint0_context(&self) {
-        Ep0ContextInitializer::new(&mut self.cx.lock(), self.port_number, &self.ep).init()
+        Ep0ContextInitializer::new(&mut self.cx.lock(), self.port_number, &self.ep).init();
     }
 
     fn register_with_dcbaa(&self) {
@@ -137,7 +137,7 @@ impl<'a> Ep0ContextInitializer<'a> {
     fn get_max_packet_size(&self) -> u16 {
         let psi = registers::handle(|r| {
             r.port_register_set
-                .read_at((self.port_number - 1).into())
+                .read_volatile_at((self.port_number - 1).into())
                 .portsc
                 .port_speed()
         });

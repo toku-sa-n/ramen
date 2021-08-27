@@ -40,7 +40,10 @@ impl Resetter {
     where
         T: FnOnce(&PortRegisterSet) -> U,
     {
-        registers::handle(|r| f(&r.port_register_set.read_at((self.port_number - 1).into())))
+        registers::handle(|r| {
+            f(&r.port_register_set
+                .read_volatile_at((self.port_number - 1).into()))
+        })
     }
 
     fn update_port_register<T>(&self, f: T)
@@ -49,7 +52,7 @@ impl Resetter {
     {
         registers::handle(|r| {
             r.port_register_set
-                .update_at((self.port_number - 1).into(), f)
-        })
+                .update_volatile_at((self.port_number - 1).into(), f);
+        });
     }
 }

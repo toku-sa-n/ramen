@@ -66,7 +66,7 @@ impl EndpointsInitializer {
                 e.transfer_ring_addr(),
                 self.port_number,
             )
-            .init()
+            .init();
         }
     }
 
@@ -236,7 +236,7 @@ impl<'a> ContextInitializer<'a> {
     fn port_speed(&self) -> PortSpeed {
         FromPrimitive::from_u8(registers::handle(|r| {
             r.port_register_set
-                .read_at((self.port_number - 1).into())
+                .read_volatile_at((self.port_number - 1).into())
                 .portsc
                 .port_speed()
         }))

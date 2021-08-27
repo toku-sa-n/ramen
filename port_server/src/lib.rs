@@ -36,7 +36,7 @@ fn handle_message(m: Message) {
     if let Some(t) = t {
         select_system_calls(m, t);
     } else {
-        warn!("Unrecognized message: {:?}", m)
+        warn!("Unrecognized message: {:?}", m);
     }
 }
 

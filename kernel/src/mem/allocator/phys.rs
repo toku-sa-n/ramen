@@ -26,7 +26,7 @@ pub(super) fn alloc(num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
 }
 
 pub(super) fn free(addr: PhysAddr) {
-    lock_manager().deref_mut().free(addr)
+    lock_manager().deref_mut().free(addr);
 }
 
 fn lock_manager() -> impl DerefMut<Target = FrameManager> {

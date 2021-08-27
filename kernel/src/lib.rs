@@ -32,7 +32,7 @@ pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
 }
 
 fn init(boot_info: &mut kernelboot::Info) {
-    vram::init(&boot_info);
+    vram::init(boot_info);
 
     terminal::log::init().unwrap();
 
@@ -85,6 +85,6 @@ fn cause_timer_interrupt() -> ! {
 
 fn do_nothing() {
     loop {
-        x86_64::instructions::nop()
+        x86_64::instructions::nop();
     }
 }

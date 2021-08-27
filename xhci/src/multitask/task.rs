@@ -95,7 +95,7 @@ impl Wake for TaskWaker {
     }
 
     fn wake_by_ref(self: &Arc<Self>) {
-        self.wake_task()
+        self.wake_task();
     }
 }
 

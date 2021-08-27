@@ -16,16 +16,16 @@ pub(crate) fn init() {
 pub(crate) fn run() {
     registers::handle(|r| {
         let o = &mut r.operational;
-        o.usbcmd.update(|u| {
+        o.usbcmd.update_volatile(|u| {
             u.set_run_stop();
         });
-        while o.usbsts.read().hc_halted() {}
+        while o.usbsts.read_volatile().hc_halted() {}
     });
 }
 
 pub(crate) fn ensure_no_error_occurs() {
     registers::handle(|r| {
-        let s = r.operational.usbsts.read();
+        let s = r.operational.usbsts.read_volatile();
 
         assert!(!s.hc_halted(), "HC is halted.");
         assert!(
@@ -41,11 +41,13 @@ fn get_ownership_from_bios() {
         for c in iter.filter_map(Result::ok) {
             if let ExtendedCapability::UsbLegacySupport(mut u) = c {
                 let l = &mut u.usblegsup;
-                l.update(|s| {
+                l.update_volatile(|s| {
                     s.set_hc_os_owned_semaphore();
                 });
 
-                while l.read().hc_bios_owned_semaphore() || !l.read().hc_os_owned_semaphore() {}
+                while l.read_volatile().hc_bios_owned_semaphore()
+                    || !l.read_volatile().hc_os_owned_semaphore()
+                {}
             }
         }
     }
@@ -59,14 +61,14 @@ fn stop_and_reset() {
 
 fn stop() {
     registers::handle(|r| {
-        r.operational.usbcmd.update(|u| {
+        r.operational.usbcmd.update_volatile(|u| {
             u.clear_run_stop();
         });
-    })
+    });
 }
 
 fn wait_until_halt() {
-    registers::handle(|r| while !r.operational.usbsts.read().hc_halted() {})
+    registers::handle(|r| while !r.operational.usbsts.read_volatile().hc_halted() {});
 }
 
 fn reset() {
@@ -77,37 +79,42 @@ fn reset() {
 
 fn start_resetting() {
     registers::handle(|r| {
-        r.operational.usbcmd.update(|u| {
+        r.operational.usbcmd.update_volatile(|u| {
             u.set_host_controller_reset();
-        })
-    })
+        });
+    });
 }
 
 fn wait_until_reset_completed() {
     registers::handle(
         |r| {
-            while r.operational.usbcmd.read().host_controller_reset() {}
+            while r.operational.usbcmd.read_volatile().host_controller_reset() {}
         },
-    )
+    );
 }
 
 fn wait_until_ready() {
     registers::handle(
         |r| {
-            while r.operational.usbsts.read().controller_not_ready() {}
+            while r.operational.usbsts.read_volatile().controller_not_ready() {}
         },
-    )
+    );
 }
 
 fn set_num_of_enabled_slots() {
     let n = num_of_device_slots();
     registers::handle(|r| {
-        r.operational.config.update(|c| {
+        r.operational.config.update_volatile(|c| {
             c.set_max_device_slots_enabled(n);
         });
-    })
+    });
 }
 
 fn num_of_device_slots() -> u8 {
-    registers::handle(|r| r.capability.hcsparams1.read().number_of_device_slots())
+    registers::handle(|r| {
+        r.capability
+            .hcsparams1
+            .read_volatile()
+            .number_of_device_slots()
+    })
 }

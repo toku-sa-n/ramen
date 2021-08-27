@@ -72,5 +72,5 @@ impl Default for Device {
 }
 
 fn csz() -> bool {
-    registers::handle(|r| r.capability.hccparams1.read().context_size())
+    registers::handle(|r| r.capability.hccparams1.read_volatile().context_size())
 }

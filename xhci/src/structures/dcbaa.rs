@@ -32,17 +32,24 @@ impl DeviceContextBaseAddressArray {
     }
 
     fn num_of_slots() -> usize {
-        registers::handle(|r| r.capability.hcsparams1.read().number_of_device_slots() + 1).into()
+        registers::handle(|r| {
+            r.capability
+                .hcsparams1
+                .read_volatile()
+                .number_of_device_slots()
+                + 1
+        })
+        .into()
     }
 
     fn register_address_to_xhci_register(&self) {
         registers::handle(|r| {
             let _ = &self;
-            r.operational.dcbaap.update(|d| {
+            r.operational.dcbaap.update_volatile(|d| {
                 let _ = &self;
                 d.set(self.phys_addr().as_u64());
-            })
-        })
+            });
+        });
     }
 
     fn phys_addr(&self) -> PhysAddr {

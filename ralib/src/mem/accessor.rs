@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use accessor::single::ReadWrite;
 use core::{convert::TryInto, num::NonZeroUsize};
 use os_units::Bytes;
 use x86_64::{PhysAddr, VirtAddr};
 
-pub type Single<T> = accessor::Single<T, Mapper>;
+pub type Single<T> = ReadWrite<T, Mapper>;
 
 /// # Safety
 ///

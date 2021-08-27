@@ -45,8 +45,8 @@ impl Registers {
     }
 
     fn write(&mut self, index: u8, v: u32) {
-        self.addr.write(index.into());
-        self.data.write(v);
+        self.addr.write_volatile(index.into());
+        self.data.write_volatile(v);
     }
 }
 

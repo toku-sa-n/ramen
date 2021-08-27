@@ -4,7 +4,10 @@ use bit_field::BitField;
 use conquer_once::spin::Lazy;
 use core::{convert::TryInto, mem};
 use x86_64::{
-    instructions::{segmentation, tables},
+    instructions::{
+        segmentation::{Segment, CS},
+        tables,
+    },
     structures::DescriptorTablePointer,
     PrivilegeLevel, VirtAddr,
 };
@@ -69,7 +72,7 @@ impl Entry {
         self.offset_mid = addr.get_bits(16..32).try_into().unwrap();
         self.offset_high = addr.get_bits(32..64).try_into().unwrap();
 
-        self.segment_selector = segmentation::cs().0;
+        self.segment_selector = CS::get_reg().0;
         self.options.set_present();
     }
 
@@ -109,6 +112,6 @@ pub(crate) fn init() {
         tables::lidt(&DescriptorTablePointer {
             limit: (mem::size_of::<Idt>() - 1).try_into().unwrap(),
             base: VirtAddr::from_ptr(&*IDT),
-        })
+        });
     }
 }

@@ -9,11 +9,11 @@ static WOKEN_PIDS: Lazy<Spinlock<VecDeque<process::SlotId>>> =
     Lazy::new(|| Spinlock::new(VecDeque::new()));
 
 pub(in crate::process) fn add(id: process::SlotId) {
-    lock_queue().push_back(id)
+    lock_queue().push_back(id);
 }
 
 pub(in crate::process) fn change_active_pid() {
-    lock_queue().rotate_left(1)
+    lock_queue().rotate_left(1);
 }
 
 pub(in crate::process) fn active_pid() -> process::SlotId {

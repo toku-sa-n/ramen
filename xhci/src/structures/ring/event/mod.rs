@@ -25,12 +25,14 @@ pub(crate) async fn task(mut ring: Ring) {
     debug!("This is the Event ring task.");
     while let Some(trb) = ring.next().await {
         info!("TRB: {:?}", trb);
-        if let event::Allowed::CommandCompletion(_) = trb {
-            receiver::receive(trb);
-        } else if let event::Allowed::TransferEvent(_) = trb {
-            receiver::receive(trb);
-        } else if let event::Allowed::PortStatusChange(p) = trb {
-            let _ = port::try_spawn(p.port_id());
+        match trb {
+            event::Allowed::CommandCompletion(_) | event::Allowed::TransferEvent(_) => {
+                receiver::receive(trb);
+            }
+            event::Allowed::PortStatusChange(p) => {
+                let _ = port::try_spawn(p.port_id());
+            }
+            _ => {}
         }
     }
 }
@@ -47,7 +49,7 @@ impl Ring {
         let max_num_of_erst = registers::handle(|r| {
             r.capability
                 .hcsparams2
-                .read()
+                .read_volatile()
                 .event_ring_segment_table_max()
         });
 
@@ -63,7 +65,7 @@ impl Ring {
     }
 
     fn init_dequeue_ptr(&mut self) {
-        self.raw.update_deq_p_with_xhci()
+        self.raw.update_deq_p_with_xhci();
     }
 
     fn phys_addr_to_segment_table(&self) -> PhysAddr {
@@ -126,7 +128,7 @@ impl Raw {
         registers::handle(|r| {
             r.capability
                 .hcsparams2
-                .read()
+                .read_volatile()
                 .event_ring_segment_table_max()
         })
     }
@@ -184,11 +186,11 @@ impl Raw {
         registers::handle(|r| {
             let _ = &self;
 
-            r.interrupt_register_set.update_at(0, |r| {
+            r.interrupt_register_set.update_volatile_at(0, |r| {
                 let _ = &self;
                 r.erdp
-                    .set_event_ring_dequeue_pointer(self.next_trb_addr().as_u64())
-            })
+                    .set_event_ring_dequeue_pointer(self.next_trb_addr().as_u64());
+            });
         });
     }
 
@@ -227,15 +229,15 @@ impl<'a> SegTblInitializer<'a> {
             let l = self.tbl_len();
 
             r.interrupt_register_set
-                .update_at(0, |r| r.erstsz.set(l.try_into().unwrap()))
-        })
+                .update_volatile_at(0, |r| r.erstsz.set(l.try_into().unwrap()));
+        });
     }
 
     fn enable_event_ring(&mut self) {
         registers::handle(|r| {
             let a = self.tbl_addr();
             r.interrupt_register_set
-                .update_at(0, |r| r.erstba.set(a.as_u64()))
+                .update_volatile_at(0, |r| r.erstba.set(a.as_u64()));
         });
     }
 

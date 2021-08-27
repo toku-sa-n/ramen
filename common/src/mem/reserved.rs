@@ -29,7 +29,7 @@ impl Map {
     pub fn new(kernel: &PhysRange, phys_addr_stack: PhysAddr, vram: &vram::Info) -> Self {
         Self {
             0: [
-                Range::kernel(&kernel),
+                Range::kernel(kernel),
                 Range::stack(phys_addr_stack),
                 Range::vram(vram),
             ],

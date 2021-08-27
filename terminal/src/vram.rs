@@ -23,7 +23,7 @@ pub fn init(boot_info: &kernelboot::Info) {
 
 pub fn print_info() {
     let r = resolution();
-    info!("{}bpp Resolution: {}x{}", bpp(), r.y, r.y)
+    info!("{}bpp Resolution: {}x{}", bpp(), r.y, r.y);
 }
 
 pub(super) fn scroll_up() {

@@ -22,7 +22,7 @@ fn init_static() {
     scratchpad.init();
     scratchpad.register_with_dcbaa();
 
-    SCRATCHPAD.init_once(|| scratchpad)
+    SCRATCHPAD.init_once(|| scratchpad);
 }
 
 struct Scratchpad {
@@ -69,10 +69,15 @@ impl Scratchpad {
     }
 
     fn num_of_buffers() -> u32 {
-        registers::handle(|r| r.capability.hcsparams2.read().max_scratchpad_buffers())
+        registers::handle(|r| {
+            r.capability
+                .hcsparams2
+                .read_volatile()
+                .max_scratchpad_buffers()
+        })
     }
 
     fn page_size() -> Bytes {
-        Bytes::new(registers::handle(|r| r.operational.pagesize.read().get()).into())
+        Bytes::new(registers::handle(|r| r.operational.pagesize.read_volatile().get()).into())
     }
 }

@@ -7,15 +7,15 @@ use message::Message;
 use x86_64::{structures::paging::Translate, PhysAddr, VirtAddr};
 
 pub(crate) fn send(msg: VirtAddr, to: SlotId) {
-    Sender::new(msg, to).send()
+    Sender::new(msg, to).send();
 }
 
 pub(crate) fn receive_from_any(msg_buf: VirtAddr) {
-    Receiver::new_from_any(msg_buf).receive()
+    Receiver::new_from_any(msg_buf).receive();
 }
 
 pub(crate) fn receive_from(msg_buf: VirtAddr, from: SlotId) {
-    Receiver::new_from(msg_buf, from).receive()
+    Receiver::new_from(msg_buf, from).receive();
 }
 
 struct Sender {
@@ -60,7 +60,7 @@ impl Sender {
         collections::process::handle_running_mut(|p| {
             p.msg_ptr = None;
             p.send_to = None;
-        })
+        });
     }
 
     fn wake_dst(&self) {
@@ -85,7 +85,7 @@ impl Sender {
             } else {
                 panic!("Message is already stored.");
             }
-        })
+        });
     }
 
     fn add_self_as_trying_to_send(&self) {
@@ -96,7 +96,7 @@ impl Sender {
     }
 
     fn mark_as_sending(&self) {
-        collections::process::handle_running_mut(|p| p.send_to = Some(self.to))
+        collections::process::handle_running_mut(|p| p.send_to = Some(self.to));
     }
 }
 
@@ -188,11 +188,11 @@ impl Receiver {
             } else {
                 panic!("Message is already stored.");
             }
-        })
+        });
     }
 
     fn mark_as_receiving(&self) {
-        collections::process::handle_running_mut(|p| p.receive_from = Some(self.from))
+        collections::process::handle_running_mut(|p| p.receive_from = Some(self.from));
     }
 }
 
@@ -203,8 +203,8 @@ unsafe fn copy_msg(src: PhysAddr, dst: PhysAddr, sender_slot_id: SlotId) {
     let mut src: Single<Message> = mem::accessor::new(src);
     let mut dst = mem::accessor::new(dst);
 
-    src.update(|m| m.header.sender = sender_slot_id);
-    dst.write(src.read());
+    src.update_volatile(|m| m.header.sender = sender_slot_id);
+    dst.write_volatile(src.read_volatile());
 }
 
 fn virt_to_phys(v: VirtAddr) -> PhysAddr {
