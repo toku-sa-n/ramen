@@ -75,9 +75,8 @@ DO_NOTHING_DIR	:=	do_nothing
 DO_NOTHING_SRC	:=	$(shell find $(DO_NOTHING_DIR)/src)
 DO_NOTHING_SRC	+=	$(DO_NOTHING_DIR)/$(CARGO_TOML)
 DO_NOTHING_SRC	+=	$(DO_NOTHING_DIR)/$(CONFIG_TOML)
-DO_NOTHING_LIB	:=	$(BUILD_DIR)/libdo_nothing.a
 DO_NOTHING_DEPENDENCIES_SRC	:=	$(RALIB_SRC)
-DO_NOTHING	:=	$(BUILD_DIR)/do_nothing.bin
+DO_NOTHING	:=	$(BUILD_DIR)/do_nothing
 
 XHCI_DIR	:=	xhci
 XHCI_LIB_SRC	:=	$(shell find $(XHCI_DIR)/src)
@@ -170,10 +169,7 @@ $(FS_LIB):$(FS_SRC) $(FS_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 $(EFI_FILE):$(EFI_SRC)|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
-$(DO_NOTHING):$(DO_NOTHING_LIB)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -Ttext 0xc00000 -o $@ -e main $^
-
-$(DO_NOTHING_LIB):$(DO_NOTHING_SRC) $(DO_NOTHING_DEPENDENCIES_SRC)|$(BUILD_DIR)
+$(DO_NOTHING):$(DO_NOTHING_SRC) $(DO_NOTHING_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(DO_NOTHING_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(XHCI):$(XHCI_LIB)|$(BUILD_DIR)

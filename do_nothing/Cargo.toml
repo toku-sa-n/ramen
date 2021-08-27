@@ -3,9 +3,12 @@ name = "do_nothing"
 version = "0.1.0"
 edition = "2018"
 
-[lib]
+[[bin]]
 name = "do_nothing"
-crate-type = ["staticlib"]
+test = false
+bench = false
+
+[lib]
 test = false
 bench = false
 
