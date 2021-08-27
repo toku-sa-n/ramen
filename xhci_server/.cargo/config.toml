@@ -4,3 +4,8 @@ build-std-features = ["compiler-builtins-mem"]
 
 [build]
 target = "../x86_64-unknown-ramen.json"
+
+[target.x86_64-unknown-ramen]
+rustflags = [
+    "-C", "link-args=-Ttext 0x800000 -e main",
+]

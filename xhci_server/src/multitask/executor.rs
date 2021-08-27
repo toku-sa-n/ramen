@@ -13,18 +13,17 @@ use alloc::collections::BTreeMap;
 use core::task::{Context, Poll, Waker};
 use task::Task;
 
-pub(crate) struct Executor {
+pub struct Executor {
     waker_collection: BTreeMap<task::Id, Waker>,
 }
-
 impl Executor {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             waker_collection: BTreeMap::new(),
         }
     }
 
-    pub(crate) fn run(&mut self) -> ! {
+    pub fn run(&mut self) -> ! {
         loop {
             self.run_woken_tasks();
         }
@@ -75,5 +74,10 @@ impl Executor {
         } else {
             task::COLLECTION.lock().add_task_as_sleep(task);
         }
+    }
+}
+impl Default for Executor {
+    fn default() -> Self {
+        Self::new()
     }
 }

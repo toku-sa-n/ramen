@@ -8,15 +8,7 @@ extern crate alloc;
 use alloc::collections::BTreeSet;
 use log::info;
 
-#[no_mangle]
-pub fn main() {
-    ralib::init();
-
-    let mut c = ProcessCollection::default();
-    init(&mut c);
-}
-
-fn init(c: &mut ProcessCollection) {
+pub fn init(c: &mut ProcessCollection) {
     let mut m;
     let mut k = 0;
     while {
@@ -32,7 +24,7 @@ fn init(c: &mut ProcessCollection) {
 }
 
 #[derive(Default)]
-struct ProcessCollection(BTreeSet<i32>);
+pub struct ProcessCollection(BTreeSet<i32>);
 impl ProcessCollection {
     fn insert(&mut self, k: i32) {
         self.0.insert(k);

@@ -8,7 +8,7 @@ extern crate alloc;
 
 use alloc::sync::Arc;
 use futures_intrusive::sync::{GenericMutex, GenericMutexGuard};
-use multitask::{executor::Executor, task::Task};
+use multitask::task::Task;
 use pci::config::bar;
 use spinning_top::{RawSpinlock, Spinlock};
 use structures::{
@@ -17,6 +17,8 @@ use structures::{
     scratchpad,
 };
 use x86_64::PhysAddr;
+
+pub use multitask::executor::Executor;
 
 pub(crate) type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 pub(crate) type FuturelockGuard<'a, T> = GenericMutexGuard<'a, RawSpinlock, T>;
@@ -28,17 +30,7 @@ mod port;
 mod structures;
 mod xhc;
 
-#[no_mangle]
-pub fn main() {
-    ralib::init();
-
-    init();
-
-    let mut executor = Executor::new();
-    executor.run();
-}
-
-pub(crate) fn init() {
+pub fn init() {
     if xhc::exists() {
         init_and_spawn_tasks();
     }

@@ -1,11 +1,14 @@
 [package]
-name = "xhci"
+name = "xhci_server"
 version = "0.1.0"
 edition = "2018"
 
+[[bin]]
+name = "xhci_server"
+test = false
+bench = false
+
 [lib]
-name = "xhci"
-crate-type = ["staticlib"]
 test = false
 bench = false
 

@@ -13,9 +13,11 @@ qemu_test = []
 opt-level = 3
 lto = true
 
+[[bin]]
+name = "ramen"
+test = false
+
 [lib]
-name = "ramen_os"
-crate-type = ["staticlib"]
 test = false
 bench = false
 

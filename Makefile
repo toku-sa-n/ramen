@@ -38,19 +38,17 @@ FRAME_MANAGER_SRC	+=	$(FRAME_MANAGER_DIR)/$(CARGO_TOML)
 FS_DIR	:=	fs
 FS_SRC	:=	$(shell find $(FS_DIR)/src)
 FS_SRC	+=	$(FS_DIR)/$(CARGO_TOML)
-FS_LIB	:=	$(BUILD_DIR)/libfs.a
 FS_LIB_DEPENDENCIES_SRC	:=	$(SYSCALLS_SRC) $(RALIB_SRC) $(MESSAGE_SRC)
-FS	:=	$(BUILD_DIR)/fs.bin
+FS	:=	$(BUILD_DIR)/fs
 
 KERNEL_DIR		:= kernel
 KERNEL_LIB_SRC	:=	$(shell find $(KERNEL_DIR)/src)
 KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/$(CONFIG_TOML)
 KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/$(CARGO_TOML)
 KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/build.rs
-KERNEL_LIB		:= $(BUILD_DIR)/libramen_os.a
 KERNEL_LIB_DEPENDENCIES_SRC	:=	$(TERMINAL_SRC) $(COMMON_SRC) $(SYSCALLS_SRC) $(PAGE_BOX_SRC) $(MESSAGE_SRC) $(PORT_SERVER_SRC) $(FRAME_MANAGER_SRC) $(FS_SRC)
 KERNEL_LD			:= $(KERNEL_DIR)/kernel.ld
-KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
+KERNEL_FILE		:= $(BUILD_DIR)/ramen
 
 RALIB_DIR	:=	ralib
 RALIB_SRC	:=	$(shell find $(RALIB_DIR)/src)
@@ -75,17 +73,15 @@ DO_NOTHING_DIR	:=	do_nothing
 DO_NOTHING_SRC	:=	$(shell find $(DO_NOTHING_DIR)/src)
 DO_NOTHING_SRC	+=	$(DO_NOTHING_DIR)/$(CARGO_TOML)
 DO_NOTHING_SRC	+=	$(DO_NOTHING_DIR)/$(CONFIG_TOML)
-DO_NOTHING_LIB	:=	$(BUILD_DIR)/libdo_nothing.a
 DO_NOTHING_DEPENDENCIES_SRC	:=	$(RALIB_SRC)
-DO_NOTHING	:=	$(BUILD_DIR)/do_nothing.bin
+DO_NOTHING	:=	$(BUILD_DIR)/do_nothing
 
-XHCI_DIR	:=	xhci
+XHCI_DIR	:=	xhci_server
 XHCI_LIB_SRC	:=	$(shell find $(XHCI_DIR)/src)
 XHCI_LIB_SRC	+=	$(XHCI_DIR)/$(CONFIG_TOML)
 XHCI_LIB_SRC	+=	$(XHCI_DIR)/$(CARGO_TOML)
-XHCI_LIB	:=	$(BUILD_DIR)/libxhci.a
 XHCI_LIB_DEPENDENCIES_SRC	:=	$(PAGE_BOX_SRC) $(RALIB_SRC) $(SYSCALLS_SRC)
-XHCI	:=	$(BUILD_DIR)/xhci.bin
+XHCI	:=	$(BUILD_DIR)/xhci_server
 
 VM_DIR	:=	vm
 VM_LIB_SRC	:=	$(shell find $(VM_DIR)/src)
@@ -137,10 +133,7 @@ $(IMG_FILE):$(KERNEL_FILE) $(EFI_FILE)
 	mcopy -i $@ $(KERNEL_FILE) ::
 	mcopy -i $@ $(EFI_FILE) ::/efi/boot
 
-$(KERNEL_FILE):$(KERNEL_LIB) $(KERNEL_LD)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -o $@ $(KERNEL_LIB) -T $(KERNEL_LD)
-
-$(KERNEL_LIB):$(KERNEL_LIB_SRC) $(INITRD) $(KERNEL_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
+$(KERNEL_FILE):$(KERNEL_LIB_SRC) $(INITRD) $(KERNEL_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	# FIXME: Currently `cargo` tries to read `$(pwd)/.cargo/config.toml`, not
 	# `$(dirname argument_of_--manifest-path)/.cargo/config.toml`.
 	# See: https://github.com/rust-lang/cargo/issues/2930
@@ -161,25 +154,16 @@ $(PORT_SERVER):$(PORT_SERVER_LIB)|$(BUILD_DIR)
 $(PORT_SERVER_LIB):$(PORT_SERVER_SRC) $(PORT_SERVER_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(PORT_SERVER_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
-$(FS):$(FS_LIB)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $^
-
-$(FS_LIB):$(FS_SRC) $(FS_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
+$(FS):$(FS_SRC) $(FS_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(FS_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(EFI_FILE):$(EFI_SRC)|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
-$(DO_NOTHING):$(DO_NOTHING_LIB)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -Ttext 0xc00000 -o $@ -e main $^
-
-$(DO_NOTHING_LIB):$(DO_NOTHING_SRC) $(DO_NOTHING_DEPENDENCIES_SRC)|$(BUILD_DIR)
+$(DO_NOTHING):$(DO_NOTHING_SRC) $(DO_NOTHING_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(DO_NOTHING_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
-$(XHCI):$(XHCI_LIB)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $^
-
-$(XHCI_LIB):$(XHCI_SRC) $(XHCI_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
+$(XHCI):$(XHCI_SRC) $(XHCI_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(XHCI_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(VM):$(VM_LIB)|$(BUILD_DIR)
