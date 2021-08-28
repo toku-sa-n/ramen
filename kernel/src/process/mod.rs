@@ -20,9 +20,9 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
-pub(super) fn add(entry: fn(), p: Privilege, name: &'static str) {
+pub(super) fn add(entry: fn(), name: &'static str) {
     let entry = VirtAddr::new((entry as usize).try_into().unwrap());
-    push_process_to_queue(Process::new(entry, p, name));
+    push_process_to_queue(Process::new(entry, Privilege::Kernel, name));
 }
 
 pub(super) fn binary(name: &'static str, p: Privilege) {
