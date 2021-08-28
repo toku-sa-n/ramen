@@ -64,7 +64,7 @@ pub(crate) fn assign_to_rax(rax: u64) {
 }
 
 fn set_temporary_stack_frame() {
-    TSS.lock().interrupt_stack_table[0] = INTERRUPT_STACK;
+    TSS.lock().interrupt_stack_table[0] = *INTERRUPT_STACK;
 }
 
 #[derive(Debug)]
