@@ -13,7 +13,10 @@ use x86_64::{
     },
     PhysAddr, VirtAddr,
 };
-use xmas_elf::{program::ProgramHeader, ElfFile};
+use xmas_elf::{
+    program::{self, ProgramHeader},
+    ElfFile,
+};
 
 #[derive(Debug)]
 pub(super) struct Collection {
@@ -153,7 +156,7 @@ impl<'a> ElfMapper<'a> {
 
         for ph in elf_file.program_iter() {
             let is_gnu_stack = ph.virtual_addr() == 0;
-            if !is_gnu_stack {
+            if !is_gnu_stack && ph.get_type().unwrap() == program::Type::Load {
                 self.map_with_ph(&ph);
             }
         }
