@@ -20,7 +20,7 @@ test = false
 bench = false
 
 [dependencies]
-common = { path = "../common" }
+common = { path = "../libs/common" }
 conquer-once = { version = "0.3.2", default-features = false }
 spinning_top = "0.2.4"
 x86_64 = { version = "0.14.3", default-features = false }
@@ -34,13 +34,13 @@ bit_field = "0.10.1"
 num-traits = { version = "0.2.14", default-features = false }
 num-derive = "0.3.3"
 acpi = "2.3.1"
-syscalls = { path = "../syscalls" }
-page_box = { path = "../page_box" }
-terminal = { path = "../terminal" }
+syscalls = { path = "../libs/syscalls" }
+page_box = { path = "../libs/page_box" }
+terminal = { path = "../libs/terminal" }
 accessor = "0.3.0"
-message = { path = "../message" }
+message = { path = "../libs/message" }
 bitflags = "1.2.1"
-frame_manager = { path = "../frame_manager" }
+frame_manager = { path = "../libs/frame_manager" }
 cstr_core = "0.2.3"
 xmas-elf = "0.7.0"
 uart_16550 = "0.2.14"

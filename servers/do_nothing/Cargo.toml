@@ -10,5 +10,5 @@ test = false
 bench = false
 
 [dependencies]
-ralib = { path = "../../ralib" }
+ralib = { path = "../../libs/ralib" }
 

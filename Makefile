@@ -1,6 +1,7 @@
 SHELL			:= /bin/bash
 
 BUILD_DIR		:= build
+LIBS_DIR	:=	libs
 SERVERS_DIR	:=	servers
 
 CONFIG_TOML	:=	.cargo/config.toml
@@ -12,27 +13,27 @@ EFI_SRC	+=	$(EFI_DIR)/$(CONFIG_TOML)
 EFI_SRC	+=	$(EFI_DIR)/$(CARGO_TOML)
 EFI_FILE		:= $(BUILD_DIR)/bootx64.efi
 
-TERMINAL_DIR	:=	terminal
+TERMINAL_DIR	:=	$(LIBS_DIR)/terminal
 TERMINAL_SRC	:=	$(shell find $(TERMINAL_DIR)/src)
 TERMINAL_SRC	+=	$(TERMINAL_DIR)/$(CARGO_TOML)
 
-COMMON_DIR	:=	common
+COMMON_DIR	:=	$(LIBS_DIR)/common
 COMMON_SRC	:=	$(shell find $(COMMON_DIR)/src)
 COMMON_SRC	+=	$(COMMON_DIR)/$(CARGO_TOML)
 
-SYSCALLS_DIR	:=	syscalls
+SYSCALLS_DIR	:=	$(LIBS_DIR)/syscalls
 SYSCALLS_SRC	:=	$(shell find $(SYSCALLS_DIR)/src)
 SYSCALLS_SRC	+=	$(SYSCALLS_DIR)/$(CARGO_TOML)
 
-PAGE_BOX_DIR	:=	page_box
+PAGE_BOX_DIR	:=	$(LIBS_DIR)/page_box
 PAGE_BOX_SRC	:=	$(shell find $(PAGE_BOX_DIR)/src)
 PAGE_BOX_SRC	+=	$(PAGE_BOX_DIR)/$(CARGO_TOML)
 
-MESSAGE_DIR	:=	message
+MESSAGE_DIR	:=	$(LIBS_DIR)/message
 MESSAGE_SRC	:=	$(shell find $(MESSAGE_DIR)/src)
 MESSAGE_SRC	+=	$(MESSAGE_DIR)/$(CARGO_TOML)
 
-FRAME_MANAGER_DIR	:=	frame_manager
+FRAME_MANAGER_DIR	:=	$(LIBS_DIR)/frame_manager
 FRAME_MANAGER_SRC	:=	$(shell find $(FRAME_MANAGER_DIR)/src)
 FRAME_MANAGER_SRC	+=	$(FRAME_MANAGER_DIR)/$(CARGO_TOML)
 
@@ -53,7 +54,7 @@ KERNEL_LIB_DEPENDENCIES_SRC	:=	$(TERMINAL_SRC) $(COMMON_SRC) $(SYSCALLS_SRC) $(P
 KERNEL_LD			:= $(KERNEL_DIR)/kernel.ld
 KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
 
-RALIB_DIR	:=	ralib
+RALIB_DIR	:=	$(LIBS_DIR)/ralib
 RALIB_SRC	:=	$(shell find $(RALIB_DIR)/src)
 RALIB_SRC	+=	$(RALIB_DIR)/$(CARGO_TOML)
 
