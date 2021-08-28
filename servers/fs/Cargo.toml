@@ -12,6 +12,6 @@ bench = false
 
 [dependencies]
 log = "0.4.14"
-message = { path = "../../message" }
-ralib = { path = "../../ralib" }
-syscalls = { path = "../../syscalls" }
+message = { path = "../../libs/message" }
+ralib = { path = "../../libs/ralib" }
+syscalls = { path = "../../libs/syscalls" }
