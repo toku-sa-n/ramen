@@ -62,12 +62,12 @@ fn add_processes() {
     process::binary("build/fs.bin", Privilege::User);
     process::binary("build/xhci.bin", Privilege::User);
     process::binary("build/vm.bin", Privilege::User);
-    process::add(sysproc::main, Privilege::Kernel, "sysproc");
-    process::add(do_nothing, Privilege::User, "do_nothing");
+    process::add(sysproc::main, "sysproc");
+    process::add(do_nothing, "do_nothing");
 
     if cfg!(feature = "qemu_test") {
-        process::add(tests::main, Privilege::User, "tests");
-        process::add(tests::process::exit_test, Privilege::User, "exittest");
+        process::add(tests::main, "tests");
+        process::add(tests::process::exit_test, "exittest");
 
         for _ in 0..100 {
             process::binary("build/do_nothing.bin", Privilege::User);
