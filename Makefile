@@ -1,6 +1,7 @@
 SHELL			:= /bin/bash
 
 BUILD_DIR		:= build
+SERVERS_DIR	:=	servers
 
 CONFIG_TOML	:=	.cargo/config.toml
 CARGO_TOML	:=	Cargo.toml
@@ -35,7 +36,7 @@ FRAME_MANAGER_DIR	:=	frame_manager
 FRAME_MANAGER_SRC	:=	$(shell find $(FRAME_MANAGER_DIR)/src)
 FRAME_MANAGER_SRC	+=	$(FRAME_MANAGER_DIR)/$(CARGO_TOML)
 
-FS_DIR	:=	fs
+FS_DIR	:=	$(SERVERS_DIR)/fs
 FS_SRC	:=	$(shell find $(FS_DIR)/src)
 FS_SRC	+=	$(FS_DIR)/$(CARGO_TOML)
 FS_LIB	:=	$(BUILD_DIR)/libfs.a
@@ -56,14 +57,14 @@ RALIB_DIR	:=	ralib
 RALIB_SRC	:=	$(shell find $(RALIB_DIR)/src)
 RALIB_SRC	+=	$(RALIB_DIR)/$(CARGO_TOML)
 
-PORT_SERVER_DIR	:=	port_server
+PORT_SERVER_DIR	:=	$(SERVERS_DIR)/port_server
 PORT_SERVER_SRC	:=	$(shell find $(PORT_SERVER_DIR)/src)
 PORT_SERVER_SRC	+=	$(PORT_SERVER_DIR)/$(CARGO_TOML)
 PORT_SERVER_LIB	:=	$(BUILD_DIR)/libport_server.a
 PORT_SERVER_DEPENDENCIES_SRC	:=	$(MESSAGE_SRC) $(RALIB_SRC) $(SYSCALLS_SRC)
 PORT_SERVER	:=	$(BUILD_DIR)/port_server.bin
 
-PM_DIR			:= pm
+PM_DIR			:= $(SERVERS_DIR)/pm
 PM_LIB_SRC	:=	$(shell find $(PM_DIR)/src)
 PM_LIB_SRC	+=	$(PM_DIR)/$(CONFIG_TOML)
 PM_LIB_SRC	+=	$(PM_DIR)/$(CARGO_TOML)
@@ -71,7 +72,7 @@ PM_LIB			:= $(BUILD_DIR)/libpm.a
 PM_LIB_DEPENDENCIES_SRC	:=	$(MESSAGE_SRC) $(RALIB_SRC) $(SYSCALLS_SRC)
 PM				:= $(BUILD_DIR)/pm.bin
 
-DO_NOTHING_DIR	:=	do_nothing
+DO_NOTHING_DIR	:=	$(SERVERS_DIR)/do_nothing
 DO_NOTHING_SRC	:=	$(shell find $(DO_NOTHING_DIR)/src)
 DO_NOTHING_SRC	+=	$(DO_NOTHING_DIR)/$(CARGO_TOML)
 DO_NOTHING_SRC	+=	$(DO_NOTHING_DIR)/$(CONFIG_TOML)
@@ -79,7 +80,7 @@ DO_NOTHING_LIB	:=	$(BUILD_DIR)/libdo_nothing.a
 DO_NOTHING_DEPENDENCIES_SRC	:=	$(RALIB_SRC)
 DO_NOTHING	:=	$(BUILD_DIR)/do_nothing.bin
 
-XHCI_DIR	:=	xhci
+XHCI_DIR	:=	$(SERVERS_DIR)/xhci
 XHCI_LIB_SRC	:=	$(shell find $(XHCI_DIR)/src)
 XHCI_LIB_SRC	+=	$(XHCI_DIR)/$(CONFIG_TOML)
 XHCI_LIB_SRC	+=	$(XHCI_DIR)/$(CARGO_TOML)
@@ -87,7 +88,7 @@ XHCI_LIB	:=	$(BUILD_DIR)/libxhci.a
 XHCI_LIB_DEPENDENCIES_SRC	:=	$(PAGE_BOX_SRC) $(RALIB_SRC) $(SYSCALLS_SRC)
 XHCI	:=	$(BUILD_DIR)/xhci.bin
 
-VM_DIR	:=	vm
+VM_DIR	:=	$(SERVERS_DIR)/vm
 VM_LIB_SRC	:=	$(shell find $(VM_DIR)/src)
 VM_LIB_SRC	+=	$(VM_DIR)/$(CONFIG_TOML)
 VM_LIB_SRC	+=	$(VM_DIR)/$(CARGO_TOML)
@@ -153,19 +154,19 @@ $(PM):$(PM_LIB)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $(PM_LIB)
 
 $(PM_LIB):$(PM_LIB_SRC) $(PM_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
-	cd $(PM_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
+	cd $(PM_DIR) && $(RUSTC) build --out-dir ../../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(PORT_SERVER):$(PORT_SERVER_LIB)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $^
 
 $(PORT_SERVER_LIB):$(PORT_SERVER_SRC) $(PORT_SERVER_DEPENDENCIES_SRC)|$(BUILD_DIR)
-	cd $(PORT_SERVER_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
+	cd $(PORT_SERVER_DIR) && $(RUSTC) build --out-dir ../../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(FS):$(FS_LIB)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $^
 
 $(FS_LIB):$(FS_SRC) $(FS_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
-	cd $(FS_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
+	cd $(FS_DIR) && $(RUSTC) build --out-dir ../../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(EFI_FILE):$(EFI_SRC)|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
@@ -174,19 +175,19 @@ $(DO_NOTHING):$(DO_NOTHING_LIB)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -Ttext 0xc00000 -o $@ -e main $^
 
 $(DO_NOTHING_LIB):$(DO_NOTHING_SRC) $(DO_NOTHING_DEPENDENCIES_SRC)|$(BUILD_DIR)
-	cd $(DO_NOTHING_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
+	cd $(DO_NOTHING_DIR) && $(RUSTC) build --out-dir ../../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(XHCI):$(XHCI_LIB)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $^
 
 $(XHCI_LIB):$(XHCI_SRC) $(XHCI_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
-	cd $(XHCI_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
+	cd $(XHCI_DIR) && $(RUSTC) build --out-dir ../../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(VM):$(VM_LIB)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -T $(VM_DIR)/vm.ld -o $@ $^
 
 $(VM_LIB):$(VM_LIB_SRC) $(VM_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
-	cd $(VM_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
+	cd $(VM_DIR) && $(RUSTC) build --out-dir ../../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(BUILD_DIR):
 	mkdir $@ -p
