@@ -1,5 +1,9 @@
 SHELL			:= /bin/bash
 
+define cargo_project_src
+	$(shell find $1|grep -v $1/target)
+endef
+
 BUILD_DIR		:= build
 LIBS_DIR	:=	libs
 SERVERS_DIR	:=	servers
@@ -14,85 +18,65 @@ EFI_SRC	+=	$(EFI_DIR)/$(CARGO_TOML)
 EFI_FILE		:= $(BUILD_DIR)/bootx64.efi
 
 TERMINAL_DIR	:=	$(LIBS_DIR)/terminal
-TERMINAL_SRC	:=	$(shell find $(TERMINAL_DIR)/src)
-TERMINAL_SRC	+=	$(TERMINAL_DIR)/$(CARGO_TOML)
+TERMINAL_SRC	:=	$(call cargo_peojct, $(TERMINAL_DIR))
 
 COMMON_DIR	:=	$(LIBS_DIR)/common
-COMMON_SRC	:=	$(shell find $(COMMON_DIR)/src)
-COMMON_SRC	+=	$(COMMON_DIR)/$(CARGO_TOML)
+COMMON_SRC	:=	$(call cargo_project_src, $(COMMON_DIR))
 
 SYSCALLS_DIR	:=	$(LIBS_DIR)/syscalls
-SYSCALLS_SRC	:=	$(shell find $(SYSCALLS_DIR)/src)
-SYSCALLS_SRC	+=	$(SYSCALLS_DIR)/$(CARGO_TOML)
+SYSCALLS_SRC	:=	$(call cargo_project_src, $(SYSCALLS_DIR))
 
 PAGE_BOX_DIR	:=	$(LIBS_DIR)/page_box
-PAGE_BOX_SRC	:=	$(shell find $(PAGE_BOX_DIR)/src)
-PAGE_BOX_SRC	+=	$(PAGE_BOX_DIR)/$(CARGO_TOML)
+PAGE_BOX_SRC	:=	$(call cargo_project_src, $(PAGE_BOX_DIR))
 
 MESSAGE_DIR	:=	$(LIBS_DIR)/message
-MESSAGE_SRC	:=	$(shell find $(MESSAGE_DIR)/src)
-MESSAGE_SRC	+=	$(MESSAGE_DIR)/$(CARGO_TOML)
+MESSAGE_SRC	:=	$(call cargo_project_src, $(MESSAGE_DIR))
 
 FRAME_MANAGER_DIR	:=	$(LIBS_DIR)/frame_manager
-FRAME_MANAGER_SRC	:=	$(shell find $(FRAME_MANAGER_DIR)/src)
-FRAME_MANAGER_SRC	+=	$(FRAME_MANAGER_DIR)/$(CARGO_TOML)
+FRAME_MANAGER_SRC	:=	$(call cargo_project_src, $(FRAME_MANAGER_DIR))
 
 FS_DIR	:=	$(SERVERS_DIR)/fs
-FS_SRC	:=	$(shell find $(FS_DIR)/src)
-FS_SRC	+=	$(FS_DIR)/$(CARGO_TOML)
+FS_SRC	:=	$(call cargo_project_src, $(FS_DIR))
 FS_LIB	:=	$(BUILD_DIR)/libfs.a
 FS_LIB_DEPENDENCIES_SRC	:=	$(SYSCALLS_SRC) $(RALIB_SRC) $(MESSAGE_SRC)
 FS	:=	$(BUILD_DIR)/fs.bin
 
 KERNEL_DIR		:= kernel
-KERNEL_LIB_SRC	:=	$(shell find $(KERNEL_DIR)/src)
-KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/$(CONFIG_TOML)
-KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/$(CARGO_TOML)
-KERNEL_LIB_SRC	+=	$(KERNEL_DIR)/build.rs
+KERNEL_LIB_SRC	:=	$(call cargo_project_src, $(KERNEL_DIR))
 KERNEL_LIB		:= $(BUILD_DIR)/libkernel.a
 KERNEL_LIB_DEPENDENCIES_SRC	:=	$(TERMINAL_SRC) $(COMMON_SRC) $(SYSCALLS_SRC) $(PAGE_BOX_SRC) $(MESSAGE_SRC) $(PORT_SERVER_SRC) $(FRAME_MANAGER_SRC) $(FS_SRC)
 KERNEL_LD			:= $(KERNEL_DIR)/kernel.ld
 KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
 
 RALIB_DIR	:=	$(LIBS_DIR)/ralib
-RALIB_SRC	:=	$(shell find $(RALIB_DIR)/src)
-RALIB_SRC	+=	$(RALIB_DIR)/$(CARGO_TOML)
+RALIB_SRC	:=	$(call cargo_project_src, $(RALIB_DIR))
 
 PORT_SERVER_DIR	:=	$(SERVERS_DIR)/port_server
-PORT_SERVER_SRC	:=	$(shell find $(PORT_SERVER_DIR)/src)
-PORT_SERVER_SRC	+=	$(PORT_SERVER_DIR)/$(CARGO_TOML)
+PORT_SERVER_SRC	:=	$(call cargo_project_src, $(PORT_SERVER_DIR))
 PORT_SERVER_LIB	:=	$(BUILD_DIR)/libport_server.a
 PORT_SERVER_DEPENDENCIES_SRC	:=	$(MESSAGE_SRC) $(RALIB_SRC) $(SYSCALLS_SRC)
 PORT_SERVER	:=	$(BUILD_DIR)/port_server.bin
 
 PM_DIR			:= $(SERVERS_DIR)/pm
-PM_LIB_SRC	:=	$(shell find $(PM_DIR)/src)
-PM_LIB_SRC	+=	$(PM_DIR)/$(CONFIG_TOML)
-PM_LIB_SRC	+=	$(PM_DIR)/$(CARGO_TOML)
+PM_LIB_SRC	:=	$(call cargo_project_src, $(PM_DIR))
 PM_LIB			:= $(BUILD_DIR)/libpm.a
 PM_LIB_DEPENDENCIES_SRC	:=	$(MESSAGE_SRC) $(RALIB_SRC) $(SYSCALLS_SRC)
 PM				:= $(BUILD_DIR)/pm.bin
 
 DO_NOTHING_DIR	:=	$(SERVERS_DIR)/do_nothing
-DO_NOTHING_SRC	:=	$(shell find $(DO_NOTHING_DIR)/src)
-DO_NOTHING_SRC	+=	$(DO_NOTHING_DIR)/$(CARGO_TOML)
-DO_NOTHING_SRC	+=	$(DO_NOTHING_DIR)/$(CONFIG_TOML)
+DO_NOTHING_SRC	:=	$(call cargo_project_src, $(DO_NOTHING_DIR))
 DO_NOTHING_LIB	:=	$(BUILD_DIR)/libdo_nothing.a
 DO_NOTHING_DEPENDENCIES_SRC	:=	$(RALIB_SRC)
 DO_NOTHING	:=	$(BUILD_DIR)/do_nothing.bin
 
 XHCI_DIR	:=	$(SERVERS_DIR)/xhci
-XHCI_LIB_SRC	:=	$(shell find $(XHCI_DIR)/src)
-XHCI_LIB_SRC	+=	$(XHCI_DIR)/$(CONFIG_TOML)
-XHCI_LIB_SRC	+=	$(XHCI_DIR)/$(CARGO_TOML)
+XHCI_LIB_SRC	:=	$(call cargo_project_src, $(XHCI_DIR))
 XHCI_LIB	:=	$(BUILD_DIR)/libxhci.a
 XHCI_LIB_DEPENDENCIES_SRC	:=	$(PAGE_BOX_SRC) $(RALIB_SRC) $(SYSCALLS_SRC)
 XHCI	:=	$(BUILD_DIR)/xhci.bin
 
 VM_DIR	:=	$(SERVERS_DIR)/vm
-VM_LIB_SRC	:=	$(shell find $(VM_DIR)/src)
-VM_LIB_SRC	+=	$(VM_DIR)/$(CONFIG_TOML)
-VM_LIB_SRC	+=	$(VM_DIR)/$(CARGO_TOML)
+VM_LIB_SRC	:=	$(call cargo_project_src, $(VM_DIR))
 VM_LIB	:=	$(BUILD_DIR)/libvm.a
 VM_LIB_DEPENDENCIES_SRC	:=	$(RALIB_SRC) $(SYSCALLS_SRC)
 VM	:=	$(BUILD_DIR)/vm.bin
