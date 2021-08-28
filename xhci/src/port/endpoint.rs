@@ -3,7 +3,7 @@
 use crate::{exchanger::transfer, structures::descriptor};
 use page_box::PageBox;
 use x86_64::PhysAddr;
-use xhci::context::EndpointType;
+use xhci_api::context::EndpointType;
 
 pub(super) struct Default {
     sender: transfer::Sender,

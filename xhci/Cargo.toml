@@ -3,9 +3,12 @@ name = "xhci"
 version = "0.1.0"
 edition = "2018"
 
-[lib]
+[[bin]]
 name = "xhci"
-crate-type = ["staticlib"]
+test = false
+bench = false
+
+[lib]
 test = false
 bench = false
 
@@ -27,4 +30,4 @@ ralib = { path = "../ralib" }
 spinning_top = { version = "0.2.4", features = ["nightly"] }
 syscalls = { path = "../syscalls" }
 x86_64 = { version = "0.14.3", default-features = false }
-xhci = "0.8.2"
+xhci_api = { version = "0.8.2", package = "xhci" }

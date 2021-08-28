@@ -4,7 +4,7 @@ use bit_field::BitField;
 use core::{convert::TryInto, ptr};
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
-use xhci::context::EndpointType;
+use xhci_api::context::EndpointType;
 
 #[derive(Copy, Clone, Debug)]
 pub(crate) enum Descriptor {

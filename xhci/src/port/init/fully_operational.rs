@@ -12,7 +12,7 @@ use alloc::vec::Vec;
 use core::slice;
 use log::debug;
 use page_box::PageBox;
-use xhci::context::EndpointType;
+use xhci_api::context::EndpointType;
 
 pub(in crate::port) struct FullyOperational {
     descriptors: Vec<Descriptor>,

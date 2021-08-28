@@ -3,7 +3,7 @@
 use super::registers;
 use page_box::PageBox;
 use x86_64::PhysAddr;
-use xhci::context::{
+use xhci_api::context::{
     Device32Byte, Device64Byte, DeviceHandler, Input32Byte, Input64Byte, InputControlHandler,
     InputHandler,
 };

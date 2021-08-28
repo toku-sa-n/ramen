@@ -17,7 +17,7 @@ use x86_64::{
     structures::paging::{PageSize, Size4KiB},
     PhysAddr,
 };
-use xhci::ring::{trb, trb::event};
+use xhci_api::ring::{trb, trb::event};
 
 mod segment_table;
 

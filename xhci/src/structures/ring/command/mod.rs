@@ -3,12 +3,11 @@
 use super::CycleBit;
 use crate::registers;
 use page_box::PageBox;
-use trb::Link;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB},
     PhysAddr,
 };
-use xhci::ring::{trb, trb::command};
+use xhci_api::ring::trb::{self, command, Link};
 
 #[allow(clippy::cast_possible_truncation)]
 const NUM_OF_TRBS: usize = Size4KiB::SIZE as usize / trb::BYTES;

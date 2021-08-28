@@ -8,7 +8,7 @@ use alloc::{string::String, vec::Vec};
 use log::info;
 use page_box::PageBox;
 use spinning_top::Spinlock;
-use xhci::context::EndpointType;
+use xhci_api::context::EndpointType;
 
 const LOWER_ALPHABETS: &str = "abcdefghijklmnopqrstuvwxyz";
 

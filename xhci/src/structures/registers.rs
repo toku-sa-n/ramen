@@ -5,7 +5,7 @@ use core::convert::TryInto;
 use ralib::mem::accessor::Mapper;
 use spinning_top::Spinlock;
 use x86_64::PhysAddr;
-use xhci::Registers;
+use xhci_api::Registers;
 
 static REGISTERS: OnceCell<Spinlock<Registers<Mapper>>> = OnceCell::uninit();
 

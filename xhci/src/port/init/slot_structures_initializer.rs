@@ -9,7 +9,7 @@ use crate::{
 use alloc::sync::Arc;
 use exchanger::{transfer, transfer::DoorbellWriter};
 use spinning_top::Spinlock;
-use xhci::context::EndpointType;
+use xhci_api::context::EndpointType;
 
 pub(super) struct SlotStructuresInitializer {
     port_number: u8,

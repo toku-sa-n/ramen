@@ -12,7 +12,7 @@ use event::CompletionCode;
 use futures_util::task::AtomicWaker;
 use spinning_top::Spinlock;
 use x86_64::PhysAddr;
-use xhci::ring::trb::{command as command_trb, event};
+use xhci_api::ring::trb::{command as command_trb, event};
 
 static SENDER: OnceCell<Futurelock<Sender>> = OnceCell::uninit();
 

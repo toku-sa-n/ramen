@@ -10,7 +10,7 @@ use core::{
 use futures_util::task::AtomicWaker;
 use spinning_top::{Spinlock, SpinlockGuard};
 use x86_64::PhysAddr;
-use xhci::ring::trb::event;
+use xhci_api::ring::trb::event;
 
 static RECEIVER: Lazy<Spinlock<Receiver>> = Lazy::new(|| Spinlock::new(Receiver::new()));
 

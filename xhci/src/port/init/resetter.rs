@@ -2,7 +2,7 @@
 
 use super::slot_structures_initializer::SlotStructuresInitializer;
 use crate::structures::registers;
-use xhci::registers::PortRegisterSet;
+use xhci_api::registers::PortRegisterSet;
 
 pub(super) struct Resetter {
     port_number: u8,

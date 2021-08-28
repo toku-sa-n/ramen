@@ -6,7 +6,7 @@ use core::convert::TryInto;
 use ralib::mem::accessor::Mapper;
 use spinning_top::Spinlock;
 use x86_64::PhysAddr;
-use xhci::{extended_capabilities, ExtendedCapability};
+use xhci_api::{extended_capabilities, ExtendedCapability};
 
 static EXTENDED_CAPABILITIES: OnceCell<Spinlock<Option<extended_capabilities::List<Mapper>>>> =
     OnceCell::uninit();

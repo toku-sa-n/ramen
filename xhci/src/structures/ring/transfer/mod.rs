@@ -3,9 +3,8 @@
 use super::CycleBit;
 use alloc::vec::Vec;
 use page_box::PageBox;
-use trb::Link;
 use x86_64::PhysAddr;
-use xhci::ring::{trb, trb::transfer};
+use xhci_api::ring::trb::{self, transfer, Link};
 
 const SIZE_OF_RING: usize = 256;
 

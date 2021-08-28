@@ -15,7 +15,7 @@ use num_traits::FromPrimitive;
 use spinning_top::Spinlock;
 use transfer::DoorbellWriter;
 use x86_64::PhysAddr;
-use xhci::context::{EndpointHandler, EndpointType};
+use xhci_api::context::{EndpointHandler, EndpointType};
 
 pub(super) struct EndpointsInitializer {
     cx: Arc<Spinlock<Context>>,

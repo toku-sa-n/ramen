@@ -9,7 +9,7 @@ use log::debug;
 use page_box::PageBox;
 use spinning_top::Spinlock;
 use x86_64::PhysAddr;
-use xhci::ring::trb::{
+use xhci_api::ring::trb::{
     event, transfer as transfer_trb,
     transfer::{Direction, Normal, TransferType},
 };

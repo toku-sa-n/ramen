@@ -14,7 +14,7 @@ use scsi::{
     response::{Inquiry, Read10, ReadCapacity10},
     CommandBlockWrapper, CommandBlockWrapperHeaderBuilder, CommandStatusWrapper,
 };
-use xhci::context::EndpointType;
+use xhci_api::context::EndpointType;
 
 pub(in crate::port) async fn task(eps: FullyOperational) {
     let mut m = MassStorage::new(eps);

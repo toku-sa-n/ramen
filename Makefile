@@ -83,9 +83,8 @@ XHCI_DIR	:=	xhci
 XHCI_LIB_SRC	:=	$(shell find $(XHCI_DIR)/src)
 XHCI_LIB_SRC	+=	$(XHCI_DIR)/$(CONFIG_TOML)
 XHCI_LIB_SRC	+=	$(XHCI_DIR)/$(CARGO_TOML)
-XHCI_LIB	:=	$(BUILD_DIR)/libxhci.a
 XHCI_LIB_DEPENDENCIES_SRC	:=	$(PAGE_BOX_SRC) $(RALIB_SRC) $(SYSCALLS_SRC)
-XHCI	:=	$(BUILD_DIR)/xhci.bin
+XHCI	:=	$(BUILD_DIR)/xhci
 
 VM_DIR	:=	vm
 VM_LIB_SRC	:=	$(shell find $(VM_DIR)/src)
@@ -176,10 +175,7 @@ $(DO_NOTHING):$(DO_NOTHING_LIB)|$(BUILD_DIR)
 $(DO_NOTHING_LIB):$(DO_NOTHING_SRC) $(DO_NOTHING_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(DO_NOTHING_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
-$(XHCI):$(XHCI_LIB)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $^
-
-$(XHCI_LIB):$(XHCI_SRC) $(XHCI_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
+$(XHCI):$(XHCI_SRC) $(XHCI_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(XHCI_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(VM):$(VM_LIB)|$(BUILD_DIR)

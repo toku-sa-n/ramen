@@ -7,7 +7,7 @@ use crate::{
 use alloc::vec::Vec;
 use log::info;
 use page_box::PageBox;
-use xhci::context::EndpointType;
+use xhci_api::context::EndpointType;
 
 pub(in super::super) async fn task(eps: FullyOperational) {
     let mut m = Mouse::new(eps);
