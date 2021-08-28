@@ -1,14 +1,14 @@
 [package]
-name = "vm"
+name = "do_nothing"
 version = "0.1.0"
 edition = "2018"
 
 [lib]
-name = "vm"
+name = "do_nothing"
 crate-type = ["staticlib"]
 test = false
 bench = false
 
 [dependencies]
-linked_list_allocator = "0.9.0"
-ralib = { path = "../ralib", default-features = false }
+ralib = { path = "../../ralib" }
+
