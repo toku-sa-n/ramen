@@ -5,7 +5,7 @@ use super::{
     Process,
 };
 use crate::{tests, tss::TSS};
-use x86_64::{registers::control::Cr3, structures::paging::PhysFrame, VirtAddr};
+use x86_64::{registers::control::Cr3, VirtAddr};
 
 pub(crate) fn switch() -> VirtAddr {
     if cfg!(feature = "qemu_test") {
@@ -24,11 +24,10 @@ fn change_current_process() {
 
 fn switch_pml4() {
     let (_, f) = Cr3::read();
-    let a = collections::process::handle_running(|p| p.pml4_addr);
-    let a = PhysFrame::from_start_address(a).expect("PML4 is not aligned properly");
+    let pml4 = collections::process::handle_running(|p| p.pml4);
 
     // SAFETY: The PML4 frame is correct one and flags are unchanged.
-    unsafe { Cr3::write(a, f) }
+    unsafe { Cr3::write(pml4, f) }
 }
 
 fn register_current_stack_frame_with_tss() {

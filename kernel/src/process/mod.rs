@@ -16,7 +16,7 @@ pub(crate) use slot_id::SlotId;
 use stack_frame::StackFrame;
 pub(crate) use switch::switch;
 use x86_64::{
-    structures::paging::{PageSize, Size4KiB},
+    structures::paging::{PageSize, PhysFrame, Size4KiB},
     PhysAddr, VirtAddr,
 };
 
@@ -72,7 +72,7 @@ pub(crate) struct Process {
     id: SlotId,
     entry: VirtAddr,
     tables: page_table::Collection,
-    pml4_addr: PhysAddr,
+    pml4: PhysFrame,
     stack: KpBox<[u8]>,
     stack_frame: KpBox<StackFrame>,
     privilege: Privilege,
@@ -103,13 +103,13 @@ impl Process {
         tables.map_page_box(&stack);
         tables.map_page_box(&stack_frame);
 
-        let pml4_addr = tables.pml4_addr();
+        let pml4 = tables.pml4_frame();
 
         Process {
             id: slot_id::generate(),
             entry,
             tables,
-            pml4_addr,
+            pml4,
             stack,
             stack_frame,
             privilege,
@@ -140,13 +140,13 @@ impl Process {
         tables.map_page_box(&stack);
         tables.map_page_box(&stack_frame);
 
-        let pml4_addr = tables.pml4_addr();
+        let pml4 = tables.pml4_frame();
 
         Self {
             id: slot_id::generate(),
             entry,
             tables,
-            pml4_addr,
+            pml4,
             stack,
             stack_frame,
             privilege,
