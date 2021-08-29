@@ -26,19 +26,7 @@ impl StackFrame {
     }
 
     fn new(entry: VirtAddr, stack_pointer: VirtAddr, segs: &Selectors) -> Self {
-        let cpu_flags = (rflags::read() | RFlags::INTERRUPT_FLAG).bits();
-        let instruction_pointer = VirtAddr::new((super::loader as usize).try_into().unwrap());
-
-        Self {
-            regs: GeneralRegisters::new(entry),
-            interrupt: InterruptStackFrameValue {
-                instruction_pointer,
-                code_segment: segs.code.0.into(),
-                cpu_flags,
-                stack_pointer,
-                stack_segment: segs.data.0.into(),
-            },
-        }
+        todo!()
     }
 }
 

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 mod collections;
+mod context;
 mod exit;
 pub(crate) mod ipc;
 mod page_table;
@@ -8,20 +9,21 @@ mod slot_id;
 mod stack_frame;
 pub(crate) mod switch;
 
-use crate::{mem::allocator::kpbox::KpBox, tss::TSS};
+use crate::tss::TSS;
 use alloc::collections::VecDeque;
 use common::constant::INTERRUPT_STACK;
+use context::Context;
 use core::convert::TryInto;
 pub(crate) use slot_id::SlotId;
-use stack_frame::StackFrame;
 pub(crate) use switch::switch;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB},
     PhysAddr, VirtAddr,
 };
 
-pub(super) fn add(entry: fn(), name: &'static str) {
+pub(super) fn from_function(entry: fn(), name: &'static str) {
     let entry = VirtAddr::new((entry as usize).try_into().unwrap());
+
     push_process_to_queue(Process::new(entry, Privilege::Kernel, name));
 }
 
@@ -54,15 +56,6 @@ fn add_process(p: Process) {
     collections::process::add(p);
 }
 
-pub(super) fn loader(f: fn()) -> ! {
-    f();
-    syscalls::exit();
-}
-
-pub(crate) fn assign_to_rax(rax: u64) {
-    collections::process::handle_running_mut(|p| (*p.stack_frame).regs.rax = rax);
-}
-
 fn set_temporary_stack_frame() {
     TSS.lock().interrupt_stack_table[0] = *INTERRUPT_STACK;
 }
@@ -70,13 +63,8 @@ fn set_temporary_stack_frame() {
 #[derive(Debug)]
 pub(crate) struct Process {
     id: SlotId,
-    entry: VirtAddr,
-    tables: page_table::Collection,
-    pml4_addr: PhysAddr,
-    stack: KpBox<[u8]>,
-    stack_frame: KpBox<StackFrame>,
-    privilege: Privilege,
-    binary: Option<KpBox<[u8]>>,
+
+    context: Context,
 
     msg_ptr: Option<PhysAddr>,
 
@@ -91,93 +79,20 @@ pub(crate) struct Process {
 impl Process {
     const STACK_SIZE: u64 = Size4KiB::SIZE * 4;
 
-    #[allow(clippy::too_many_lines)]
     fn new(entry: VirtAddr, privilege: Privilege, name: &'static str) -> Self {
-        let mut tables = page_table::Collection::default();
-        let stack = KpBox::new_slice(0, Self::STACK_SIZE.try_into().unwrap());
-        let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
-        let stack_frame = KpBox::from(match privilege {
-            Privilege::Kernel => StackFrame::kernel(entry, stack_bottom),
-            Privilege::User => StackFrame::user(entry, stack_bottom),
-        });
-        tables.map_page_box(&stack);
-        tables.map_page_box(&stack_frame);
-
-        let pml4_addr = tables.pml4_addr();
-
-        Process {
-            id: slot_id::generate(),
-            entry,
-            tables,
-            pml4_addr,
-            stack,
-            stack_frame,
-            privilege,
-            binary: None,
-
-            msg_ptr: None,
-
-            send_to: None,
-            receive_from: None,
-
-            pids_try_to_send_this_process: VecDeque::new(),
-            pids_try_to_receive_from_this_process: VecDeque::new(),
-            name,
-        }
+        todo!()
     }
 
-    #[allow(clippy::too_many_lines)]
     fn binary(name: &'static str, privilege: Privilege) -> Self {
-        let mut tables = page_table::Collection::default();
-        let (content, entry) = tables.map_elf(name);
-
-        let stack = KpBox::new_slice(0, Self::STACK_SIZE.try_into().unwrap());
-        let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
-        let stack_frame = KpBox::from(match privilege {
-            Privilege::Kernel => StackFrame::kernel(entry, stack_bottom),
-            Privilege::User => StackFrame::user(entry, stack_bottom),
-        });
-        tables.map_page_box(&stack);
-        tables.map_page_box(&stack_frame);
-
-        let pml4_addr = tables.pml4_addr();
-
-        Self {
-            id: slot_id::generate(),
-            entry,
-            tables,
-            pml4_addr,
-            stack,
-            stack_frame,
-            privilege,
-            binary: Some(content),
-
-            msg_ptr: None,
-
-            send_to: None,
-            receive_from: None,
-
-            pids_try_to_send_this_process: VecDeque::new(),
-            pids_try_to_receive_from_this_process: VecDeque::new(),
-            name,
-        }
+        todo!()
     }
 
     fn id(&self) -> SlotId {
         self.id
     }
-
-    fn stack_frame_top_addr(&self) -> VirtAddr {
-        self.stack_frame.virt_addr()
-    }
-
-    fn stack_frame_bottom_addr(&self) -> VirtAddr {
-        let b = self.stack_frame.bytes();
-        self.stack_frame_top_addr() + b.as_usize()
-    }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub(crate) enum Privilege {
     Kernel,
     User,

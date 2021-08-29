@@ -43,6 +43,7 @@ cstr_core = "0.2.3"
 xmas-elf = "0.7.0"
 uart_16550 = "0.2.14"
 spinning_top = { version = "0.2.4", features = ["nightly"] }
+static_assertions = "1.1.0"
 
 [build-dependencies]
 cc = "1.0.68"
