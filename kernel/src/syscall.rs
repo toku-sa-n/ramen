@@ -2,7 +2,7 @@
 
 use crate::{
     mem::{allocator, paging::pml4::PML4},
-    process::{self, SlotId},
+    process::{self, exit_process, SlotId},
 };
 use core::{convert::TryInto, ffi::c_void, panic::PanicInfo, slice};
 use num_traits::FromPrimitive;
@@ -74,11 +74,18 @@ fn sys_unmap_pages(start: VirtAddr, bytes: Bytes) -> u64 {
 }
 
 fn sys_exit() -> ! {
-    extern "C" {
-        fn prepare_exit_syscall() -> !;
+    unsafe {
+        asm!(
+            "
+            mov rsp, {}
+            call {}
+            "
+            ,
+            const 0xffff_ffff_c000_0000_u64 - (0x1000 * 16 / 2),
+            sym exit_process,
+            options(noreturn)
+        )
     }
-
-    unsafe { prepare_exit_syscall() }
 }
 
 fn sys_translate_address(v: VirtAddr) -> PhysAddr {
