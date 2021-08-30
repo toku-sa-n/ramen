@@ -11,7 +11,7 @@
 
 .macro  handler name
 .global \name\()_asm
-.extern h_20
+.extern \name
 
 \name\()_asm:
 	push rbp
