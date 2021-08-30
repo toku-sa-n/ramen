@@ -86,6 +86,6 @@ fn cause_timer_interrupt() -> ! {
 
 fn do_nothing() {
     loop {
-        x86_64::instructions::nop();
+        x86_64::instructions::hlt();
     }
 }
