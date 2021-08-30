@@ -64,18 +64,14 @@ impl Sender {
     }
 
     fn wake_dst(&self) {
-        collections::process::handle_mut(self.to, |p| {
-            p.msg_ptr = None;
-            p.receive_from = None;
-        });
-        collections::woken_pid::push(self.to);
+        super::wake(self.to);
     }
 
     fn set_msg_buf_and_sleep(&self) {
         self.set_msg_buf();
         self.add_self_as_trying_to_send();
         self.mark_as_sending();
-        sleep();
+        super::sleep_current();
     }
 
     fn set_msg_buf(&self) {
@@ -178,7 +174,7 @@ impl Receiver {
     fn set_msg_buf_and_sleep(&self) {
         self.set_msg_buf();
         self.mark_as_receiving();
-        sleep();
+        super::sleep_current();
     }
 
     fn set_msg_buf(&self) {
@@ -211,8 +207,4 @@ fn virt_to_phys(v: VirtAddr) -> PhysAddr {
     PML4.lock()
         .translate_addr(v)
         .expect("Failed to convert a virtual address to physical one.")
-}
-
-fn sleep() {
-    super::block_running();
 }

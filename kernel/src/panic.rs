@@ -31,6 +31,8 @@ fn print_info(i: &core::panic::PanicInfo<'_>) {
 }
 
 fn fini() -> ! {
+    x86_64::instructions::interrupts::disable();
+
     if cfg!(feature = "qemu_test") {
         qemu::exit_failure();
     } else {

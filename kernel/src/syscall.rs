@@ -9,9 +9,58 @@ use num_traits::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use terminal::print;
 use x86_64::{
+    registers::model_specific::{Efer, EferFlags, LStar},
     structures::paging::{Size4KiB, Translate},
     PhysAddr, VirtAddr,
 };
+
+pub(super) fn init() {
+    unsafe {
+        Efer::update(|e| e.insert(EferFlags::SYSTEM_CALL_EXTENSIONS));
+    }
+
+    let a = VirtAddr::new((handler as usize).try_into().unwrap());
+
+    LStar::write(a);
+}
+
+#[naked]
+#[allow(clippy::too_many_lines)]
+extern "sysv64" fn handler() -> ! {
+    unsafe {
+        asm!(
+            "
+            cli
+
+            push rax
+            push rcx
+            push rdx
+            push rsi
+            push rdi
+            push r8
+            push r9
+            push r10
+            push r11
+
+            call syscall_prepare_arguments
+
+            pop r11
+            pop r10
+            pop r9
+            pop r8
+            pop rdi
+            pop rsi
+            pop rdx
+            pop rcx
+            add rsp, 8
+
+            sti
+            sysretq
+            ",
+            options(noreturn)
+        );
+    }
+}
 
 #[no_mangle]
 #[allow(clippy::too_many_arguments)]
@@ -25,7 +74,8 @@ unsafe extern "C" fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) 
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
 unsafe fn select_proper_syscall_unchecked(ty: syscalls::Ty, a1: u64, a2: u64, a3: u64) -> u64 {
-    match ty {
+    log::info!("{:?} {} {} {}", ty, a1, a2, a3);
+    let var_name = match ty {
         syscalls::Ty::AllocatePages => {
             sys_allocate_pages(NumOfPages::new(a1.try_into().unwrap())).as_u64()
         }
@@ -51,8 +101,12 @@ unsafe fn select_proper_syscall_unchecked(ty: syscalls::Ty, a1: u64, a2: u64, a3
         syscalls::Ty::ReceiveFromAny => sys_receive_from_any(VirtAddr::new(a1)),
         syscalls::Ty::ReceiveFrom => sys_receive_from(VirtAddr::new(a1), a2.try_into().unwrap()),
         syscalls::Ty::Panic => sys_panic(a1 as *const PanicInfo<'_>),
-        _ => unreachable!("This sytem call should not be handled by the kernel itself."),
-    }
+        e => unreachable!(
+            "This sytem call should not be handled by the kernel itself: {:?}",
+            e
+        ),
+    };
+    var_name
 }
 
 fn sys_allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> VirtAddr {

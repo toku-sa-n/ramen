@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
-#![feature(alloc_error_handler, asm, const_btree_new)]
+#![feature(
+    abi_x86_interrupt,
+    alloc_error_handler,
+    asm,
+    const_btree_new,
+    naked_functions
+)]
 #![deny(clippy::pedantic, clippy::all)]
 
 extern crate alloc;
@@ -24,15 +30,13 @@ use interrupt::{apic, idt, timer};
 use log::info;
 use process::Privilege;
 use terminal::vram;
-use x86_64::software_interrupt;
 
+/// # Panics
+///
+/// Maybe.
 #[no_mangle]
 pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
-    init(&mut boot_info);
-    cause_timer_interrupt();
-}
-
-fn init(boot_info: &mut kernelboot::Info) {
+    let boot_info: &mut kernelboot::Info = &mut boot_info;
     vram::init(boot_info);
 
     terminal::log::init().unwrap();
@@ -54,10 +58,19 @@ fn init(boot_info: &mut kernelboot::Info) {
 
     vram::print_info();
 
+    syscall::init();
+
     add_processes();
+
+    process::switch();
+
+    do_nothing();
+
+    unreachable!();
 }
 
 fn add_processes() {
+    process::idle();
     process::binary("build/port_server.bin", Privilege::Kernel);
     process::binary("build/pm.bin", Privilege::User);
     process::binary("build/fs.bin", Privilege::User);
@@ -76,16 +89,8 @@ fn add_processes() {
     }
 }
 
-fn cause_timer_interrupt() -> ! {
-    unsafe {
-        software_interrupt!(0x20);
-    }
-
-    unreachable!();
-}
-
 fn do_nothing() {
     loop {
-        x86_64::instructions::hlt();
+        x86_64::instructions::interrupts::enable_and_hlt();
     }
 }

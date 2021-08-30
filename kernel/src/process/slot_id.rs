@@ -29,7 +29,7 @@ impl Generator {
     }
 
     fn generate(&mut self) -> SlotId {
-        for i in 0..SlotId::MAX {
+        for i in 1..SlotId::MAX {
             if !self.used_ids.contains(&i) {
                 self.used_ids.insert(i);
                 return i;
