@@ -4,9 +4,12 @@ use crate::qemu;
 use core::{fmt::Write, format_args};
 use log::error;
 use uart_16550::SerialPort;
+use x86_64::instructions::interrupts;
 
 #[panic_handler]
 fn panic(i: &core::panic::PanicInfo<'_>) -> ! {
+    interrupts::disable();
+
     print_banner();
     print_info(i);
 
