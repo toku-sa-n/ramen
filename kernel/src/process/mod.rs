@@ -48,7 +48,7 @@ fn push_process_to_queue(p: Process) {
 }
 
 fn add_pid(id: SlotId) {
-    collections::woken_pid::add(id);
+    collections::woken_pid::push(id);
 }
 
 fn add_process(p: Process) {
