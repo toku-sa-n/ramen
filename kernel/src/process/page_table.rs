@@ -26,8 +26,11 @@ pub(super) struct Collection {
     pt_collection: BTreeMap<PhysAddr, KpBox<PageTable>>,
 }
 impl Collection {
-    pub(super) fn pml4_addr(&self) -> PhysAddr {
-        self.pml4.phys_addr()
+    pub(super) fn pml4_frame(&self) -> PhysFrame {
+        let f = self.pml4.phys_addr();
+        let f = PhysFrame::from_start_address(f);
+
+        f.expect("The address is not page-aligned.")
     }
 
     pub(super) fn map_page_box(&mut self, b: &KpBox<impl ?Sized>) {

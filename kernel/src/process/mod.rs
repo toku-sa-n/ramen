@@ -12,17 +12,18 @@ use crate::{mem::allocator::kpbox::KpBox, tss::TSS};
 use alloc::collections::VecDeque;
 use common::constant::INTERRUPT_STACK;
 use core::convert::TryInto;
+pub(crate) use exit::exit_process;
 pub(crate) use slot_id::SlotId;
 use stack_frame::StackFrame;
 pub(crate) use switch::switch;
 use x86_64::{
-    structures::paging::{PageSize, Size4KiB},
+    structures::paging::{PageSize, PhysFrame, Size4KiB},
     PhysAddr, VirtAddr,
 };
 
-pub(super) fn add(entry: fn(), p: Privilege, name: &'static str) {
+pub(super) fn from_function(entry: fn(), name: &'static str) {
     let entry = VirtAddr::new((entry as usize).try_into().unwrap());
-    push_process_to_queue(Process::new(entry, p, name));
+    push_process_to_queue(Process::new(entry, Privilege::Kernel, name));
 }
 
 pub(super) fn binary(name: &'static str, p: Privilege) {
@@ -47,7 +48,7 @@ fn push_process_to_queue(p: Process) {
 }
 
 fn add_pid(id: SlotId) {
-    collections::woken_pid::add(id);
+    collections::woken_pid::push(id);
 }
 
 fn add_process(p: Process) {
@@ -70,13 +71,13 @@ fn set_temporary_stack_frame() {
 #[derive(Debug)]
 pub(crate) struct Process {
     id: SlotId,
-    entry: VirtAddr,
-    tables: page_table::Collection,
-    pml4_addr: PhysAddr,
-    stack: KpBox<[u8]>,
+    _entry: VirtAddr,
+    _tables: page_table::Collection,
+    pml4: PhysFrame,
+    _stack: KpBox<[u8]>,
     stack_frame: KpBox<StackFrame>,
-    privilege: Privilege,
-    binary: Option<KpBox<[u8]>>,
+    _privilege: Privilege,
+    _binary: Option<KpBox<[u8]>>,
 
     msg_ptr: Option<PhysAddr>,
 
@@ -84,7 +85,7 @@ pub(crate) struct Process {
     receive_from: Option<ReceiveFrom>,
 
     pids_try_to_send_this_process: VecDeque<SlotId>,
-    pids_try_to_receive_from_this_process: VecDeque<SlotId>,
+    _pids_try_to_receive_from_this_process: VecDeque<SlotId>,
 
     name: &'static str,
 }
@@ -103,17 +104,17 @@ impl Process {
         tables.map_page_box(&stack);
         tables.map_page_box(&stack_frame);
 
-        let pml4_addr = tables.pml4_addr();
+        let pml4 = tables.pml4_frame();
 
         Process {
             id: slot_id::generate(),
-            entry,
-            tables,
-            pml4_addr,
-            stack,
+            _entry: entry,
+            _tables: tables,
+            pml4,
+            _stack: stack,
             stack_frame,
-            privilege,
-            binary: None,
+            _privilege: privilege,
+            _binary: None,
 
             msg_ptr: None,
 
@@ -121,7 +122,7 @@ impl Process {
             receive_from: None,
 
             pids_try_to_send_this_process: VecDeque::new(),
-            pids_try_to_receive_from_this_process: VecDeque::new(),
+            _pids_try_to_receive_from_this_process: VecDeque::new(),
             name,
         }
     }
@@ -140,17 +141,17 @@ impl Process {
         tables.map_page_box(&stack);
         tables.map_page_box(&stack_frame);
 
-        let pml4_addr = tables.pml4_addr();
+        let pml4 = tables.pml4_frame();
 
         Self {
             id: slot_id::generate(),
-            entry,
-            tables,
-            pml4_addr,
-            stack,
+            _entry: entry,
+            _tables: tables,
+            pml4,
+            _stack: stack,
             stack_frame,
-            privilege,
-            binary: Some(content),
+            _privilege: privilege,
+            _binary: Some(content),
 
             msg_ptr: None,
 
@@ -158,7 +159,7 @@ impl Process {
             receive_from: None,
 
             pids_try_to_send_this_process: VecDeque::new(),
-            pids_try_to_receive_from_this_process: VecDeque::new(),
+            _pids_try_to_receive_from_this_process: VecDeque::new(),
             name,
         }
     }

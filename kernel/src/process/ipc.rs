@@ -24,6 +24,8 @@ struct Sender {
 }
 impl Sender {
     fn new(msg: VirtAddr, to: SlotId) -> Self {
+        assert_ne!(get_slot_id(), to, "Tried to send a message to self.");
+
         let msg = virt_to_phys(msg);
 
         Self { msg, to }
@@ -115,6 +117,8 @@ impl Receiver {
     }
 
     fn new_from(msg_buf: VirtAddr, from: SlotId) -> Self {
+        assert_ne!(get_slot_id(), from, "Tried to receive a message from self.");
+
         let msg_buf = virt_to_phys(msg_buf);
 
         Self {

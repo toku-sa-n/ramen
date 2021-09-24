@@ -17,18 +17,18 @@ impl AcpiHandler for Mapper {
         // call `crate::mem::map_pages`, not the system call one.
         let virt = mem::map_pages(p, bytes);
 
-        PhysicalMapping {
-            physical_start: p_addr,
-            virtual_start: NonNull::new(virt.as_mut_ptr()).unwrap(),
-            region_length: sz,
-            mapped_length: sz,
-            handler: Self,
-        }
+        PhysicalMapping::new(
+            p_addr,
+            NonNull::new(virt.as_mut_ptr()).unwrap(),
+            sz,
+            sz,
+            Self,
+        )
     }
 
-    fn unmap_physical_region<T>(&self, region: &PhysicalMapping<Self, T>) {
-        let virt = VirtAddr::new(region.virtual_start.as_ptr() as u64);
-        let bytes = Bytes::new(region.region_length);
+    fn unmap_physical_region<T>(region: &PhysicalMapping<Self, T>) {
+        let virt = VirtAddr::new(region.virtual_start().as_ptr() as u64);
+        let bytes = Bytes::new(region.region_length());
         mem::unmap_pages(virt, bytes);
     }
 }

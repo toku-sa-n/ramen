@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
-#![feature(alloc_error_handler)]
+#![feature(alloc_error_handler, asm, const_btree_new)]
 #![deny(clippy::pedantic, clippy::all)]
 
 extern crate alloc;
@@ -24,6 +24,7 @@ use interrupt::{apic, idt, timer};
 use log::info;
 use process::Privilege;
 use terminal::vram;
+use x86_64::software_interrupt;
 
 #[no_mangle]
 pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
@@ -62,12 +63,12 @@ fn add_processes() {
     process::binary("build/fs.bin", Privilege::User);
     process::binary("build/xhci.bin", Privilege::User);
     process::binary("build/vm.bin", Privilege::User);
-    process::add(sysproc::main, Privilege::Kernel, "sysproc");
-    process::add(do_nothing, Privilege::User, "do_nothing");
+    process::from_function(sysproc::main, "sysproc");
+    process::from_function(do_nothing, "do_nothing");
 
     if cfg!(feature = "qemu_test") {
-        process::add(tests::main, Privilege::User, "tests");
-        process::add(tests::process::exit_test, Privilege::User, "exittest");
+        process::from_function(tests::main, "tests");
+        process::from_function(tests::process::exit_test, "exittest");
 
         for _ in 0..100 {
             process::binary("build/do_nothing.bin", Privilege::User);
@@ -76,15 +77,15 @@ fn add_processes() {
 }
 
 fn cause_timer_interrupt() -> ! {
-    extern "C" {
-        fn cause_timer_interrupt_asm() -> !;
+    unsafe {
+        software_interrupt!(0x20);
     }
 
-    unsafe { cause_timer_interrupt_asm() }
+    unreachable!();
 }
 
 fn do_nothing() {
     loop {
-        x86_64::instructions::nop();
+        x86_64::instructions::hlt();
     }
 }

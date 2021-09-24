@@ -2,7 +2,7 @@
 
 use super::pic;
 use crate::mem::{accessor::Single, allocator};
-use acpi::{platform::IoApic, AcpiTables, InterruptModel};
+use acpi::{platform::interrupt::IoApic, AcpiTables, InterruptModel};
 use x86_64::PhysAddr;
 
 /// Currently this OS does not support multiple I/O APIC.
