@@ -71,13 +71,13 @@ fn set_temporary_stack_frame() {
 #[derive(Debug)]
 pub(crate) struct Process {
     id: SlotId,
-    entry: VirtAddr,
-    tables: page_table::Collection,
+    _entry: VirtAddr,
+    _tables: page_table::Collection,
     pml4: PhysFrame,
-    stack: KpBox<[u8]>,
+    _stack: KpBox<[u8]>,
     stack_frame: KpBox<StackFrame>,
-    privilege: Privilege,
-    binary: Option<KpBox<[u8]>>,
+    _privilege: Privilege,
+    _binary: Option<KpBox<[u8]>>,
 
     msg_ptr: Option<PhysAddr>,
 
@@ -85,7 +85,7 @@ pub(crate) struct Process {
     receive_from: Option<ReceiveFrom>,
 
     pids_try_to_send_this_process: VecDeque<SlotId>,
-    pids_try_to_receive_from_this_process: VecDeque<SlotId>,
+    _pids_try_to_receive_from_this_process: VecDeque<SlotId>,
 
     name: &'static str,
 }
@@ -108,13 +108,13 @@ impl Process {
 
         Process {
             id: slot_id::generate(),
-            entry,
-            tables,
+            _entry: entry,
+            _tables: tables,
             pml4,
-            stack,
+            _stack: stack,
             stack_frame,
-            privilege,
-            binary: None,
+            _privilege: privilege,
+            _binary: None,
 
             msg_ptr: None,
 
@@ -122,7 +122,7 @@ impl Process {
             receive_from: None,
 
             pids_try_to_send_this_process: VecDeque::new(),
-            pids_try_to_receive_from_this_process: VecDeque::new(),
+            _pids_try_to_receive_from_this_process: VecDeque::new(),
             name,
         }
     }
@@ -145,13 +145,13 @@ impl Process {
 
         Self {
             id: slot_id::generate(),
-            entry,
-            tables,
+            _entry: entry,
+            _tables: tables,
             pml4,
-            stack,
+            _stack: stack,
             stack_frame,
-            privilege,
-            binary: Some(content),
+            _privilege: privilege,
+            _binary: Some(content),
 
             msg_ptr: None,
 
@@ -159,7 +159,7 @@ impl Process {
             receive_from: None,
 
             pids_try_to_send_this_process: VecDeque::new(),
-            pids_try_to_receive_from_this_process: VecDeque::new(),
+            _pids_try_to_receive_from_this_process: VecDeque::new(),
             name,
         }
     }

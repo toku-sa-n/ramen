@@ -8,6 +8,6 @@ edition = "2018"
 
 [dependencies]
 bit_field = "0.10.1"
-os_units = "0.4.0"
+os_units = "0.4.2"
 uefi = "0.11.0"
-x86_64 = "0.14.3"
+x86_64 = "0.14.4"

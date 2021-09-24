@@ -6,6 +6,7 @@ use core::fmt;
 #[derive(Copy, Clone, Debug)]
 #[repr(transparent)]
 pub(crate) struct Inquiry([u8; 36]);
+#[allow(clippy::derivable_impls)]
 impl Default for Inquiry {
     fn default() -> Self {
         Self([0; 36])
@@ -39,6 +40,7 @@ impl fmt::Debug for ReadCapacity10 {
 #[derive(Copy, Clone, Debug)]
 #[repr(transparent)]
 pub(crate) struct Read10([u8; 32768]);
+#[allow(clippy::derivable_impls)]
 impl Default for Read10 {
     fn default() -> Self {
         Self([0; 32768])
