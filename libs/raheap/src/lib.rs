@@ -1,3 +1,5 @@
+#![no_std]
+
 use conquer_once::spin::Lazy;
 use core::convert::TryInto;
 use linked_list_allocator::LockedHeap;
@@ -26,7 +28,7 @@ impl Default for Heap {
     }
 }
 
-pub(crate) fn init() {
+pub fn init() {
     let a = ALLOCATOR.try_lock();
     let mut a = a.expect("Failed to acquire the lock of `HEAP`.");
 

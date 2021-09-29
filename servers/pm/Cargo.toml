@@ -13,5 +13,6 @@ bench = false
 [dependencies]
 message = { path = "../../libs/message" }
 num-traits = { version = "0.2.14", default-features = false }
+raheap = { path = "../../libs/raheap" }
 ralib = { path = "../../libs/ralib" }
 syscalls = { path = "../../libs/syscalls" }
