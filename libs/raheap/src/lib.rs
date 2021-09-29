@@ -1,4 +1,7 @@
 #![no_std]
+// This is a workaround for
+// https://stackoverflow.com/questions/63933070/clippy-says-too-many-arguments-to-static-declaration.
+#![allow(clippy::too_many_arguments)]
 
 use conquer_once::spin::Lazy;
 use core::convert::TryInto;
@@ -28,6 +31,7 @@ impl Default for Heap {
     }
 }
 
+#[allow(clippy::missing_panics_doc)]
 pub fn init() {
     let a = ALLOCATOR.try_lock();
     let mut a = a.expect("Failed to acquire the lock of `HEAP`.");
