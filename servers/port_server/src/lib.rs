@@ -18,6 +18,7 @@ pub fn main() {
 
 fn init() {
     ralib::init();
+    raheap::init();
 }
 
 fn main_loop() {

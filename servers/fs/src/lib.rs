@@ -11,6 +11,7 @@ use log::info;
 #[no_mangle]
 pub fn main() {
     ralib::init();
+    raheap::init();
 
     let mut c = ProcessCollection::default();
     init(&mut c);

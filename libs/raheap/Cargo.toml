@@ -1,0 +1,18 @@
+cargo-features = ["edition2021"]
+
+[package]
+name = "raheap"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "raheap"
+test = false
+bench = false
+
+[dependencies]
+conquer-once = { version = "0.3.2", default-features = false }
+linked_list_allocator = "0.9.0"
+os_units = "0.4.2"
+page_box = { path = "../page_box" }
+x86_64 = { version = "0.14.4", default-features = false }
