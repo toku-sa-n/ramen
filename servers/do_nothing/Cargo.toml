@@ -10,5 +10,6 @@ test = false
 bench = false
 
 [dependencies]
+raheap = { path = "../../libs/raheap" }
 ralib = { path = "../../libs/ralib" }
 

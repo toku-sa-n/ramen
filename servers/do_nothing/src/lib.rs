@@ -2,6 +2,7 @@
 
 #![no_std]
 
+extern crate raheap as _;
 extern crate ralib as _;
 
 #[no_mangle]

@@ -13,5 +13,6 @@ bench = false
 [dependencies]
 log = "0.4.14"
 message = { path = "../../libs/message" }
+raheap = { path = "../../libs/raheap" }
 ralib = { path = "../../libs/ralib" }
 syscalls = { path = "../../libs/syscalls" }

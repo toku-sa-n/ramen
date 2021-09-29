@@ -15,6 +15,7 @@ const INITIAL_PROCESS_SLOT_NUMBER: usize = 200;
 #[no_mangle]
 pub fn main() {
     ralib::init();
+    raheap::init();
 
     let mut processes = ProcessCollection::default();
     init(&mut processes);

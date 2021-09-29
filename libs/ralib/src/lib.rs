@@ -11,13 +11,6 @@ pub mod mem;
 
 extern crate alloc;
 
-#[cfg(feature = "heap")]
-pub fn init() {
-    io::init();
-    mem::heap::init();
-}
-
-#[cfg(not(feature = "heap"))]
 pub fn init() {
     io::init();
 }

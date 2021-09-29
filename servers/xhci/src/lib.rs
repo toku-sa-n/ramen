@@ -31,6 +31,7 @@ mod xhc;
 #[no_mangle]
 pub fn main() {
     ralib::init();
+    raheap::init();
 
     init();
 

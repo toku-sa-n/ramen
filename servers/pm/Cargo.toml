@@ -1,8 +1,10 @@
+cargo-features = ["edition2021"]
+
 [package]
 name = "pm"
 version = "0.1.0"
 authors = ["toku-sa-n <tokusan441@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [lib]
 name = "pm"
@@ -13,5 +15,6 @@ bench = false
 [dependencies]
 message = { path = "../../libs/message" }
 num-traits = { version = "0.2.14", default-features = false }
+raheap = { path = "../../libs/raheap" }
 ralib = { path = "../../libs/ralib" }
 syscalls = { path = "../../libs/syscalls" }
