@@ -2,7 +2,7 @@
 
 pub(crate) mod pml4;
 
-use common::constant::RECUR_PML4_ADDR;
+use predefined_mmap::RECUR_PML4_ADDR;
 use x86_64::structures::paging::PageTable;
 
 pub(crate) fn mark_pages_as_unused() {

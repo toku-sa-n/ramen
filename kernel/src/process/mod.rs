@@ -10,9 +10,9 @@ pub(crate) mod switch;
 
 use crate::{mem::allocator::kpbox::KpBox, tss::TSS};
 use alloc::collections::VecDeque;
-use common::constant::INTERRUPT_STACK;
 use core::convert::TryInto;
 pub(crate) use exit::exit_process;
+use predefined_mmap::INTERRUPT_STACK;
 pub(crate) use slot_id::SlotId;
 use stack_frame::StackFrame;
 pub(crate) use switch::switch;

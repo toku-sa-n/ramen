@@ -1,0 +1,11 @@
+cargo-features = ["edition2021"]
+
+[package]
+name = "predefined_mmap"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+conquer-once = { version = "0.3.2", default-features = false }
+os_units = "0.4.2"
+x86_64 = { version = "0.14.6", default-features = false }

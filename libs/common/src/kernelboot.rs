@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{constant::INIT_RSP, mem, vram};
+use crate::{mem, vram};
 use core::ptr;
+use predefined_mmap::INIT_RSP;
 use uefi::table::boot;
 use x86_64::{PhysAddr, VirtAddr};
 
