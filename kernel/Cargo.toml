@@ -20,7 +20,6 @@ test = false
 bench = false
 
 [dependencies]
-common = { path = "../libs/common" }
 conquer-once = { version = "0.3.2", default-features = false }
 x86_64 = { version = "0.14.4", default-features = false }
 linked_list_allocator = "0.9.0"
