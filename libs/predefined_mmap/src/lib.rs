@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+#![no_std]
 
 use conquer_once::spin::Lazy;
 use os_units::{Bytes, NumOfPages};

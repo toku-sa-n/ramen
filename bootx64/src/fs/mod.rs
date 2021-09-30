@@ -2,7 +2,6 @@
 
 mod root_dir;
 
-use common::constant::KERNEL_ADDR;
 use core::{
     convert::{TryFrom, TryInto},
     slice,
@@ -11,6 +10,7 @@ use elf_rs::Elf;
 use file::{FileInfo, FileType};
 use log::info;
 use os_units::Bytes;
+use predefined_mmap::KERNEL_ADDR;
 use uefi::{
     proto::media::{
         file,

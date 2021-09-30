@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::mem::paging::pml4::PML4;
-use common::constant::BYTES_AVAILABLE_RAM;
 use core::convert::TryFrom;
 use os_units::NumOfPages;
+use predefined_mmap::BYTES_AVAILABLE_RAM;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB, Translate},
     VirtAddr,

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::font::HEIGHT;
-use common::{constant::VRAM_ADDR, kernelboot};
+use common::kernelboot;
 use conquer_once::spin::OnceCell;
 use core::{
     convert::{TryFrom, TryInto},
@@ -9,6 +9,7 @@ use core::{
     slice,
 };
 use log::info;
+use predefined_mmap::VRAM_ADDR;
 use rgb::RGB8;
 use spinning_top::{Spinlock, SpinlockGuard};
 use vek::Vec2;
