@@ -19,7 +19,6 @@ mod sysproc;
 mod tests;
 mod tss;
 
-use common::kernelboot;
 use interrupt::{apic, idt, timer};
 use log::info;
 use process::Privilege;
@@ -27,12 +26,12 @@ use terminal::vram;
 use x86_64::software_interrupt;
 
 #[no_mangle]
-pub extern "win64" fn os_main(mut boot_info: kernelboot::Info) -> ! {
+pub extern "win64" fn os_main(mut boot_info: boot_info::Info) -> ! {
     init(&mut boot_info);
     cause_timer_interrupt();
 }
 
-fn init(boot_info: &mut kernelboot::Info) {
+fn init(boot_info: &mut boot_info::Info) {
     vram::init(boot_info);
 
     terminal::log::init().unwrap();

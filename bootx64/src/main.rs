@@ -15,7 +15,7 @@ use bootx64::{
     mem::{paging, stack},
     rsdp,
 };
-use common::{kernelboot, mem::reserved};
+use common::mem::reserved;
 use uefi::prelude::{Boot, Handle, SystemTable};
 
 #[start]
@@ -38,7 +38,7 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
     );
     let mem_map = bootx64::exit::boot_services(image, system_table);
 
-    let mut boot_info = kernelboot::Info::new(entry_addr, vram_info, mem_map, rsdp);
+    let mut boot_info = boot_info::Info::new(entry_addr, vram_info, mem_map, rsdp);
 
     paging::init(&mut boot_info, &reserved_regions);
     jump::to_kernel(boot_info);

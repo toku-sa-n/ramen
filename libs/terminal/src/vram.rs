@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::font::HEIGHT;
-use common::kernelboot;
 use conquer_once::spin::OnceCell;
 use core::{
     convert::{TryFrom, TryInto},
@@ -17,7 +16,7 @@ use vek::Vec2;
 static VRAM: Spinlock<Vram> = Spinlock::new(Vram);
 static INFO: OnceCell<Info> = OnceCell::uninit();
 
-pub fn init(boot_info: &kernelboot::Info) {
+pub fn init(boot_info: &boot_info::Info) {
     init_info(boot_info);
     clear_screen();
 }
@@ -50,7 +49,7 @@ fn lock() -> SpinlockGuard<'static, Vram> {
         .expect("Failed to acquire the lock of `VRAM`")
 }
 
-fn init_info(boot_info: &kernelboot::Info) {
+fn init_info(boot_info: &boot_info::Info) {
     INFO.try_init_once(|| Info::new_from_boot_info(boot_info))
         .expect("`INFO` is initialized more than once.");
 }
@@ -76,7 +75,7 @@ impl Info {
         self.bits_per_pixel
     }
 
-    fn new_from_boot_info(boot_info: &kernelboot::Info) -> Self {
+    fn new_from_boot_info(boot_info: &boot_info::Info) -> Self {
         let vram = boot_info.vram();
 
         Self::new(vram.bpp(), vram.resolution())

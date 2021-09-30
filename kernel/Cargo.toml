@@ -16,7 +16,6 @@ test = false
 bench = false
 
 [dependencies]
-common = { path = "../libs/common" }
 conquer-once = { version = "0.3.2", default-features = false }
 x86_64 = { version = "0.14.4", default-features = false }
 linked_list_allocator = "0.9.0"
@@ -40,6 +39,7 @@ xmas-elf = "0.8.0"
 uart_16550 = "0.2.15"
 spinning_top = { version = "0.2.4", features = ["nightly"] }
 predefined_mmap = { path = "../libs/predefined_mmap" }
+boot_info = { path = "../libs/boot_info" }
 
 [build-dependencies]
 cc = "1.0.69"

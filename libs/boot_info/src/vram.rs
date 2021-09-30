@@ -1,5 +1,3 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 use core::convert::TryFrom;
 use os_units::Bytes;
 use uefi::proto::console::gop;

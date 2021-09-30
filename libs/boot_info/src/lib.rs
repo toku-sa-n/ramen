@@ -1,6 +1,8 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+#![no_std]
 
-use crate::{mem, vram};
+pub mod mem;
+pub mod vram;
+
 use core::ptr;
 use predefined_mmap::INIT_RSP;
 use uefi::table::boot;
