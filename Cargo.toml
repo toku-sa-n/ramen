@@ -2,10 +2,13 @@
 members = [
     "bootx64",
     "kernel",
+    "libs/boot_info",
     "libs/common",
     "libs/frame_manager",
     "libs/message",
     "libs/page_box",
+    "libs/predefined_mmap",
+    "libs/raheap",
     "libs/ralib",
     "libs/syscalls",
     "libs/terminal",
