@@ -15,7 +15,7 @@ use bootx64::{
     mem::{paging, stack},
     rsdp,
 };
-use common::{constant::KERNEL_NAME, kernelboot, mem::reserved};
+use common::{kernelboot, mem::reserved};
 use uefi::prelude::{Boot, Handle, SystemTable};
 
 #[start]
@@ -25,7 +25,7 @@ pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
 
     let vram_info = gop::init(system_table.boot_services());
 
-    let (phys_kernel_addr, bytes_kernel) = fs::deploy(system_table.boot_services(), KERNEL_NAME);
+    let (phys_kernel_addr, bytes_kernel) = fs::deploy(system_table.boot_services(), "kernel.bin");
     let (entry_addr, actual_mem_size) =
         fs::fetch_entry_address_and_memory_size(phys_kernel_addr, bytes_kernel);
 
