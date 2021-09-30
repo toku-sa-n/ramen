@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::vram;
+use boot_info::vram;
 use os_units::Bytes;
 use predefined_mmap::{KERNEL_ADDR, NUM_OF_PAGES_STACK, STACK_LOWER, VRAM_ADDR};
 use x86_64::{PhysAddr, VirtAddr};

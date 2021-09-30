@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use common::{kernelboot, mem::reserved};
+use common::mem::reserved;
 use core::convert::TryFrom;
 use predefined_mmap::RECUR_PML4_ADDR;
 use uefi::table::{boot, boot::MemoryType};
@@ -39,7 +39,7 @@ unsafe impl FrameAllocator<Size4KiB> for AllocatorWithEfiMemoryMap<'_> {
     }
 }
 
-pub fn init(boot_info: &mut kernelboot::Info, reserved: &reserved::Map) {
+pub fn init(boot_info: &mut boot_info::Info, reserved: &reserved::Map) {
     remove_table_protection();
 
     enable_recursive_mapping();
