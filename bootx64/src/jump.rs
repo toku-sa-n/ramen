@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use common::kernelboot;
 use predefined_mmap::INIT_RSP;
 
 macro_rules! change_rsp{
@@ -11,17 +10,17 @@ macro_rules! change_rsp{
     }
 }
 
-pub fn to_kernel(boot_info: kernelboot::Info) -> ! {
+pub fn to_kernel(boot_info: boot_info::Info) -> ! {
     disable_interruption();
 
     boot_info.set();
 
     change_rsp!(INIT_RSP.as_u64());
 
-    let boot_info = kernelboot::Info::get();
+    let boot_info = boot_info::Info::get();
 
     let kernel = unsafe {
-        core::mem::transmute::<u64, fn(kernelboot::Info) -> !>(boot_info.entry_addr().as_u64())
+        core::mem::transmute::<u64, fn(boot_info::Info) -> !>(boot_info.entry_addr().as_u64())
     };
 
     kernel(boot_info)

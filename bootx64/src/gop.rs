@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use common::vram;
+use boot_info::vram;
 use core::mem::MaybeUninit;
 use log::info;
 use uefi::{

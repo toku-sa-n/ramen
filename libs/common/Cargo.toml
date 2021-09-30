@@ -12,3 +12,4 @@ os_units = "0.4.2"
 vek = { version = "0.15.1", default-features = false, features = ["libm"] }
 conquer-once = { version = "0.3.2", default-features = false }
 predefined_mmap = { path = "../predefined_mmap" }
+boot_info = { path = "../boot_info" }

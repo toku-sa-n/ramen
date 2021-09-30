@@ -11,7 +11,7 @@ use uefi::{
 ///
 /// This function panics if it fails to allocate a memory for the memory map.
 #[must_use]
-pub fn boot_services(image: Handle, system_table: SystemTable<Boot>) -> common::mem::Map {
+pub fn boot_services(image: Handle, system_table: SystemTable<Boot>) -> boot_info::mem::Map {
     info!("Goodbye, boot services...");
     let memory_map_buf = system_table
         .boot_services()
@@ -30,7 +30,7 @@ pub fn boot_services(image: Handle, system_table: SystemTable<Boot>) -> common::
 
     let num_descriptors = descriptors_iter.len();
     let memory_map_buf = write_descriptors_on_buf(memory_map_buf, &mut descriptors_iter);
-    common::mem::Map::new(memory_map_buf, num_descriptors)
+    boot_info::mem::Map::new(memory_map_buf, num_descriptors)
 }
 
 fn allocate_buf_for_exiting(bs: &boot::BootServices) -> &'static mut [u8] {
