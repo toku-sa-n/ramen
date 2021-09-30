@@ -31,5 +31,3 @@ pub const PORT_KEY_DATA: u16 = 0x0060;
 pub const KEY_CMD_WRITE_MODE: u8 = 0x60;
 pub const KEY_CMD_MODE: u8 = 0x47;
 pub const KEY_STATUS_SEND_NOT_READY: u8 = 0x02;
-
-pub const INITRD_NAME: &str = "initrd.img";
