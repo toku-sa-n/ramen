@@ -4,7 +4,6 @@
 #![deny(clippy::pedantic)]
 #![deny(clippy::all)]
 
-pub mod constant;
 pub mod debug;
 pub mod kernelboot;
 pub mod mem;

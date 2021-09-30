@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use common::constant::NUM_OF_PAGES_STACK;
+use predefined_mmap::NUM_OF_PAGES_STACK;
 use uefi::{
     table::{
         boot,

@@ -2,7 +2,6 @@
 
 mod root_dir;
 
-use common::constant::KERNEL_ADDR;
 use core::{
     convert::{TryFrom, TryInto},
     slice,
@@ -11,6 +10,7 @@ use elf_rs::Elf;
 use file::{FileInfo, FileType};
 use log::info;
 use os_units::Bytes;
+use predefined_mmap::KERNEL_ADDR;
 use uefi::{
     proto::media::{
         file,
@@ -118,10 +118,10 @@ fn size(bs: &boot::BootServices, r: &mut file::RegularFile) -> Bytes {
     let n = info_bytes.as_num_of_pages::<Size4KiB>().as_usize();
     let buf = bs.allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, n);
     let buf = buf.expect_success("Failed to allocate memory for getting the size of a file.");
-    let mut s = unsafe { slice::from_raw_parts_mut(buf as *mut u8, info_bytes.as_usize()) };
+    let s = unsafe { slice::from_raw_parts_mut(buf as *mut u8, info_bytes.as_usize()) };
 
     let i = r
-        .get_info::<FileInfo>(&mut s)
+        .get_info::<FileInfo>(s)
         .expect_success("`get_info` failed.");
 
     let sz = Bytes::new(i.file_size().try_into().unwrap());

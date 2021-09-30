@@ -5,9 +5,12 @@ authors = ["toku-sa-n <tokusan441@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+bit_field = "0.10.1"
 common = { path = "../common" }
 conquer-once = { version = "0.3.2", default-features = false }
+font8x8 = { version = "0.3.1", features = ["unicode"], default-features = false }
 log = "0.4.14"
+predefined_mmap = { path = "../predefined_mmap" }
 rgb = "0.8.27"
 spinning_top = { version = "0.2.4", features = ["nightly"] }
 vek = { version = "0.15.1", default-features = false, features = ["libm"] }

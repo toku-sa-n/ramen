@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use common::constant::RECUR_PML4_ADDR;
 use conquer_once::spin::Lazy;
+use predefined_mmap::RECUR_PML4_ADDR;
 use spinning_top::Spinlock;
 use x86_64::structures::paging::RecursivePageTable;
 

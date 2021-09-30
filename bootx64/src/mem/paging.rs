@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use common::{constant::RECUR_PML4_ADDR, kernelboot, mem::reserved};
+use common::{kernelboot, mem::reserved};
 use core::convert::TryFrom;
+use predefined_mmap::RECUR_PML4_ADDR;
 use uefi::table::{boot, boot::MemoryType};
 use x86_64::{
     addr::PhysAddr,

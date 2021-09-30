@@ -1,8 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use super::{font, vram};
+use bit_field::BitField;
+use conquer_once::spin::Lazy;
+use font8x8::{unicode::BasicFonts, UnicodeFonts};
 use rgb::RGB8;
 use vek::Vec2;
+
+static BASIC_FONTS: Lazy<BasicFonts> = Lazy::new(BasicFonts::new);
 
 pub(crate) struct Writer {
     coord: Vec2<u32>,
@@ -28,7 +33,7 @@ impl Writer {
             return;
         }
 
-        self.write_char_on_screen(font::FONTS[c as usize]);
+        self.write_char_on_screen(c);
         self.move_cursor_by_one_character();
 
         if self.cursor_is_outside_screen() {
@@ -77,10 +82,16 @@ impl Writer {
         self.coord.x + font::WIDTH >= vram::resolution().x
     }
 
-    fn write_char_on_screen(&self, font: [[bool; font::WIDTH as usize]; font::HEIGHT as usize]) {
+    fn write_char_on_screen(&self, c: char) {
+        let font = if let Some(font) = BASIC_FONTS.get(c) {
+            font
+        } else {
+            return;
+        };
+
         for (y, line) in font.iter().enumerate() {
-            for (x, cell) in line.iter().enumerate() {
-                if *cell {
+            for x in 0..8 {
+                if line.get_bit(x) {
                     let c = self.coord + Vec2::new(x, y).as_();
                     vram::set_color(c.as_(), self.color);
                 }

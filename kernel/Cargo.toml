@@ -39,6 +39,7 @@ cstr_core = "0.2.4"
 xmas-elf = "0.8.0"
 uart_16550 = "0.2.15"
 spinning_top = { version = "0.2.4", features = ["nightly"] }
+predefined_mmap = { path = "../libs/predefined_mmap" }
 
 [build-dependencies]
 cc = "1.0.69"

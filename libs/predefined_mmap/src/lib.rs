@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+#![no_std]
 
 use conquer_once::spin::Lazy;
 use os_units::{Bytes, NumOfPages};
@@ -23,14 +23,3 @@ pub const RECUR_PML4_ADDR: VirtAddr = VirtAddr::new_truncate(0xff7f_bfdf_e000);
 
 pub static NUM_OF_PAGES_STACK: Lazy<NumOfPages<Size4KiB>> = Lazy::new(|| NumOfPages::new(16));
 pub const BYTES_AVAILABLE_RAM: Bytes = Bytes::new(0x1_0000_0000_0000);
-
-pub const PORT_KEY_STATUS: u16 = 0x0064;
-pub const PORT_KEY_CMD: u16 = 0x0064;
-pub const PORT_KEY_DATA: u16 = 0x0060;
-
-pub const KEY_CMD_WRITE_MODE: u8 = 0x60;
-pub const KEY_CMD_MODE: u8 = 0x47;
-pub const KEY_STATUS_SEND_NOT_READY: u8 = 0x02;
-
-pub const KERNEL_NAME: &str = "kernel.bin";
-pub const INITRD_NAME: &str = "initrd.img";
