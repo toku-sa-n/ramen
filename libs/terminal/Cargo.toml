@@ -7,7 +7,6 @@ edition = "2018"
 [dependencies]
 bit_field = "0.10.1"
 boot_info = { path = "../boot_info" }
-common = { path = "../common" }
 conquer-once = { version = "0.3.2", default-features = false }
 font8x8 = { version = "0.3.1", features = ["unicode"], default-features = false }
 log = "0.4.14"
