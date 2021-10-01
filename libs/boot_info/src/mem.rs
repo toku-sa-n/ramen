@@ -35,6 +35,7 @@ impl MemoryDescriptor {
     ///
     /// The caller must ensure that the memory region of `num_pages` pages from the physical
     /// address `start` is available.
+    #[must_use]
     pub const unsafe fn new(start: PhysAddr, num_pages: NumOfPages<Size4KiB>) -> Self {
         Self { start, num_pages }
     }

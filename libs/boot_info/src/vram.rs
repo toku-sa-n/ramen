@@ -12,6 +12,7 @@ pub struct Info {
 }
 
 impl Info {
+    #[must_use]
     pub fn new(bpp: u32, resolution: Vec2<u32>, ptr: PhysAddr) -> Self {
         Self {
             bpp,
