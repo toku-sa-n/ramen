@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use boot_info::mem::MemoryDescriptor;
 use common::mem::reserved;
 use core::convert::TryFrom;
 use predefined_mmap::RECUR_PML4_ADDR;
-use uefi::table::{boot, boot::MemoryType};
 use x86_64::{
     addr::PhysAddr,
     registers::control::{Cr0, Cr0Flags, Cr3},
@@ -14,11 +14,11 @@ use x86_64::{
 };
 
 struct AllocatorWithEfiMemoryMap<'a> {
-    mem_map: &'a mut [boot::MemoryDescriptor],
+    mem_map: &'a mut [MemoryDescriptor],
 }
 
 impl<'a> AllocatorWithEfiMemoryMap<'a> {
-    fn new(mem_map: &'a mut [boot::MemoryDescriptor]) -> Self {
+    fn new(mem_map: &'a mut [MemoryDescriptor]) -> Self {
         Self { mem_map }
     }
 }
@@ -26,10 +26,10 @@ impl<'a> AllocatorWithEfiMemoryMap<'a> {
 unsafe impl FrameAllocator<Size4KiB> for AllocatorWithEfiMemoryMap<'_> {
     fn allocate_frame(&mut self) -> Option<PhysFrame> {
         for descriptor in self.mem_map.iter_mut() {
-            if descriptor.ty == MemoryType::CONVENTIONAL && descriptor.page_count > 0 {
-                let addr = PhysAddr::new(descriptor.phys_start);
-                descriptor.phys_start += Size4KiB::SIZE;
-                descriptor.page_count -= 1;
+            if descriptor.num_pages.as_usize() > 0 {
+                let addr = descriptor.start;
+                descriptor.start += Size4KiB::SIZE;
+                descriptor.num_pages -= 1;
 
                 return Some(PhysFrame::containing_address(addr));
             }

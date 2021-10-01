@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use allocator::{phys, virt};
+use boot_info::mem::MemoryDescriptor;
 use core::convert::TryFrom;
 use os_units::Bytes;
 use paging::pml4::PML4;
-use uefi::table::boot;
 use x86_64::{
     structures::paging::{Mapper, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
     PhysAddr, VirtAddr,
@@ -14,7 +14,7 @@ pub(crate) mod accessor;
 pub(crate) mod allocator;
 pub(crate) mod paging;
 
-pub(super) fn init(mem_map: &[boot::MemoryDescriptor]) {
+pub(super) fn init(mem_map: &[MemoryDescriptor]) {
     allocator::heap::init();
     allocator::phys::init(mem_map);
     paging::mark_pages_as_unused();
