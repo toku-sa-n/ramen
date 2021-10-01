@@ -22,18 +22,9 @@ jobs:
         components: rustfmt, rust-src
         override: true
 
-    - uses: Swatinem/rust-cache@v1.2.0
-      with:
-        working-directory: kernel
-
-    - uses: Swatinem/rust-cache@v1.2.0
-      with:
-        working-directory: bootx64
-
     - name: Run rustfmt with check mode
       run: |
-        shopt -s globstar
-        rustfmt **/*.rs --check
+        cargo fmt -- --check
 
   clippy:
     runs-on: ubuntu-latest
@@ -48,16 +39,15 @@ jobs:
         components: clippy, rust-src
         override: true
 
-    - uses: Swatinem/rust-cache@v1.2.0
+    - uses: actions-rs/clippy-check@v1
       with:
-        working-directory: kernel
+        token: ${{ secrets.GITHUB_TOKEN }}
+        args: -- -D clippy::pedantic -D clippy::all
 
-    - uses: Swatinem/rust-cache@v1.2.0
+    - uses: actions-rs/clippy-check@v1
       with:
-        working-directory: bootx64
-
-    - name: Run clippy
-      run: checkers/run_clippy.sh
+        token: ${{ secrets.GITHUB_TOKEN }}
+        args: --features qemu_test -- -D clippy::pedantic -D clippy::all
 
   udeps:
     runs-on: ubuntu-latest
@@ -72,18 +62,10 @@ jobs:
         components: rust-src
         override: true
 
-    - uses: Swatinem/rust-cache@v1.2.0
-      with:
-        working-directory: kernel
-
-    - uses: Swatinem/rust-cache@v1.2.0
-      with:
-        working-directory: bootx64
-
     - name: Run udeps
       run: |
         cargo install cargo-udeps
-        checkers/detect_unused_dependencies.sh
+        cargo udeps
 
   test:
     runs-on: ubuntu-latest
@@ -97,14 +79,6 @@ jobs:
         toolchain: nightly
         components: rust-src
         override: true
-
-    - uses: Swatinem/rust-cache@v1.2.0
-      with:
-        working-directory: kernel
-
-    - uses: Swatinem/rust-cache@v1.2.0
-      with:
-        working-directory: bootx64
 
     - name: Install dependencies
       run: |
@@ -129,14 +103,6 @@ jobs:
         toolchain: nightly
         components: rust-src
         override: true
-
-    - uses: Swatinem/rust-cache@v1.2.0
-      with:
-        working-directory: kernel
-
-    - uses: Swatinem/rust-cache@v1.2.0
-      with:
-        working-directory: bootx64
 
     - name: Install dependencies
       run: |
