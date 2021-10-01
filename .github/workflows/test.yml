@@ -147,4 +147,4 @@ jobs:
       run: cp /usr/share/OVMF/OVMF_* .
 
     - name: Test
-      run: ./test_per_crate.sh
+      run: cargo test --workspace

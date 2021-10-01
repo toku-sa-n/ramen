@@ -9,10 +9,6 @@ license = "GPL-3.0-or-later"
 default = []
 qemu_test = []
 
-[profile.release]
-opt-level = 3
-lto = true
-
 [lib]
 name = "kernel"
 crate-type = ["staticlib"]
