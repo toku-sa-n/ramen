@@ -45,8 +45,7 @@ fn bpp() -> u32 {
 }
 
 fn lock() -> SpinlockGuard<'static, Vram> {
-    VRAM.try_lock()
-        .expect("Failed to acquire the lock of `VRAM`")
+    VRAM.lock()
 }
 
 fn init_info(boot_info: &boot_info::Info) {
