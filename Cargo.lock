@@ -501,12 +501,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "qemu-exit"
-version = "2.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "220eb94f40665452ab6114bf8a8d86aa1fd41c6dbfaa4ab71b5912c8adb80389"
-
-[[package]]
 name = "quote"
 version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -665,9 +659,9 @@ dependencies = [
 
 [[package]]
 name = "uefi"
-version = "0.11.0"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4630a92e80ac72f2b3dedb865dac3cf9e0215ce7e222301f0a37d8e6e3c5dbf4"
+checksum = "4f8451cf8ee8c9c6219a0eb57e4045f6212976888e5295ebca1afccbf65ae9f4"
 dependencies = [
  "bitflags",
  "log",
@@ -677,9 +671,9 @@ dependencies = [
 
 [[package]]
 name = "uefi-macros"
-version = "0.3.3"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3dcca10ca861f34a320d178f3fdb29ffbf05087fc2c70d2a99860e3329bee1a8"
+checksum = "e012a5bc55f3fd92ba8f3444b97fdc4a73afb8bd9edd0ac5a9c3d5d6182090ea"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -688,13 +682,12 @@ dependencies = [
 
 [[package]]
 name = "uefi-services"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5a4d69a19217c0917154283ccef70e4fa7dfd30c7b8c94402ab203f5b892c6d"
+checksum = "27a0cbced83770da404e6f42995c991796d217f8a6f2f7a79fd401630b65f832"
 dependencies = [
  "cfg-if",
  "log",
- "qemu-exit",
  "uefi",
 ]
 
