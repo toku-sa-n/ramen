@@ -1,6 +1,5 @@
 use core::convert::TryFrom;
 use os_units::Bytes;
-use uefi::proto::console::gop;
 use vek::Vec2;
 use x86_64::PhysAddr;
 
@@ -13,13 +12,12 @@ pub struct Info {
 }
 
 impl Info {
-    pub fn new_from_gop(gop: &mut gop::GraphicsOutput<'_>) -> Self {
-        let resolution: Vec2<usize> = gop.current_mode_info().resolution().into();
-
+    #[must_use]
+    pub fn new(bpp: u32, resolution: Vec2<u32>, ptr: PhysAddr) -> Self {
         Self {
-            bpp: 32,
-            resolution: resolution.as_(),
-            ptr: PhysAddr::new(gop.frame_buffer().as_mut_ptr() as u64),
+            bpp,
+            resolution,
+            ptr,
         }
     }
 

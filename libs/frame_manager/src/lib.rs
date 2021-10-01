@@ -5,10 +5,9 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use boot::MemoryType;
-use core::{convert::TryInto, fmt};
+use boot_info::mem::MemoryDescriptor;
+use core::fmt;
 use os_units::NumOfPages;
-use uefi::table::boot;
 use x86_64::{
     structures::paging::{FrameAllocator, FrameDeallocator, PhysFrame, Size4KiB},
     PhysAddr,
@@ -22,18 +21,14 @@ impl FrameManager {
         Self(Vec::new())
     }
 
-    pub fn init(&mut self, mem_map: &[boot::MemoryDescriptor]) {
+    pub fn init(&mut self, mem_map: &[MemoryDescriptor]) {
         for descriptor in mem_map {
-            if is_conventional(descriptor.ty) {
-                self.init_for_descriptor(descriptor);
-            }
+            self.init_for_descriptor(descriptor);
         }
     }
 
-    fn init_for_descriptor(&mut self, descriptor: &boot::MemoryDescriptor) {
-        let start = PhysAddr::new(descriptor.phys_start);
-        let num = NumOfPages::new(descriptor.page_count.try_into().unwrap());
-        let frames = Frames::new_for_available(start, num);
+    fn init_for_descriptor(&mut self, descriptor: &MemoryDescriptor) {
+        let frames = Frames::new_for_available(descriptor.start, descriptor.num_pages);
 
         self.0.push(frames);
     }
@@ -186,10 +181,6 @@ impl fmt::Debug for Frames {
             self.end()
         )
     }
-}
-
-fn is_conventional(ty: MemoryType) -> bool {
-    ty == MemoryType::CONVENTIONAL
 }
 
 #[cfg(test)]
