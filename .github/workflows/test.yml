@@ -39,8 +39,15 @@ jobs:
         components: clippy, rust-src
         override: true
 
-    - name: Run clippy
-      run: checkers/run_clippy.sh
+    - uses: actions-rs/clippy-check@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        args: -- -D clippy::pedantic -D clippy::all
+
+    - uses: actions-rs/clippy-check@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        args: --features qemu_test -- -D clippy::pedantic -D clippy::all
 
   udeps:
     runs-on: ubuntu-latest
@@ -58,7 +65,7 @@ jobs:
     - name: Run udeps
       run: |
         cargo install cargo-udeps
-        checkers/detect_unused_dependencies.sh
+        cargo udeps
 
   test:
     runs-on: ubuntu-latest
