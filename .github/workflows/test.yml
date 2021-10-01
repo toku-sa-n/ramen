@@ -24,8 +24,7 @@ jobs:
 
     - name: Run rustfmt with check mode
       run: |
-        shopt -s globstar
-        rustfmt **/*.rs --check
+        cargo fmt -- --check
 
   clippy:
     runs-on: ubuntu-latest
