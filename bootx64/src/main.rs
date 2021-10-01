@@ -20,8 +20,8 @@ use uefi::prelude::{Boot, Handle, SystemTable};
 
 #[start]
 #[no_mangle]
-pub fn efi_main(image: Handle, system_table: SystemTable<Boot>) -> ! {
-    bootx64::init(&system_table);
+pub fn efi_main(image: Handle, mut system_table: SystemTable<Boot>) -> ! {
+    bootx64::init(&mut system_table);
 
     let vram_info = gop::init(system_table.boot_services());
 
