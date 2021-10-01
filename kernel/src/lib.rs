@@ -25,8 +25,6 @@ use process::Privilege;
 use terminal::vram;
 use x86_64::software_interrupt;
 
-compile_error!("Clippy test.");
-
 #[no_mangle]
 pub extern "win64" fn os_main(mut boot_info: boot_info::Info) -> ! {
     init(&mut boot_info);

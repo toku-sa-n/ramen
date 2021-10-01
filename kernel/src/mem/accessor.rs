@@ -22,7 +22,7 @@ impl accessor::Mapper for Mapper {
         let bytes = Bytes::new(bytes);
 
         let v = super::map_pages(phys_start, bytes);
-        let v: usize = v.as_u64().try_into().unwrap();
+        let v: usize = v.as_u64() as _;
 
         NonZeroUsize::new(v).expect("Failed to map pages.")
     }
