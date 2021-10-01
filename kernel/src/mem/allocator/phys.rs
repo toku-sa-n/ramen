@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use boot_info::mem::MemoryDescriptor;
 use core::ops::DerefMut;
 use frame_manager::FrameManager;
 use os_units::NumOfPages;
 use spinning_top::Spinlock;
-use uefi::table::boot;
 use x86_64::{
     structures::paging::{FrameAllocator, FrameDeallocator, Size4KiB},
     PhysAddr,
@@ -12,7 +12,7 @@ use x86_64::{
 
 static FRAME_MANAGER: Spinlock<FrameManager> = Spinlock::new(FrameManager::new());
 
-pub(crate) fn init(mem_map: &[boot::MemoryDescriptor]) {
+pub(crate) fn init(mem_map: &[MemoryDescriptor]) {
     FRAME_MANAGER.lock().init(mem_map);
 }
 

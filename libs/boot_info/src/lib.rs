@@ -4,8 +4,8 @@ pub mod mem;
 pub mod vram;
 
 use core::ptr;
+use mem::MemoryDescriptor;
 use predefined_mmap::INIT_RSP;
-use uefi::table::boot;
 use x86_64::{PhysAddr, VirtAddr};
 
 #[repr(C)]
@@ -61,7 +61,7 @@ impl Info {
     }
 
     #[must_use]
-    pub fn mem_map_mut(&mut self) -> &mut [boot::MemoryDescriptor] {
+    pub fn mem_map_mut(&mut self) -> &mut [MemoryDescriptor] {
         self.mem_map.as_mut_slice()
     }
 }

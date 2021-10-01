@@ -8,13 +8,15 @@ use uefi::{
     table::boot,
     ResultExt,
 };
+use vek::Vec2;
+use x86_64::PhysAddr;
 
 #[must_use]
 pub fn init(boot_services: &boot::BootServices) -> vram::Info {
     let gop = fetch_gop(boot_services);
     set_resolution(gop);
 
-    vram::Info::new_from_gop(gop)
+    gop_to_boot_info(gop)
 }
 
 fn fetch_gop<'a>(boot_services: &boot::BootServices) -> &'a mut gop::GraphicsOutput<'a> {
@@ -32,6 +34,16 @@ fn set_resolution(gop: &mut gop::GraphicsOutput<'_>) {
         .expect_success("Failed to set resolution.");
 
     info!("width: {} height: {}", width, height);
+}
+
+fn gop_to_boot_info(gop: &mut gop::GraphicsOutput<'_>) -> vram::Info {
+    let resolution: Vec2<usize> = gop.current_mode_info().resolution().into();
+
+    vram::Info::new(
+        32,
+        resolution.as_(),
+        PhysAddr::new(gop.frame_buffer().as_mut_ptr() as u64),
+    )
 }
 
 fn get_the_maximum_resolution_and_mode(gop: &gop::GraphicsOutput<'_>) -> (usize, usize, gop::Mode) {
