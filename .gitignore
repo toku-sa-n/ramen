@@ -1,6 +1,5 @@
 target/
 **/*.rs.bk
-**/Cargo.lock
 tags
 build
 **/*.swp
@@ -8,6 +7,5 @@ build
 *.fd
 *.img
 *.temp
-*.lock
 node_modules
 package-lock.json
