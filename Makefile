@@ -179,3 +179,4 @@ $(BUILD_DIR):
 
 clean:
 	$(RM) build
+	cargo clean
