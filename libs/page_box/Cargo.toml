@@ -3,6 +3,7 @@ name = "page_box"
 version = "0.1.0"
 authors = ["toku-sa-n <tokusan441@gmail.com>"]
 edition = "2018"
+license = "GPL-3.0-or-later"
 
 [dependencies]
 os_units = "0.4.2"

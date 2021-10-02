@@ -2,6 +2,7 @@
 name = "predefined_mmap"
 version = "0.1.0"
 edition = "2018"
+license = "GPL-3.0-or-later"
 
 [dependencies]
 conquer-once = { version = "0.3.2", default-features = false }
