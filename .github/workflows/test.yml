@@ -90,7 +90,7 @@ jobs:
 
     - name: Test
       timeout-minutes: 10
-      run: ./run_qemu.sh -t
+      run: make test
   test_per_crate:
     runs-on: ubuntu-latest
 
