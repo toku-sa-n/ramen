@@ -7,9 +7,7 @@ use x86_64::{structures::paging::Size4KiB, VirtAddr};
 pub(super) fn allocate_pages(n: NumOfPages<Size4KiB>) -> VirtAddr {
     let v = syscalls::allocate_pages(n);
 
-    if v.is_null() {
-        panic!("Failed to allocate pages.");
-    }
+    assert!(!v.is_null(), "Failed to allocate pages.");
 
     v
 }

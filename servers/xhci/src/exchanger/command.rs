@@ -122,9 +122,12 @@ impl Channel {
 
 fn panic_on_error(n: &str, c: event::Allowed) {
     if let event::Allowed::CommandCompletion(c) = c {
-        if c.completion_code() != Ok(CompletionCode::Success) {
-            panic!("{} command failed: {:?}", n, c.completion_code());
-        }
+        assert!(
+            c.completion_code() == Ok(CompletionCode::Success),
+            "{} command failed: {:?}",
+            n,
+            c.completion_code()
+        );
     } else {
         unreachable!("The Command Completion TRB is the only TRB to receive in response to the Command TRBs.");
     }
