@@ -11,5 +11,5 @@ test = false
 bench = false
 
 [dependencies]
-linked_list_allocator = "0.9.0"
+linked_list_allocator = "0.9.1"
 ralib = { path = "../../libs/ralib", default-features = false }
