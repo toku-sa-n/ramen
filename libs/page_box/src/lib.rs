@@ -201,9 +201,7 @@ impl<T: ?Sized> PageBox<T> {
     fn from_bytes(bytes: Bytes) -> Self {
         let virt = alloc::allocate_pages(bytes.as_num_of_pages());
 
-        if virt.is_null() {
-            panic!("Failed to allocate pages.");
-        }
+        assert!(!virt.is_null(), "Failed to allocate pages.");
 
         Self {
             virt,
