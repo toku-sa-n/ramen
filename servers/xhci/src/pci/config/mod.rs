@@ -4,11 +4,13 @@ pub(crate) mod bar;
 mod common;
 pub(crate) mod type_spec;
 
-use self::common::Common;
-use bar::Bar;
-use core::{convert::TryFrom, ops::Add};
-use type_spec::TypeSpec;
-use x86_64::PhysAddr;
+use {
+    self::common::Common,
+    bar::Bar,
+    core::{convert::TryFrom, ops::Add},
+    type_spec::TypeSpec,
+    x86_64::PhysAddr,
+};
 
 #[derive(Debug)]
 pub(crate) struct Space {

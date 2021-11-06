@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::process;
-use alloc::collections::VecDeque;
-use conquer_once::spin::Lazy;
-use spinning_top::{Spinlock, SpinlockGuard};
+use {
+    crate::process,
+    alloc::collections::VecDeque,
+    conquer_once::spin::Lazy,
+    spinning_top::{Spinlock, SpinlockGuard},
+};
 
 static WOKEN_PIDS: Lazy<Spinlock<VecDeque<process::SlotId>>> =
     Lazy::new(|| Spinlock::new(VecDeque::new()));

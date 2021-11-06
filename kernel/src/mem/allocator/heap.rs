@@ -3,8 +3,7 @@
 // WORKAROUND: https://stackoverflow.com/questions/63933070/clippy-says-too-many-arguments-to-static-declaration
 #![allow(clippy::too_many_arguments)]
 
-use core::alloc::Layout;
-use linked_list_allocator::LockedHeap;
+use {core::alloc::Layout, linked_list_allocator::LockedHeap};
 
 extern "C" {
     static HEAP_START: usize;

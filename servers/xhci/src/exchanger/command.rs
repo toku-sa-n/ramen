@@ -1,18 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{
-    super::structures::ring::command,
-    receiver::{self, ReceiveFuture},
+use {
+    super::{
+        super::structures::ring::command,
+        receiver::{self, ReceiveFuture},
+    },
+    crate::{Futurelock, FuturelockGuard},
+    alloc::sync::Arc,
+    command_trb::{AddressDevice, ConfigureEndpoint, EnableSlot, EvaluateContext},
+    conquer_once::spin::OnceCell,
+    event::CompletionCode,
+    futures_util::task::AtomicWaker,
+    spinning_top::Spinlock,
+    x86_64::PhysAddr,
+    xhci::ring::trb::{command as command_trb, event},
 };
-use crate::{Futurelock, FuturelockGuard};
-use alloc::sync::Arc;
-use command_trb::{AddressDevice, ConfigureEndpoint, EnableSlot, EvaluateContext};
-use conquer_once::spin::OnceCell;
-use event::CompletionCode;
-use futures_util::task::AtomicWaker;
-use spinning_top::Spinlock;
-use x86_64::PhysAddr;
-use xhci::ring::trb::{command as command_trb, event};
 
 static SENDER: OnceCell<Futurelock<Sender>> = OnceCell::uninit();
 

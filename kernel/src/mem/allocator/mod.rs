@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::convert::TryFrom;
-use os_units::NumOfPages;
-use x86_64::{
-    structures::paging::{Mapper, Page, PageSize, Size4KiB, Translate},
-    PhysAddr, VirtAddr,
+use {
+    core::convert::TryFrom,
+    os_units::NumOfPages,
+    x86_64::{
+        structures::paging::{Mapper, Page, PageSize, Size4KiB, Translate},
+        PhysAddr, VirtAddr,
+    },
 };
 
 use super::paging::pml4::PML4;

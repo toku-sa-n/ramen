@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::tss::TSS;
-use conquer_once::spin::Lazy;
-use x86_64::{
-    instructions::{
-        segmentation::{Segment, CS, DS, ES, FS, GS, SS},
-        tables,
+use {
+    crate::tss::TSS,
+    conquer_once::spin::Lazy,
+    x86_64::{
+        instructions::{
+            segmentation::{Segment, CS, DS, ES, FS, GS, SS},
+            tables,
+        },
+        registers::model_specific::Star,
+        structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector},
     },
-    registers::model_specific::Star,
-    structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector},
 };
 
 pub(crate) static GDT: Lazy<Gdt> = Lazy::new(|| {

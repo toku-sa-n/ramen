@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{collections, get_slot_id, ReceiveFrom, SlotId};
-use crate::{mem, mem::accessor::Single};
-use mem::paging::pml4::PML4;
-use message::Message;
-use x86_64::{structures::paging::Translate, PhysAddr, VirtAddr};
+use {
+    super::{collections, get_slot_id, ReceiveFrom, SlotId},
+    crate::{mem, mem::accessor::Single},
+    mem::paging::pml4::PML4,
+    message::Message,
+    x86_64::{structures::paging::Translate, PhysAddr, VirtAddr},
+};
 
 pub(crate) fn send(msg: VirtAddr, to: SlotId) {
     Sender::new(msg, to).send();

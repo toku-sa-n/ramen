@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use byteorder::{BigEndian, ByteOrder};
-use core::fmt;
+use {
+    byteorder::{BigEndian, ByteOrder},
+    core::fmt,
+};
 
 #[derive(Copy, Clone, Debug)]
 #[repr(transparent)]

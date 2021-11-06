@@ -8,18 +8,18 @@ mod slot_id;
 mod stack_frame;
 pub(crate) mod switch;
 
-use crate::{mem::allocator::kpbox::KpBox, tss::TSS};
-use alloc::collections::VecDeque;
-use core::convert::TryInto;
-pub(crate) use exit::exit_process;
-use predefined_mmap::INTERRUPT_STACK;
-pub(crate) use slot_id::SlotId;
-use stack_frame::StackFrame;
-pub(crate) use switch::switch;
-use x86_64::{
-    structures::paging::{PageSize, PhysFrame, Size4KiB},
-    PhysAddr, VirtAddr,
+use {
+    crate::{mem::allocator::kpbox::KpBox, tss::TSS},
+    alloc::collections::VecDeque,
+    core::convert::TryInto,
+    predefined_mmap::INTERRUPT_STACK,
+    stack_frame::StackFrame,
+    x86_64::{
+        structures::paging::{PageSize, PhysFrame, Size4KiB},
+        PhysAddr, VirtAddr,
+    },
 };
+pub(crate) use {exit::exit_process, slot_id::SlotId, switch::switch};
 
 pub(super) fn from_function(entry: fn(), name: &'static str) {
     let entry = VirtAddr::new((entry as usize).try_into().unwrap());

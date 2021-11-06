@@ -19,11 +19,13 @@ mod sysproc;
 mod tests;
 mod tss;
 
-use interrupt::{apic, idt, timer};
-use log::info;
-use process::Privilege;
-use terminal::vram;
-use x86_64::software_interrupt;
+use {
+    interrupt::{apic, idt, timer},
+    log::info,
+    process::Privilege,
+    terminal::vram,
+    x86_64::software_interrupt,
+};
 
 #[no_mangle]
 pub extern "win64" fn os_main(mut boot_info: boot_info::Info) -> ! {

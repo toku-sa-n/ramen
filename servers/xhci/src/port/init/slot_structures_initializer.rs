@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{max_packet_size_setter::MaxPacketSizeSetter, resetter::Resetter};
-use crate::{
-    exchanger,
-    port::endpoint,
-    structures::{context::Context, dcbaa, registers},
+use {
+    super::{max_packet_size_setter::MaxPacketSizeSetter, resetter::Resetter},
+    crate::{
+        exchanger,
+        port::endpoint,
+        structures::{context::Context, dcbaa, registers},
+    },
+    alloc::sync::Arc,
+    exchanger::{transfer, transfer::DoorbellWriter},
+    spinning_top::Spinlock,
+    xhci::context::EndpointType,
 };
-use alloc::sync::Arc;
-use exchanger::{transfer, transfer::DoorbellWriter};
-use spinning_top::Spinlock;
-use xhci::context::EndpointType;
 
 pub(super) struct SlotStructuresInitializer {
     port_number: u8,

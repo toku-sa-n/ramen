@@ -1,17 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::receiver::{self, ReceiveFuture};
-use crate::structures::{descriptor, registers, ring::transfer};
-use alloc::{sync::Arc, vec::Vec};
-use core::convert::TryInto;
-use futures_util::task::AtomicWaker;
-use log::debug;
-use page_box::PageBox;
-use spinning_top::Spinlock;
-use x86_64::PhysAddr;
-use xhci::ring::trb::{
-    event, transfer as transfer_trb,
-    transfer::{Direction, Normal, TransferType},
+use {
+    super::receiver::{self, ReceiveFuture},
+    crate::structures::{descriptor, registers, ring::transfer},
+    alloc::{sync::Arc, vec::Vec},
+    core::convert::TryInto,
+    futures_util::task::AtomicWaker,
+    log::debug,
+    page_box::PageBox,
+    spinning_top::Spinlock,
+    x86_64::PhysAddr,
+    xhci::ring::trb::{
+        event,
+        transfer::{self as transfer_trb, Direction, Normal, TransferType},
+    },
 };
 
 pub(crate) struct Sender {

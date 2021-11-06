@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::slot_structures_initializer::SlotStructuresInitializer;
-use crate::structures::registers;
-use xhci::registers::PortRegisterSet;
+use {
+    super::slot_structures_initializer::SlotStructuresInitializer, crate::structures::registers,
+    xhci::registers::PortRegisterSet,
+};
 
 pub(super) struct Resetter {
     port_number: u8,

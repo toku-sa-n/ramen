@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::registers;
-use conquer_once::spin::Lazy;
-use core::ops::{Index, IndexMut};
-use page_box::PageBox;
-use spinning_top::Spinlock;
-use x86_64::PhysAddr;
+use {
+    super::registers,
+    conquer_once::spin::Lazy,
+    core::ops::{Index, IndexMut},
+    page_box::PageBox,
+    spinning_top::Spinlock,
+    x86_64::PhysAddr,
+};
 
 static DCBAA: Lazy<Spinlock<DeviceContextBaseAddressArray>> =
     Lazy::new(|| Spinlock::new(DeviceContextBaseAddressArray::new()));

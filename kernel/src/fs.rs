@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::{
-    convert::{TryFrom, TryInto},
-    mem, slice, str,
+use {
+    core::{
+        convert::{TryFrom, TryInto},
+        mem, slice, str,
+    },
+    cstr_core::CStr,
+    log::info,
+    x86_64::VirtAddr,
 };
-use cstr_core::CStr;
-use log::info;
-use x86_64::VirtAddr;
 
 pub(super) fn list_names() {
     for c in iter() {

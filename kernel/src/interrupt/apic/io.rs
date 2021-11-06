@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::pic;
-use crate::mem::{accessor::Single, allocator};
-use acpi::{platform::interrupt::IoApic, AcpiTables, InterruptModel};
-use x86_64::PhysAddr;
+use {
+    super::pic,
+    crate::mem::{accessor::Single, allocator},
+    acpi::{platform::interrupt::IoApic, AcpiTables, InterruptModel},
+    x86_64::PhysAddr,
+};
 
 /// Currently this OS does not support multiple I/O APIC.
 

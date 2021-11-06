@@ -1,17 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::font::HEIGHT;
-use conquer_once::spin::OnceCell;
-use core::{
-    convert::{TryFrom, TryInto},
-    ops::{Index, IndexMut},
-    slice,
+use {
+    super::font::HEIGHT,
+    conquer_once::spin::OnceCell,
+    core::{
+        convert::{TryFrom, TryInto},
+        ops::{Index, IndexMut},
+        slice,
+    },
+    log::info,
+    predefined_mmap::VRAM_ADDR,
+    rgb::RGB8,
+    spinning_top::{Spinlock, SpinlockGuard},
+    vek::Vec2,
 };
-use log::info;
-use predefined_mmap::VRAM_ADDR;
-use rgb::RGB8;
-use spinning_top::{Spinlock, SpinlockGuard};
-use vek::Vec2;
 
 static VRAM: Spinlock<Vram> = Spinlock::new(Vram);
 static INFO: OnceCell<Info> = OnceCell::uninit();

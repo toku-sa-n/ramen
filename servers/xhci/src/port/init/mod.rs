@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use fully_operational::FullyOperational;
-use resetter::Resetter;
+use {fully_operational::FullyOperational, resetter::Resetter};
 
 mod descriptor_fetcher;
 mod endpoints_initializer;

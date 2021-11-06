@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use boot_info::vram;
-use core::mem::MaybeUninit;
-use log::info;
-use uefi::{
-    proto::console::{gop, gop::PixelFormat},
-    table::boot,
-    ResultExt,
+use {
+    boot_info::vram,
+    core::mem::MaybeUninit,
+    log::info,
+    uefi::{
+        proto::console::{gop, gop::PixelFormat},
+        table::boot,
+        ResultExt,
+    },
+    vek::Vec2,
+    x86_64::PhysAddr,
 };
-use vek::Vec2;
-use x86_64::PhysAddr;
 
 #[must_use]
 pub fn init(boot_services: &boot::BootServices) -> vram::Info {

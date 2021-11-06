@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::mem::{accessor::Single, allocator};
-use acpi::{platform::address::AddressSpace, AcpiTables};
-use core::convert::TryInto;
-use log::info;
-use x86_64::{instructions::port::PortReadOnly, PhysAddr};
+use {
+    crate::mem::{accessor::Single, allocator},
+    acpi::{platform::address::AddressSpace, AcpiTables},
+    core::convert::TryInto,
+    log::info,
+    x86_64::{instructions::port::PortReadOnly, PhysAddr},
+};
 
 const LVT_TIMER: PhysAddr = PhysAddr::new_truncate(0xfee0_0320);
 const INITIAL_COUNT: PhysAddr = PhysAddr::new_truncate(0xfee0_0380);

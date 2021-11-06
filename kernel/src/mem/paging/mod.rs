@@ -2,8 +2,7 @@
 
 pub(crate) mod pml4;
 
-use predefined_mmap::RECUR_PML4_ADDR;
-use x86_64::structures::paging::PageTable;
+use {predefined_mmap::RECUR_PML4_ADDR, x86_64::structures::paging::PageTable};
 
 pub(crate) fn mark_pages_as_unused() {
     let page_table = unsafe { &mut *(RECUR_PML4_ADDR.as_mut_ptr::<PageTable>()) };

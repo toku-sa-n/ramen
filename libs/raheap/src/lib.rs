@@ -3,12 +3,14 @@
 // https://stackoverflow.com/questions/63933070/clippy-says-too-many-arguments-to-static-declaration.
 #![allow(clippy::too_many_arguments)]
 
-use conquer_once::spin::Lazy;
-use core::convert::TryInto;
-use linked_list_allocator::LockedHeap;
-use os_units::{Bytes, NumOfPages};
-use page_box::PageBox;
-use x86_64::{structures::paging::Size4KiB, VirtAddr};
+use {
+    conquer_once::spin::Lazy,
+    core::convert::TryInto,
+    linked_list_allocator::LockedHeap,
+    os_units::{Bytes, NumOfPages},
+    page_box::PageBox,
+    x86_64::{structures::paging::Size4KiB, VirtAddr},
+};
 
 #[global_allocator]
 static ALLOCATOR: LockedHeap = LockedHeap::empty();

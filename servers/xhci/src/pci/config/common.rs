@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{RegisterIndex, Registers};
-use bit_field::BitField;
-use core::convert::{TryFrom, TryInto};
+use {
+    super::{RegisterIndex, Registers},
+    bit_field::BitField,
+    core::convert::{TryFrom, TryInto},
+};
 
 #[derive(Debug)]
 pub(super) struct Common<'a> {

@@ -1,16 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{
-    endpoints_initializer::EndpointsInitializer, max_packet_size_setter::MaxPacketSizeSetter,
+use {
+    super::{
+        endpoints_initializer::EndpointsInitializer, max_packet_size_setter::MaxPacketSizeSetter,
+    },
+    crate::{
+        port::endpoint,
+        structures::{
+            context::Context,
+            descriptor::{self, Descriptor},
+        },
+    },
+    alloc::{sync::Arc, vec::Vec},
+    log::debug,
+    page_box::PageBox,
+    spinning_top::Spinlock,
 };
-use crate::{
-    port::endpoint,
-    structures::{context::Context, descriptor, descriptor::Descriptor},
-};
-use alloc::{sync::Arc, vec::Vec};
-use log::debug;
-use page_box::PageBox;
-use spinning_top::Spinlock;
 
 pub(super) struct DescriptorFetcher {
     port_number: u8,

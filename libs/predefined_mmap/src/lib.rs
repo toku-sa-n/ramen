@@ -1,10 +1,12 @@
 #![no_std]
 
-use conquer_once::spin::Lazy;
-use os_units::{Bytes, NumOfPages};
-use x86_64::{
-    structures::paging::{PageSize, Size4KiB},
-    PhysAddr, VirtAddr,
+use {
+    conquer_once::spin::Lazy,
+    os_units::{Bytes, NumOfPages},
+    x86_64::{
+        structures::paging::{PageSize, Size4KiB},
+        PhysAddr, VirtAddr,
+    },
 };
 
 pub const LOCAL_APIC_ID_REGISTER_ADDR: PhysAddr = PhysAddr::new_truncate(0xfee0_0020);

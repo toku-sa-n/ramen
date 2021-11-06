@@ -1,23 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::CycleBit;
-use crate::{exchanger::receiver, port, structures::registers};
-use alloc::vec::Vec;
-use bit_field::BitField;
-use core::{
-    convert::TryInto,
-    pin::Pin,
-    task::{Context, Poll},
+use {
+    super::CycleBit,
+    crate::{exchanger::receiver, port, structures::registers},
+    alloc::vec::Vec,
+    bit_field::BitField,
+    core::{
+        convert::TryInto,
+        pin::Pin,
+        task::{Context, Poll},
+    },
+    futures_util::{stream::Stream, StreamExt},
+    log::{debug, info, warn},
+    page_box::PageBox,
+    segment_table::SegmentTable,
+    x86_64::{
+        structures::paging::{PageSize, Size4KiB},
+        PhysAddr,
+    },
+    xhci::ring::{trb, trb::event},
 };
-use futures_util::{stream::Stream, StreamExt};
-use log::{debug, info, warn};
-use page_box::PageBox;
-use segment_table::SegmentTable;
-use x86_64::{
-    structures::paging::{PageSize, Size4KiB},
-    PhysAddr,
-};
-use xhci::ring::{trb, trb::event};
 
 mod segment_table;
 

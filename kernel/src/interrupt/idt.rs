@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use conquer_once::spin::Lazy;
-use core::convert::TryInto;
-use x86_64::{structures::idt::InterruptDescriptorTable, PrivilegeLevel, VirtAddr};
+use {
+    conquer_once::spin::Lazy,
+    core::convert::TryInto,
+    x86_64::{structures::idt::InterruptDescriptorTable, PrivilegeLevel, VirtAddr},
+};
 
 extern "C" {
     fn h_20_asm();

@@ -2,18 +2,20 @@
 
 #![cfg_attr(not(test), no_std)]
 #![allow(clippy::type_repetition_in_bounds)]
-use core::{
-    convert::{TryFrom, TryInto},
-    fmt,
-    marker::PhantomData,
-    mem,
-    ops::{Deref, DerefMut},
-    ptr, slice,
-};
-use os_units::Bytes;
-use x86_64::{
-    structures::paging::{PageSize, Size4KiB},
-    PhysAddr, VirtAddr,
+use {
+    core::{
+        convert::{TryFrom, TryInto},
+        fmt,
+        marker::PhantomData,
+        mem,
+        ops::{Deref, DerefMut},
+        ptr, slice,
+    },
+    os_units::Bytes,
+    x86_64::{
+        structures::paging::{PageSize, Size4KiB},
+        PhysAddr, VirtAddr,
+    },
 };
 
 mod alloc;

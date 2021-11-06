@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{
-    mem::{allocator, paging::pml4::PML4},
-    process::{self, exit_process, SlotId},
-};
-use core::{convert::TryInto, ffi::c_void, panic::PanicInfo, slice};
-use num_traits::FromPrimitive;
-use os_units::{Bytes, NumOfPages};
-use terminal::print;
-use x86_64::{
-    structures::paging::{Size4KiB, Translate},
-    PhysAddr, VirtAddr,
+use {
+    crate::{
+        mem::{allocator, paging::pml4::PML4},
+        process::{self, exit_process, SlotId},
+    },
+    core::{convert::TryInto, ffi::c_void, panic::PanicInfo, slice},
+    num_traits::FromPrimitive,
+    os_units::{Bytes, NumOfPages},
+    terminal::print,
+    x86_64::{
+        structures::paging::{Size4KiB, Translate},
+        PhysAddr, VirtAddr,
+    },
 };
 
 #[no_mangle]

@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{
-    port::init::fully_operational::FullyOperational,
-    structures::descriptor::{Configuration, Descriptor},
+use {
+    crate::{
+        port::init::fully_operational::FullyOperational,
+        structures::descriptor::{Configuration, Descriptor},
+    },
+    alloc::vec::Vec,
+    log::info,
+    page_box::PageBox,
+    xhci::context::EndpointType,
 };
-use alloc::vec::Vec;
-use log::info;
-use page_box::PageBox;
-use xhci::context::EndpointType;
 
 pub(in super::super) async fn task(eps: FullyOperational) {
     let mut m = Mouse::new(eps);

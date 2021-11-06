@@ -4,9 +4,7 @@
 
 mod port;
 
-use log::warn;
-use message::Message;
-use num_traits::FromPrimitive;
+use {log::warn, message::Message, num_traits::FromPrimitive};
 
 const PID: i32 = 0;
 

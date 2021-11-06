@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{exchanger::transfer, structures::descriptor};
-use page_box::PageBox;
-use x86_64::PhysAddr;
-use xhci::context::EndpointType;
+use {
+    crate::{exchanger::transfer, structures::descriptor},
+    page_box::PageBox,
+    x86_64::PhysAddr,
+    xhci::context::EndpointType,
+};
 
 pub(super) struct Default {
     sender: transfer::Sender,

@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::CycleBit;
-use alloc::vec::Vec;
-use page_box::PageBox;
-use trb::Link;
-use x86_64::PhysAddr;
-use xhci::ring::{trb, trb::transfer};
+use {
+    super::CycleBit,
+    alloc::vec::Vec,
+    page_box::PageBox,
+    trb::Link,
+    x86_64::PhysAddr,
+    xhci::ring::{trb, trb::transfer},
+};
 
 const SIZE_OF_RING: usize = 256;
 

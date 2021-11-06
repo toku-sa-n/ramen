@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use boot_info::mem::MemoryDescriptor;
-use common::mem::reserved;
-use core::convert::TryFrom;
-use predefined_mmap::RECUR_PML4_ADDR;
-use x86_64::{
-    addr::PhysAddr,
-    registers::control::{Cr0, Cr0Flags, Cr3},
-    structures::paging::{
-        FrameAllocator, Mapper, Page, PageSize, PageTable, PageTableFlags, PhysFrame,
-        RecursivePageTable, Size4KiB,
+use {
+    boot_info::mem::MemoryDescriptor,
+    common::mem::reserved,
+    core::convert::TryFrom,
+    predefined_mmap::RECUR_PML4_ADDR,
+    x86_64::{
+        addr::PhysAddr,
+        registers::control::{Cr0, Cr0Flags, Cr3},
+        structures::paging::{
+            FrameAllocator, Mapper, Page, PageSize, PageTable, PageTableFlags, PhysFrame,
+            RecursivePageTable, Size4KiB,
+        },
     },
 };
 

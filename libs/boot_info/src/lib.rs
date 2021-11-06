@@ -3,10 +3,12 @@
 pub mod mem;
 pub mod vram;
 
-use core::ptr;
-use mem::MemoryDescriptor;
-use predefined_mmap::INIT_RSP;
-use x86_64::{PhysAddr, VirtAddr};
+use {
+    core::ptr,
+    mem::MemoryDescriptor,
+    predefined_mmap::INIT_RSP,
+    x86_64::{PhysAddr, VirtAddr},
+};
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]

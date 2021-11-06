@@ -3,11 +3,13 @@
 #![no_std]
 #![allow(clippy::missing_panics_doc)]
 
-use core::{convert::TryInto, ffi::c_void, panic::PanicInfo};
-use message::Message;
-use num_derive::FromPrimitive;
-use os_units::{Bytes, NumOfPages};
-use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
+use {
+    core::{convert::TryInto, ffi::c_void, panic::PanicInfo},
+    message::Message,
+    num_derive::FromPrimitive,
+    os_units::{Bytes, NumOfPages},
+    x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr},
+};
 
 extern "C" {
     fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64;

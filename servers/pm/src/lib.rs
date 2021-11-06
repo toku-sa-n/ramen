@@ -4,10 +4,10 @@
 
 extern crate alloc;
 
-use alloc::collections::BTreeMap;
-use core::convert::TryInto;
-use message::Message;
-use num_traits::FromPrimitive;
+use {
+    alloc::collections::BTreeMap, core::convert::TryInto, message::Message,
+    num_traits::FromPrimitive,
+};
 
 const PID: i32 = 1;
 const INITIAL_PROCESS_SLOT_NUMBER: usize = 200;

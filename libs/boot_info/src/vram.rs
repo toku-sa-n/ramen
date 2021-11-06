@@ -1,7 +1,4 @@
-use core::convert::TryFrom;
-use os_units::Bytes;
-use vek::Vec2;
-use x86_64::PhysAddr;
+use {core::convert::TryFrom, os_units::Bytes, vek::Vec2, x86_64::PhysAddr};
 
 #[derive(Copy, Clone, Debug)]
 #[repr(C)]

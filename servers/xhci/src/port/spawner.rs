@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::multitask;
-use alloc::{vec, vec::Vec};
-use conquer_once::spin::Lazy;
-use multitask::task::Task;
-use spinning_top::Spinlock;
+use {
+    crate::multitask,
+    alloc::{vec, vec::Vec},
+    conquer_once::spin::Lazy,
+    multitask::task::Task,
+    spinning_top::Spinlock,
+};
 
 static SPAWN_STATUS: Lazy<Spinlock<Vec<bool>>> =
     Lazy::new(|| Spinlock::new(vec![false; super::max_num().into()]));
