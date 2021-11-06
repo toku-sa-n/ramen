@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::writer::Writer;
-use core::{fmt, fmt::Write};
-use log::{Level, LevelFilter, Metadata, Record, SetLoggerError};
-use rgb::RGB8;
-use spinning_top::Spinlock;
+use {
+    super::writer::Writer,
+    core::{fmt, fmt::Write},
+    log::{Level, LevelFilter, Metadata, Record, SetLoggerError},
+    rgb::RGB8,
+    spinning_top::Spinlock,
+};
 
 static LOGGER: Logger = Logger;
 

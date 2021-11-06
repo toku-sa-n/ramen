@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use conquer_once::spin::Lazy;
-use predefined_mmap::INTERRUPT_STACK;
-use spinning_top::Spinlock;
-use x86_64::structures::tss::TaskStateSegment;
+use {
+    conquer_once::spin::Lazy, predefined_mmap::INTERRUPT_STACK, spinning_top::Spinlock,
+    x86_64::structures::tss::TaskStateSegment,
+};
 
 pub(crate) static TSS: Lazy<Spinlock<TaskStateSegment>> = Lazy::new(|| {
     let mut tss = TaskStateSegment::new();

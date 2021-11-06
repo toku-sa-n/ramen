@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use alloc::string::ToString;
-use core::{convert::TryInto, fmt};
+use {
+    alloc::string::ToString,
+    core::{convert::TryInto, fmt},
+};
 
 #[macro_export]
 macro_rules! print {

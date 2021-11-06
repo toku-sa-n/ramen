@@ -10,13 +10,15 @@
 #[allow(unused_imports)]
 extern crate common;
 
-use bootx64::{
-    fs, gop, jump,
-    mem::{paging, stack},
-    rsdp,
+use {
+    bootx64::{
+        fs, gop, jump,
+        mem::{paging, stack},
+        rsdp,
+    },
+    common::mem::reserved,
+    uefi::prelude::{Boot, Handle, SystemTable},
 };
-use common::mem::reserved;
-use uefi::prelude::{Boot, Handle, SystemTable};
 
 #[start]
 #[no_mangle]

@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::registers;
-use conquer_once::spin::OnceCell;
-use core::convert::TryInto;
-use ralib::mem::accessor::Mapper;
-use spinning_top::Spinlock;
-use x86_64::PhysAddr;
-use xhci::{extended_capabilities, ExtendedCapability};
+use {
+    super::registers,
+    conquer_once::spin::OnceCell,
+    core::convert::TryInto,
+    ralib::mem::accessor::Mapper,
+    spinning_top::Spinlock,
+    x86_64::PhysAddr,
+    xhci::{extended_capabilities, ExtendedCapability},
+};
 
 static EXTENDED_CAPABILITIES: OnceCell<Spinlock<Option<extended_capabilities::List<Mapper>>>> =
     OnceCell::uninit();

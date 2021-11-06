@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::{
-    port::init::fully_operational::FullyOperational,
-    structures::descriptor::{Configuration, Descriptor},
+use {
+    crate::{
+        port::init::fully_operational::FullyOperational,
+        structures::descriptor::{Configuration, Descriptor},
+    },
+    alloc::{string::String, vec::Vec},
+    log::info,
+    page_box::PageBox,
+    spinning_top::Spinlock,
+    xhci::context::EndpointType,
 };
-use alloc::{string::String, vec::Vec};
-use log::info;
-use page_box::PageBox;
-use spinning_top::Spinlock;
-use xhci::context::EndpointType;
 
 const LOWER_ALPHABETS: &str = "abcdefghijklmnopqrstuvwxyz";
 

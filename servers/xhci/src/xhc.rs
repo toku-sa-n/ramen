@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::structures::{extended_capabilities, registers};
-use xhci::extended_capabilities::ExtendedCapability;
+use {
+    super::structures::{extended_capabilities, registers},
+    xhci::extended_capabilities::ExtendedCapability,
+};
 
 pub(super) fn exists() -> bool {
     super::iter_xhc().next().is_some()

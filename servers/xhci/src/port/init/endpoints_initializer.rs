@@ -1,21 +1,27 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{descriptor_fetcher::DescriptorFetcher, fully_operational::FullyOperational};
-use crate::{
-    exchanger,
-    exchanger::transfer,
-    port::endpoint,
-    structures::{context::Context, descriptor, descriptor::Descriptor, registers},
+use {
+    super::{descriptor_fetcher::DescriptorFetcher, fully_operational::FullyOperational},
+    crate::{
+        exchanger,
+        exchanger::transfer,
+        port::endpoint,
+        structures::{
+            context::Context,
+            descriptor::{self, Descriptor},
+            registers,
+        },
+    },
+    alloc::{sync::Arc, vec::Vec},
+    bit_field::BitField,
+    core::convert::TryInto,
+    num_derive::FromPrimitive,
+    num_traits::FromPrimitive,
+    spinning_top::Spinlock,
+    transfer::DoorbellWriter,
+    x86_64::PhysAddr,
+    xhci::context::{EndpointHandler, EndpointType},
 };
-use alloc::{sync::Arc, vec::Vec};
-use bit_field::BitField;
-use core::convert::TryInto;
-use num_derive::FromPrimitive;
-use num_traits::FromPrimitive;
-use spinning_top::Spinlock;
-use transfer::DoorbellWriter;
-use x86_64::PhysAddr;
-use xhci::context::{EndpointHandler, EndpointType};
 
 pub(super) struct EndpointsInitializer {
     cx: Arc<Spinlock<Context>>,

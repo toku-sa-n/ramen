@@ -2,27 +2,29 @@
 
 mod root_dir;
 
-use core::{
-    convert::{TryFrom, TryInto},
-    slice,
-};
-use elf_rs::Elf;
-use file::{FileInfo, FileType};
-use log::info;
-use os_units::Bytes;
-use predefined_mmap::KERNEL_ADDR;
-use uefi::{
-    proto::media::{
-        file,
-        file::{File, FileAttribute, FileMode},
+use {
+    core::{
+        convert::{TryFrom, TryInto},
+        slice,
     },
-    table::{
-        boot,
-        boot::{AllocateType, MemoryType},
+    elf_rs::Elf,
+    file::{FileInfo, FileType},
+    log::info,
+    os_units::Bytes,
+    predefined_mmap::KERNEL_ADDR,
+    uefi::{
+        proto::media::{
+            file,
+            file::{File, FileAttribute, FileMode},
+        },
+        table::{
+            boot,
+            boot::{AllocateType, MemoryType},
+        },
+        ResultExt,
     },
-    ResultExt,
+    x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr},
 };
-use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 
 #[must_use]
 pub fn deploy(bs: &boot::BootServices, name: &'static str) -> (PhysAddr, Bytes) {

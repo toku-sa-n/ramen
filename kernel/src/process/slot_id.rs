@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use alloc::collections::BTreeSet;
-use conquer_once::spin::Lazy;
-use core::ops::DerefMut;
-use spinning_top::Spinlock;
+use {
+    alloc::collections::BTreeSet, conquer_once::spin::Lazy, core::ops::DerefMut,
+    spinning_top::Spinlock,
+};
 
 pub(crate) type SlotId = i32;
 

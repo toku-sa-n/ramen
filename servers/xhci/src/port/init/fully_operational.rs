@@ -1,18 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::endpoints_initializer::EndpointsInitializer;
-use crate::{
-    port::{
-        endpoint,
-        endpoint::{Error, NonDefault},
+use {
+    super::endpoints_initializer::EndpointsInitializer,
+    crate::{
+        port::{
+            endpoint,
+            endpoint::{Error, NonDefault},
+        },
+        structures::descriptor::Descriptor,
     },
-    structures::descriptor::Descriptor,
+    alloc::vec::Vec,
+    core::slice,
+    log::debug,
+    page_box::PageBox,
+    xhci::context::EndpointType,
 };
-use alloc::vec::Vec;
-use core::slice;
-use log::debug;
-use page_box::PageBox;
-use xhci::context::EndpointType;
 
 pub(in crate::port) struct FullyOperational {
     descriptors: Vec<Descriptor>,

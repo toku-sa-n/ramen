@@ -2,19 +2,21 @@
 
 mod scsi;
 
-use crate::{
-    port::init::fully_operational::FullyOperational,
-    structures::descriptor::{Configuration, Descriptor},
+use {
+    crate::{
+        port::init::fully_operational::FullyOperational,
+        structures::descriptor::{Configuration, Descriptor},
+    },
+    alloc::vec::Vec,
+    log::info,
+    page_box::PageBox,
+    scsi::{
+        command_data_block,
+        response::{Inquiry, Read10, ReadCapacity10},
+        CommandBlockWrapper, CommandBlockWrapperHeaderBuilder, CommandStatusWrapper,
+    },
+    xhci::context::EndpointType,
 };
-use alloc::vec::Vec;
-use log::info;
-use page_box::PageBox;
-use scsi::{
-    command_data_block,
-    response::{Inquiry, Read10, ReadCapacity10},
-    CommandBlockWrapper, CommandBlockWrapperHeaderBuilder, CommandStatusWrapper,
-};
-use xhci::context::EndpointType;
 
 pub(in crate::port) async fn task(eps: FullyOperational) {
     let mut m = MassStorage::new(eps);

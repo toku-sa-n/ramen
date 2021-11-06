@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{
-    collections::{self, woken_pid},
-    Process,
+use {
+    super::{
+        collections::{self, woken_pid},
+        Process,
+    },
+    crate::{tests, tss::TSS},
+    x86_64::{registers::control::Cr3, VirtAddr},
 };
-use crate::{tests, tss::TSS};
-use x86_64::{registers::control::Cr3, VirtAddr};
 
 pub(crate) fn switch() -> VirtAddr {
     if cfg!(feature = "qemu_test") {

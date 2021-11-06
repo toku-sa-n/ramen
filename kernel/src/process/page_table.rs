@@ -1,21 +1,23 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::mem::{allocator::kpbox::KpBox, paging::pml4::PML4};
-use alloc::collections::BTreeMap;
-use core::{
-    convert::{TryFrom, TryInto},
-    ptr,
-};
-use os_units::{Bytes, NumOfPages};
-use x86_64::{
-    structures::paging::{
-        Page, PageSize, PageTable, PageTableFlags, PageTableIndex, PhysFrame, Size4KiB,
+use {
+    crate::mem::{allocator::kpbox::KpBox, paging::pml4::PML4},
+    alloc::collections::BTreeMap,
+    core::{
+        convert::{TryFrom, TryInto},
+        ptr,
     },
-    PhysAddr, VirtAddr,
-};
-use xmas_elf::{
-    program::{self, ProgramHeader},
-    ElfFile,
+    os_units::{Bytes, NumOfPages},
+    x86_64::{
+        structures::paging::{
+            Page, PageSize, PageTable, PageTableFlags, PageTableIndex, PhysFrame, Size4KiB,
+        },
+        PhysAddr, VirtAddr,
+    },
+    xmas_elf::{
+        program::{self, ProgramHeader},
+        ElfFile,
+    },
 };
 
 #[derive(Debug)]

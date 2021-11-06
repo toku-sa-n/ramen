@@ -6,17 +6,19 @@
 
 extern crate alloc;
 
-use alloc::sync::Arc;
-use futures_intrusive::sync::{GenericMutex, GenericMutexGuard};
-use multitask::{executor::Executor, task::Task};
-use pci::config::bar;
-use spinning_top::{RawSpinlock, Spinlock};
-use structures::{
-    dcbaa, extended_capabilities, registers,
-    ring::{command, event},
-    scratchpad,
+use {
+    alloc::sync::Arc,
+    futures_intrusive::sync::{GenericMutex, GenericMutexGuard},
+    multitask::{executor::Executor, task::Task},
+    pci::config::bar,
+    spinning_top::{RawSpinlock, Spinlock},
+    structures::{
+        dcbaa, extended_capabilities, registers,
+        ring::{command, event},
+        scratchpad,
+    },
+    x86_64::PhysAddr,
 };
-use x86_64::PhysAddr;
 
 pub(crate) type Futurelock<T> = GenericMutex<RawSpinlock, T>;
 pub(crate) type FuturelockGuard<'a, T> = GenericMutexGuard<'a, RawSpinlock, T>;

@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::structures::registers;
-use crate::multitask::{self, task::Task};
-use alloc::collections::VecDeque;
-use conquer_once::spin::Lazy;
-use core::{future::Future, pin::Pin, task::Poll};
-use futures_util::task::AtomicWaker;
-use init::fully_operational::FullyOperational;
-use log::{info, warn};
-use spinning_top::Spinlock;
+use {
+    super::structures::registers,
+    crate::multitask::{self, task::Task},
+    alloc::collections::VecDeque,
+    conquer_once::spin::Lazy,
+    core::{future::Future, pin::Pin, task::Poll},
+    futures_util::task::AtomicWaker,
+    init::fully_operational::FullyOperational,
+    log::{info, warn},
+    spinning_top::Spinlock,
+};
 
 mod class_driver;
 mod endpoint;

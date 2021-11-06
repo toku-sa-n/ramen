@@ -8,16 +8,18 @@
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use alloc::{boxed::Box, collections::BTreeMap, sync::Arc, task::Wake};
-use conquer_once::spin::Lazy;
-use core::{
-    future::Future,
-    pin::Pin,
-    sync::atomic::{AtomicU64, Ordering},
-    task::{Context, Poll, Waker},
+use {
+    alloc::{boxed::Box, collections::BTreeMap, sync::Arc, task::Wake},
+    conquer_once::spin::Lazy,
+    core::{
+        future::Future,
+        pin::Pin,
+        sync::atomic::{AtomicU64, Ordering},
+        task::{Context, Poll, Waker},
+    },
+    crossbeam_queue::ArrayQueue,
+    spinning_top::Spinlock,
 };
-use crossbeam_queue::ArrayQueue;
-use spinning_top::Spinlock;
 
 pub(super) static COLLECTION: Lazy<Spinlock<Collection>> =
     Lazy::new(|| Spinlock::new(Collection::new()));

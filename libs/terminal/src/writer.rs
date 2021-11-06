@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{font, vram};
-use bit_field::BitField;
-use conquer_once::spin::Lazy;
-use font8x8::{unicode::BasicFonts, UnicodeFonts};
-use rgb::RGB8;
-use vek::Vec2;
+use {
+    super::{font, vram},
+    bit_field::BitField,
+    conquer_once::spin::Lazy,
+    font8x8::{unicode::BasicFonts, UnicodeFonts},
+    rgb::RGB8,
+    vek::Vec2,
+};
 
 static BASIC_FONTS: Lazy<BasicFonts> = Lazy::new(BasicFonts::new);
 

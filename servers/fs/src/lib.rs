@@ -5,8 +5,7 @@
 
 extern crate alloc;
 
-use alloc::collections::BTreeSet;
-use log::info;
+use {alloc::collections::BTreeSet, log::info};
 
 #[no_mangle]
 pub fn main() {

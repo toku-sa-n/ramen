@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use uefi::{
-    table::{Boot, SystemTable},
-    Guid,
+use {
+    uefi::{
+        table::{Boot, SystemTable},
+        Guid,
+    },
+    x86_64::PhysAddr,
 };
-use x86_64::PhysAddr;
 
 const GUID_RSDP: Guid = Guid::from_values(
     0x8868_e871,

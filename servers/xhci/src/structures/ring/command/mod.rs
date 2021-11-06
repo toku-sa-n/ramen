@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::CycleBit;
-use crate::registers;
-use page_box::PageBox;
-use trb::Link;
-use x86_64::{
-    structures::paging::{PageSize, Size4KiB},
-    PhysAddr,
+use {
+    super::CycleBit,
+    crate::registers,
+    page_box::PageBox,
+    trb::Link,
+    x86_64::{
+        structures::paging::{PageSize, Size4KiB},
+        PhysAddr,
+    },
+    xhci::ring::{trb, trb::command},
 };
-use xhci::ring::{trb, trb::command};
 
 #[allow(clippy::cast_possible_truncation)]
 const NUM_OF_TRBS: usize = Size4KiB::SIZE as usize / trb::BYTES;

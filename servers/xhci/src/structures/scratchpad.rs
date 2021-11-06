@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::dcbaa;
-use crate::registers;
-use alloc::vec::Vec;
-use conquer_once::spin::OnceCell;
-use core::convert::TryInto;
-use os_units::Bytes;
-use page_box::PageBox;
-use x86_64::PhysAddr;
+use {
+    super::dcbaa, crate::registers, alloc::vec::Vec, conquer_once::spin::OnceCell,
+    core::convert::TryInto, os_units::Bytes, page_box::PageBox, x86_64::PhysAddr,
+};
 
 static SCRATCHPAD: OnceCell<Scratchpad> = OnceCell::uninit();
 

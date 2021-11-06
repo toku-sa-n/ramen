@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use bit_field::BitField;
-use core::{convert::TryInto, ptr};
-use num_derive::FromPrimitive;
-use num_traits::FromPrimitive;
-use xhci::context::EndpointType;
+use {
+    bit_field::BitField,
+    core::{convert::TryInto, ptr},
+    num_derive::FromPrimitive,
+    num_traits::FromPrimitive,
+    xhci::context::EndpointType,
+};
 
 #[derive(Copy, Clone, Debug)]
 pub(crate) enum Descriptor {

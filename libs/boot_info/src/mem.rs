@@ -1,6 +1,8 @@
-use core::{ptr::NonNull, slice};
-use os_units::NumOfPages;
-use x86_64::{structures::paging::Size4KiB, PhysAddr};
+use {
+    core::{ptr::NonNull, slice},
+    os_units::NumOfPages,
+    x86_64::{structures::paging::Size4KiB, PhysAddr},
+};
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]

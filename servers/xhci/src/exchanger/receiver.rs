@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use alloc::{collections::BTreeMap, sync::Arc};
-use conquer_once::spin::Lazy;
-use core::{
-    future::Future,
-    pin::Pin,
-    task::{Context, Poll},
+use {
+    alloc::{collections::BTreeMap, sync::Arc},
+    conquer_once::spin::Lazy,
+    core::{
+        future::Future,
+        pin::Pin,
+        task::{Context, Poll},
+    },
+    futures_util::task::AtomicWaker,
+    spinning_top::{Spinlock, SpinlockGuard},
+    x86_64::PhysAddr,
+    xhci::ring::trb::event,
 };
-use futures_util::task::AtomicWaker;
-use spinning_top::{Spinlock, SpinlockGuard};
-use x86_64::PhysAddr;
-use xhci::ring::trb::event;
 
 static RECEIVER: Lazy<Spinlock<Receiver>> = Lazy::new(|| Spinlock::new(Receiver::new()));
 

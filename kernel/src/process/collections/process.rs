@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::woken_pid;
-use crate::{process, process::Process};
-use alloc::collections::BTreeMap;
-use spinning_top::{Spinlock, SpinlockGuard};
+use {
+    super::woken_pid,
+    crate::{process, process::Process},
+    alloc::collections::BTreeMap,
+    spinning_top::{Spinlock, SpinlockGuard},
+};
 
 static PROCESSES: Spinlock<BTreeMap<process::SlotId, Process>> = Spinlock::new(BTreeMap::new());
 

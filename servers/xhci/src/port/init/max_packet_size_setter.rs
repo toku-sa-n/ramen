@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{
-    descriptor_fetcher::DescriptorFetcher, slot_structures_initializer::SlotStructuresInitializer,
+use {
+    super::{
+        descriptor_fetcher::DescriptorFetcher,
+        slot_structures_initializer::SlotStructuresInitializer,
+    },
+    crate::{exchanger, port::endpoint, structures::context::Context},
+    alloc::sync::Arc,
+    spinning_top::Spinlock,
 };
-use crate::{exchanger, port::endpoint, structures::context::Context};
-use alloc::sync::Arc;
-use spinning_top::Spinlock;
 
 pub(super) struct MaxPacketSizeSetter {
     ep: endpoint::Default,

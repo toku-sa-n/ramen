@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use boot_info::mem::MemoryDescriptor;
-use core::ops::DerefMut;
-use frame_manager::FrameManager;
-use os_units::NumOfPages;
-use spinning_top::Spinlock;
-use x86_64::{
-    structures::paging::{FrameAllocator, FrameDeallocator, Size4KiB},
-    PhysAddr,
+use {
+    boot_info::mem::MemoryDescriptor,
+    core::ops::DerefMut,
+    frame_manager::FrameManager,
+    os_units::NumOfPages,
+    spinning_top::Spinlock,
+    x86_64::{
+        structures::paging::{FrameAllocator, FrameDeallocator, Size4KiB},
+        PhysAddr,
+    },
 };
 
 static FRAME_MANAGER: Spinlock<FrameManager> = Spinlock::new(FrameManager::new());

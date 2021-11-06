@@ -2,8 +2,7 @@
 
 use core::convert::TryInto;
 
-use acpi::AcpiTables;
-use x86_64::PhysAddr;
+use {acpi::AcpiTables, x86_64::PhysAddr};
 
 use crate::mem::allocator;
 

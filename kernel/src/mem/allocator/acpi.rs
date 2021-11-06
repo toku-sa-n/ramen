@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::mem;
-use acpi::{AcpiHandler, PhysicalMapping};
-use core::{convert::TryInto, ptr::NonNull};
-use os_units::Bytes;
-use x86_64::{PhysAddr, VirtAddr};
+use {
+    crate::mem,
+    acpi::{AcpiHandler, PhysicalMapping},
+    core::{convert::TryInto, ptr::NonNull},
+    os_units::Bytes,
+    x86_64::{PhysAddr, VirtAddr},
+};
 
 #[derive(Clone)]
 pub(crate) struct Mapper;

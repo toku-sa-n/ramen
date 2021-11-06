@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::convert::{TryFrom, TryInto};
-use message::Message;
-use x86_64::{
-    instructions::port::{PortReadOnly, PortWriteOnly},
-    structures::port::{PortRead, PortWrite},
+use {
+    core::convert::{TryFrom, TryInto},
+    message::Message,
+    x86_64::{
+        instructions::port::{PortReadOnly, PortWriteOnly},
+        structures::port::{PortRead, PortWrite},
+    },
 };
 
 pub(super) unsafe fn inb(m: Message) -> u8 {

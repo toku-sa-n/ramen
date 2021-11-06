@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::{
-    ops::{Index, IndexMut},
-    slice,
+use {
+    core::{
+        ops::{Index, IndexMut},
+        slice,
+    },
+    page_box::PageBox,
+    x86_64::PhysAddr,
 };
-use page_box::PageBox;
-use x86_64::PhysAddr;
 
 #[derive(Debug)]
 pub struct SegmentTable(PageBox<[Entry]>);

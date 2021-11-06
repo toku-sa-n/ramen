@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use boot_info::vram;
-use os_units::Bytes;
-use predefined_mmap::{KERNEL_ADDR, NUM_OF_PAGES_STACK, STACK_LOWER, VRAM_ADDR};
-use x86_64::{PhysAddr, VirtAddr};
+use {
+    boot_info::vram,
+    os_units::Bytes,
+    predefined_mmap::{KERNEL_ADDR, NUM_OF_PAGES_STACK, STACK_LOWER, VRAM_ADDR},
+    x86_64::{PhysAddr, VirtAddr},
+};
 
 #[derive(Copy, Clone, Debug)]
 pub struct PhysRange {

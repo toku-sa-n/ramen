@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use os_units::NumOfPages;
-use x86_64::{structures::paging::Size4KiB, VirtAddr};
+use {
+    os_units::NumOfPages,
+    x86_64::{structures::paging::Size4KiB, VirtAddr},
+};
 
 #[cfg(not(test))]
 pub(super) fn allocate_pages(n: NumOfPages<Size4KiB>) -> VirtAddr {

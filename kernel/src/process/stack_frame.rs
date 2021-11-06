@@ -2,12 +2,14 @@
 
 use core::convert::TryInto;
 
-use crate::gdt::GDT;
-use rflags::RFlags;
-use x86_64::{
-    registers::rflags,
-    structures::{gdt::SegmentSelector, idt::InterruptStackFrameValue},
-    VirtAddr,
+use {
+    crate::gdt::GDT,
+    rflags::RFlags,
+    x86_64::{
+        registers::rflags,
+        structures::{gdt::SegmentSelector, idt::InterruptStackFrameValue},
+        VirtAddr,
+    },
 };
 
 #[repr(C)]

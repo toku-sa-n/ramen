@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::RegisterIndex;
-use core::{
-    convert::{From, TryFrom},
-    ops::Add,
+use {
+    super::RegisterIndex,
+    core::{
+        convert::{From, TryFrom},
+        ops::Add,
+    },
+    x86_64::PhysAddr,
 };
-use x86_64::PhysAddr;
 
 #[derive(Debug, Copy, Clone, Default)]
 pub(crate) struct Bar(u32);

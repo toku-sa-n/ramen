@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use conquer_once::spin::Lazy;
-use predefined_mmap::RECUR_PML4_ADDR;
-use spinning_top::Spinlock;
-use x86_64::structures::paging::RecursivePageTable;
+use {
+    conquer_once::spin::Lazy, predefined_mmap::RECUR_PML4_ADDR, spinning_top::Spinlock,
+    x86_64::structures::paging::RecursivePageTable,
+};
 
 pub(crate) static PML4: Lazy<Spinlock<RecursivePageTable<'_>>> = Lazy::new(|| unsafe {
     Spinlock::new(

@@ -1,15 +1,22 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use boot_info::mem::MemoryDescriptor;
-use core::{convert::TryInto, mem::size_of, ptr, ptr::NonNull, slice};
-use log::info;
-use os_units::NumOfPages;
-use static_assertions::const_assert;
-use uefi::{
-    table::{boot, boot::MemoryType, Boot, SystemTable},
-    Handle, ResultExt,
+use {
+    boot_info::mem::MemoryDescriptor,
+    core::{
+        convert::TryInto,
+        mem::size_of,
+        ptr::{self, NonNull},
+        slice,
+    },
+    log::info,
+    os_units::NumOfPages,
+    static_assertions::const_assert,
+    uefi::{
+        table::{boot, boot::MemoryType, Boot, SystemTable},
+        Handle, ResultExt,
+    },
+    x86_64::PhysAddr,
 };
-use x86_64::PhysAddr;
 
 const_assert!(size_of::<MemoryDescriptor>() < size_of::<boot::MemoryDescriptor>());
 

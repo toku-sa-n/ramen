@@ -4,13 +4,15 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
-use boot_info::mem::MemoryDescriptor;
-use core::fmt;
-use os_units::NumOfPages;
-use x86_64::{
-    structures::paging::{FrameAllocator, FrameDeallocator, PhysFrame, Size4KiB},
-    PhysAddr,
+use {
+    alloc::vec::Vec,
+    boot_info::mem::MemoryDescriptor,
+    core::fmt,
+    os_units::NumOfPages,
+    x86_64::{
+        structures::paging::{FrameAllocator, FrameDeallocator, PhysFrame, Size4KiB},
+        PhysAddr,
+    },
 };
 
 #[derive(PartialEq, Eq, Debug)]
@@ -185,9 +187,11 @@ impl fmt::Debug for Frames {
 
 #[cfg(test)]
 mod tests {
-    use super::{FrameManager, Frames};
-    use os_units::NumOfPages;
-    use x86_64::PhysAddr;
+    use {
+        super::{FrameManager, Frames},
+        os_units::NumOfPages,
+        x86_64::PhysAddr,
+    };
 
     macro_rules! frames {
         (A $start:expr => $end:expr) => {

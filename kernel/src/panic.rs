@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::qemu;
-use core::{fmt::Write, format_args};
-use log::error;
-use uart_16550::SerialPort;
-use x86_64::instructions::interrupts;
+use {
+    crate::qemu,
+    core::{fmt::Write, format_args},
+    log::error,
+    uart_16550::SerialPort,
+    x86_64::instructions::interrupts,
+};
 
 #[panic_handler]
 fn panic(i: &core::panic::PanicInfo<'_>) -> ! {

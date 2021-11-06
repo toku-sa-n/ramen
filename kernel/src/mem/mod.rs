@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use allocator::{phys, virt};
-use boot_info::mem::MemoryDescriptor;
-use core::convert::TryFrom;
-use os_units::Bytes;
-use paging::pml4::PML4;
-use x86_64::{
-    structures::paging::{Mapper, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
-    PhysAddr, VirtAddr,
+use {
+    allocator::{phys, virt},
+    boot_info::mem::MemoryDescriptor,
+    core::convert::TryFrom,
+    os_units::Bytes,
+    paging::pml4::PML4,
+    x86_64::{
+        structures::paging::{Mapper, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
+        PhysAddr, VirtAddr,
+    },
 };
 
 pub(crate) mod accessor;

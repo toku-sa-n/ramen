@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::registers;
-use page_box::PageBox;
-use x86_64::PhysAddr;
-use xhci::context::{
-    Device32Byte, Device64Byte, DeviceHandler, Input32Byte, Input64Byte, InputControlHandler,
-    InputHandler,
+use {
+    super::registers,
+    page_box::PageBox,
+    x86_64::PhysAddr,
+    xhci::context::{
+        Device32Byte, Device64Byte, DeviceHandler, Input32Byte, Input64Byte, InputControlHandler,
+        InputHandler,
+    },
 };
 
 pub(crate) struct Context {

@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use conquer_once::spin::OnceCell;
-use core::convert::TryInto;
-use ralib::mem::accessor::Mapper;
-use spinning_top::Spinlock;
-use x86_64::PhysAddr;
-use xhci::Registers;
+use {
+    conquer_once::spin::OnceCell, core::convert::TryInto, ralib::mem::accessor::Mapper,
+    spinning_top::Spinlock, x86_64::PhysAddr, xhci::Registers,
+};
 
 static REGISTERS: OnceCell<Spinlock<Registers<Mapper>>> = OnceCell::uninit();
 
