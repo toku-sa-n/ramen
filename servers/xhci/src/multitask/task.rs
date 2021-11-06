@@ -48,9 +48,11 @@ impl Collection {
 
     fn push_task(&mut self, task: Task) {
         let id = task.id();
-        if self.tasks.insert(id, task).is_some() {
-            panic!("Task ID confliction.");
-        }
+
+        assert!(
+            !self.tasks.insert(id, task).is_some(),
+            "Task ID confliction."
+        );
     }
 
     fn push_woken_task_id(&mut self, id: Id) {
