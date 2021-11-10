@@ -172,7 +172,7 @@ impl Process {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub(crate) enum Privilege {
     Kernel,
     User,
