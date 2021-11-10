@@ -71,7 +71,6 @@ fn set_temporary_stack_frame() {
 #[derive(Debug)]
 pub(crate) struct Process {
     id: SlotId,
-    _entry: VirtAddr,
     _tables: page_table::Collection,
     pml4: PhysFrame,
     _stack: KpBox<[u8]>,
@@ -108,7 +107,6 @@ impl Process {
 
         Process {
             id: slot_id::generate(),
-            _entry: entry,
             _tables: tables,
             pml4,
             _stack: stack,
@@ -145,7 +143,6 @@ impl Process {
 
         Self {
             id: slot_id::generate(),
-            _entry: entry,
             _tables: tables,
             pml4,
             _stack: stack,
