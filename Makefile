@@ -135,7 +135,7 @@ test: QEMUFLAGS	+=	\
 test: OK_STATUS	:=	33
 test: TEST_FLAG	:=	--features qemu_test
 test: $(IMG_FILE)
-	cargo test $(RUSTFLAGS)
+	cargo test $(RUSTCFLAGS)
 	$(QEMU) $(QEMUFLAGS);\
 	if [ $$? -eq $(OK_STATUS) ];\
 	then\
