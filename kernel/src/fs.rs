@@ -31,10 +31,6 @@ fn iter() -> impl Iterator<Item = CpioArchievedFile> {
     Iter::default()
 }
 
-fn initrd_addr() -> VirtAddr {
-    INITRD_ADDR
-}
-
 pub(super) struct CpioArchievedFile {
     ptr: VirtAddr,
 }
@@ -98,7 +94,7 @@ impl Iterator for Iter {
 }
 impl Default for Iter {
     fn default() -> Self {
-        Self { ptr: initrd_addr() }
+        Self { ptr: INITRD_ADDR }
     }
 }
 
