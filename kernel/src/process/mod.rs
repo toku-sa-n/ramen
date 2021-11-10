@@ -83,7 +83,6 @@ pub(crate) struct Process {
     receive_from: Option<ReceiveFrom>,
 
     pids_try_to_send_this_process: VecDeque<SlotId>,
-    _pids_try_to_receive_from_this_process: VecDeque<SlotId>,
 
     name: &'static str,
 }
@@ -118,7 +117,6 @@ impl Process {
             receive_from: None,
 
             pids_try_to_send_this_process: VecDeque::new(),
-            _pids_try_to_receive_from_this_process: VecDeque::new(),
             name,
         }
     }
@@ -153,7 +151,6 @@ impl Process {
             receive_from: None,
 
             pids_try_to_send_this_process: VecDeque::new(),
-            _pids_try_to_receive_from_this_process: VecDeque::new(),
             name,
         }
     }
