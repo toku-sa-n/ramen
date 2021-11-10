@@ -75,7 +75,6 @@ pub(crate) struct Process {
     pml4: PhysFrame,
     _stack: KpBox<[u8]>,
     stack_frame: KpBox<StackFrame>,
-    _privilege: Privilege,
     _binary: Option<KpBox<[u8]>>,
 
     msg_ptr: Option<PhysAddr>,
@@ -111,7 +110,6 @@ impl Process {
             pml4,
             _stack: stack,
             stack_frame,
-            _privilege: privilege,
             _binary: None,
 
             msg_ptr: None,
@@ -147,7 +145,6 @@ impl Process {
             pml4,
             _stack: stack,
             stack_frame,
-            _privilege: privilege,
             _binary: Some(content),
 
             msg_ptr: None,
@@ -175,7 +172,7 @@ impl Process {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub(crate) enum Privilege {
     Kernel,
     User,
