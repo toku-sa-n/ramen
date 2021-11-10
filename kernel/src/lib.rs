@@ -59,11 +59,11 @@ fn init(boot_info: &mut boot_info::Info) {
 }
 
 fn add_processes() {
-    process::binary("build/port_server.bin", Privilege::Kernel);
-    process::binary("build/pm.bin", Privilege::User);
-    process::binary("build/fs.bin", Privilege::User);
-    process::binary("build/xhci.bin", Privilege::User);
-    process::binary("build/vm.bin", Privilege::User);
+    process::binary("port_server.bin", Privilege::Kernel);
+    process::binary("pm.bin", Privilege::User);
+    process::binary("fs.bin", Privilege::User);
+    process::binary("xhci.bin", Privilege::User);
+    process::binary("vm.bin", Privilege::User);
     process::from_function(sysproc::main, "sysproc");
     process::from_function(do_nothing, "do_nothing");
 
@@ -72,7 +72,7 @@ fn add_processes() {
         process::from_function(tests::process::exit_test, "exittest");
 
         for _ in 0..100 {
-            process::binary("build/do_nothing.bin", Privilege::User);
+            process::binary("do_nothing.bin", Privilege::User);
         }
     }
 }
