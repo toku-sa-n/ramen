@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use predefined_mmap::INITRD_ADDR;
+
 use {
     core::{
         convert::{TryFrom, TryInto},
@@ -27,15 +29,6 @@ pub(super) fn get_handler(name: &str) -> CpioArchievedFile {
 
 fn iter() -> impl Iterator<Item = CpioArchievedFile> {
     Iter::default()
-}
-
-fn initrd_addr() -> VirtAddr {
-    extern "C" {
-        static initrd: usize;
-    }
-
-    let a: *const usize = unsafe { &initrd };
-    VirtAddr::new(a as _)
 }
 
 pub(super) struct CpioArchievedFile {
@@ -101,7 +94,7 @@ impl Iterator for Iter {
 }
 impl Default for Iter {
     fn default() -> Self {
-        Self { ptr: initrd_addr() }
+        Self { ptr: INITRD_ADDR }
     }
 }
 

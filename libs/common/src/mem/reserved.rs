@@ -1,3 +1,5 @@
+use predefined_mmap::INITRD_ADDR;
+
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
@@ -22,16 +24,23 @@ impl PhysRange {
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
-pub struct Map([Range; 3]);
+pub struct Map([Range; 4]);
 impl Map {
     #[must_use]
     #[allow(clippy::too_many_arguments)]
-    pub fn new(kernel: &PhysRange, phys_addr_stack: PhysAddr, vram: &vram::Info) -> Self {
+    pub fn new(
+        kernel: &PhysRange,
+        phys_addr_stack: PhysAddr,
+        vram: &vram::Info,
+        phys_addr_initrd: PhysAddr,
+        bytes_initrd: Bytes,
+    ) -> Self {
         Self {
             0: [
                 Range::kernel(kernel),
                 Range::stack(phys_addr_stack),
                 Range::vram(vram),
+                Range::initrd(phys_addr_initrd, bytes_initrd),
             ],
         }
     }
@@ -75,6 +84,15 @@ impl Range {
             virt: *STACK_LOWER,
             phys,
             bytes: NUM_OF_PAGES_STACK.as_bytes(),
+        }
+    }
+
+    #[must_use]
+    fn initrd(phys: PhysAddr, bytes: Bytes) -> Self {
+        Self {
+            virt: INITRD_ADDR,
+            phys,
+            bytes,
         }
     }
 

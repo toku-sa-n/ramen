@@ -112,7 +112,7 @@ test:
 	make clean
 	make $(IMG_FILE) TEST_FLAG=--features=qemu_test
 
-$(IMG_FILE):$(KERNEL_FILE) $(EFI_FILE)
+$(IMG_FILE):$(KERNEL_FILE) $(EFI_FILE) $(INITRD)
 	dd if=/dev/zero of=$@ bs=1k count=28800
 	mformat -i $@ -h 200 -t 500 -s 144::
 	# Cannot replace these mmd and mcopy with `make copy_to_usb` because `mount` needs `sudo`
@@ -121,12 +121,13 @@ $(IMG_FILE):$(KERNEL_FILE) $(EFI_FILE)
 	mmd -i $@ ::/efi
 	mmd -i $@ ::/efi/boot
 	mcopy -i $@ $(KERNEL_FILE) ::
+	mcopy -i $@ $(INITRD) ::
 	mcopy -i $@ $(EFI_FILE) ::/efi/boot
 
 $(KERNEL_FILE):$(KERNEL_LIB) $(KERNEL_LD)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $(KERNEL_LIB) -T $(KERNEL_LD)
 
-$(KERNEL_LIB):$(KERNEL_LIB_SRC) $(INITRD) $(KERNEL_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
+$(KERNEL_LIB):$(KERNEL_LIB_SRC) $(KERNEL_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	# FIXME: Currently `cargo` tries to read `$(pwd)/.cargo/config.toml`, not
 	# `$(dirname argument_of_--manifest-path)/.cargo/config.toml`.
 	# See: https://github.com/rust-lang/cargo/issues/2930
