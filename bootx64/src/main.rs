@@ -28,6 +28,7 @@ pub fn efi_main(image: Handle, mut system_table: SystemTable<Boot>) -> ! {
     let vram_info = gop::init(system_table.boot_services());
 
     let (phys_kernel_addr, bytes_kernel) = fs::deploy(system_table.boot_services(), "kernel.bin");
+    let (phys_initrd_addr, bytes_initrd) = fs::deploy(system_table.boot_services(), "initrd.cpio");
     let (entry_addr, actual_mem_size) =
         fs::fetch_entry_address_and_memory_size(phys_kernel_addr, bytes_kernel);
 
@@ -37,6 +38,8 @@ pub fn efi_main(image: Handle, mut system_table: SystemTable<Boot>) -> ! {
         &reserved::PhysRange::new(phys_kernel_addr, actual_mem_size),
         stack_addr,
         &vram_info,
+        phys_initrd_addr,
+        bytes_initrd,
     );
     let mem_map = bootx64::exit::boot_services(image, system_table);
 
