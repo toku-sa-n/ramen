@@ -4,7 +4,12 @@ define cargo_project_src
 	$(shell find $1|grep -v $1/target)
 endef
 
-BUILD_DIR		:= build
+ifeq ($(MAKECMDGOALS), test)
+	BUILD_DIR	:=	build/test
+else
+	BUILD_DIR	:=	build/
+endif
+
 LIBS_DIR	:=	libs
 SERVERS_DIR	:=	servers
 
@@ -92,7 +97,23 @@ RM				:= rm -rf
 RUSTCFLAGS		:= --release
 LDFLAGS			:= -nostdlib
 
-.PHONY:all copy_to_usb test clean
+QEMU	:=	qemu-system-x86_64
+QEMUFLAGS	:=	\
+	-drive if=pflash,format=raw,file=OVMF_CODE.fd,readonly=on \
+	-drive if=pflash,format=raw,file=OVMF_VARS.fd,readonly=on \
+	-drive format=raw,file=$(IMG_FILE) \
+	-drive id=usb,file=gpt.img,if=none,format=raw \
+	-device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+	-device qemu-xhci,id=xhci \
+	-device usb-kbd \
+	-device usb-mouse \
+	-device usb-storage,drive=usb \
+	-no-reboot \
+	-m 4G \
+	--trace events=trace.event \
+	-d int
+
+.PHONY:all copy_to_usb test run clean
 .SUFFIXES:
 
 all:$(IMG_FILE)
@@ -108,9 +129,27 @@ else
 	sudo umount /mnt
 endif
 
-test:
-	make clean
-	make $(IMG_FILE) TEST_FLAG=--features=qemu_test
+test: QEMUFLAGS	+=	\
+	-serial stdio	\
+	-display none
+test: OK_STATUS	:=	33
+test: TEST_FLAG	:=	--features qemu_test
+test: $(IMG_FILE)
+	cargo test $(RUSTCFLAGS)
+	$(QEMU) $(QEMUFLAGS);\
+	if [ $$? -eq $(OK_STATUS) ];\
+	then\
+		echo Test succeeds!;\
+	else\
+		echo Test failed!;\
+		exit 1;\
+	fi
+
+run: QEMUFLAGS	+=	\
+	-no-shutdown	\
+	-monitor stdio
+run: $(IMG_FILE)
+	$(QEMU) $(QEMUFLAGS)
 
 $(IMG_FILE):$(KERNEL_FILE) $(EFI_FILE) $(INITRD)
 	dd if=/dev/zero of=$@ bs=1k count=28800

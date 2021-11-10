@@ -27,7 +27,7 @@ cp /usr/share/edk2-ovmf/{OVMF_VARS.fd,OVMF_CODE.fd} /path/to/ramen
 git clone https://github.com/toku-sa-n/ramen
 cd ramen
 rustup override set nightly
-make && ./run_qemu
+make run
 ```
 
 ## Run on your computer
