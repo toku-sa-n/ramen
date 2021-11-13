@@ -31,13 +31,14 @@ use {
     log::info,
     process::Privilege,
     terminal::vram,
-    x86_64::software_interrupt,
+    x86_64::instructions::interrupts,
 };
 
 #[no_mangle]
 pub extern "win64" fn os_main(mut boot_info: boot_info::Info) -> ! {
     init(&mut boot_info);
-    cause_timer_interrupt();
+
+    idle();
 }
 
 fn init(boot_info: &mut boot_info::Info) {
@@ -86,12 +87,10 @@ fn add_processes() {
     }
 }
 
-fn cause_timer_interrupt() -> ! {
-    unsafe {
-        software_interrupt!(0x20);
+fn idle() -> ! {
+    loop {
+        interrupts::enable_and_hlt();
     }
-
-    unreachable!();
 }
 
 fn do_nothing() {
