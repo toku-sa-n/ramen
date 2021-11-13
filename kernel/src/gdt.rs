@@ -13,7 +13,7 @@ use {
     },
 };
 
-pub(crate) static SELECTORS: Lazy<Gdt> = Lazy::new(|| {
+pub(crate) static SELECTORS: Lazy<Selectors> = Lazy::new(|| {
     let mut gdt = GlobalDescriptorTable::new();
     let kernel_code = gdt.add_entry(Descriptor::kernel_code_segment());
     let kernel_data = gdt.add_entry(Descriptor::kernel_data_segment());
@@ -24,7 +24,7 @@ pub(crate) static SELECTORS: Lazy<Gdt> = Lazy::new(|| {
     // `TSS`.
     let tss_selector = gdt.add_entry(Descriptor::tss_segment(unsafe { &*TSS.data_ptr() }));
 
-    Gdt {
+    Selectors {
         table: gdt,
         kernel_code,
         kernel_data,
@@ -34,7 +34,7 @@ pub(crate) static SELECTORS: Lazy<Gdt> = Lazy::new(|| {
     }
 });
 
-pub(crate) struct Gdt {
+pub(crate) struct Selectors {
     table: GlobalDescriptorTable,
     pub(crate) kernel_data: SegmentSelector,
     pub(crate) kernel_code: SegmentSelector,
