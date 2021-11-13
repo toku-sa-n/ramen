@@ -3,6 +3,7 @@
 #![no_std]
 #![allow(clippy::too_many_arguments)] // A workaround for the clippy's wrong warning.
 #![feature(alloc_error_handler)]
+#![deny(unsafe_op_in_unsafe_fn)]
 
 use core::alloc::Layout;
 

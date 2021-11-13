@@ -42,11 +42,14 @@ impl CpioArchievedFile {
     }
 
     unsafe fn new(ptr: VirtAddr) -> Self {
-        assert_eq!(
-            &ptr.as_ptr::<[u8; 6]>().read(),
-            b"070707",
-            "Invalid signature."
-        );
+        // SAFETY: The caller must ensure that `ptr` is dereferencible.
+        unsafe {
+            assert_eq!(
+                &ptr.as_ptr::<[u8; 6]>().read(),
+                b"070707",
+                "Invalid signature."
+            );
+        }
 
         Self { ptr }
     }

@@ -19,13 +19,17 @@ impl AcpiHandler for Mapper {
         // call `crate::mem::map_pages`, not the system call one.
         let virt = mem::map_pages(p, bytes);
 
-        PhysicalMapping::new(
-            p_addr,
-            NonNull::new(virt.as_mut_ptr()).unwrap(),
-            sz,
-            sz,
-            Self,
-        )
+        // SAFETY: The caller must ensure that `p_addr` and `sz` are the correct arguments, and
+        // there is no other mappings to this region.
+        unsafe {
+            PhysicalMapping::new(
+                p_addr,
+                NonNull::new(virt.as_mut_ptr()).unwrap(),
+                sz,
+                sz,
+                Self,
+            )
+        }
     }
 
     fn unmap_physical_region<T>(region: &PhysicalMapping<Self, T>) {

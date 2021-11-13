@@ -17,7 +17,7 @@ pub(crate) unsafe fn init(mmio_base: PhysAddr) {
     let hccparams1 = registers::handle(|r| r.capability.hccparams1.read_volatile());
 
     EXTENDED_CAPABILITIES
-        .try_init_once(|| {
+        .try_init_once(|| unsafe {
             Spinlock::new(extended_capabilities::List::new(
                 mmio_base.as_u64().try_into().unwrap(),
                 hccparams1,

@@ -22,7 +22,8 @@ pub unsafe fn single<T>(phys_base: PhysAddr) -> Single<T>
 where
     T: Copy,
 {
-    Single::new(phys_base.as_u64().try_into().unwrap(), Mapper)
+    // SAFETY: The caller must ensure the safety requirements.
+    unsafe { Single::new(phys_base.as_u64().try_into().unwrap(), Mapper) }
 }
 
 #[derive(Copy, Clone, Debug)]

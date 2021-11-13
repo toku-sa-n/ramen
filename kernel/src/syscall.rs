@@ -19,7 +19,9 @@ use {
 #[allow(clippy::too_many_arguments)]
 unsafe extern "C" fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
     if let Some(t) = FromPrimitive::from_u64(idx) {
-        select_proper_syscall_unchecked(t, a1, a2, a3)
+        // SAFETY: At least the index is correct. The caller must ensure that
+        // the all arguments are correctly passed.
+        unsafe { select_proper_syscall_unchecked(t, a1, a2, a3) }
     } else {
         panic!("Unrecognized system call index: {}", idx)
     }
@@ -42,17 +44,22 @@ unsafe fn select_proper_syscall_unchecked(ty: syscalls::Ty, a1: u64, a2: u64, a3
         }
         syscalls::Ty::Exit => sys_exit(),
         syscalls::Ty::TranslateAddress => sys_translate_address(VirtAddr::new(a1)).as_u64(),
-        syscalls::Ty::Write => sys_write(
-            a1.try_into().unwrap(),
-            a2 as *const _,
-            a3.try_into().unwrap(),
-        )
-        .try_into()
-        .unwrap(),
+        // SAFETY: The caller must ensure that `a2` is the correct pointer to the string.
+        syscalls::Ty::Write => unsafe {
+            sys_write(
+                a1.try_into().unwrap(),
+                a2 as *const _,
+                a3.try_into().unwrap(),
+            )
+            .try_into()
+            .unwrap()
+        },
         syscalls::Ty::Send => sys_send(VirtAddr::new(a1), a2.try_into().unwrap()),
         syscalls::Ty::ReceiveFromAny => sys_receive_from_any(VirtAddr::new(a1)),
         syscalls::Ty::ReceiveFrom => sys_receive_from(VirtAddr::new(a1), a2.try_into().unwrap()),
-        syscalls::Ty::Panic => sys_panic(a1 as *const PanicInfo<'_>),
+        // SAFETY: The caller must ensure that `a1` is the correct pointer to the panic
+        // information.
+        syscalls::Ty::Panic => unsafe { sys_panic(a1 as *const PanicInfo<'_>) },
         _ => unreachable!("This sytem call should not be handled by the kernel itself."),
     }
 }
@@ -102,7 +109,7 @@ unsafe fn sys_write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
         let buf: *const u8 = buf.cast();
 
         // SAFETY: The caller ensures that `buf` is valid.
-        let s = slice::from_raw_parts(buf, nbyte.try_into().unwrap());
+        let s = unsafe { slice::from_raw_parts(buf, nbyte.try_into().unwrap()) };
         let s = core::str::from_utf8(s);
 
         if let Ok(s) = s {
@@ -135,5 +142,6 @@ fn sys_receive_from(m: VirtAddr, from: SlotId) -> u64 {
 unsafe fn sys_panic(i: *const PanicInfo<'_>) -> ! {
     let name = process::current_name();
 
-    panic!("The process {} paniced: {}", name, *i);
+    // SAFETY: The caller must ensure that `i` is the correct pointer to the panic information.
+    panic!("The process {} paniced: {}", name, unsafe { &*i });
 }
