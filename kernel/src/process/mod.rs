@@ -87,12 +87,14 @@ pub(crate) struct Process {
     name: &'static str,
 }
 impl Process {
-    const STACK_SIZE: u64 = Size4KiB::SIZE * 4;
+    // No truncation from u64 to usize on the x86_64 platform.
+    #[allow(clippy::cast_possible_truncation)]
+    const STACK_SIZE: usize = Size4KiB::SIZE as usize * 4;
 
     #[allow(clippy::too_many_lines)]
     fn new(entry: VirtAddr, privilege: Privilege, name: &'static str) -> Self {
         let mut tables = page_table::Collection::default();
-        let stack = KpBox::new_slice(0, Self::STACK_SIZE.try_into().unwrap());
+        let stack = KpBox::new_slice(0, Self::STACK_SIZE);
         let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
         let stack_frame = KpBox::from(match privilege {
             Privilege::Kernel => StackFrame::kernel(entry, stack_bottom),
@@ -126,7 +128,7 @@ impl Process {
         let mut tables = page_table::Collection::default();
         let (content, entry) = tables.map_elf(name);
 
-        let stack = KpBox::new_slice(0, Self::STACK_SIZE.try_into().unwrap());
+        let stack = KpBox::new_slice(0, Self::STACK_SIZE);
         let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
         let stack_frame = KpBox::from(match privilege {
             Privilege::Kernel => StackFrame::kernel(entry, stack_bottom),
