@@ -26,9 +26,12 @@ impl Registers {
     unsafe fn new(io_apics: &[IoApic]) -> Self {
         let io_apic_base = PhysAddr::new(io_apics[0].address.into());
 
-        Self {
-            addr: crate::mem::accessor::new(io_apic_base),
-            data: crate::mem::accessor::new(io_apic_base + 0x10_usize),
+        // SAFETY: The caller must ensure that `io_apics[0]`.address` is the correct address.
+        unsafe {
+            Self {
+                addr: crate::mem::accessor::new(io_apic_base),
+                data: crate::mem::accessor::new(io_apic_base + 0x10_usize),
+            }
         }
     }
 

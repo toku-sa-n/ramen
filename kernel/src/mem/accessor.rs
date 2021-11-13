@@ -13,7 +13,8 @@ pub(crate) unsafe fn new<T>(phys_base: PhysAddr) -> Single<T>
 where
     T: Copy,
 {
-    ReadWrite::new(phys_base.as_u64().try_into().unwrap(), Mapper)
+    // SAFETY: The caller must ensure that `phys_base` is the correct address.
+    unsafe { ReadWrite::new(phys_base.as_u64().try_into().unwrap(), Mapper) }
 }
 
 #[derive(Copy, Clone)]

@@ -206,8 +206,11 @@ impl Receiver {
 ///
 /// `src` and `dst` must be the correct addresses where a message is located and copied.
 unsafe fn copy_msg(src: PhysAddr, dst: PhysAddr, sender_slot_id: SlotId) {
-    let mut src: Single<Message> = mem::accessor::new(src);
-    let mut dst = mem::accessor::new(dst);
+    // SAFETY: The caller must ensure that `src` is the correct address of the message.
+    let mut src: Single<Message> = unsafe { mem::accessor::new(src) };
+
+    // SAFETY: The caller must ensure that `dst` is the correct address to save a message.
+    let mut dst = unsafe { mem::accessor::new(dst) };
 
     src.update_volatile(|m| m.header.sender = sender_slot_id);
     dst.write_volatile(src.read_volatile());
