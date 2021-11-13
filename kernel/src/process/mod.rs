@@ -9,7 +9,7 @@ mod stack_frame;
 pub(crate) mod switch;
 
 use {
-    crate::{mem::allocator::kpbox::KpBox, tss::TSS},
+    crate::{mem::allocator::kpbox::KpBox, tss},
     alloc::collections::VecDeque,
     core::convert::TryInto,
     predefined_mmap::INTERRUPT_STACK,
@@ -65,7 +65,7 @@ pub(crate) fn assign_to_rax(rax: u64) {
 }
 
 fn set_temporary_stack_frame() {
-    TSS.lock().interrupt_stack_table[0] = *INTERRUPT_STACK;
+    tss::set_interrupt_stack(*INTERRUPT_STACK);
 }
 
 #[derive(Debug)]

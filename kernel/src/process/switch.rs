@@ -5,7 +5,7 @@ use {
         collections::{self, woken_pid},
         Process,
     },
-    crate::{tests, tss::TSS},
+    crate::{tests, tss},
     x86_64::{registers::control::Cr3, VirtAddr},
 };
 
@@ -33,7 +33,7 @@ fn switch_pml4() {
 }
 
 fn register_current_stack_frame_with_tss() {
-    TSS.lock().interrupt_stack_table[0] = current_stack_frame_bottom_addr();
+    tss::set_interrupt_stack(current_stack_frame_bottom_addr());
 }
 
 fn current_stack_frame_top_addr() -> VirtAddr {
