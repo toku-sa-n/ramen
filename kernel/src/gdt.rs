@@ -15,14 +15,14 @@ use {
 
 static GDT: OnceCell<GlobalDescriptorTable> = OnceCell::uninit();
 
-pub(crate) static SELECTORS: OnceCell<Selectors> = OnceCell::uninit();
+static SELECTORS: OnceCell<Selectors> = OnceCell::uninit();
 
 #[derive(Copy, Clone)]
-pub(crate) struct Selectors {
-    pub(crate) kernel_data: SegmentSelector,
-    pub(crate) kernel_code: SegmentSelector,
-    pub(crate) user_code: SegmentSelector,
-    pub(crate) user_data: SegmentSelector,
+struct Selectors {
+    kernel_data: SegmentSelector,
+    kernel_code: SegmentSelector,
+    user_code: SegmentSelector,
+    user_data: SegmentSelector,
     tss: SegmentSelector,
 }
 
@@ -45,6 +45,22 @@ pub(crate) fn init() {
     }
 
     init_star();
+}
+
+pub(crate) fn kernel_code_selector() -> SegmentSelector {
+    selectors().kernel_code
+}
+
+pub(crate) fn kernel_data_selector() -> SegmentSelector {
+    selectors().kernel_data
+}
+
+pub(crate) fn user_code_selector() -> SegmentSelector {
+    selectors().user_code
+}
+
+pub(crate) fn user_data_selector() -> SegmentSelector {
+    selectors().user_data
 }
 
 fn generate_gdt_and_selectors() -> (GlobalDescriptorTable, Selectors) {
@@ -79,4 +95,8 @@ fn init_star() {
         selectors.kernel_data,
     )
     .unwrap();
+}
+
+fn selectors<'a>() -> &'a Selectors {
+    SELECTORS.get().expect("The selectors are not recorded.")
 }

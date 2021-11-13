@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::convert::TryInto;
-
 use {
-    crate::gdt::SELECTORS,
+    crate::gdt,
+    core::convert::TryInto,
     rflags::RFlags,
     x86_64::{
         registers::rflags,
@@ -50,15 +49,11 @@ struct Selectors {
 }
 impl Selectors {
     fn kernel() -> Self {
-        let selectors = SELECTORS.get().expect("The selectors are not initialized.");
-
-        Self::new(selectors.kernel_code, selectors.kernel_data)
+        Self::new(gdt::kernel_code_selector(), gdt::kernel_data_selector())
     }
 
     fn user() -> Self {
-        let selectors = SELECTORS.get().expect("The selectors are not initialized.");
-
-        Self::new(selectors.user_code, selectors.user_data)
+        Self::new(gdt::user_code_selector(), gdt::user_data_selector())
     }
 
     fn new(code: SegmentSelector, user: SegmentSelector) -> Self {
