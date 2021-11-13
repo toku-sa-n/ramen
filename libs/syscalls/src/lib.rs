@@ -2,6 +2,7 @@
 
 #![no_std]
 #![allow(clippy::missing_panics_doc)]
+#![deny(unsafe_op_in_unsafe_fn)]
 
 use {
     core::{convert::TryInto, ffi::c_void, panic::PanicInfo},
@@ -208,14 +209,16 @@ pub fn receive_from(from: i32) -> Message {
 #[must_use]
 pub unsafe fn write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
     // SAFETY: The arguments are fulfilled properly.
-    general_syscall(
-        Ty::Write,
-        fildes.try_into().unwrap(),
-        buf as _,
-        nbyte.into(),
-    )
-    .try_into()
-    .unwrap()
+    unsafe {
+        general_syscall(
+            Ty::Write,
+            fildes.try_into().unwrap(),
+            buf as _,
+            nbyte.into(),
+        )
+        .try_into()
+        .unwrap()
+    }
 }
 
 pub fn panic(info: &PanicInfo<'_>) -> ! {
