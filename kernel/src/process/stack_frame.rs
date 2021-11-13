@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::convert::TryInto;
-
 use {
-    crate::gdt::GDT,
+    crate::gdt,
+    core::convert::TryInto,
     rflags::RFlags,
     x86_64::{
         registers::rflags,
@@ -50,11 +49,11 @@ struct Selectors {
 }
 impl Selectors {
     fn kernel() -> Self {
-        Self::new(GDT.kernel_code, GDT.kernel_data)
+        Self::new(gdt::kernel_code_selector(), gdt::kernel_data_selector())
     }
 
     fn user() -> Self {
-        Self::new(GDT.user_code, GDT.user_data)
+        Self::new(gdt::user_code_selector(), gdt::user_data_selector())
     }
 
     fn new(code: SegmentSelector, user: SegmentSelector) -> Self {
