@@ -22,7 +22,7 @@ pub(crate) static SELECTORS: Lazy<Selectors> = Lazy::new(|| {
 
     // SAFETY: This operation is safe because there is no instances of `MutexGuard` which wraps
     // `TSS`.
-    let tss_selector = gdt.add_entry(Descriptor::tss_segment(unsafe { &*TSS.data_ptr() }));
+    let tss = gdt.add_entry(Descriptor::tss_segment(unsafe { &*TSS.data_ptr() }));
 
     Selectors {
         table: gdt,
@@ -30,7 +30,7 @@ pub(crate) static SELECTORS: Lazy<Selectors> = Lazy::new(|| {
         kernel_data,
         user_data,
         user_code,
-        tss_selector,
+        tss,
     }
 });
 
@@ -40,7 +40,7 @@ pub(crate) struct Selectors {
     pub(crate) kernel_code: SegmentSelector,
     pub(crate) user_code: SegmentSelector,
     pub(crate) user_data: SegmentSelector,
-    tss_selector: SegmentSelector,
+    tss: SegmentSelector,
 }
 
 pub(crate) fn init() {
@@ -52,7 +52,7 @@ pub(crate) fn init() {
         FS::set_reg(SELECTORS.kernel_data);
         GS::set_reg(SELECTORS.kernel_data);
         SS::set_reg(SELECTORS.kernel_data);
-        tables::load_tss(SELECTORS.tss_selector);
+        tables::load_tss(SELECTORS.tss);
     }
 
     init_star();
