@@ -3,6 +3,7 @@
 #![no_std]
 // A workaround for the `derive_builder` crate.
 #![allow(clippy::default_trait_access)]
+#![deny(unsafe_op_in_unsafe_fn)]
 
 extern crate alloc;
 
