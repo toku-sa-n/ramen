@@ -13,7 +13,7 @@ use {
     },
 };
 
-pub(crate) static GDT: Lazy<Gdt> = Lazy::new(|| {
+pub(crate) static SELECTORS: Lazy<Gdt> = Lazy::new(|| {
     let mut gdt = GlobalDescriptorTable::new();
     let kernel_code = gdt.add_entry(Descriptor::kernel_code_segment());
     let kernel_data = gdt.add_entry(Descriptor::kernel_data_segment());
@@ -44,15 +44,15 @@ pub(crate) struct Gdt {
 }
 
 pub(crate) fn init() {
-    GDT.table.load();
+    SELECTORS.table.load();
     unsafe {
-        CS::set_reg(GDT.kernel_code);
-        DS::set_reg(GDT.kernel_data);
-        ES::set_reg(GDT.kernel_data);
-        FS::set_reg(GDT.kernel_data);
-        GS::set_reg(GDT.kernel_data);
-        SS::set_reg(GDT.kernel_data);
-        tables::load_tss(GDT.tss_selector);
+        CS::set_reg(SELECTORS.kernel_code);
+        DS::set_reg(SELECTORS.kernel_data);
+        ES::set_reg(SELECTORS.kernel_data);
+        FS::set_reg(SELECTORS.kernel_data);
+        GS::set_reg(SELECTORS.kernel_data);
+        SS::set_reg(SELECTORS.kernel_data);
+        tables::load_tss(SELECTORS.tss_selector);
     }
 
     init_star();
@@ -60,10 +60,10 @@ pub(crate) fn init() {
 
 fn init_star() {
     Star::write(
-        GDT.user_code,
-        GDT.user_data,
-        GDT.kernel_code,
-        GDT.kernel_data,
+        SELECTORS.user_code,
+        SELECTORS.user_data,
+        SELECTORS.kernel_code,
+        SELECTORS.kernel_data,
     )
     .unwrap();
 }

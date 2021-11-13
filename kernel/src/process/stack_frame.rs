@@ -3,7 +3,7 @@
 use core::convert::TryInto;
 
 use {
-    crate::gdt::GDT,
+    crate::gdt::SELECTORS,
     rflags::RFlags,
     x86_64::{
         registers::rflags,
@@ -50,11 +50,11 @@ struct Selectors {
 }
 impl Selectors {
     fn kernel() -> Self {
-        Self::new(GDT.kernel_code, GDT.kernel_data)
+        Self::new(SELECTORS.kernel_code, SELECTORS.kernel_data)
     }
 
     fn user() -> Self {
-        Self::new(GDT.user_code, GDT.user_data)
+        Self::new(SELECTORS.user_code, SELECTORS.user_data)
     }
 
     fn new(code: SegmentSelector, user: SegmentSelector) -> Self {
