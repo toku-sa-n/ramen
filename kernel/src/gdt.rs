@@ -27,21 +27,13 @@ struct Selectors {
 }
 
 pub(crate) fn init() {
-    let (gdt, selectors) = generate_gdt_and_selectors();
+    init_statics();
 
-    GDT.init_once(|| gdt);
-    SELECTORS.init_once(|| selectors);
+    load_gdt();
 
-    GDT.get().expect("GDT should be initialized.").load();
-
+    // SAFETY: `init_statics` initializes `SELECTORS` with the correct segment selectors.
     unsafe {
-        CS::set_reg(selectors.kernel_code);
-        DS::set_reg(selectors.kernel_data);
-        ES::set_reg(selectors.kernel_data);
-        FS::set_reg(selectors.kernel_data);
-        GS::set_reg(selectors.kernel_data);
-        SS::set_reg(selectors.kernel_data);
-        tables::load_tss(selectors.tss);
+        set_segment_registers();
     }
 
     init_star();
@@ -61,6 +53,36 @@ pub(crate) fn user_code_selector() -> SegmentSelector {
 
 pub(crate) fn user_data_selector() -> SegmentSelector {
     selectors().user_data
+}
+
+fn init_statics() {
+    let (gdt, selectors) = generate_gdt_and_selectors();
+
+    GDT.init_once(|| gdt);
+    SELECTORS.init_once(|| selectors);
+}
+
+fn load_gdt() {
+    gdt().load();
+}
+
+/// # Safety
+///
+/// The caller must ensure that `SELECTORS` must be initialized with the correct segment selectors.
+unsafe fn set_segment_registers() {
+    let selectors = selectors();
+
+    // SAFETY: The caller ensures that `SELECTORS` is initialized with the correct segment
+    // selectors.
+    unsafe {
+        CS::set_reg(selectors.kernel_code);
+        DS::set_reg(selectors.kernel_data);
+        ES::set_reg(selectors.kernel_data);
+        FS::set_reg(selectors.kernel_data);
+        GS::set_reg(selectors.kernel_data);
+        SS::set_reg(selectors.kernel_data);
+        tables::load_tss(selectors.tss);
+    }
 }
 
 fn generate_gdt_and_selectors() -> (GlobalDescriptorTable, Selectors) {
@@ -95,6 +117,10 @@ fn init_star() {
         selectors.kernel_data,
     )
     .unwrap();
+}
+
+fn gdt<'a>() -> &'a GlobalDescriptorTable {
+    GDT.get().expect("GDT is not initialized.")
 }
 
 fn selectors<'a>() -> &'a Selectors {
