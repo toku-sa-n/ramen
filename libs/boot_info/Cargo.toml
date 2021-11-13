@@ -7,5 +7,5 @@ license = "GPL-3.0-or-later"
 [dependencies]
 os_units = "0.4.2"
 predefined_mmap = { path = "../predefined_mmap" }
-vek = { version = "0.15.1", features = ["libm"], default-features = false }
+vek = { version = "0.15.3", features = ["libm"], default-features = false }
 x86_64 = { version = "0.14.6", default-features = false }
