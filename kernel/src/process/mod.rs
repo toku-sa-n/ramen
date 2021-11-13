@@ -1,3 +1,5 @@
+use core::cell::UnsafeCell;
+
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 mod collections;
@@ -77,6 +79,8 @@ pub(crate) struct Process {
     stack_frame: KpBox<StackFrame>,
     _binary: Option<KpBox<[u8]>>,
 
+    _kernel_stack: KpBox<UnsafeCell<[u8; Self::STACK_SIZE]>>,
+
     msg_ptr: Option<PhysAddr>,
 
     send_to: Option<SlotId>,
@@ -113,6 +117,8 @@ impl Process {
             stack_frame,
             _binary: None,
 
+            _kernel_stack: Self::generate_kernel_stack(),
+
             msg_ptr: None,
 
             send_to: None,
@@ -147,6 +153,8 @@ impl Process {
             stack_frame,
             _binary: Some(content),
 
+            _kernel_stack: Self::generate_kernel_stack(),
+
             msg_ptr: None,
 
             send_to: None,
@@ -168,6 +176,10 @@ impl Process {
     fn stack_frame_bottom_addr(&self) -> VirtAddr {
         let b = self.stack_frame.bytes();
         self.stack_frame_top_addr() + b.as_usize()
+    }
+
+    fn generate_kernel_stack() -> KpBox<UnsafeCell<[u8; Self::STACK_SIZE]>> {
+        KpBox::from(UnsafeCell::new([0; Self::STACK_SIZE]))
     }
 }
 
