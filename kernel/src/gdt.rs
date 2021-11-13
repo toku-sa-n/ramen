@@ -2,7 +2,7 @@
 
 use {
     crate::tss::TSS,
-    conquer_once::spin::Lazy,
+    conquer_once::spin::OnceCell,
     x86_64::{
         instructions::{
             segmentation::{Segment, CS, DS, ES, FS, GS, SS},
@@ -13,7 +13,41 @@ use {
     },
 };
 
-pub(crate) static SELECTORS: Lazy<Selectors> = Lazy::new(|| {
+static GDT: OnceCell<GlobalDescriptorTable> = OnceCell::uninit();
+
+pub(crate) static SELECTORS: OnceCell<Selectors> = OnceCell::uninit();
+
+#[derive(Copy, Clone)]
+pub(crate) struct Selectors {
+    pub(crate) kernel_data: SegmentSelector,
+    pub(crate) kernel_code: SegmentSelector,
+    pub(crate) user_code: SegmentSelector,
+    pub(crate) user_data: SegmentSelector,
+    tss: SegmentSelector,
+}
+
+pub(crate) fn init() {
+    let (gdt, selectors) = generate_gdt_and_selectors();
+
+    GDT.init_once(|| gdt);
+    SELECTORS.init_once(|| selectors);
+
+    GDT.get().expect("GDT should be initialized.").load();
+
+    unsafe {
+        CS::set_reg(selectors.kernel_code);
+        DS::set_reg(selectors.kernel_data);
+        ES::set_reg(selectors.kernel_data);
+        FS::set_reg(selectors.kernel_data);
+        GS::set_reg(selectors.kernel_data);
+        SS::set_reg(selectors.kernel_data);
+        tables::load_tss(selectors.tss);
+    }
+
+    init_star();
+}
+
+fn generate_gdt_and_selectors() -> (GlobalDescriptorTable, Selectors) {
     let mut gdt = GlobalDescriptorTable::new();
     let kernel_code = gdt.add_entry(Descriptor::kernel_code_segment());
     let kernel_data = gdt.add_entry(Descriptor::kernel_data_segment());
@@ -24,46 +58,25 @@ pub(crate) static SELECTORS: Lazy<Selectors> = Lazy::new(|| {
     // `TSS`.
     let tss = gdt.add_entry(Descriptor::tss_segment(unsafe { &*TSS.data_ptr() }));
 
-    Selectors {
-        table: gdt,
-        kernel_code,
+    let selectors = Selectors {
         kernel_data,
-        user_data,
+        kernel_code,
         user_code,
+        user_data,
         tss,
-    }
-});
+    };
 
-pub(crate) struct Selectors {
-    table: GlobalDescriptorTable,
-    pub(crate) kernel_data: SegmentSelector,
-    pub(crate) kernel_code: SegmentSelector,
-    pub(crate) user_code: SegmentSelector,
-    pub(crate) user_data: SegmentSelector,
-    tss: SegmentSelector,
-}
-
-pub(crate) fn init() {
-    SELECTORS.table.load();
-    unsafe {
-        CS::set_reg(SELECTORS.kernel_code);
-        DS::set_reg(SELECTORS.kernel_data);
-        ES::set_reg(SELECTORS.kernel_data);
-        FS::set_reg(SELECTORS.kernel_data);
-        GS::set_reg(SELECTORS.kernel_data);
-        SS::set_reg(SELECTORS.kernel_data);
-        tables::load_tss(SELECTORS.tss);
-    }
-
-    init_star();
+    (gdt, selectors)
 }
 
 fn init_star() {
+    let selectors = SELECTORS.get().expect("The selectors are not initialized.");
+
     Star::write(
-        SELECTORS.user_code,
-        SELECTORS.user_data,
-        SELECTORS.kernel_code,
-        SELECTORS.kernel_data,
+        selectors.user_code,
+        selectors.user_data,
+        selectors.kernel_code,
+        selectors.kernel_data,
     )
     .unwrap();
 }

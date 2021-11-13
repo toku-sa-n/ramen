@@ -50,11 +50,15 @@ struct Selectors {
 }
 impl Selectors {
     fn kernel() -> Self {
-        Self::new(SELECTORS.kernel_code, SELECTORS.kernel_data)
+        let selectors = SELECTORS.get().expect("The selectors are not initialized.");
+
+        Self::new(selectors.kernel_code, selectors.kernel_data)
     }
 
     fn user() -> Self {
-        Self::new(SELECTORS.user_code, SELECTORS.user_data)
+        let selectors = SELECTORS.get().expect("The selectors are not initialized.");
+
+        Self::new(selectors.user_code, selectors.user_data)
     }
 
     fn new(code: SegmentSelector, user: SegmentSelector) -> Self {
