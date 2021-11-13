@@ -13,12 +13,8 @@ static TSS: Lazy<Spinlock<TaskStateSegment>> = Lazy::new(|| {
     Spinlock::new(tss)
 });
 
-/// # Safety
-///
-/// The caller must ensure that the contents of TSS is unchanged while the returned reference is
-/// alive.
-pub(crate) unsafe fn as_ref<'a>() -> &'a TaskStateSegment {
-    unsafe { &*TSS.data_ptr() }
+pub(crate) fn get_ptr() -> *mut TaskStateSegment {
+    TSS.data_ptr()
 }
 
 pub(crate) fn set_interrupt_stack(addr: VirtAddr) {

@@ -94,7 +94,7 @@ fn generate_gdt_and_selectors() -> (GlobalDescriptorTable, Selectors) {
 
     // SAFETY: This operation is safe because there is no instances of `MutexGuard` which wraps
     // `TSS`.
-    let tss = gdt.add_entry(Descriptor::tss_segment(unsafe { tss::as_ref() }));
+    let tss = gdt.add_entry(Descriptor::tss_segment(unsafe { &*tss::get_ptr() }));
 
     let selectors = Selectors {
         kernel_data,
