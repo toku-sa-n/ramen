@@ -11,7 +11,7 @@ pub(crate) unsafe fn init(mmio_base: PhysAddr) {
     let mmio_base: usize = mmio_base.as_u64().try_into().unwrap();
 
     REGISTERS
-        .try_init_once(|| Spinlock::new(Registers::new(mmio_base, Mapper)))
+        .try_init_once(|| Spinlock::new(unsafe { Registers::new(mmio_base, Mapper) }))
         .expect("Failed to initialize `REGISTERS`.");
 }
 

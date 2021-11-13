@@ -2,7 +2,7 @@
 
 #![no_std]
 #![feature(alloc_error_handler, asm, const_btree_new, asm_const, asm_sym)]
-#![deny(clippy::pedantic, clippy::all)]
+#![deny(clippy::pedantic, clippy::all, unsafe_op_in_unsafe_fn)]
 
 extern crate alloc;
 

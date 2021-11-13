@@ -10,5 +10,7 @@ use crate::mem::allocator;
 /// Otherwise this function will break memory safety by dereferencing to an invalid address.
 pub(crate) unsafe fn get(rsdb: PhysAddr) -> AcpiTables<allocator::acpi::Mapper> {
     let mapper = allocator::acpi::Mapper;
-    AcpiTables::from_rsdp(mapper, rsdb.as_u64().try_into().unwrap()).unwrap()
+
+    // SAFETY: The caller must ensure that `rsdb` is the valid RSDB address.
+    unsafe { AcpiTables::from_rsdp(mapper, rsdb.as_u64().try_into().unwrap()).unwrap() }
 }

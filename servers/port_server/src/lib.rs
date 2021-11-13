@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
+#![deny(unsafe_op_in_unsafe_fn)]
 
 mod port;
 
@@ -50,22 +51,26 @@ fn select_system_calls(m: Message, t: syscalls::Ty) {
 }
 
 unsafe fn reply_inb(m: Message) {
-    let r = port::inb(m);
+    // SAFETY: The caller must ensure that the message contains the correct values.
+    let r = unsafe { port::inb(m) };
     reply_with_result(m, r.into());
 }
 
 unsafe fn reply_inl(m: Message) {
-    let r = port::inl(m);
+    // SAFETY: The caller must ensure that the message contains the correct values.
+    let r = unsafe { port::inl(m) };
     reply_with_result(m, r.into());
 }
 
 unsafe fn reply_outb(m: Message) {
-    port::outb(m);
+    // SAFETY: The caller must ensure that the message contains the correct values.
+    unsafe { port::outb(m) };
     reply_without_contents(m);
 }
 
 unsafe fn reply_outl(m: Message) {
-    port::outl(m);
+    // SAFETY: The caller must ensure that the message contains the correct values.
+    unsafe { port::outl(m) };
     reply_without_contents(m);
 }
 
