@@ -26,8 +26,12 @@ struct Selectors {
     tss: SegmentSelector,
 }
 
-pub(crate) fn init() {
-    init_statics();
+/// # Safety
+///
+/// The caller must ensure that there is no data races for `TSS`.
+pub(crate) unsafe fn init() {
+    // SAFETY: The caller ensures that there is no data races for `TSS`.
+    unsafe { init_statics() };
 
     load_gdt();
 
@@ -55,8 +59,12 @@ pub(crate) fn user_data_selector() -> SegmentSelector {
     selectors().user_data
 }
 
-fn init_statics() {
-    let (gdt, selectors) = generate_gdt_and_selectors();
+/// # Safety
+///
+/// The caller must ensure that there is no data races for `TSS`.
+unsafe fn init_statics() {
+    // SAFETY: The caller ensures that there is no data races for `TSS`.
+    let (gdt, selectors) = unsafe { generate_gdt_and_selectors() };
 
     GDT.init_once(|| gdt);
     SELECTORS.init_once(|| selectors);
@@ -85,7 +93,10 @@ unsafe fn set_segment_registers() {
     }
 }
 
-fn generate_gdt_and_selectors() -> (GlobalDescriptorTable, Selectors) {
+/// # Safety
+///
+/// The caller must ensure that there is no data races for `TSS`.
+unsafe fn generate_gdt_and_selectors() -> (GlobalDescriptorTable, Selectors) {
     let mut gdt = GlobalDescriptorTable::new();
     let kernel_code = gdt.add_entry(Descriptor::kernel_code_segment());
     let kernel_data = gdt.add_entry(Descriptor::kernel_data_segment());
