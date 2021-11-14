@@ -42,7 +42,9 @@ fn init(boot_info: &mut boot_info::Info) {
 
     fs::list_names();
 
-    gdt::init();
+    // SAFETY: At this point, `TSS` is never touched.
+    unsafe { gdt::init() };
+
     idt::init();
 
     mem::init(boot_info.mem_map_mut());
