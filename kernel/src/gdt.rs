@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    crate::tss::TSS,
+    crate::tss,
     conquer_once::spin::OnceCell,
     x86_64::{
         instructions::{
@@ -105,7 +105,7 @@ unsafe fn generate_gdt_and_selectors() -> (GlobalDescriptorTable, Selectors) {
 
     // SAFETY: This operation is safe because there is no instances of `MutexGuard` which wraps
     // `TSS`.
-    let tss = gdt.add_entry(Descriptor::tss_segment(unsafe { &*TSS.data_ptr() }));
+    let tss = gdt.add_entry(Descriptor::tss_segment(unsafe { &*tss::get_ptr() }));
 
     let selectors = Selectors {
         kernel_data,
