@@ -1,6 +1,5 @@
 .intel_syntax noprefix
 
-.set    INTERRUPT_STACK, 0xffffffffc0000000 - (0x1000 * 16 / 2)
 .extern end_of_interrupt
 .extern switch
 .extern prepare_arguments
@@ -31,7 +30,8 @@
 	push rbx
 	push rax
 
-	mov  rsp, INTERRUPT_STACK
+	call current_stack_bottom_address
+	mov  rsp, rax
 	call \name
 	mov  rsp, rax
 

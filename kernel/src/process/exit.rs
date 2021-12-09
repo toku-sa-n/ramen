@@ -3,7 +3,6 @@
 use x86_64::software_interrupt;
 
 pub(crate) fn exit_process() -> ! {
-    super::set_temporary_stack_frame();
     // TODO: Call this. Currently this calling will cause a panic because the `KBox` is not mapped
     // to this process.
     // super::collections::process::remove(super::manager::getpid().into());

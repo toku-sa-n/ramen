@@ -18,8 +18,6 @@ pub const STACK_BASE: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_c000_0000);
 pub static STACK_LOWER: Lazy<VirtAddr> = Lazy::new(|| {
     VirtAddr::new_truncate(STACK_BASE.as_u64() - NUM_OF_PAGES_STACK.as_bytes().as_usize() as u64)
 });
-pub static INTERRUPT_STACK: Lazy<VirtAddr> =
-    Lazy::new(|| STACK_BASE - NUM_OF_PAGES_STACK.as_bytes().as_usize() / 2);
 pub const INIT_RSP: VirtAddr = VirtAddr::new_truncate(STACK_BASE.as_u64() - Size4KiB::SIZE);
 pub const RECUR_PML4_ADDR: VirtAddr = VirtAddr::new_truncate(0xff7f_bfdf_e000);
 

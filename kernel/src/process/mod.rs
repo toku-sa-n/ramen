@@ -11,10 +11,9 @@ mod stack_frame;
 pub(crate) mod switch;
 
 use {
-    crate::{mem::allocator::kpbox::KpBox, tss},
+    crate::mem::allocator::kpbox::KpBox,
     alloc::collections::VecDeque,
     core::convert::TryInto,
-    predefined_mmap::INTERRUPT_STACK,
     stack_frame::StackFrame,
     x86_64::{
         structures::paging::{PageSize, PhysFrame, Size4KiB},
@@ -34,6 +33,13 @@ pub(super) fn binary(name: &'static str, p: Privilege) {
 
 pub(crate) fn current_name() -> &'static str {
     collections::process::handle_running(|p| p.name)
+}
+
+#[no_mangle]
+fn current_stack_bottom_address() -> u64 {
+    collections::process::handle_running(|p| {
+        (p.kernel_stack.virt_addr() + p.kernel_stack.bytes().as_usize()).as_u64()
+    })
 }
 
 fn get_slot_id() -> i32 {
@@ -64,10 +70,6 @@ pub(super) fn loader(f: fn()) -> ! {
 
 pub(crate) fn assign_to_rax(rax: u64) {
     collections::process::handle_running_mut(|p| (*p.stack_frame).regs.rax = rax);
-}
-
-fn set_temporary_stack_frame() {
-    tss::set_interrupt_stack(*INTERRUPT_STACK);
 }
 
 #[derive(Debug)]
