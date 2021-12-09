@@ -144,7 +144,7 @@ impl Endpoint {
 
     pub(crate) fn doorbell_value(self) -> u32 {
         2 * u32::from(self.endpoint_address.get_bits(0..=3))
-            + self.endpoint_address.get_bit(7) as u32
+            + u32::from(self.endpoint_address.get_bit(7))
     }
 }
 

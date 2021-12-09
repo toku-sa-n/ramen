@@ -50,7 +50,7 @@ impl Collection {
         let id = task.id();
 
         assert!(
-            !self.tasks.insert(id, task).is_some(),
+            self.tasks.insert(id, task).is_none(),
             "Task ID confliction."
         );
     }

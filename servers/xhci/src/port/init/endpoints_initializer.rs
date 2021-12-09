@@ -125,7 +125,7 @@ impl<'a> ContextInitializer<'a> {
 
     fn calculate_dci(&self) -> u8 {
         let a = self.ep.endpoint_address;
-        2 * a.get_bits(0..=3) + a.get_bit(7) as u8
+        2 * a.get_bits(0..=3) + u8::from(a.get_bit(7))
     }
 
     fn init_ep_context(&mut self) {
@@ -250,8 +250,8 @@ impl<'a> ContextInitializer<'a> {
     }
 
     fn ep_cx(&mut self) -> &mut dyn EndpointHandler {
-        let ep_i: usize = self.ep.endpoint_address.get_bits(0..=3).into();
-        let is_input: usize = self.ep.endpoint_address.get_bit(7) as _;
+        let ep_i = usize::from(self.ep.endpoint_address.get_bits(0..=3));
+        let is_input = usize::from(self.ep.endpoint_address.get_bit(7));
         let dpi = 2 * ep_i + is_input;
 
         self.cx.input.device_mut().endpoint_mut(dpi)
