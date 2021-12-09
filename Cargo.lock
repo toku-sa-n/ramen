@@ -698,9 +698,9 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 
 [[package]]
 name = "vek"
-version = "0.15.3"
+version = "0.15.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f45b042fd36fbbd9e31ebac0d5f5ced8a9c991000bb5a02d88f8b101489ef95"
+checksum = "343a216b8dcc20237304602200d904ef88d9208d7d9b7014554db0e1e8da7ee9"
 dependencies = [
  "approx",
  "num-integer",
