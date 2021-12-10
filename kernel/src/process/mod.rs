@@ -19,7 +19,7 @@ use {
         PhysAddr, VirtAddr,
     },
 };
-pub(crate) use {exit::exit_process, slot_id::SlotId, switch::switch};
+pub(crate) use {exit::exit_process, slot_id::Pid, switch::switch};
 
 pub(super) fn from_function(entry: fn(), name: &'static str) {
     let entry = VirtAddr::new((entry as usize).try_into().unwrap());
@@ -47,7 +47,7 @@ fn push_process_to_queue(p: Process) {
     add_process(p);
 }
 
-fn add_pid(id: SlotId) {
+fn add_pid(id: Pid) {
     collections::woken_pid::push(id);
 }
 
@@ -70,7 +70,7 @@ fn set_temporary_stack_frame() {
 
 #[derive(Debug)]
 pub(crate) struct Process {
-    id: SlotId,
+    id: Pid,
     _tables: page_table::Collection,
     pml4: PhysFrame,
     _stack: KpBox<[u8]>,
@@ -79,10 +79,10 @@ pub(crate) struct Process {
 
     msg_ptr: Option<PhysAddr>,
 
-    send_to: Option<SlotId>,
+    send_to: Option<Pid>,
     receive_from: Option<ReceiveFrom>,
 
-    pids_try_to_send_this_process: VecDeque<SlotId>,
+    pids_try_to_send_this_process: VecDeque<Pid>,
 
     name: &'static str,
 }
@@ -157,7 +157,7 @@ impl Process {
         }
     }
 
-    fn id(&self) -> SlotId {
+    fn id(&self) -> Pid {
         self.id
     }
 
@@ -180,5 +180,5 @@ pub(crate) enum Privilege {
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub(crate) enum ReceiveFrom {
     Any,
-    Id(SlotId),
+    Id(Pid),
 }

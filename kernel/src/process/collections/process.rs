@@ -7,7 +7,7 @@ use {
     spinning_top::{Spinlock, SpinlockGuard},
 };
 
-static PROCESSES: Spinlock<BTreeMap<process::SlotId, Process>> = Spinlock::new(BTreeMap::new());
+static PROCESSES: Spinlock<BTreeMap<process::Pid, Process>> = Spinlock::new(BTreeMap::new());
 
 pub(in crate::process) fn add(p: Process) {
     let id = p.id();
@@ -23,7 +23,7 @@ where
     handle_mut(id, f)
 }
 
-pub(in crate::process) fn handle_mut<T, U>(id: process::SlotId, f: T) -> U
+pub(in crate::process) fn handle_mut<T, U>(id: process::Pid, f: T) -> U
 where
     T: FnOnce(&mut Process) -> U,
 {
@@ -42,7 +42,7 @@ where
     handle(id, f)
 }
 
-pub(in crate::process) fn handle<T, U>(id: process::SlotId, f: T) -> U
+pub(in crate::process) fn handle<T, U>(id: process::Pid, f: T) -> U
 where
     T: FnOnce(&Process) -> U,
 {
@@ -53,7 +53,7 @@ where
     f(p)
 }
 
-fn lock_processes() -> SpinlockGuard<'static, BTreeMap<process::SlotId, Process>> {
+fn lock_processes() -> SpinlockGuard<'static, BTreeMap<process::Pid, Process>> {
     PROCESSES
         .try_lock()
         .expect("Failed to acquire the lock of `PROCESSES`.")

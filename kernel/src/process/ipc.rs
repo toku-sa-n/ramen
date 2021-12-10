@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{collections, get_slot_id, ReceiveFrom, SlotId},
+    super::{collections, get_slot_id, Pid, ReceiveFrom},
     crate::{mem, mem::accessor::Single},
     mem::paging::pml4::PML4,
     message::Message,
     x86_64::{structures::paging::Translate, PhysAddr, VirtAddr},
 };
 
-pub(crate) fn send(msg: VirtAddr, to: SlotId) {
+pub(crate) fn send(msg: VirtAddr, to: Pid) {
     Sender::new(msg, to).send();
 }
 
@@ -16,16 +16,16 @@ pub(crate) fn receive_from_any(msg_buf: VirtAddr) {
     Receiver::new_from_any(msg_buf).receive();
 }
 
-pub(crate) fn receive_from(msg_buf: VirtAddr, from: SlotId) {
+pub(crate) fn receive_from(msg_buf: VirtAddr, from: Pid) {
     Receiver::new_from(msg_buf, from).receive();
 }
 
 struct Sender {
     msg: PhysAddr,
-    to: SlotId,
+    to: Pid,
 }
 impl Sender {
-    fn new(msg: VirtAddr, to: SlotId) -> Self {
+    fn new(msg: VirtAddr, to: Pid) -> Self {
         assert_ne!(get_slot_id(), to, "Tried to send a message to self.");
 
         let msg = virt_to_phys(msg);
@@ -118,7 +118,7 @@ impl Receiver {
         }
     }
 
-    fn new_from(msg_buf: VirtAddr, from: SlotId) -> Self {
+    fn new_from(msg_buf: VirtAddr, from: Pid) -> Self {
         assert_ne!(get_slot_id(), from, "Tried to receive a message from self.");
 
         let msg_buf = virt_to_phys(msg_buf);
@@ -154,7 +154,7 @@ impl Receiver {
         Self::wake_sender(src_pid);
     }
 
-    fn src_pid(&self) -> SlotId {
+    fn src_pid(&self) -> Pid {
         if let ReceiveFrom::Id(id) = self.from {
             id
         } else {
@@ -166,14 +166,14 @@ impl Receiver {
         }
     }
 
-    fn copy_msg(&self, src_slot_id: SlotId) {
+    fn copy_msg(&self, src_slot_id: Pid) {
         let src = collections::process::handle(src_slot_id, |p| p.msg_ptr);
         let src = src.expect("The message pointer of the sender is not set.");
 
         unsafe { copy_msg(src, self.msg_buf, src_slot_id) }
     }
 
-    fn wake_sender(src_pid: SlotId) {
+    fn wake_sender(src_pid: Pid) {
         collections::process::handle_mut(src_pid, |p| {
             p.msg_ptr = None;
             p.send_to = None;
@@ -205,7 +205,7 @@ impl Receiver {
 /// # Safety
 ///
 /// `src` and `dst` must be the correct addresses where a message is located and copied.
-unsafe fn copy_msg(src: PhysAddr, dst: PhysAddr, sender_slot_id: SlotId) {
+unsafe fn copy_msg(src: PhysAddr, dst: PhysAddr, sender_slot_id: Pid) {
     // SAFETY: The caller must ensure that `src` is the correct address of the message.
     let mut src: Single<Message> = unsafe { mem::accessor::new(src) };
 
