@@ -1,5 +1,5 @@
 use {
-    super::{get_slot_id, manager, Pid, ReceiveFrom},
+    super::{get_slot_id, Pid, ReceiveFrom},
     crate::{
         mem::{self, accessor::Single},
         process::Process,
@@ -83,23 +83,23 @@ pub(crate) fn switch() -> VirtAddr {
     change_current_process();
     switch_pml4();
     register_current_stack_frame_with_tss();
-    manager::current_stack_frame_top_addr()
+    current_stack_frame_top_addr()
 }
 
 fn change_current_process() {
-    manager::change_active_pid();
+    change_active_pid();
 }
 
 fn switch_pml4() {
     let (_, f) = Cr3::read();
-    let pml4 = manager::current_pml4();
+    let pml4 = current_pml4();
 
     // SAFETY: The PML4 frame is correct one and flags are unchanged.
     unsafe { Cr3::write(pml4, f) }
 }
 
 fn register_current_stack_frame_with_tss() {
-    tss::set_interrupt_stack(manager::current_stack_frame_bottom_addr());
+    tss::set_interrupt_stack(current_stack_frame_bottom_addr());
 }
 
 struct Manager {
