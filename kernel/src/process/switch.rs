@@ -25,7 +25,7 @@ fn change_current_process() {
 
 fn switch_pml4() {
     let (_, f) = Cr3::read();
-    let pml4 = manager::handle_running(|p| p.pml4);
+    let pml4 = manager::pml4_of_running_process();
 
     // SAFETY: The PML4 frame is correct one and flags are unchanged.
     unsafe { Cr3::write(pml4, f) }
