@@ -12,7 +12,7 @@ static MANAGER: Spinlock<Manager> = Spinlock::new(Manager::new());
 static WOKEN_PIDS: Lazy<Spinlock<VecDeque<Pid>>> = Lazy::new(|| Spinlock::new(VecDeque::new()));
 
 pub(super) fn add(p: Process) {
-    MANAGER.lock().add(p);
+    lock_manager().add(p);
 }
 
 pub(super) fn handle_running_mut<T, U>(f: T) -> U
