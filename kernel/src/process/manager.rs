@@ -42,8 +42,15 @@ where
     lock_manager().handle_running_mut(f)
 }
 
-pub(super) fn current_pml4() -> PhysFrame {
-    lock_manager().current_pml4()
+pub(super) fn handle_running<T, U>(f: T) -> U
+where
+    T: FnOnce(&Process) -> U,
+{
+    lock_manager().handle_running(f)
+}
+
+pub(super) fn pml4_of_running_process() -> PhysFrame {
+    lock_manager().pml4_of_running_process()
 }
 
 pub(super) fn change_active_pid() {
@@ -94,7 +101,7 @@ impl Manager {
         Receiver::new_from(self, msg_buf, from).receive();
     }
 
-    fn current_pml4(&self) -> PhysFrame {
+    fn pml4_of_running_process(&self) -> PhysFrame {
         self.handle_running(|p| p.pml4)
     }
 
