@@ -35,13 +35,6 @@ pub(super) fn add(p: Process) {
     lock_manager().add(p);
 }
 
-pub(super) fn handle_running_mut<T, U>(f: T) -> U
-where
-    T: FnOnce(&mut Process) -> U,
-{
-    lock_manager().handle_running_mut(f)
-}
-
 pub(super) fn current_process_name() -> &'static str {
     lock_manager().current_process_name()
 }
@@ -56,6 +49,10 @@ pub(super) fn current_stack_frame_top_addr() -> VirtAddr {
 
 pub(super) fn current_stack_frame_bottom_addr() -> VirtAddr {
     lock_manager().current_stack_frame_bottom_addr()
+}
+
+pub(super) fn assign_to_rax(rax: u64) {
+    lock_manager().assign_to_rax(rax);
 }
 
 pub(super) fn change_active_pid() {
@@ -120,6 +117,10 @@ impl Manager {
 
     fn current_stack_frame_bottom_addr(&self) -> VirtAddr {
         self.handle_running(Process::stack_frame_bottom_addr)
+    }
+
+    fn assign_to_rax(&mut self, rax: u64) {
+        self.handle_running_mut(|p| (*p.stack_frame).regs.rax = rax);
     }
 
     fn handle_running<T, U>(&self, f: T) -> U

@@ -61,7 +61,7 @@ pub(super) fn loader(f: fn()) -> ! {
 }
 
 pub(crate) fn assign_to_rax(rax: u64) {
-    manager::handle_running_mut(|p| (*p.stack_frame).regs.rax = rax);
+    manager::assign_to_rax(rax);
 }
 
 fn set_temporary_stack_frame() {
