@@ -42,15 +42,20 @@ where
     lock_manager().handle_running_mut(f)
 }
 
-pub(super) fn handle_running<T, U>(f: T) -> U
-where
-    T: FnOnce(&Process) -> U,
-{
-    lock_manager().handle_running(f)
+pub(super) fn current_process_name() -> &'static str {
+    lock_manager().current_process_name()
 }
 
 pub(super) fn current_pml4() -> PhysFrame {
     lock_manager().current_pml4()
+}
+
+pub(super) fn current_stack_frame_top_addr() -> VirtAddr {
+    lock_manager().current_stack_frame_top_addr()
+}
+
+pub(super) fn current_stack_frame_bottom_addr() -> VirtAddr {
+    lock_manager().current_stack_frame_bottom_addr()
 }
 
 pub(super) fn change_active_pid() {
@@ -101,8 +106,20 @@ impl Manager {
         Receiver::new_from(self, msg_buf, from).receive();
     }
 
+    fn current_process_name(&self) -> &'static str {
+        self.handle_running(|p| p.name)
+    }
+
     fn current_pml4(&self) -> PhysFrame {
         self.handle_running(|p| p.pml4)
+    }
+
+    fn current_stack_frame_top_addr(&self) -> VirtAddr {
+        self.handle_running(Process::stack_frame_top_addr)
+    }
+
+    fn current_stack_frame_bottom_addr(&self) -> VirtAddr {
+        self.handle_running(Process::stack_frame_bottom_addr)
     }
 
     fn handle_running<T, U>(&self, f: T) -> U

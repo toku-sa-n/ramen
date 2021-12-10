@@ -3,7 +3,6 @@ use super::manager;
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::Process,
     crate::{tests, tss},
     x86_64::{registers::control::Cr3, VirtAddr},
 };
@@ -16,7 +15,7 @@ pub(crate) fn switch() -> VirtAddr {
     change_current_process();
     switch_pml4();
     register_current_stack_frame_with_tss();
-    current_stack_frame_top_addr()
+    manager::current_stack_frame_top_addr()
 }
 
 fn change_current_process() {
@@ -32,13 +31,5 @@ fn switch_pml4() {
 }
 
 fn register_current_stack_frame_with_tss() {
-    tss::set_interrupt_stack(current_stack_frame_bottom_addr());
-}
-
-fn current_stack_frame_top_addr() -> VirtAddr {
-    manager::handle_running(Process::stack_frame_top_addr)
-}
-
-fn current_stack_frame_bottom_addr() -> VirtAddr {
-    manager::handle_running(Process::stack_frame_bottom_addr)
+    tss::set_interrupt_stack(manager::current_stack_frame_bottom_addr());
 }

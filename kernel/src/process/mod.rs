@@ -31,7 +31,7 @@ pub(super) fn binary(name: &'static str, p: Privilege) {
 }
 
 pub(crate) fn current_name() -> &'static str {
-    manager::handle_running(|p| p.name)
+    manager::current_process_name()
 }
 
 fn get_slot_id() -> i32 {
