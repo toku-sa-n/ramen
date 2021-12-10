@@ -7,55 +7,102 @@ use {
     spinning_top::{Spinlock, SpinlockGuard},
 };
 
-static PROCESSES: Spinlock<BTreeMap<Pid, Process>> = Spinlock::new(BTreeMap::new());
+static PROCESSES: Spinlock<Manager> = Spinlock::new(Manager::new());
 
 static WOKEN_PIDS: Lazy<Spinlock<VecDeque<Pid>>> = Lazy::new(|| Spinlock::new(VecDeque::new()));
 
+struct Manager {
+    processes: BTreeMap<Pid, Process>,
+}
+impl Manager {
+    const fn new() -> Self {
+        Self {
+            processes: BTreeMap::new(),
+        }
+    }
+
+    fn add(&mut self, p: Process) {
+        let pid = p.id();
+
+        let r = self.processes.insert(pid, p);
+
+        assert!(r.is_none(), "Duplicated process with PID {}.", pid);
+    }
+
+    fn handle_running<T, U>(&self, f: T) -> U
+    where
+        T: FnOnce(&Process) -> U,
+    {
+        self.handle(active_pid(), f)
+    }
+
+    fn handle<T, U>(&self, pid: Pid, f: T) -> U
+    where
+        T: FnOnce(&Process) -> U,
+    {
+        let p = self
+            .processes
+            .get(&pid)
+            .unwrap_or_else(|| panic!("Process of PID {} does not exist.", pid));
+
+        f(p)
+    }
+
+    fn handle_running_mut<T, U>(&mut self, f: T) -> U
+    where
+        T: FnOnce(&mut Process) -> U,
+    {
+        let pid = active_pid();
+
+        self.handle_mut(pid, f)
+    }
+
+    fn handle_mut<T, U>(&mut self, pid: Pid, f: T) -> U
+    where
+        T: FnOnce(&mut Process) -> U,
+    {
+        let p = self
+            .processes
+            .get_mut(&pid)
+            .unwrap_or_else(|| panic!("Process of PID {} does not exist.", pid));
+
+        f(p)
+    }
+}
+
 pub(super) fn add(p: Process) {
-    let id = p.id();
-    let r = PROCESSES.lock().insert(id, p);
-    assert!(r.is_none(), "Duplicated process.");
+    PROCESSES.lock().add(p);
 }
 
 pub(super) fn handle_running_mut<T, U>(f: T) -> U
 where
     T: FnOnce(&mut Process) -> U,
 {
-    let id = active_pid();
-    handle_mut(id, f)
+    lock_processes().handle_running_mut(f)
 }
 
-pub(super) fn handle_mut<T, U>(id: Pid, f: T) -> U
+pub(super) fn handle_mut<T, U>(pid: Pid, f: T) -> U
 where
     T: FnOnce(&mut Process) -> U,
 {
-    let mut l = lock_processes();
-    let p = l
-        .get_mut(&id)
-        .unwrap_or_else(|| panic!("Process of PID {} does not exist.", id));
-    f(p)
+    lock_processes().handle_mut(pid, f)
 }
 
 pub(super) fn handle_running<T, U>(f: T) -> U
 where
     T: FnOnce(&Process) -> U,
 {
-    let id = active_pid();
-    handle(id, f)
+    lock_processes().handle_running(f)
 }
 
-pub(super) fn handle<T, U>(id: Pid, f: T) -> U
+pub(super) fn handle<T, U>(pid: Pid, f: T) -> U
 where
     T: FnOnce(&Process) -> U,
 {
-    let l = lock_processes();
-    let p = l
-        .get(&id)
-        .unwrap_or_else(|| panic!("Process of PID {} does not exist.", id));
-    f(p)
+    lock_processes().handle(pid, f)
 }
 
-fn lock_processes() -> SpinlockGuard<'static, BTreeMap<Pid, Process>> {
+fn lock_processes() -> SpinlockGuard<'static, Manager> {
     PROCESSES
         .try_lock()
         .expect("Failed to acquire the lock of `PROCESSES`.")
