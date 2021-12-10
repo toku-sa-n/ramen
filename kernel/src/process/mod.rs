@@ -4,7 +4,7 @@ mod collections;
 mod exit;
 pub(crate) mod ipc;
 mod page_table;
-mod slot_id;
+mod pid;
 mod stack_frame;
 pub(crate) mod switch;
 
@@ -19,7 +19,7 @@ use {
         PhysAddr, VirtAddr,
     },
 };
-pub(crate) use {exit::exit_process, slot_id::Pid, switch::switch};
+pub(crate) use {exit::exit_process, pid::Pid, switch::switch};
 
 pub(super) fn from_function(entry: fn(), name: &'static str) {
     let entry = VirtAddr::new((entry as usize).try_into().unwrap());
@@ -106,7 +106,7 @@ impl Process {
         let pml4 = tables.pml4_frame();
 
         Process {
-            id: slot_id::generate(),
+            id: pid::generate(),
             _tables: tables,
             pml4,
             _stack: stack,
@@ -140,7 +140,7 @@ impl Process {
         let pml4 = tables.pml4_frame();
 
         Self {
-            id: slot_id::generate(),
+            id: pid::generate(),
             _tables: tables,
             pml4,
             _stack: stack,
