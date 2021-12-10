@@ -10,13 +10,13 @@ static PROCESSES: Spinlock<BTreeMap<process::Pid, Process>> = Spinlock::new(BTre
 static WOKEN_PIDS: Lazy<Spinlock<VecDeque<process::Pid>>> =
     Lazy::new(|| Spinlock::new(VecDeque::new()));
 
-pub(in crate::process) fn add(p: Process) {
+pub(super) fn add(p: Process) {
     let id = p.id();
     let r = PROCESSES.lock().insert(id, p);
     assert!(r.is_none(), "Duplicated process.");
 }
 
-pub(in crate::process) fn handle_running_mut<T, U>(f: T) -> U
+pub(super) fn handle_running_mut<T, U>(f: T) -> U
 where
     T: FnOnce(&mut Process) -> U,
 {
@@ -24,7 +24,7 @@ where
     handle_mut(id, f)
 }
 
-pub(in crate::process) fn handle_mut<T, U>(id: process::Pid, f: T) -> U
+pub(super) fn handle_mut<T, U>(id: process::Pid, f: T) -> U
 where
     T: FnOnce(&mut Process) -> U,
 {
@@ -35,7 +35,7 @@ where
     f(p)
 }
 
-pub(in crate::process) fn handle_running<T, U>(f: T) -> U
+pub(super) fn handle_running<T, U>(f: T) -> U
 where
     T: FnOnce(&Process) -> U,
 {
@@ -43,7 +43,7 @@ where
     handle(id, f)
 }
 
-pub(in crate::process) fn handle<T, U>(id: process::Pid, f: T) -> U
+pub(super) fn handle<T, U>(id: process::Pid, f: T) -> U
 where
     T: FnOnce(&Process) -> U,
 {
@@ -60,21 +60,21 @@ fn lock_processes() -> SpinlockGuard<'static, BTreeMap<process::Pid, Process>> {
         .expect("Failed to acquire the lock of `PROCESSES`.")
 }
 
-pub(in crate::process) fn change_active_pid() {
+pub(super) fn change_active_pid() {
     lock_queue().rotate_left(1);
 }
 
-pub(in crate::process) fn active_pid() -> process::Pid {
+pub(super) fn active_pid() -> process::Pid {
     lock_queue()[0]
 }
 
-pub(in crate::process) fn pop() -> process::Pid {
+pub(super) fn pop() -> process::Pid {
     lock_queue()
         .pop_front()
         .expect("All processes are terminated.")
 }
 
-pub(in crate::process) fn push(id: process::Pid) {
+pub(super) fn push(id: process::Pid) {
     lock_queue().push_back(id);
 }
 
