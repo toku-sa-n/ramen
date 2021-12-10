@@ -3,6 +3,7 @@
 mod collections;
 mod exit;
 pub(crate) mod ipc;
+mod manager;
 mod page_table;
 mod pid;
 mod stack_frame;
