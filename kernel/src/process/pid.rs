@@ -5,11 +5,11 @@ use {
     spinning_top::Spinlock,
 };
 
-pub(crate) type SlotId = i32;
+pub(crate) type Pid = i32;
 
 static GENERATOR: Lazy<Spinlock<Generator>> = Lazy::new(|| Spinlock::new(Generator::new()));
 
-pub(super) fn generate() -> SlotId {
+pub(super) fn generate() -> Pid {
     lock_generator().generate()
 }
 
@@ -19,7 +19,7 @@ fn lock_generator() -> impl DerefMut<Target = Generator> {
 
 #[derive(Default)]
 struct Generator {
-    used_ids: BTreeSet<SlotId>,
+    used_ids: BTreeSet<Pid>,
 }
 impl Generator {
     fn new() -> Self {
@@ -28,8 +28,8 @@ impl Generator {
         }
     }
 
-    fn generate(&mut self) -> SlotId {
-        for i in 0..SlotId::MAX {
+    fn generate(&mut self) -> Pid {
+        for i in 0..Pid::MAX {
             if !self.used_ids.contains(&i) {
                 self.used_ids.insert(i);
                 return i;

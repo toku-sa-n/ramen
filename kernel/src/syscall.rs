@@ -3,7 +3,7 @@
 use {
     crate::{
         mem::{allocator, paging::pml4::PML4},
-        process::{self, exit_process, SlotId},
+        process::{self, exit_process, Pid},
     },
     core::{convert::TryInto, ffi::c_void, panic::PanicInfo, slice},
     num_traits::FromPrimitive,
@@ -124,7 +124,7 @@ unsafe fn sys_write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
     }
 }
 
-fn sys_send(m: VirtAddr, to: SlotId) -> u64 {
+fn sys_send(m: VirtAddr, to: Pid) -> u64 {
     process::ipc::send(m, to);
     0
 }
@@ -134,7 +134,7 @@ fn sys_receive_from_any(m: VirtAddr) -> u64 {
     0
 }
 
-fn sys_receive_from(m: VirtAddr, from: SlotId) -> u64 {
+fn sys_receive_from(m: VirtAddr, from: Pid) -> u64 {
     process::ipc::receive_from(m, from);
     0
 }
