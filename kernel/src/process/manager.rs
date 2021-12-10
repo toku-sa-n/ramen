@@ -21,11 +21,11 @@ pub(crate) fn send(msg: VirtAddr, to: Pid) {
 }
 
 pub(crate) fn receive_from_any(msg_buf: VirtAddr) {
-    Receiver::new_from_any(msg_buf).receive();
+    lock_manager().receive_from_any(msg_buf);
 }
 
 pub(crate) fn receive_from(msg_buf: VirtAddr, from: Pid) {
-    Receiver::new_from(msg_buf, from).receive();
+    lock_manager().receive_from(msg_buf, from);
 }
 
 pub(super) fn add(p: Process) {
@@ -39,25 +39,11 @@ where
     lock_manager().handle_running_mut(f)
 }
 
-pub(super) fn handle_mut<T, U>(pid: Pid, f: T) -> U
-where
-    T: FnOnce(&mut Process) -> U,
-{
-    lock_manager().handle_mut(pid, f)
-}
-
 pub(super) fn handle_running<T, U>(f: T) -> U
 where
     T: FnOnce(&Process) -> U,
 {
     lock_manager().handle_running(f)
-}
-
-pub(super) fn handle<T, U>(pid: Pid, f: T) -> U
-where
-    T: FnOnce(&Process) -> U,
-{
-    lock_manager().handle(pid, f)
 }
 
 pub(super) fn change_active_pid() {
@@ -138,6 +124,14 @@ impl Manager {
 
     fn send(&mut self, msg: VirtAddr, to: Pid) {
         Sender::new(self, msg, to).send();
+    }
+
+    fn receive_from_any(&mut self, msg_buf: VirtAddr) {
+        Receiver::new_from_any(self, msg_buf).receive();
+    }
+
+    fn receive_from(&mut self, msg_buf: VirtAddr, from: Pid) {
+        Receiver::new_from(self, msg_buf, from).receive();
     }
 }
 
@@ -239,32 +233,35 @@ impl<'a> Sender<'a> {
     }
 }
 
-struct Receiver {
+struct Receiver<'a> {
+    manager: &'a mut Manager,
     msg_buf: PhysAddr,
     from: ReceiveFrom,
 }
-impl Receiver {
-    fn new_from_any(msg_buf: VirtAddr) -> Self {
+impl<'a> Receiver<'a> {
+    fn new_from_any(manager: &'a mut Manager, msg_buf: VirtAddr) -> Self {
         let msg_buf = virt_to_phys(msg_buf);
 
         Self {
+            manager,
             msg_buf,
             from: ReceiveFrom::Any,
         }
     }
 
-    fn new_from(msg_buf: VirtAddr, from: Pid) -> Self {
+    fn new_from(manager: &'a mut Manager, msg_buf: VirtAddr, from: Pid) -> Self {
         assert_ne!(get_slot_id(), from, "Tried to receive a message from self.");
 
         let msg_buf = virt_to_phys(msg_buf);
 
         Self {
+            manager,
             msg_buf,
             from: ReceiveFrom::Id(from),
         }
     }
 
-    fn receive(self) {
+    fn receive(mut self) {
         if self.is_sender_waiting() {
             self.copy_msg_and_wake();
         } else {
@@ -274,24 +271,25 @@ impl Receiver {
 
     fn is_sender_waiting(&self) -> bool {
         if let ReceiveFrom::Id(id) = self.from {
-            manager::handle(id, |p| p.send_to == Some(id))
+            self.manager.handle(id, |p| p.send_to == Some(id))
         } else {
-            manager::handle_running(|p| !p.pids_try_to_send_this_process.is_empty())
+            self.manager
+                .handle_running(|p| !p.pids_try_to_send_this_process.is_empty())
         }
     }
 
-    fn copy_msg_and_wake(&self) {
+    fn copy_msg_and_wake(&mut self) {
         let src_pid = self.src_pid();
 
         self.copy_msg(src_pid);
-        Self::wake_sender(src_pid);
+        self.wake_sender(src_pid);
     }
 
-    fn src_pid(&self) -> Pid {
+    fn src_pid(&mut self) -> Pid {
         if let ReceiveFrom::Id(id) = self.from {
             id
         } else {
-            manager::handle_running_mut(|p| {
+            self.manager.handle_running_mut(|p| {
                 p.pids_try_to_send_this_process
                     .pop_front()
                     .expect("No process is waiting to send.")
@@ -300,28 +298,28 @@ impl Receiver {
     }
 
     fn copy_msg(&self, src_slot_id: Pid) {
-        let src = manager::handle(src_slot_id, |p| p.msg_ptr);
+        let src = self.manager.handle(src_slot_id, |p| p.msg_ptr);
         let src = src.expect("The message pointer of the sender is not set.");
 
         unsafe { copy_msg(src, self.msg_buf, src_slot_id) }
     }
 
-    fn wake_sender(src_pid: Pid) {
-        manager::handle_mut(src_pid, |p| {
+    fn wake_sender(&mut self, src_pid: Pid) {
+        self.manager.handle_mut(src_pid, |p| {
             p.msg_ptr = None;
             p.send_to = None;
         });
         manager::push(src_pid);
     }
 
-    fn set_msg_buf_and_sleep(&self) {
+    fn set_msg_buf_and_sleep(&mut self) {
         self.set_msg_buf();
         self.mark_as_receiving();
         sleep();
     }
 
-    fn set_msg_buf(&self) {
-        manager::handle_running_mut(|p| {
+    fn set_msg_buf(&mut self) {
+        self.manager.handle_running_mut(|p| {
             if p.msg_ptr.is_none() {
                 p.msg_ptr = Some(self.msg_buf);
             } else {
@@ -330,8 +328,9 @@ impl Receiver {
         });
     }
 
-    fn mark_as_receiving(&self) {
-        manager::handle_running_mut(|p| p.receive_from = Some(self.from));
+    fn mark_as_receiving(&mut self) {
+        self.manager
+            .handle_running_mut(|p| p.receive_from = Some(self.from));
     }
 }
 
