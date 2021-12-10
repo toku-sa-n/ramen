@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod collections;
 mod exit;
 pub(crate) mod ipc;
 mod manager;
@@ -32,15 +31,15 @@ pub(super) fn binary(name: &'static str, p: Privilege) {
 }
 
 pub(crate) fn current_name() -> &'static str {
-    collections::process::handle_running(|p| p.name)
+    manager::handle_running(|p| p.name)
 }
 
 fn get_slot_id() -> i32 {
-    collections::woken_pid::active_pid()
+    manager::active_pid()
 }
 
 fn block_running() {
-    collections::woken_pid::pop();
+    manager::pop();
 }
 
 fn push_process_to_queue(p: Process) {
@@ -49,11 +48,11 @@ fn push_process_to_queue(p: Process) {
 }
 
 fn add_pid(id: Pid) {
-    collections::woken_pid::push(id);
+    manager::push(id);
 }
 
 fn add_process(p: Process) {
-    collections::process::add(p);
+    manager::add(p);
 }
 
 pub(super) fn loader(f: fn()) -> ! {
@@ -62,7 +61,7 @@ pub(super) fn loader(f: fn()) -> ! {
 }
 
 pub(crate) fn assign_to_rax(rax: u64) {
-    collections::process::handle_running_mut(|p| (*p.stack_frame).regs.rax = rax);
+    manager::handle_running_mut(|p| (*p.stack_frame).regs.rax = rax);
 }
 
 fn set_temporary_stack_frame() {

@@ -1,7 +1,9 @@
+use super::manager;
+
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{collections, get_slot_id, Pid, ReceiveFrom},
+    super::{get_slot_id, Pid, ReceiveFrom},
     crate::{mem, mem::accessor::Single},
     mem::paging::pml4::PML4,
     message::Message,
@@ -42,7 +44,7 @@ impl Sender {
     }
 
     fn is_receiver_waiting(&self) -> bool {
-        collections::process::handle(self.to, |p| {
+        manager::handle(self.to, |p| {
             [Some(ReceiveFrom::Id(get_slot_id())), Some(ReceiveFrom::Any)].contains(&p.receive_from)
         })
     }
@@ -54,25 +56,25 @@ impl Sender {
     }
 
     fn copy_msg(&self) {
-        let dst = collections::process::handle(self.to, |p| p.msg_ptr);
+        let dst = manager::handle(self.to, |p| p.msg_ptr);
         let dst = dst.expect("Message destination address is not specified.");
 
         unsafe { copy_msg(self.msg, dst, get_slot_id()) }
     }
 
     fn remove_msg_buf() {
-        collections::process::handle_running_mut(|p| {
+        manager::handle_running_mut(|p| {
             p.msg_ptr = None;
             p.send_to = None;
         });
     }
 
     fn wake_dst(&self) {
-        collections::process::handle_mut(self.to, |p| {
+        manager::handle_mut(self.to, |p| {
             p.msg_ptr = None;
             p.receive_from = None;
         });
-        collections::woken_pid::push(self.to);
+        manager::push(self.to);
     }
 
     fn set_msg_buf_and_sleep(&self) {
@@ -83,7 +85,7 @@ impl Sender {
     }
 
     fn set_msg_buf(&self) {
-        collections::process::handle_running_mut(|p| {
+        manager::handle_running_mut(|p| {
             if p.msg_ptr.is_none() {
                 p.msg_ptr = Some(self.msg);
             } else {
@@ -94,13 +96,13 @@ impl Sender {
 
     fn add_self_as_trying_to_send(&self) {
         let pid = get_slot_id();
-        collections::process::handle_mut(self.to, |p| {
+        manager::handle_mut(self.to, |p| {
             p.pids_try_to_send_this_process.push_back(pid);
         });
     }
 
     fn mark_as_sending(&self) {
-        collections::process::handle_running_mut(|p| p.send_to = Some(self.to));
+        manager::handle_running_mut(|p| p.send_to = Some(self.to));
     }
 }
 
@@ -138,12 +140,10 @@ impl Receiver {
     }
 
     fn is_sender_waiting(&self) -> bool {
-        use collections::process::{handle, handle_running};
-
         if let ReceiveFrom::Id(id) = self.from {
-            handle(id, |p| p.send_to == Some(id))
+            manager::handle(id, |p| p.send_to == Some(id))
         } else {
-            handle_running(|p| !p.pids_try_to_send_this_process.is_empty())
+            manager::handle_running(|p| !p.pids_try_to_send_this_process.is_empty())
         }
     }
 
@@ -158,7 +158,7 @@ impl Receiver {
         if let ReceiveFrom::Id(id) = self.from {
             id
         } else {
-            collections::process::handle_running_mut(|p| {
+            manager::handle_running_mut(|p| {
                 p.pids_try_to_send_this_process
                     .pop_front()
                     .expect("No process is waiting to send.")
@@ -167,18 +167,18 @@ impl Receiver {
     }
 
     fn copy_msg(&self, src_slot_id: Pid) {
-        let src = collections::process::handle(src_slot_id, |p| p.msg_ptr);
+        let src = manager::handle(src_slot_id, |p| p.msg_ptr);
         let src = src.expect("The message pointer of the sender is not set.");
 
         unsafe { copy_msg(src, self.msg_buf, src_slot_id) }
     }
 
     fn wake_sender(src_pid: Pid) {
-        collections::process::handle_mut(src_pid, |p| {
+        manager::handle_mut(src_pid, |p| {
             p.msg_ptr = None;
             p.send_to = None;
         });
-        collections::woken_pid::push(src_pid);
+        manager::push(src_pid);
     }
 
     fn set_msg_buf_and_sleep(&self) {
@@ -188,7 +188,7 @@ impl Receiver {
     }
 
     fn set_msg_buf(&self) {
-        collections::process::handle_running_mut(|p| {
+        manager::handle_running_mut(|p| {
             if p.msg_ptr.is_none() {
                 p.msg_ptr = Some(self.msg_buf);
             } else {
@@ -198,7 +198,7 @@ impl Receiver {
     }
 
     fn mark_as_receiving(&self) {
-        collections::process::handle_running_mut(|p| p.receive_from = Some(self.from));
+        manager::handle_running_mut(|p| p.receive_from = Some(self.from));
     }
 }
 

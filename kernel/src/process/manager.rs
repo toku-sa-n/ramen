@@ -1,0 +1,85 @@
+use {
+    crate::process::{self, Process},
+    alloc::collections::{BTreeMap, VecDeque},
+    conquer_once::spin::Lazy,
+    spinning_top::{Spinlock, SpinlockGuard},
+};
+
+static PROCESSES: Spinlock<BTreeMap<process::Pid, Process>> = Spinlock::new(BTreeMap::new());
+
+pub(in crate::process) fn add(p: Process) {
+    let id = p.id();
+    let r = PROCESSES.lock().insert(id, p);
+    assert!(r.is_none(), "Duplicated process.");
+}
+
+pub(in crate::process) fn handle_running_mut<T, U>(f: T) -> U
+where
+    T: FnOnce(&mut Process) -> U,
+{
+    let id = active_pid();
+    handle_mut(id, f)
+}
+
+pub(in crate::process) fn handle_mut<T, U>(id: process::Pid, f: T) -> U
+where
+    T: FnOnce(&mut Process) -> U,
+{
+    let mut l = lock_processes();
+    let p = l
+        .get_mut(&id)
+        .unwrap_or_else(|| panic!("Process of PID {} does not exist.", id));
+    f(p)
+}
+
+pub(in crate::process) fn handle_running<T, U>(f: T) -> U
+where
+    T: FnOnce(&Process) -> U,
+{
+    let id = active_pid();
+    handle(id, f)
+}
+
+pub(in crate::process) fn handle<T, U>(id: process::Pid, f: T) -> U
+where
+    T: FnOnce(&Process) -> U,
+{
+    let l = lock_processes();
+    let p = l
+        .get(&id)
+        .unwrap_or_else(|| panic!("Process of PID {} does not exist.", id));
+    f(p)
+}
+
+fn lock_processes() -> SpinlockGuard<'static, BTreeMap<process::Pid, Process>> {
+    PROCESSES
+        .try_lock()
+        .expect("Failed to acquire the lock of `PROCESSES`.")
+}
+
+static WOKEN_PIDS: Lazy<Spinlock<VecDeque<process::Pid>>> =
+    Lazy::new(|| Spinlock::new(VecDeque::new()));
+
+pub(in crate::process) fn change_active_pid() {
+    lock_queue().rotate_left(1);
+}
+
+pub(in crate::process) fn active_pid() -> process::Pid {
+    lock_queue()[0]
+}
+
+pub(in crate::process) fn pop() -> process::Pid {
+    lock_queue()
+        .pop_front()
+        .expect("All processes are terminated.")
+}
+
+pub(in crate::process) fn push(id: process::Pid) {
+    lock_queue().push_back(id);
+}
+
+fn lock_queue() -> SpinlockGuard<'static, VecDeque<process::Pid>> {
+    WOKEN_PIDS
+        .try_lock()
+        .expect("Failed to acquire the lock of `WOKEN_PIDS`.")
+}
