@@ -1,8 +1,7 @@
-use super::manager;
-
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
+    super::manager,
     crate::{tests, tss},
     x86_64::{registers::control::Cr3, VirtAddr},
 };
