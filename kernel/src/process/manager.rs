@@ -17,7 +17,7 @@ static MANAGER: Spinlock<Manager> = Spinlock::new(Manager::new());
 static WOKEN_PIDS: Lazy<Spinlock<VecDeque<Pid>>> = Lazy::new(|| Spinlock::new(VecDeque::new()));
 
 pub(crate) fn send(msg: VirtAddr, to: Pid) {
-    Sender::new(msg, to).send();
+    lock_manager().send(msg, to);
 }
 
 pub(crate) fn receive_from_any(msg_buf: VirtAddr) {
@@ -135,6 +135,10 @@ impl Manager {
 
         f(p)
     }
+
+    fn send(&mut self, msg: VirtAddr, to: Pid) {
+        Sender::new(self, msg, to).send();
+    }
 }
 
 fn lock_manager() -> SpinlockGuard<'static, Manager> {
@@ -149,20 +153,21 @@ fn lock_queue() -> SpinlockGuard<'static, VecDeque<Pid>> {
         .expect("Failed to acquire the lock of `WOKEN_PIDS`.")
 }
 
-struct Sender {
+struct Sender<'a> {
+    manager: &'a mut Manager,
     msg: PhysAddr,
     to: Pid,
 }
-impl Sender {
-    fn new(msg: VirtAddr, to: Pid) -> Self {
+impl<'a> Sender<'a> {
+    fn new(manager: &'a mut Manager, msg: VirtAddr, to: Pid) -> Self {
         assert_ne!(get_slot_id(), to, "Tried to send a message to self.");
 
         let msg = virt_to_phys(msg);
 
-        Self { msg, to }
+        Self { manager, msg, to }
     }
 
-    fn send(self) {
+    fn send(mut self) {
         if self.is_receiver_waiting() {
             self.copy_msg_and_wake();
         } else {
@@ -171,48 +176,48 @@ impl Sender {
     }
 
     fn is_receiver_waiting(&self) -> bool {
-        manager::handle(self.to, |p| {
+        self.manager.handle(self.to, |p| {
             [Some(ReceiveFrom::Id(get_slot_id())), Some(ReceiveFrom::Any)].contains(&p.receive_from)
         })
     }
 
-    fn copy_msg_and_wake(&self) {
+    fn copy_msg_and_wake(&mut self) {
         self.copy_msg();
-        Self::remove_msg_buf();
+        self.remove_msg_buf();
         self.wake_dst();
     }
 
     fn copy_msg(&self) {
-        let dst = manager::handle(self.to, |p| p.msg_ptr);
+        let dst = self.manager.handle(self.to, |p| p.msg_ptr);
         let dst = dst.expect("Message destination address is not specified.");
 
         unsafe { copy_msg(self.msg, dst, get_slot_id()) }
     }
 
-    fn remove_msg_buf() {
-        manager::handle_running_mut(|p| {
+    fn remove_msg_buf(&mut self) {
+        self.manager.handle_running_mut(|p| {
             p.msg_ptr = None;
             p.send_to = None;
         });
     }
 
-    fn wake_dst(&self) {
-        manager::handle_mut(self.to, |p| {
+    fn wake_dst(&mut self) {
+        self.manager.handle_mut(self.to, |p| {
             p.msg_ptr = None;
             p.receive_from = None;
         });
         manager::push(self.to);
     }
 
-    fn set_msg_buf_and_sleep(&self) {
+    fn set_msg_buf_and_sleep(&mut self) {
         self.set_msg_buf();
         self.add_self_as_trying_to_send();
         self.mark_as_sending();
         sleep();
     }
 
-    fn set_msg_buf(&self) {
-        manager::handle_running_mut(|p| {
+    fn set_msg_buf(&mut self) {
+        self.manager.handle_running_mut(|p| {
             if p.msg_ptr.is_none() {
                 p.msg_ptr = Some(self.msg);
             } else {
@@ -221,15 +226,16 @@ impl Sender {
         });
     }
 
-    fn add_self_as_trying_to_send(&self) {
+    fn add_self_as_trying_to_send(&mut self) {
         let pid = get_slot_id();
-        manager::handle_mut(self.to, |p| {
+        self.manager.handle_mut(self.to, |p| {
             p.pids_try_to_send_this_process.push_back(pid);
         });
     }
 
-    fn mark_as_sending(&self) {
-        manager::handle_running_mut(|p| p.send_to = Some(self.to));
+    fn mark_as_sending(&mut self) {
+        self.manager
+            .handle_running_mut(|p| p.send_to = Some(self.to));
     }
 }
 
