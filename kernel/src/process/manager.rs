@@ -9,7 +9,10 @@ use {
     mem::paging::pml4::PML4,
     message::Message,
     spinning_top::{Spinlock, SpinlockGuard},
-    x86_64::{structures::paging::Translate, PhysAddr, VirtAddr},
+    x86_64::{
+        structures::paging::{PhysFrame, Translate},
+        PhysAddr, VirtAddr,
+    },
 };
 
 static MANAGER: Spinlock<Manager> = Spinlock::new(Manager::new());
@@ -44,6 +47,10 @@ where
     T: FnOnce(&Process) -> U,
 {
     lock_manager().handle_running(f)
+}
+
+pub(super) fn pml4_of_running_process() -> PhysFrame {
+    lock_manager().pml4_of_running_process()
 }
 
 pub(super) fn change_active_pid() {
@@ -92,6 +99,10 @@ impl Manager {
 
     fn receive_from(&mut self, msg_buf: VirtAddr, from: Pid) {
         Receiver::new_from(self, msg_buf, from).receive();
+    }
+
+    fn pml4_of_running_process(&self) -> PhysFrame {
+        self.handle_running(|p| p.pml4)
     }
 
     fn handle_running<T, U>(&self, f: T) -> U
