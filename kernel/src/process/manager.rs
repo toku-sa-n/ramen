@@ -82,6 +82,18 @@ impl Manager {
         assert!(r.is_none(), "Duplicated process with PID {}.", pid);
     }
 
+    fn send(&mut self, msg: VirtAddr, to: Pid) {
+        Sender::new(self, msg, to).send();
+    }
+
+    fn receive_from_any(&mut self, msg_buf: VirtAddr) {
+        Receiver::new_from_any(self, msg_buf).receive();
+    }
+
+    fn receive_from(&mut self, msg_buf: VirtAddr, from: Pid) {
+        Receiver::new_from(self, msg_buf, from).receive();
+    }
+
     fn handle_running<T, U>(&self, f: T) -> U
     where
         T: FnOnce(&Process) -> U,
@@ -120,18 +132,6 @@ impl Manager {
             .unwrap_or_else(|| panic!("Process of PID {} does not exist.", pid));
 
         f(p)
-    }
-
-    fn send(&mut self, msg: VirtAddr, to: Pid) {
-        Sender::new(self, msg, to).send();
-    }
-
-    fn receive_from_any(&mut self, msg_buf: VirtAddr) {
-        Receiver::new_from_any(self, msg_buf).receive();
-    }
-
-    fn receive_from(&mut self, msg_buf: VirtAddr, from: Pid) {
-        Receiver::new_from(self, msg_buf, from).receive();
     }
 }
 
