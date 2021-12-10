@@ -119,6 +119,7 @@ impl Manager {
         f(p)
     }
 }
+
 fn lock_manager() -> SpinlockGuard<'static, Manager> {
     MANAGER
         .try_lock()
