@@ -1,5 +1,3 @@
-use core::cell::UnsafeCell;
-
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 mod collections;
@@ -13,7 +11,7 @@ pub(crate) mod switch;
 use {
     crate::mem::allocator::kpbox::KpBox,
     alloc::collections::VecDeque,
-    core::convert::TryInto,
+    core::{cell::UnsafeCell, convert::TryInto},
     stack_frame::StackFrame,
     x86_64::{
         structures::paging::{PageSize, PhysFrame, Size4KiB},
