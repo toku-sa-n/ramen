@@ -11,6 +11,56 @@ static MANAGER: Spinlock<Manager> = Spinlock::new(Manager::new());
 
 static WOKEN_PIDS: Lazy<Spinlock<VecDeque<Pid>>> = Lazy::new(|| Spinlock::new(VecDeque::new()));
 
+pub(super) fn add(p: Process) {
+    MANAGER.lock().add(p);
+}
+
+pub(super) fn handle_running_mut<T, U>(f: T) -> U
+where
+    T: FnOnce(&mut Process) -> U,
+{
+    lock_manager().handle_running_mut(f)
+}
+
+pub(super) fn handle_mut<T, U>(pid: Pid, f: T) -> U
+where
+    T: FnOnce(&mut Process) -> U,
+{
+    lock_manager().handle_mut(pid, f)
+}
+
+pub(super) fn handle_running<T, U>(f: T) -> U
+where
+    T: FnOnce(&Process) -> U,
+{
+    lock_manager().handle_running(f)
+}
+
+pub(super) fn handle<T, U>(pid: Pid, f: T) -> U
+where
+    T: FnOnce(&Process) -> U,
+{
+    lock_manager().handle(pid, f)
+}
+
+pub(super) fn change_active_pid() {
+    lock_queue().rotate_left(1);
+}
+
+pub(super) fn active_pid() -> Pid {
+    lock_queue()[0]
+}
+
+pub(super) fn pop() -> Pid {
+    lock_queue()
+        .pop_front()
+        .expect("All processes are terminated.")
+}
+
+pub(super) fn push(id: Pid) {
+    lock_queue().push_back(id);
+}
+
 struct Manager {
     processes: BTreeMap<Pid, Process>,
 }
@@ -69,61 +119,10 @@ impl Manager {
         f(p)
     }
 }
-
-pub(super) fn add(p: Process) {
-    MANAGER.lock().add(p);
-}
-
-pub(super) fn handle_running_mut<T, U>(f: T) -> U
-where
-    T: FnOnce(&mut Process) -> U,
-{
-    lock_manager().handle_running_mut(f)
-}
-
-pub(super) fn handle_mut<T, U>(pid: Pid, f: T) -> U
-where
-    T: FnOnce(&mut Process) -> U,
-{
-    lock_manager().handle_mut(pid, f)
-}
-
-pub(super) fn handle_running<T, U>(f: T) -> U
-where
-    T: FnOnce(&Process) -> U,
-{
-    lock_manager().handle_running(f)
-}
-
-pub(super) fn handle<T, U>(pid: Pid, f: T) -> U
-where
-    T: FnOnce(&Process) -> U,
-{
-    lock_manager().handle(pid, f)
-}
-
 fn lock_manager() -> SpinlockGuard<'static, Manager> {
     MANAGER
         .try_lock()
         .expect("Failed to acquire the lock of `PROCESSES`.")
-}
-
-pub(super) fn change_active_pid() {
-    lock_queue().rotate_left(1);
-}
-
-pub(super) fn active_pid() -> Pid {
-    lock_queue()[0]
-}
-
-pub(super) fn pop() -> Pid {
-    lock_queue()
-        .pop_front()
-        .expect("All processes are terminated.")
-}
-
-pub(super) fn push(id: Pid) {
-    lock_queue().push_back(id);
 }
 
 fn lock_queue() -> SpinlockGuard<'static, VecDeque<Pid>> {
