@@ -7,6 +7,9 @@ use {
 
 static PROCESSES: Spinlock<BTreeMap<process::Pid, Process>> = Spinlock::new(BTreeMap::new());
 
+static WOKEN_PIDS: Lazy<Spinlock<VecDeque<process::Pid>>> =
+    Lazy::new(|| Spinlock::new(VecDeque::new()));
+
 pub(in crate::process) fn add(p: Process) {
     let id = p.id();
     let r = PROCESSES.lock().insert(id, p);
@@ -56,9 +59,6 @@ fn lock_processes() -> SpinlockGuard<'static, BTreeMap<process::Pid, Process>> {
         .try_lock()
         .expect("Failed to acquire the lock of `PROCESSES`.")
 }
-
-static WOKEN_PIDS: Lazy<Spinlock<VecDeque<process::Pid>>> =
-    Lazy::new(|| Spinlock::new(VecDeque::new()));
 
 pub(in crate::process) fn change_active_pid() {
     lock_queue().rotate_left(1);
