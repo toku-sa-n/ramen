@@ -1,9 +1,7 @@
-use super::manager;
-
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{get_slot_id, Pid, ReceiveFrom},
+    super::{get_slot_id, manager, Pid, ReceiveFrom},
     crate::{mem, mem::accessor::Single},
     mem::paging::pml4::PML4,
     message::Message,
