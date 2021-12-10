@@ -1,5 +1,5 @@
 use {
-    super::{get_slot_id, manager, Pid, ReceiveFrom},
+    super::{get_slot_id, Pid, ReceiveFrom},
     crate::{
         mem::{self, accessor::Single},
         process::Process,
@@ -211,7 +211,7 @@ impl<'a> Sender<'a> {
             p.msg_ptr = None;
             p.receive_from = None;
         });
-        manager::push(self.to);
+        push(self.to);
     }
 
     fn set_msg_buf_and_sleep(&mut self) {
@@ -320,7 +320,7 @@ impl<'a> Receiver<'a> {
             p.msg_ptr = None;
             p.send_to = None;
         });
-        manager::push(src_pid);
+        push(src_pid);
     }
 
     fn set_msg_buf_and_sleep(&mut self) {
