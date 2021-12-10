@@ -7,7 +7,7 @@ use {
     spinning_top::{Spinlock, SpinlockGuard},
 };
 
-static PROCESSES: Spinlock<Manager> = Spinlock::new(Manager::new());
+static MANAGER: Spinlock<Manager> = Spinlock::new(Manager::new());
 
 static WOKEN_PIDS: Lazy<Spinlock<VecDeque<Pid>>> = Lazy::new(|| Spinlock::new(VecDeque::new()));
 
@@ -71,7 +71,7 @@ impl Manager {
 }
 
 pub(super) fn add(p: Process) {
-    PROCESSES.lock().add(p);
+    MANAGER.lock().add(p);
 }
 
 pub(super) fn handle_running_mut<T, U>(f: T) -> U
@@ -103,7 +103,7 @@ where
 }
 
 fn lock_manager() -> SpinlockGuard<'static, Manager> {
-    PROCESSES
+    MANAGER
         .try_lock()
         .expect("Failed to acquire the lock of `PROCESSES`.")
 }
