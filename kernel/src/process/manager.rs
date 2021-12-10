@@ -78,31 +78,31 @@ pub(super) fn handle_running_mut<T, U>(f: T) -> U
 where
     T: FnOnce(&mut Process) -> U,
 {
-    lock_processes().handle_running_mut(f)
+    lock_manager().handle_running_mut(f)
 }
 
 pub(super) fn handle_mut<T, U>(pid: Pid, f: T) -> U
 where
     T: FnOnce(&mut Process) -> U,
 {
-    lock_processes().handle_mut(pid, f)
+    lock_manager().handle_mut(pid, f)
 }
 
 pub(super) fn handle_running<T, U>(f: T) -> U
 where
     T: FnOnce(&Process) -> U,
 {
-    lock_processes().handle_running(f)
+    lock_manager().handle_running(f)
 }
 
 pub(super) fn handle<T, U>(pid: Pid, f: T) -> U
 where
     T: FnOnce(&Process) -> U,
 {
-    lock_processes().handle(pid, f)
+    lock_manager().handle(pid, f)
 }
 
-fn lock_processes() -> SpinlockGuard<'static, Manager> {
+fn lock_manager() -> SpinlockGuard<'static, Manager> {
     PROCESSES
         .try_lock()
         .expect("Failed to acquire the lock of `PROCESSES`.")
