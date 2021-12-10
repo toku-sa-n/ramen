@@ -5,7 +5,7 @@ use {
         collections::{self, woken_pid},
         Process,
     },
-    crate::{tests, tss},
+    crate::tests,
     x86_64::{registers::control::Cr3, VirtAddr},
 };
 
@@ -16,7 +16,6 @@ pub(crate) fn switch() -> VirtAddr {
 
     change_current_process();
     switch_pml4();
-    register_current_stack_frame_with_tss();
     current_stack_frame_top_addr()
 }
 
@@ -32,14 +31,6 @@ fn switch_pml4() {
     unsafe { Cr3::write(pml4, f) }
 }
 
-fn register_current_stack_frame_with_tss() {
-    tss::set_interrupt_stack(current_stack_frame_bottom_addr());
-}
-
 fn current_stack_frame_top_addr() -> VirtAddr {
     collections::process::handle_running(Process::stack_frame_top_addr)
-}
-
-fn current_stack_frame_bottom_addr() -> VirtAddr {
-    collections::process::handle_running(Process::stack_frame_bottom_addr)
 }

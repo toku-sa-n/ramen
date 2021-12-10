@@ -175,11 +175,6 @@ impl Process {
         self.stack_frame.virt_addr()
     }
 
-    fn stack_frame_bottom_addr(&self) -> VirtAddr {
-        let b = self.stack_frame.bytes();
-        self.stack_frame_top_addr() + b.as_usize()
-    }
-
     fn generate_kernel_stack() -> KpBox<UnsafeCell<[u8; Self::STACK_SIZE]>> {
         UnsafeCell::new([0; Self::STACK_SIZE]).into()
     }
