@@ -6,7 +6,6 @@ mod manager;
 mod page_table;
 mod pid;
 mod stack_frame;
-pub(crate) mod switch;
 
 use {
     crate::{mem::allocator::kpbox::KpBox, tss},
@@ -19,7 +18,7 @@ use {
         PhysAddr, VirtAddr,
     },
 };
-pub(crate) use {exit::exit_process, pid::Pid, switch::switch};
+pub(crate) use {exit::exit_process, manager::switch, pid::Pid};
 
 pub(super) fn from_function(entry: fn(), name: &'static str) {
     let entry = VirtAddr::new((entry as usize).try_into().unwrap());

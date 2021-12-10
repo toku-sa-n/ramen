@@ -1,8 +1,9 @@
 use {
-    super::{get_slot_id, Pid, ReceiveFrom},
+    super::{get_slot_id, manager, Pid, ReceiveFrom},
     crate::{
         mem::{self, accessor::Single},
         process::Process,
+        tests, tss,
     },
     alloc::collections::{BTreeMap, VecDeque},
     conquer_once::spin::Lazy,
@@ -10,6 +11,7 @@ use {
     message::Message,
     spinning_top::{Spinlock, SpinlockGuard},
     x86_64::{
+        registers::control::Cr3,
         structures::paging::{PhysFrame, Translate},
         PhysAddr, VirtAddr,
     },
@@ -71,6 +73,33 @@ pub(super) fn pop() -> Pid {
 
 pub(super) fn push(id: Pid) {
     lock_queue().push_back(id);
+}
+
+pub(crate) fn switch() -> VirtAddr {
+    if cfg!(feature = "qemu_test") {
+        tests::process::count_switch();
+    }
+
+    change_current_process();
+    switch_pml4();
+    register_current_stack_frame_with_tss();
+    manager::current_stack_frame_top_addr()
+}
+
+fn change_current_process() {
+    manager::change_active_pid();
+}
+
+fn switch_pml4() {
+    let (_, f) = Cr3::read();
+    let pml4 = manager::current_pml4();
+
+    // SAFETY: The PML4 frame is correct one and flags are unchanged.
+    unsafe { Cr3::write(pml4, f) }
+}
+
+fn register_current_stack_frame_with_tss() {
+    tss::set_interrupt_stack(manager::current_stack_frame_bottom_addr());
 }
 
 struct Manager {
