@@ -18,7 +18,7 @@ use {
     },
 };
 
-static MANAGER: Spinlock<Manager> = Spinlock::new(Manager::new());
+static SCHEDULER: Spinlock<Scheduler> = Spinlock::new(Scheduler::new());
 
 pub(crate) fn send(msg: VirtAddr, to: Pid) {
     lock_manager().send(msg, to);
@@ -79,12 +79,12 @@ fn cause_timer_interrupt() -> ! {
     unreachable!();
 }
 
-struct Manager {
+struct Scheduler {
     processes: BTreeMap<Pid, Process>,
 
     woken_pids: Vec<Pid>,
 }
-impl Manager {
+impl Scheduler {
     const fn new() -> Self {
         Self {
             processes: BTreeMap::new(),
@@ -192,19 +192,19 @@ impl Manager {
     }
 }
 
-fn lock_manager() -> SpinlockGuard<'static, Manager> {
-    MANAGER
+fn lock_manager() -> SpinlockGuard<'static, Scheduler> {
+    SCHEDULER
         .try_lock()
         .expect("Failed to acquire the lock of `PROCESSES`.")
 }
 
 struct Sender<'a> {
-    manager: &'a mut Manager,
+    manager: &'a mut Scheduler,
     msg: PhysAddr,
     to: Pid,
 }
 impl<'a> Sender<'a> {
-    fn new(manager: &'a mut Manager, msg: VirtAddr, to: Pid) -> Self {
+    fn new(manager: &'a mut Scheduler, msg: VirtAddr, to: Pid) -> Self {
         assert_ne!(manager.active_pid(), to, "Tried to send a message to self.");
 
         let msg = virt_to_phys(msg);
@@ -289,12 +289,12 @@ impl<'a> Sender<'a> {
 }
 
 struct Receiver<'a> {
-    manager: &'a mut Manager,
+    manager: &'a mut Scheduler,
     msg_buf: PhysAddr,
     from: ReceiveFrom,
 }
 impl<'a> Receiver<'a> {
-    fn new_from_any(manager: &'a mut Manager, msg_buf: VirtAddr) -> Self {
+    fn new_from_any(manager: &'a mut Scheduler, msg_buf: VirtAddr) -> Self {
         let msg_buf = virt_to_phys(msg_buf);
 
         Self {
@@ -304,7 +304,7 @@ impl<'a> Receiver<'a> {
         }
     }
 
-    fn new_from(manager: &'a mut Manager, msg_buf: VirtAddr, from: Pid) -> Self {
+    fn new_from(manager: &'a mut Scheduler, msg_buf: VirtAddr, from: Pid) -> Self {
         assert_ne!(
             manager.active_pid(),
             from,
@@ -393,7 +393,7 @@ impl<'a> Receiver<'a> {
     }
 }
 
-struct Switcher<'a>(&'a mut Manager);
+struct Switcher<'a>(&'a mut Scheduler);
 impl<'a> Switcher<'a> {
     fn switch(self) -> VirtAddr {
         if cfg!(feature = "qemu_test") {
