@@ -13,7 +13,7 @@ extern "C" fn h_20() -> u64 {
 #[no_mangle]
 extern "C" fn h_80() -> u64 {
     let v = unsafe { syscall_prepare_arguments() };
-    process::manager::assign_to_rax(v);
+    process::scheduler::assign_to_rax(v);
     local::end_of_interrupt();
     process::switch().as_u64()
 }

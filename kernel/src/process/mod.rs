@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 pub(crate) mod ipc;
-pub(crate) mod manager;
 mod page_table;
 mod pid;
+pub(crate) mod scheduler;
 mod stack_frame;
 
 use {
@@ -17,8 +17,8 @@ use {
     },
 };
 pub(crate) use {
-    manager::{exit_process, switch},
     pid::Pid,
+    scheduler::{exit_process, switch},
 };
 
 pub(super) fn from_function(entry: fn(), name: &'static str) {
@@ -33,8 +33,8 @@ pub(super) fn binary(name: &'static str, p: Privilege) {
 fn push_process_to_queue(p: Process) {
     let pid = p.id();
 
-    manager::push(pid);
-    manager::add(p);
+    scheduler::push(pid);
+    scheduler::add(p);
 }
 
 pub(super) fn loader(f: fn()) -> ! {
