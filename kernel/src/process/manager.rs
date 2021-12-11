@@ -53,7 +53,7 @@ pub(super) fn current_stack_frame_bottom_addr() -> VirtAddr {
     lock_manager().current_stack_frame_bottom_addr()
 }
 
-pub(super) fn assign_to_rax(rax: u64) {
+pub(crate) fn assign_to_rax(rax: u64) {
     lock_manager().assign_to_rax(rax);
 }
 

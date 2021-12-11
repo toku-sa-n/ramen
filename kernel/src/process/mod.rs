@@ -2,7 +2,7 @@
 
 mod exit;
 pub(crate) mod ipc;
-mod manager;
+pub(crate) mod manager;
 mod page_table;
 mod pid;
 mod stack_frame;
@@ -57,10 +57,6 @@ fn add_process(p: Process) {
 pub(super) fn loader(f: fn()) -> ! {
     f();
     syscalls::exit();
-}
-
-pub(crate) fn assign_to_rax(rax: u64) {
-    manager::assign_to_rax(rax);
 }
 
 fn set_temporary_stack_frame() {
