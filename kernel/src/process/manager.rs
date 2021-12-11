@@ -46,14 +46,7 @@ pub(crate) fn exit_process() -> ! {
 }
 
 pub(crate) fn switch() -> VirtAddr {
-    if cfg!(feature = "qemu_test") {
-        tests::process::count_switch();
-    }
-
-    change_current_process();
-    switch_pml4();
-    register_current_stack_frame_with_tss();
-    current_stack_frame_top_addr()
+    lock_manager().switch()
 }
 
 pub(crate) fn current_process_name() -> &'static str {
@@ -62,22 +55,6 @@ pub(crate) fn current_process_name() -> &'static str {
 
 pub(super) fn add(p: Process) {
     lock_manager().add(p);
-}
-
-pub(super) fn current_pml4() -> PhysFrame {
-    lock_manager().current_pml4()
-}
-
-pub(super) fn current_stack_frame_top_addr() -> VirtAddr {
-    lock_manager().current_stack_frame_top_addr()
-}
-
-pub(super) fn current_stack_frame_bottom_addr() -> VirtAddr {
-    lock_manager().current_stack_frame_bottom_addr()
-}
-
-pub(super) fn change_active_pid() {
-    lock_manager().change_active_pid();
 }
 
 pub(super) fn pop() -> Pid {
@@ -94,22 +71,6 @@ fn cause_timer_interrupt() -> ! {
     }
 
     unreachable!();
-}
-
-fn change_current_process() {
-    change_active_pid();
-}
-
-fn switch_pml4() {
-    let (_, f) = Cr3::read();
-    let pml4 = current_pml4();
-
-    // SAFETY: The PML4 frame is correct one and flags are unchanged.
-    unsafe { Cr3::write(pml4, f) }
-}
-
-fn register_current_stack_frame_with_tss() {
-    tss::set_interrupt_stack(current_stack_frame_bottom_addr());
 }
 
 struct Manager {
@@ -160,6 +121,10 @@ impl Manager {
 
     fn receive_from(&mut self, msg_buf: VirtAddr, from: Pid) {
         Receiver::new_from(self, msg_buf, from).receive();
+    }
+
+    fn switch(&mut self) -> VirtAddr {
+        Switcher(self).switch()
     }
 
     fn current_process_name(&self) -> &'static str {
@@ -419,6 +384,36 @@ impl<'a> Receiver<'a> {
     fn mark_as_receiving(&mut self) {
         self.manager
             .handle_running_mut(|p| p.receive_from = Some(self.from));
+    }
+}
+
+struct Switcher<'a>(&'a mut Manager);
+impl<'a> Switcher<'a> {
+    fn switch(self) -> VirtAddr {
+        if cfg!(feature = "qemu_test") {
+            tests::process::count_switch();
+        }
+
+        self.0.change_active_pid();
+        self.switch_pml4();
+        self.register_current_stack_frame_with_tss();
+        self.current_stack_frame_top_addr()
+    }
+
+    fn switch_pml4(&self) {
+        let (_, f) = Cr3::read();
+        let pml4 = self.0.current_pml4();
+
+        // SAFETY: The PML4 frame is correct one and flags are unchanged.
+        unsafe { Cr3::write(pml4, f) }
+    }
+
+    fn register_current_stack_frame_with_tss(&self) {
+        tss::set_interrupt_stack(self.0.current_stack_frame_bottom_addr());
+    }
+
+    pub(super) fn current_stack_frame_top_addr(&self) -> VirtAddr {
+        self.0.current_stack_frame_top_addr()
     }
 }
 
