@@ -394,7 +394,7 @@ impl<'a> Receiver<'a> {
 }
 
 struct Switcher<'a>(&'a mut Scheduler);
-impl<'a> Switcher<'a> {
+impl Switcher<'_> {
     fn switch(self) -> VirtAddr {
         if cfg!(feature = "qemu_test") {
             tests::process::count_switch();
