@@ -37,6 +37,17 @@ pub(crate) fn assign_to_rax(rax: u64) {
     lock_manager().assign_to_rax(rax);
 }
 
+pub(crate) fn switch() -> VirtAddr {
+    if cfg!(feature = "qemu_test") {
+        tests::process::count_switch();
+    }
+
+    change_current_process();
+    switch_pml4();
+    register_current_stack_frame_with_tss();
+    current_stack_frame_top_addr()
+}
+
 pub(super) fn add(p: Process) {
     lock_manager().add(p);
 }
@@ -73,17 +84,6 @@ pub(super) fn pop() -> Pid {
 
 pub(super) fn push(id: Pid) {
     lock_queue().push_back(id);
-}
-
-pub(crate) fn switch() -> VirtAddr {
-    if cfg!(feature = "qemu_test") {
-        tests::process::count_switch();
-    }
-
-    change_current_process();
-    switch_pml4();
-    register_current_stack_frame_with_tss();
-    current_stack_frame_top_addr()
 }
 
 fn change_current_process() {
