@@ -140,7 +140,7 @@ fn sys_receive_from(m: VirtAddr, from: Pid) -> u64 {
 }
 
 unsafe fn sys_panic(i: *const PanicInfo<'_>) -> ! {
-    let name = process::current_name();
+    let name = process::scheduler::current_process_name();
 
     // SAFETY: The caller must ensure that `i` is the correct pointer to the panic information.
     panic!("The process {} paniced: {}", name, unsafe { &*i });

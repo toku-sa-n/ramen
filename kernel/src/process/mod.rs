@@ -1,25 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod collections;
-mod exit;
 pub(crate) mod ipc;
 mod page_table;
 mod pid;
+pub(crate) mod scheduler;
 mod stack_frame;
-pub(crate) mod switch;
 
 use {
-    crate::{mem::allocator::kpbox::KpBox, tss},
+    crate::mem::allocator::kpbox::KpBox,
     alloc::collections::VecDeque,
     core::convert::TryInto,
-    predefined_mmap::INTERRUPT_STACK,
     stack_frame::StackFrame,
     x86_64::{
         structures::paging::{PageSize, PhysFrame, Size4KiB},
         PhysAddr, VirtAddr,
     },
 };
-pub(crate) use {exit::exit_process, pid::Pid, switch::switch};
+pub(crate) use {
+    pid::Pid,
+    scheduler::{exit_process, switch},
+};
 
 pub(super) fn from_function(entry: fn(), name: &'static str) {
     let entry = VirtAddr::new((entry as usize).try_into().unwrap());
@@ -30,42 +30,16 @@ pub(super) fn binary(name: &'static str, p: Privilege) {
     push_process_to_queue(Process::binary(name, p));
 }
 
-pub(crate) fn current_name() -> &'static str {
-    collections::process::handle_running(|p| p.name)
-}
-
-fn get_slot_id() -> i32 {
-    collections::woken_pid::active_pid()
-}
-
-fn block_running() {
-    collections::woken_pid::pop();
-}
-
 fn push_process_to_queue(p: Process) {
-    add_pid(p.id());
-    add_process(p);
-}
+    let pid = p.id();
 
-fn add_pid(id: Pid) {
-    collections::woken_pid::push(id);
-}
-
-fn add_process(p: Process) {
-    collections::process::add(p);
+    scheduler::push(pid);
+    scheduler::add(p);
 }
 
 pub(super) fn loader(f: fn()) -> ! {
     f();
     syscalls::exit();
-}
-
-pub(crate) fn assign_to_rax(rax: u64) {
-    collections::process::handle_running_mut(|p| (*p.stack_frame).regs.rax = rax);
-}
-
-fn set_temporary_stack_frame() {
-    tss::set_interrupt_stack(*INTERRUPT_STACK);
 }
 
 #[derive(Debug)]
