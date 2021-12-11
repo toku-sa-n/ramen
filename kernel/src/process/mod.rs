@@ -33,10 +33,6 @@ pub(crate) fn current_name() -> &'static str {
     manager::current_process_name()
 }
 
-fn block_running() {
-    manager::pop();
-}
-
 fn push_process_to_queue(p: Process) {
     add_pid(p.id());
     add_process(p);

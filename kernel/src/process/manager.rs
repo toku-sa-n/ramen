@@ -5,8 +5,7 @@ use {
         process::Process,
         tests, tss,
     },
-    alloc::collections::{BTreeMap, VecDeque},
-    conquer_once::spin::Lazy,
+    alloc::{collections::BTreeMap, vec::Vec},
     mem::paging::pml4::PML4,
     message::Message,
     spinning_top::{Spinlock, SpinlockGuard},
@@ -18,8 +17,6 @@ use {
 };
 
 static MANAGER: Spinlock<Manager> = Spinlock::new(Manager::new());
-
-static WOKEN_PIDS: Lazy<Spinlock<VecDeque<Pid>>> = Lazy::new(|| Spinlock::new(VecDeque::new()));
 
 pub(crate) fn send(msg: VirtAddr, to: Pid) {
     lock_manager().send(msg, to);
@@ -69,21 +66,15 @@ pub(super) fn current_stack_frame_bottom_addr() -> VirtAddr {
 }
 
 pub(super) fn change_active_pid() {
-    lock_queue().rotate_left(1);
-}
-
-pub(super) fn active_pid() -> Pid {
-    lock_queue()[0]
+    lock_manager().change_active_pid();
 }
 
 pub(super) fn pop() -> Pid {
-    lock_queue()
-        .pop_front()
-        .expect("All processes are terminated.")
+    lock_manager().pop()
 }
 
-pub(super) fn push(id: Pid) {
-    lock_queue().push_back(id);
+pub(super) fn push(pid: Pid) {
+    lock_manager().push(pid);
 }
 
 fn change_current_process() {
@@ -104,11 +95,15 @@ fn register_current_stack_frame_with_tss() {
 
 struct Manager {
     processes: BTreeMap<Pid, Process>,
+
+    woken_pids: Vec<Pid>,
 }
 impl Manager {
     const fn new() -> Self {
         Self {
             processes: BTreeMap::new(),
+
+            woken_pids: Vec::new(),
         }
     }
 
@@ -118,6 +113,22 @@ impl Manager {
         let r = self.processes.insert(pid, p);
 
         assert!(r.is_none(), "Duplicated process with PID {}.", pid);
+    }
+
+    fn push(&mut self, pid: Pid) {
+        self.woken_pids.push(pid);
+    }
+
+    fn pop(&mut self) -> Pid {
+        self.woken_pids.remove(0)
+    }
+
+    fn active_pid(&self) -> Pid {
+        self.woken_pids[0]
+    }
+
+    fn change_active_pid(&mut self) {
+        self.woken_pids.rotate_left(1);
     }
 
     fn send(&mut self, msg: VirtAddr, to: Pid) {
@@ -156,7 +167,7 @@ impl Manager {
     where
         T: FnOnce(&Process) -> U,
     {
-        self.handle(active_pid(), f)
+        self.handle(self.active_pid(), f)
     }
 
     fn handle<T, U>(&self, pid: Pid, f: T) -> U
@@ -175,9 +186,7 @@ impl Manager {
     where
         T: FnOnce(&mut Process) -> U,
     {
-        let pid = active_pid();
-
-        self.handle_mut(pid, f)
+        self.handle_mut(self.active_pid(), f)
     }
 
     fn handle_mut<T, U>(&mut self, pid: Pid, f: T) -> U
@@ -199,12 +208,6 @@ fn lock_manager() -> SpinlockGuard<'static, Manager> {
         .expect("Failed to acquire the lock of `PROCESSES`.")
 }
 
-fn lock_queue() -> SpinlockGuard<'static, VecDeque<Pid>> {
-    WOKEN_PIDS
-        .try_lock()
-        .expect("Failed to acquire the lock of `WOKEN_PIDS`.")
-}
-
 struct Sender<'a> {
     manager: &'a mut Manager,
     msg: PhysAddr,
@@ -212,7 +215,7 @@ struct Sender<'a> {
 }
 impl<'a> Sender<'a> {
     fn new(manager: &'a mut Manager, msg: VirtAddr, to: Pid) -> Self {
-        assert_ne!(active_pid(), to, "Tried to send a message to self.");
+        assert_ne!(manager.active_pid(), to, "Tried to send a message to self.");
 
         let msg = virt_to_phys(msg);
 
@@ -229,7 +232,11 @@ impl<'a> Sender<'a> {
 
     fn is_receiver_waiting(&self) -> bool {
         self.manager.handle(self.to, |p| {
-            [Some(ReceiveFrom::Id(active_pid())), Some(ReceiveFrom::Any)].contains(&p.receive_from)
+            [
+                Some(ReceiveFrom::Id(self.manager.active_pid())),
+                Some(ReceiveFrom::Any),
+            ]
+            .contains(&p.receive_from)
         })
     }
 
@@ -243,7 +250,7 @@ impl<'a> Sender<'a> {
         let dst = self.manager.handle(self.to, |p| p.msg_ptr);
         let dst = dst.expect("Message destination address is not specified.");
 
-        unsafe { copy_msg(self.msg, dst, active_pid()) }
+        unsafe { copy_msg(self.msg, dst, self.manager.active_pid()) }
     }
 
     fn remove_msg_buf(&mut self) {
@@ -258,14 +265,14 @@ impl<'a> Sender<'a> {
             p.msg_ptr = None;
             p.receive_from = None;
         });
-        push(self.to);
+        self.manager.push(self.to);
     }
 
     fn set_msg_buf_and_sleep(&mut self) {
         self.set_msg_buf();
         self.add_self_as_trying_to_send();
         self.mark_as_sending();
-        sleep();
+        self.manager.pop();
     }
 
     fn set_msg_buf(&mut self) {
@@ -279,7 +286,7 @@ impl<'a> Sender<'a> {
     }
 
     fn add_self_as_trying_to_send(&mut self) {
-        let pid = active_pid();
+        let pid = self.manager.active_pid();
         self.manager.handle_mut(self.to, |p| {
             p.pids_try_to_send_this_process.push_back(pid);
         });
@@ -308,7 +315,11 @@ impl<'a> Receiver<'a> {
     }
 
     fn new_from(manager: &'a mut Manager, msg_buf: VirtAddr, from: Pid) -> Self {
-        assert_ne!(active_pid(), from, "Tried to receive a message from self.");
+        assert_ne!(
+            manager.active_pid(),
+            from,
+            "Tried to receive a message from self."
+        );
 
         let msg_buf = virt_to_phys(msg_buf);
 
@@ -367,13 +378,13 @@ impl<'a> Receiver<'a> {
             p.msg_ptr = None;
             p.send_to = None;
         });
-        push(src_pid);
+        self.manager.push(src_pid);
     }
 
     fn set_msg_buf_and_sleep(&mut self) {
         self.set_msg_buf();
         self.mark_as_receiving();
-        sleep();
+        self.manager.pop();
     }
 
     fn set_msg_buf(&mut self) {
@@ -410,8 +421,4 @@ fn virt_to_phys(v: VirtAddr) -> PhysAddr {
     PML4.lock()
         .translate_addr(v)
         .expect("Failed to convert a virtual address to physical one.")
-}
-
-fn sleep() {
-    super::block_running();
 }
