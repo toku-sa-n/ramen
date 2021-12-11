@@ -192,12 +192,6 @@ impl Scheduler {
     }
 }
 
-fn lock_manager() -> SpinlockGuard<'static, Scheduler> {
-    SCHEDULER
-        .try_lock()
-        .expect("Failed to acquire the lock of `PROCESSES`.")
-}
-
 struct Sender<'a> {
     manager: &'a mut Scheduler,
     msg: PhysAddr,
@@ -441,4 +435,10 @@ fn virt_to_phys(v: VirtAddr) -> PhysAddr {
     PML4.lock()
         .translate_addr(v)
         .expect("Failed to convert a virtual address to physical one.")
+}
+
+fn lock_manager() -> SpinlockGuard<'static, Scheduler> {
+    SCHEDULER
+        .try_lock()
+        .expect("Failed to acquire the lock of `PROCESSES`.")
 }
