@@ -336,6 +336,7 @@ dependencies = [
  "num-traits",
  "os_units",
  "predefined_mmap",
+ "qemu-exit",
  "rgb",
  "spinning_top",
  "syscalls",
@@ -498,6 +499,12 @@ checksum = "b9f5105d4fdaab20335ca9565e106a5d9b82b6219b5ba735731124ac6711d23d"
 dependencies = [
  "unicode-xid",
 ]
+
+[[package]]
+name = "qemu-exit"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "220eb94f40665452ab6114bf8a8d86aa1fd41c6dbfaa4ab71b5912c8adb80389"
 
 [[package]]
 name = "quote"
