@@ -32,15 +32,9 @@ pub(super) fn binary(name: &'static str, p: Privilege) {
 }
 
 fn push_process_to_queue(p: Process) {
-    add_pid(p.id());
-    add_process(p);
-}
+    let pid = p.id();
 
-fn add_pid(id: Pid) {
-    manager::push(id);
-}
-
-fn add_process(p: Process) {
+    manager::push(pid);
     manager::add(p);
 }
 
