@@ -5,10 +5,7 @@ use {
         process::Process,
         tests, tss,
     },
-    alloc::{
-        collections::{BTreeMap, VecDeque},
-        vec::Vec,
-    },
+    alloc::collections::{BTreeMap, VecDeque},
     conquer_once::spin::Lazy,
     mem::paging::pml4::PML4,
     message::Message,
@@ -36,10 +33,6 @@ pub(crate) fn receive_from(msg_buf: VirtAddr, from: Pid) {
     lock_manager().receive_from(msg_buf, from);
 }
 
-pub(crate) fn assign_to_rax(rax: u64) {
-    lock_manager().assign_to_rax(rax);
-}
-
 pub(super) fn add(p: Process) {
     lock_manager().add(p);
 }
@@ -58,6 +51,10 @@ pub(super) fn current_stack_frame_top_addr() -> VirtAddr {
 
 pub(super) fn current_stack_frame_bottom_addr() -> VirtAddr {
     lock_manager().current_stack_frame_bottom_addr()
+}
+
+pub(crate) fn assign_to_rax(rax: u64) {
+    lock_manager().assign_to_rax(rax);
 }
 
 pub(super) fn change_active_pid() {
@@ -107,15 +104,11 @@ fn register_current_stack_frame_with_tss() {
 
 struct Manager {
     processes: BTreeMap<Pid, Process>,
-
-    woken_pids: Vec<Pid>,
 }
 impl Manager {
     const fn new() -> Self {
         Self {
             processes: BTreeMap::new(),
-
-            woken_pids: Vec::new(),
         }
     }
 
