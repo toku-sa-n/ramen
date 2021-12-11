@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use x86_64::software_interrupt;
-
-use super::manager;
+use {super::manager, x86_64::software_interrupt};
 
 pub(crate) fn exit_process() -> ! {
     super::set_temporary_stack_frame();
