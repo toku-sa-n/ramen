@@ -7,10 +7,9 @@ mod pid;
 mod stack_frame;
 
 use {
-    crate::{mem::allocator::kpbox::KpBox, tss},
+    crate::mem::allocator::kpbox::KpBox,
     alloc::collections::VecDeque,
     core::convert::TryInto,
-    predefined_mmap::INTERRUPT_STACK,
     stack_frame::StackFrame,
     x86_64::{
         structures::paging::{PageSize, PhysFrame, Size4KiB},
@@ -41,10 +40,6 @@ fn push_process_to_queue(p: Process) {
 pub(super) fn loader(f: fn()) -> ! {
     f();
     syscalls::exit();
-}
-
-fn set_temporary_stack_frame() {
-    tss::set_interrupt_stack(*INTERRUPT_STACK);
 }
 
 #[derive(Debug)]

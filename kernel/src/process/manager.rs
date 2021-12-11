@@ -8,6 +8,7 @@ use {
     alloc::{collections::BTreeMap, vec::Vec},
     mem::paging::pml4::PML4,
     message::Message,
+    predefined_mmap::INTERRUPT_STACK,
     spinning_top::{Spinlock, SpinlockGuard},
     x86_64::{
         registers::control::Cr3,
@@ -36,7 +37,8 @@ pub(crate) fn assign_to_rax(rax: u64) {
 }
 
 pub(crate) fn exit_process() -> ! {
-    super::set_temporary_stack_frame();
+    set_temporary_stack_frame();
+
     // TODO: Call this. Currently this calling will cause a panic because the `KBox` is not mapped
     // to this process.
     // super::collections::process::remove(super::manager::getpid().into());
@@ -63,6 +65,10 @@ pub(super) fn pop() -> Pid {
 
 pub(super) fn push(pid: Pid) {
     lock_manager().push(pid);
+}
+
+fn set_temporary_stack_frame() {
+    tss::set_interrupt_stack(*INTERRUPT_STACK);
 }
 
 fn cause_timer_interrupt() -> ! {
