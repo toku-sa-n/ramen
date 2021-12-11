@@ -1,5 +1,5 @@
 use {
-    super::{get_slot_id, Pid, ReceiveFrom},
+    super::{Pid, ReceiveFrom},
     crate::{
         mem::{self, accessor::Single},
         process::Process,
@@ -212,7 +212,7 @@ struct Sender<'a> {
 }
 impl<'a> Sender<'a> {
     fn new(manager: &'a mut Manager, msg: VirtAddr, to: Pid) -> Self {
-        assert_ne!(get_slot_id(), to, "Tried to send a message to self.");
+        assert_ne!(active_pid(), to, "Tried to send a message to self.");
 
         let msg = virt_to_phys(msg);
 
@@ -229,7 +229,7 @@ impl<'a> Sender<'a> {
 
     fn is_receiver_waiting(&self) -> bool {
         self.manager.handle(self.to, |p| {
-            [Some(ReceiveFrom::Id(get_slot_id())), Some(ReceiveFrom::Any)].contains(&p.receive_from)
+            [Some(ReceiveFrom::Id(active_pid())), Some(ReceiveFrom::Any)].contains(&p.receive_from)
         })
     }
 
@@ -243,7 +243,7 @@ impl<'a> Sender<'a> {
         let dst = self.manager.handle(self.to, |p| p.msg_ptr);
         let dst = dst.expect("Message destination address is not specified.");
 
-        unsafe { copy_msg(self.msg, dst, get_slot_id()) }
+        unsafe { copy_msg(self.msg, dst, active_pid()) }
     }
 
     fn remove_msg_buf(&mut self) {
@@ -279,7 +279,7 @@ impl<'a> Sender<'a> {
     }
 
     fn add_self_as_trying_to_send(&mut self) {
-        let pid = get_slot_id();
+        let pid = active_pid();
         self.manager.handle_mut(self.to, |p| {
             p.pids_try_to_send_this_process.push_back(pid);
         });
@@ -308,7 +308,7 @@ impl<'a> Receiver<'a> {
     }
 
     fn new_from(manager: &'a mut Manager, msg_buf: VirtAddr, from: Pid) -> Self {
-        assert_ne!(get_slot_id(), from, "Tried to receive a message from self.");
+        assert_ne!(active_pid(), from, "Tried to receive a message from self.");
 
         let msg_buf = virt_to_phys(msg_buf);
 

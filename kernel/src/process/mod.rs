@@ -33,10 +33,6 @@ pub(crate) fn current_name() -> &'static str {
     manager::current_process_name()
 }
 
-fn get_slot_id() -> i32 {
-    manager::active_pid()
-}
-
 fn block_running() {
     manager::pop();
 }
