@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-mod exit;
 pub(crate) mod ipc;
 pub(crate) mod manager;
 mod page_table;
@@ -18,7 +17,10 @@ use {
         PhysAddr, VirtAddr,
     },
 };
-pub(crate) use {exit::exit_process, manager::switch, pid::Pid};
+pub(crate) use {
+    manager::{exit_process, switch},
+    pid::Pid,
+};
 
 pub(super) fn from_function(entry: fn(), name: &'static str) {
     let entry = VirtAddr::new((entry as usize).try_into().unwrap());

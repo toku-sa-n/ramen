@@ -11,6 +11,7 @@ use {
     spinning_top::{Spinlock, SpinlockGuard},
     x86_64::{
         registers::control::Cr3,
+        software_interrupt,
         structures::paging::{PhysFrame, Translate},
         PhysAddr, VirtAddr,
     },
@@ -32,6 +33,16 @@ pub(crate) fn receive_from(msg_buf: VirtAddr, from: Pid) {
 
 pub(crate) fn assign_to_rax(rax: u64) {
     lock_manager().assign_to_rax(rax);
+}
+
+pub(crate) fn exit_process() -> ! {
+    super::set_temporary_stack_frame();
+    // TODO: Call this. Currently this calling will cause a panic because the `KBox` is not mapped
+    // to this process.
+    // super::collections::process::remove(super::manager::getpid().into());
+
+    pop();
+    cause_timer_interrupt();
 }
 
 pub(crate) fn switch() -> VirtAddr {
@@ -75,6 +86,14 @@ pub(super) fn pop() -> Pid {
 
 pub(super) fn push(pid: Pid) {
     lock_manager().push(pid);
+}
+
+fn cause_timer_interrupt() -> ! {
+    unsafe {
+        software_interrupt!(0x20);
+    }
+
+    unreachable!();
 }
 
 fn change_current_process() {
