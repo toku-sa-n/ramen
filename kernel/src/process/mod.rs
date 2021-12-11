@@ -31,10 +31,6 @@ pub(super) fn binary(name: &'static str, p: Privilege) {
     push_process_to_queue(Process::binary(name, p));
 }
 
-pub(crate) fn current_name() -> &'static str {
-    manager::current_process_name()
-}
-
 fn push_process_to_queue(p: Process) {
     add_pid(p.id());
     add_process(p);

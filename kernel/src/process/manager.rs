@@ -56,12 +56,12 @@ pub(crate) fn switch() -> VirtAddr {
     current_stack_frame_top_addr()
 }
 
-pub(super) fn add(p: Process) {
-    lock_manager().add(p);
+pub(crate) fn current_process_name() -> &'static str {
+    lock_manager().current_process_name()
 }
 
-pub(super) fn current_process_name() -> &'static str {
-    lock_manager().current_process_name()
+pub(super) fn add(p: Process) {
+    lock_manager().add(p);
 }
 
 pub(super) fn current_pml4() -> PhysFrame {
