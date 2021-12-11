@@ -33,6 +33,10 @@ pub(crate) fn receive_from(msg_buf: VirtAddr, from: Pid) {
     lock_manager().receive_from(msg_buf, from);
 }
 
+pub(crate) fn assign_to_rax(rax: u64) {
+    lock_manager().assign_to_rax(rax);
+}
+
 pub(super) fn add(p: Process) {
     lock_manager().add(p);
 }
@@ -51,10 +55,6 @@ pub(super) fn current_stack_frame_top_addr() -> VirtAddr {
 
 pub(super) fn current_stack_frame_bottom_addr() -> VirtAddr {
     lock_manager().current_stack_frame_bottom_addr()
-}
-
-pub(crate) fn assign_to_rax(rax: u64) {
-    lock_manager().assign_to_rax(rax);
 }
 
 pub(super) fn change_active_pid() {
