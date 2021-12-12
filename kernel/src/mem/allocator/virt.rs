@@ -1,5 +1,5 @@
 use {
-    crate::mem::paging::pml4,
+    crate::mem::paging,
     core::convert::TryFrom,
     os_units::NumOfPages,
     predefined_mmap::BYTES_AVAILABLE_RAM,
@@ -36,5 +36,5 @@ pub(crate) fn search_free_addr(num_pages: NumOfPages<Size4KiB>) -> Option<VirtAd
 }
 
 fn available(addr: VirtAddr) -> bool {
-    pml4::translate_addr(addr).is_none() && !addr.is_null()
+    paging::translate_addr(addr).is_none() && !addr.is_null()
 }
