@@ -13,7 +13,7 @@ use {
     },
 };
 
-pub(crate) static PML4: Lazy<Spinlock<RecursivePageTable<'_>>> = Lazy::new(|| unsafe {
+static PML4: Lazy<Spinlock<RecursivePageTable<'_>>> = Lazy::new(|| unsafe {
     Spinlock::new(
         (RecursivePageTable::new(&mut *(RECUR_PML4_ADDR.as_mut_ptr())))
             .expect("PML4 has no recursive entry."),
