@@ -1,5 +1,5 @@
 use {
-    crate::mem::{allocator::kpbox::KpBox, paging::pml4},
+    crate::mem::{allocator::kpbox::KpBox, paging},
     alloc::collections::BTreeMap,
     core::{
         convert::{TryFrom, TryInto},
@@ -256,6 +256,6 @@ impl Pml4Creator {
     }
 
     fn map_kernel_area(&mut self) {
-        self.pml4[511] = pml4::level_4_table()[511].clone();
+        self.pml4[511] = paging::level_4_table()[511].clone();
     }
 }

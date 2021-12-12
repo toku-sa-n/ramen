@@ -2,7 +2,7 @@
 #![allow(clippy::type_repetition_in_bounds)]
 
 use {
-    crate::mem::paging::pml4,
+    crate::mem::paging,
     core::{
         convert::TryFrom,
         fmt,
@@ -179,7 +179,7 @@ impl<T: ?Sized> KpBox<T> {
     /// This method panics if the `KpBox` is not mapped.
     #[must_use]
     pub(crate) fn phys_addr(&self) -> PhysAddr {
-        pml4::translate_addr(self.virt).expect("This KpBox is not mapped.")
+        paging::translate_addr(self.virt).expect("This KpBox is not mapped.")
     }
 
     #[must_use]

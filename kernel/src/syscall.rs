@@ -1,6 +1,6 @@
 use {
     crate::{
-        mem::{allocator, paging::pml4},
+        mem::{allocator, paging},
         process::{self, exit_process, Pid},
     },
     core::{convert::TryInto, ffi::c_void, panic::PanicInfo, slice},
@@ -93,7 +93,7 @@ fn sys_exit() -> ! {
 }
 
 fn sys_translate_address(v: VirtAddr) -> PhysAddr {
-    pml4::translate_addr(v).unwrap_or_else(PhysAddr::zero)
+    paging::translate_addr(v).unwrap_or_else(PhysAddr::zero)
 }
 
 /// # Safety

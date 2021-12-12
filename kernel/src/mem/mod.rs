@@ -1,5 +1,4 @@
 use {
-    self::paging::pml4,
     allocator::virt,
     boot_info::mem::MemoryDescriptor,
     core::convert::TryFrom,
@@ -37,7 +36,7 @@ pub(super) fn map_pages(start: PhysAddr, object_size: Bytes) -> VirtAddr {
             PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
 
         unsafe {
-            pml4::map_to(page, frame, flag).unwrap();
+            paging::map_to(page, frame, flag).unwrap();
         }
     }
 
@@ -57,6 +56,6 @@ pub(super) fn unmap_pages(start: VirtAddr, object_size: Bytes) {
         let page =
             Page::<Size4KiB>::containing_address(start_frame_addr + Size4KiB::SIZE * i as u64);
 
-        pml4::unmap(page).unwrap();
+        paging::unmap(page).unwrap();
     }
 }
