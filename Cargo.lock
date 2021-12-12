@@ -20,6 +20,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "aligned_ptr"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5fc5e98d2fade1025ad475e78dbcfd7db6e997f21c6cac8e20e1b530cbac031b"
+
+[[package]]
 name = "approx"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -51,7 +57,6 @@ name = "boot_info"
 version = "0.1.0"
 dependencies = [
  "os_units",
- "predefined_mmap",
  "vek",
  "x86_64",
 ]
@@ -322,6 +327,7 @@ version = "0.3.0"
 dependencies = [
  "accessor",
  "acpi",
+ "aligned_ptr",
  "bit_field",
  "bitflags",
  "boot_info",
