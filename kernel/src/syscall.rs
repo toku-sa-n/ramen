@@ -1,18 +1,13 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 use {
     crate::{
-        mem::{allocator, paging::pml4::PML4},
+        mem::{allocator, paging::pml4},
         process::{self, exit_process, Pid},
     },
     core::{convert::TryInto, ffi::c_void, panic::PanicInfo, slice},
     num_traits::FromPrimitive,
     os_units::{Bytes, NumOfPages},
     terminal::print,
-    x86_64::{
-        structures::paging::{Size4KiB, Translate},
-        PhysAddr, VirtAddr,
-    },
+    x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr},
 };
 
 #[no_mangle]
@@ -98,7 +93,7 @@ fn sys_exit() -> ! {
 }
 
 fn sys_translate_address(v: VirtAddr) -> PhysAddr {
-    PML4.lock().translate_addr(v).unwrap_or_else(PhysAddr::zero)
+    pml4::translate_addr(v).unwrap_or_else(PhysAddr::zero)
 }
 
 /// # Safety
