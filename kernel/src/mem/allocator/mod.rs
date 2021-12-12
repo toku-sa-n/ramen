@@ -3,7 +3,7 @@ use {
     core::convert::TryFrom,
     os_units::NumOfPages,
     x86_64::{
-        structures::paging::{Page, PageSize, Size4KiB},
+        structures::paging::{FrameAllocator, Page, PageSize, PhysFrame, Size4KiB},
         PhysAddr, VirtAddr,
     },
 };
@@ -25,6 +25,10 @@ pub(crate) fn allocate_pages_for_user(num_of_pages: NumOfPages<Size4KiB>) -> Opt
 pub(crate) fn deallocate_pages(virt: VirtAddr, num_of_pages: NumOfPages<Size4KiB>) {
     deallocate_phys(virt);
     deallocate_virt(virt, num_of_pages);
+}
+
+pub(crate) fn allocate_phys_frame() -> Option<PhysFrame> {
+    phys::allocator().allocate_frame()
 }
 
 fn allocate_phys(num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
