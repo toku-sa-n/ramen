@@ -1,9 +1,7 @@
-use crate::mem::paging::pml4;
-
 use {
     super::{Pid, ReceiveFrom},
     crate::{
-        mem::{self, accessor::Single},
+        mem::{self, accessor::Single, paging},
         process::Process,
         tests, tss,
     },
@@ -431,7 +429,7 @@ unsafe fn copy_msg(src: PhysAddr, dst: PhysAddr, sender_slot_id: Pid) {
 }
 
 fn virt_to_phys(v: VirtAddr) -> PhysAddr {
-    pml4::translate_addr(v).expect("Failed to convert a virtual address to physical one.")
+    paging::translate_addr(v).expect("Failed to convert a virtual address to physical one.")
 }
 
 fn lock_manager() -> SpinlockGuard<'static, Scheduler> {
