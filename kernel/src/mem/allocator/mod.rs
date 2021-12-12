@@ -1,9 +1,9 @@
 use {
-    super::paging::{pml4, pml4::PML4},
+    super::paging::pml4,
     core::convert::TryFrom,
     os_units::NumOfPages,
     x86_64::{
-        structures::paging::{Mapper, Page, PageSize, Size4KiB},
+        structures::paging::{Page, PageSize, Size4KiB},
         PhysAddr, VirtAddr,
     },
 };
@@ -40,7 +40,6 @@ fn deallocate_virt(virt: VirtAddr, num_of_pages: NumOfPages<Size4KiB>) {
     for i in 0..u64::try_from(num_of_pages.as_usize()).unwrap() {
         let page = Page::<Size4KiB>::from_start_address(virt + Size4KiB::SIZE * i).unwrap();
 
-        let (_, flush) = PML4.lock().unmap(page).unwrap();
-        flush.flush();
+        pml4::unmap(page).unwrap();
     }
 }
