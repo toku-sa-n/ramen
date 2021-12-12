@@ -65,6 +65,16 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
     - name: Install rust nightly
       uses: actions-rs/toolchain@v1.0.6
       with:
@@ -82,6 +92,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
+    - uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
 
     - name: Install rust nightly
       uses: actions-rs/toolchain@v1.0.6
@@ -106,6 +126,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
+    - uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
 
     - name: Install rust nightly
       uses: actions-rs/toolchain@v1.0.6
