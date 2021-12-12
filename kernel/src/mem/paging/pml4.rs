@@ -3,9 +3,12 @@ use {
     conquer_once::spin::Lazy,
     predefined_mmap::RECUR_PML4_ADDR,
     spinning_top::Spinlock,
-    x86_64::structures::paging::{
-        mapper::{MapToError, MapperFlush, UnmapError},
-        Mapper, Page, PageTableFlags, PhysFrame, RecursivePageTable, Size4KiB,
+    x86_64::{
+        structures::paging::{
+            mapper::{MapToError, MapperFlush, UnmapError},
+            Mapper, Page, PageTableFlags, PhysFrame, RecursivePageTable, Size4KiB, Translate,
+        },
+        PhysAddr, VirtAddr,
     },
 };
 
@@ -37,4 +40,8 @@ pub(crate) fn unmap(page: Page) -> Result<PhysFrame, UnmapError> {
         flush.flush();
         frame
     })
+}
+
+pub(crate) fn translate_addr(a: VirtAddr) -> Option<PhysAddr> {
+    PML4.lock().translate_addr(a)
 }
