@@ -1,11 +1,11 @@
 use {
-    self::paging::{pml4, pml4::PML4},
+    self::paging::pml4,
     allocator::virt,
     boot_info::mem::MemoryDescriptor,
     core::convert::TryFrom,
     os_units::Bytes,
     x86_64::{
-        structures::paging::{Mapper, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
+        structures::paging::{Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
         PhysAddr, VirtAddr,
     },
 };
@@ -57,7 +57,6 @@ pub(super) fn unmap_pages(start: VirtAddr, object_size: Bytes) {
         let page =
             Page::<Size4KiB>::containing_address(start_frame_addr + Size4KiB::SIZE * i as u64);
 
-        let (_, flush) = PML4.lock().unmap(page).unwrap();
-        flush.flush();
+        pml4::unmap(page).unwrap();
     }
 }

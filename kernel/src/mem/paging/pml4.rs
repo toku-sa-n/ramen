@@ -4,7 +4,7 @@ use {
     predefined_mmap::RECUR_PML4_ADDR,
     spinning_top::Spinlock,
     x86_64::structures::paging::{
-        mapper::{MapToError, MapperFlush},
+        mapper::{MapToError, MapperFlush, UnmapError},
         Mapper, Page, PageTableFlags, PhysFrame, RecursivePageTable, Size4KiB,
     },
 };
@@ -30,4 +30,11 @@ pub(crate) unsafe fn map_to(
             .map_to(page, frame, flags, &mut *phys::allocator())
             .map(MapperFlush::flush)
     }
+}
+
+pub(crate) fn unmap(page: Page) -> Result<PhysFrame, UnmapError> {
+    PML4.lock().unmap(page).map(|(frame, flush)| {
+        flush.flush();
+        frame
+    })
 }
