@@ -1,40 +1,22 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+use {predefined_mmap::STACK_BASE, x86_64::VirtAddr};
 
-use predefined_mmap::INIT_RSP;
-
-macro_rules! change_rsp{
-    ($val:expr)=>{
-        unsafe{
-            asm!("mov rsp, {:r}",in(reg) $val,options(nomem,preserves_flags,nostack));
-        }
-    }
+pub fn to_kernel(mut boot_info: boot_info::Info) -> ! {
+    switch_stack_and_call_kernel_code(&mut boot_info, boot_info.entry_addr(), STACK_BASE)
 }
 
-pub fn to_kernel(boot_info: boot_info::Info) -> ! {
-    disable_interruption();
-
-    boot_info.set();
-
-    change_rsp!(INIT_RSP.as_u64());
-
-    let boot_info = boot_info::Info::get();
-
-    let kernel = unsafe {
-        core::mem::transmute::<u64, fn(boot_info::Info) -> !>(boot_info.entry_addr().as_u64())
-    };
-
-    kernel(boot_info)
-}
-
-fn disable_interruption() {
-    // Use `nop` because some machines go wrong when continuously doing `out`.
+#[naked]
+extern "sysv64" fn switch_stack_and_call_kernel_code(
+    boot_info: *mut boot_info::Info,
+    entry: VirtAddr,
+    stack_ptr: VirtAddr,
+) -> ! {
     unsafe {
         asm!(
-            "mov al,0xff
-            out 0x21,al
-            nop
-            out 0xa1,al
-            cli"
+            "
+        mov rsp, rdx
+        jmp rsi
+            ",
+            options(noreturn)
         );
     }
 }
