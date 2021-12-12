@@ -27,6 +27,7 @@ mod tests;
 mod tss;
 
 use {
+    aligned_ptr::ptr,
     interrupt::{apic, idt, timer},
     log::info,
     process::Privilege,
@@ -34,14 +35,17 @@ use {
     x86_64::software_interrupt,
 };
 
+/// # Safety
+///
+/// `boot_info` must point to the correct address.
 #[no_mangle]
-pub extern "win64" fn os_main(mut boot_info: boot_info::Info) -> ! {
-    init(&mut boot_info);
+pub unsafe extern "sysv64" fn os_main(boot_info: *mut boot_info::Info) -> ! {
+    init(unsafe { ptr::get(boot_info) });
     cause_timer_interrupt();
 }
 
-fn init(boot_info: &mut boot_info::Info) {
-    vram::init(boot_info);
+fn init(mut boot_info: boot_info::Info) {
+    vram::init(&boot_info);
 
     terminal::log::init().unwrap();
 
