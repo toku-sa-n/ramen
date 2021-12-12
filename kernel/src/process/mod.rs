@@ -1,5 +1,3 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 pub(crate) mod ipc;
 mod page_table;
 mod pid;
@@ -7,7 +5,7 @@ pub(crate) mod scheduler;
 mod stack_frame;
 
 use {
-    crate::mem::allocator::kpbox::KpBox,
+    crate::mem::{allocator, allocator::kpbox::KpBox},
     alloc::collections::VecDeque,
     core::convert::TryInto,
     stack_frame::StackFrame,
@@ -51,6 +49,8 @@ pub(crate) struct Process {
     stack_frame: KpBox<StackFrame>,
     _binary: Option<KpBox<[u8]>>,
 
+    new_pml4: PhysFrame,
+
     msg_ptr: Option<PhysAddr>,
 
     send_to: Option<Pid>,
@@ -79,6 +79,8 @@ impl Process {
 
         let pml4 = tables.pml4_frame();
 
+        let new_pml4 = allocator::allocate_phys_frame().expect("Failed to allocate a frame.");
+
         Process {
             id: pid::generate(),
             _tables: tables,
@@ -86,6 +88,8 @@ impl Process {
             _stack: stack,
             stack_frame,
             _binary: None,
+
+            new_pml4,
 
             msg_ptr: None,
 
@@ -113,6 +117,8 @@ impl Process {
 
         let pml4 = tables.pml4_frame();
 
+        let new_pml4 = allocator::allocate_phys_frame().expect("Failed to allocate a frame.");
+
         Self {
             id: pid::generate(),
             _tables: tables,
@@ -120,6 +126,8 @@ impl Process {
             _stack: stack,
             stack_frame,
             _binary: Some(content),
+
+            new_pml4,
 
             msg_ptr: None,
 
