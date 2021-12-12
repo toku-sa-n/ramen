@@ -1,15 +1,12 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 use {
+    super::paging::pml4,
     core::convert::TryFrom,
     os_units::NumOfPages,
     x86_64::{
-        structures::paging::{Mapper, Page, PageSize, Size4KiB, Translate},
+        structures::paging::{Page, PageSize, Size4KiB},
         PhysAddr, VirtAddr,
     },
 };
-
-use super::paging::pml4::PML4;
 
 pub(crate) mod acpi;
 pub(crate) mod heap;
@@ -35,7 +32,7 @@ fn allocate_phys(num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
 }
 
 fn deallocate_phys(virt: VirtAddr) {
-    let phys = PML4.lock().translate_addr(virt).unwrap();
+    let phys = pml4::translate_addr(virt).unwrap();
     phys::free(phys);
 }
 
@@ -43,7 +40,6 @@ fn deallocate_virt(virt: VirtAddr, num_of_pages: NumOfPages<Size4KiB>) {
     for i in 0..u64::try_from(num_of_pages.as_usize()).unwrap() {
         let page = Page::<Size4KiB>::from_start_address(virt + Size4KiB::SIZE * i).unwrap();
 
-        let (_, flush) = PML4.lock().unmap(page).unwrap();
-        flush.flush();
+        pml4::unmap(page).unwrap();
     }
 }

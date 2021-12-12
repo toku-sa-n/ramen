@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #![allow(clippy::type_repetition_in_bounds)]
+
 use {
-    crate::mem::paging::pml4::PML4,
+    crate::mem::paging::pml4,
     core::{
         convert::TryFrom,
         fmt,
@@ -11,10 +12,7 @@ use {
         ptr, slice,
     },
     os_units::Bytes,
-    x86_64::{
-        structures::paging::{Size4KiB, Translate},
-        PhysAddr, VirtAddr,
-    },
+    x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr},
 };
 
 pub(crate) struct KpBox<T: ?Sized> {
@@ -181,9 +179,7 @@ impl<T: ?Sized> KpBox<T> {
     /// This method panics if the `KpBox` is not mapped.
     #[must_use]
     pub(crate) fn phys_addr(&self) -> PhysAddr {
-        PML4.lock()
-            .translate_addr(self.virt)
-            .expect("This KpBox is not mapped.")
+        pml4::translate_addr(self.virt).expect("This KpBox is not mapped.")
     }
 
     #[must_use]

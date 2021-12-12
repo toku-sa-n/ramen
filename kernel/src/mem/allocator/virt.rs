@@ -1,12 +1,10 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 use {
-    crate::mem::paging::pml4::PML4,
+    crate::mem::paging::pml4,
     core::convert::TryFrom,
     os_units::NumOfPages,
     predefined_mmap::BYTES_AVAILABLE_RAM,
     x86_64::{
-        structures::paging::{PageSize, Size4KiB, Translate},
+        structures::paging::{PageSize, Size4KiB},
         VirtAddr,
     },
 };
@@ -38,5 +36,5 @@ pub(crate) fn search_free_addr(num_pages: NumOfPages<Size4KiB>) -> Option<VirtAd
 }
 
 fn available(addr: VirtAddr) -> bool {
-    PML4.lock().translate_addr(addr).is_none() && !addr.is_null()
+    pml4::translate_addr(addr).is_none() && !addr.is_null()
 }

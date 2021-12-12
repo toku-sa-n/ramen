@@ -1,13 +1,11 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 use {
-    allocator::{phys, virt},
+    self::paging::pml4,
+    allocator::virt,
     boot_info::mem::MemoryDescriptor,
     core::convert::TryFrom,
     os_units::Bytes,
-    paging::pml4::PML4,
     x86_64::{
-        structures::paging::{Mapper, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
+        structures::paging::{Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
         PhysAddr, VirtAddr,
     },
 };
@@ -39,10 +37,7 @@ pub(super) fn map_pages(start: PhysAddr, object_size: Bytes) -> VirtAddr {
             PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
 
         unsafe {
-            PML4.lock()
-                .map_to(page, frame, flag, &mut *phys::allocator())
-                .unwrap()
-                .flush();
+            pml4::map_to(page, frame, flag).unwrap();
         }
     }
 
@@ -62,7 +57,6 @@ pub(super) fn unmap_pages(start: VirtAddr, object_size: Bytes) {
         let page =
             Page::<Size4KiB>::containing_address(start_frame_addr + Size4KiB::SIZE * i as u64);
 
-        let (_, flush) = PML4.lock().unmap(page).unwrap();
-        flush.flush();
+        pml4::unmap(page).unwrap();
     }
 }

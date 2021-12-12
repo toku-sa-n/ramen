@@ -1,7 +1,5 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 use {
-    crate::mem::{allocator::kpbox::KpBox, paging::pml4::PML4},
+    crate::mem::{allocator::kpbox::KpBox, paging::pml4},
     alloc::collections::BTreeMap,
     core::{
         convert::{TryFrom, TryInto},
@@ -258,6 +256,6 @@ impl Pml4Creator {
     }
 
     fn map_kernel_area(&mut self) {
-        self.pml4[511] = PML4.lock().level_4_table()[511].clone();
+        self.pml4[511] = pml4::level_4_table()[511].clone();
     }
 }
