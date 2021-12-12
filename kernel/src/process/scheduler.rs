@@ -1,3 +1,5 @@
+use crate::mem::paging::pml4;
+
 use {
     super::{Pid, ReceiveFrom},
     crate::{
@@ -6,15 +8,12 @@ use {
         tests, tss,
     },
     alloc::{collections::BTreeMap, vec::Vec},
-    mem::paging::pml4::PML4,
     message::Message,
     predefined_mmap::INTERRUPT_STACK,
     spinning_top::{Spinlock, SpinlockGuard},
     x86_64::{
-        registers::control::Cr3,
-        software_interrupt,
-        structures::paging::{PhysFrame, Translate},
-        PhysAddr, VirtAddr,
+        registers::control::Cr3, software_interrupt, structures::paging::PhysFrame, PhysAddr,
+        VirtAddr,
     },
 };
 
@@ -432,9 +431,7 @@ unsafe fn copy_msg(src: PhysAddr, dst: PhysAddr, sender_slot_id: Pid) {
 }
 
 fn virt_to_phys(v: VirtAddr) -> PhysAddr {
-    PML4.lock()
-        .translate_addr(v)
-        .expect("Failed to convert a virtual address to physical one.")
+    pml4::translate_addr(v).expect("Failed to convert a virtual address to physical one.")
 }
 
 fn lock_manager() -> SpinlockGuard<'static, Scheduler> {
