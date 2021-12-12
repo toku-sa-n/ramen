@@ -6,7 +6,8 @@ use {
     x86_64::{
         structures::paging::{
             mapper::{MapToError, MapperFlush, UnmapError},
-            Mapper, Page, PageTableFlags, PhysFrame, RecursivePageTable, Size4KiB, Translate,
+            Mapper, Page, PageTable, PageTableFlags, PhysFrame, RecursivePageTable, Size4KiB,
+            Translate,
         },
         PhysAddr, VirtAddr,
     },
@@ -44,4 +45,8 @@ pub(crate) fn unmap(page: Page) -> Result<PhysFrame, UnmapError> {
 
 pub(crate) fn translate_addr(a: VirtAddr) -> Option<PhysAddr> {
     PML4.lock().translate_addr(a)
+}
+
+pub(crate) fn level_4_table() -> PageTable {
+    PML4.lock().level_4_table().clone()
 }
