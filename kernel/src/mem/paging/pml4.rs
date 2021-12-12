@@ -16,6 +16,9 @@ pub(crate) static PML4: Lazy<Spinlock<RecursivePageTable<'_>>> = Lazy::new(|| un
     )
 });
 
+/// # Safety
+///
+/// Refer to [`x86_64::structures::paging::Mapper`].
 pub(crate) unsafe fn map_to(
     page: Page,
     frame: PhysFrame,
