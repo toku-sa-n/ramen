@@ -4,9 +4,7 @@ pub mod mem;
 pub mod vram;
 
 use {
-    core::ptr,
     mem::MemoryDescriptor,
-    predefined_mmap::INIT_RSP,
     x86_64::{PhysAddr, VirtAddr},
 };
 
@@ -49,17 +47,6 @@ impl Info {
     #[must_use]
     pub fn rsdp(&self) -> PhysAddr {
         self.rsdp
-    }
-
-    pub fn set(self) {
-        unsafe {
-            ptr::write(INIT_RSP.as_mut_ptr::<Self>(), self);
-        }
-    }
-
-    #[must_use]
-    pub fn get() -> Self {
-        unsafe { ptr::read(INIT_RSP.as_mut_ptr::<Self>()) }
     }
 
     #[must_use]
