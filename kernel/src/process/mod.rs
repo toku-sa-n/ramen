@@ -1,3 +1,5 @@
+use self::context::Context;
+
 mod context;
 pub(crate) mod ipc;
 mod page_table;
@@ -54,6 +56,8 @@ pub(crate) struct Process {
 
     msg_ptr: Option<PhysAddr>,
 
+    context: Context,
+
     send_to: Option<Pid>,
     receive_from: Option<ReceiveFrom>,
 
@@ -80,6 +84,11 @@ impl Process {
         tables.map_page_box(&stack);
         tables.map_page_box(&stack_frame);
 
+        let context = match privilege {
+            Privilege::Kernel => Context::kernel(entry, tables.pml4_frame(), stack_bottom - 8_u64),
+            Privilege::User => Context::user(entry, tables.pml4_frame(), stack_bottom - 8_u64),
+        };
+
         let pml4 = tables.pml4_frame();
         Process {
             id: pid::generate(),
@@ -88,6 +97,8 @@ impl Process {
             _stack: stack,
             stack_frame,
             _binary: None,
+
+            context,
 
             new_pml4,
 
@@ -126,6 +137,11 @@ impl Process {
 
         let pml4 = tables.pml4_frame();
 
+        let context = match privilege {
+            Privilege::Kernel => Context::kernel(entry, tables.pml4_frame(), stack_bottom - 8_u64),
+            Privilege::User => Context::user(entry, tables.pml4_frame(), stack_bottom - 8_u64),
+        };
+
         Self {
             id: pid::generate(),
             _tables: tables,
@@ -135,6 +151,8 @@ impl Process {
             _binary: Some(content),
 
             new_pml4,
+
+            context,
 
             msg_ptr: None,
 
