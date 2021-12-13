@@ -46,11 +46,8 @@ pub(super) fn loader(f: fn() -> !) -> ! {
 #[derive(Debug)]
 pub(crate) struct Process {
     id: Pid,
-    _tables: page_table::Collection,
     pml4: PhysFrame,
-    _stack: KpBox<[u8]>,
     stack_frame: KpBox<StackFrame>,
-    _binary: Option<KpBox<[u8]>>,
 
     new_pml4: KpBox<PageTable>,
 
@@ -92,11 +89,8 @@ impl Process {
         let pml4 = tables.pml4_frame();
         Process {
             id: pid::generate(),
-            _tables: tables,
             pml4,
-            _stack: stack,
             stack_frame,
-            _binary: None,
 
             context,
 
@@ -144,11 +138,8 @@ impl Process {
 
         Self {
             id: pid::generate(),
-            _tables: tables,
             pml4,
-            _stack: stack,
             stack_frame,
-            _binary: Some(content),
 
             new_pml4,
 
