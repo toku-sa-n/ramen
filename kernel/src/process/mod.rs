@@ -5,12 +5,12 @@ pub(crate) mod scheduler;
 mod stack_frame;
 
 use {
-    crate::mem::{allocator, allocator::kpbox::KpBox},
+    crate::mem::allocator::kpbox::KpBox,
     alloc::collections::VecDeque,
     core::convert::TryInto,
     stack_frame::StackFrame,
     x86_64::{
-        structures::paging::{PageSize, PhysFrame, Size4KiB},
+        structures::paging::{PageSize, PageTable, PageTableFlags, PhysFrame, Size4KiB},
         PhysAddr, VirtAddr,
     },
 };
@@ -49,7 +49,7 @@ pub(crate) struct Process {
     stack_frame: KpBox<StackFrame>,
     _binary: Option<KpBox<[u8]>>,
 
-    new_pml4: PhysFrame,
+    new_pml4: KpBox<PageTable>,
 
     msg_ptr: Option<PhysAddr>,
 
@@ -79,7 +79,7 @@ impl Process {
 
         let pml4 = tables.pml4_frame();
 
-        let new_pml4 = allocator::allocate_phys_frame().expect("Failed to allocate a frame.");
+        let new_pml4 = Self::generate_pml4();
 
         Process {
             id: pid::generate(),
@@ -117,7 +117,7 @@ impl Process {
 
         let pml4 = tables.pml4_frame();
 
-        let new_pml4 = allocator::allocate_phys_frame().expect("Failed to allocate a frame.");
+        let new_pml4 = Self::generate_pml4();
 
         Self {
             id: pid::generate(),
@@ -150,6 +150,24 @@ impl Process {
     fn stack_frame_bottom_addr(&self) -> VirtAddr {
         let b = self.stack_frame.bytes();
         self.stack_frame_top_addr() + b.as_usize()
+    }
+
+    fn generate_pml4() -> KpBox<PageTable> {
+        let mut pml4 = KpBox::<PageTable>::default();
+
+        for i in 0..510 {
+            pml4[i].set_unused();
+        }
+
+        let frame = PhysFrame::from_start_address(pml4.phys_addr());
+        let frame = frame.expect("Failed to generate a PML4.");
+
+        let flags =
+            PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
+
+        pml4[510].set_frame(frame, flags);
+
+        pml4
     }
 }
 
