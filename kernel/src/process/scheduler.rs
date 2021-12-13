@@ -10,23 +10,29 @@ use {
     predefined_mmap::INTERRUPT_STACK,
     spinning_top::{Spinlock, SpinlockGuard},
     x86_64::{
-        registers::control::Cr3, software_interrupt, structures::paging::PhysFrame, PhysAddr,
-        VirtAddr,
+        instructions::interrupts::without_interrupts, registers::control::Cr3, software_interrupt,
+        structures::paging::PhysFrame, PhysAddr, VirtAddr,
     },
 };
 
 static SCHEDULER: Spinlock<Scheduler> = Spinlock::new(Scheduler::new());
 
 pub(crate) fn send(msg: VirtAddr, to: Pid) {
-    lock_manager().send(msg, to);
+    // The kernel process calls this function, and the interrupts may be enabled at that time. If
+    // we forget to disable interrupts, a timer interrupt may happen when the kernel process holds
+    // the lock of the process scheduler, and the subsequent process fails to lock the scheduler
+    // because the previous process already locks it. Thus, we disable the interrupts.
+    without_interrupts(|| lock_manager().send(msg, to));
 }
 
 pub(crate) fn receive_from_any(msg_buf: VirtAddr) {
-    lock_manager().receive_from_any(msg_buf);
+    // Ditto as `send` for `without_interrupts`.
+    without_interrupts(|| lock_manager().receive_from_any(msg_buf));
 }
 
 pub(crate) fn receive_from(msg_buf: VirtAddr, from: Pid) {
-    lock_manager().receive_from(msg_buf, from);
+    // Ditto as `send` for `without_interrupts`.
+    without_interrupts(|| lock_manager().receive_from(msg_buf, from));
 }
 
 pub(crate) fn assign_to_rax(rax: u64) {
