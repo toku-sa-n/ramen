@@ -1,5 +1,6 @@
 use {
     crate::{
+        gdt,
         mem::{allocator, paging},
         process::{self, exit_process, Pid},
     },
@@ -7,12 +8,134 @@ use {
     num_traits::FromPrimitive,
     os_units::{Bytes, NumOfPages},
     terminal::print,
-    x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr},
+    x86_64::{
+        registers::{
+            model_specific::{Efer, EferFlags, LStar, Msr, Star},
+            rflags::RFlags,
+        },
+        structures::paging::Size4KiB,
+        PhysAddr, VirtAddr,
+    },
 };
+
+const IA32_FMASK: Msr = Msr::new(0xc000_0084);
+
+pub(super) fn init() {
+    register_handler();
+
+    register_segments_with_star();
+
+    unsafe {
+        enable_syscall_and_sysret();
+    }
+
+    disable_interrupts_on_syscall();
+}
+
+fn register_handler() {
+    LStar::write(VirtAddr::from_ptr(&syscall_handler));
+}
+
+fn register_segments_with_star() {
+    let r = Star::write(
+        gdt::user_code_selector(),
+        gdt::user_data_selector(),
+        gdt::kernel_code_selector(),
+        gdt::kernel_data_selector(),
+    );
+
+    r.expect("Failed to register segment registers with STAR.");
+}
+
+/// # Safety
+///
+/// The caller must ensure that the correct system call handler is registered with the LSTAR
+/// register and segment selectors with STAR.
+unsafe fn enable_syscall_and_sysret() {
+    // SAFETY: The caller ensures that a proper system call handler and segment registers are
+    // registered.
+    unsafe {
+        Efer::update(|efer| *efer |= EferFlags::SYSTEM_CALL_EXTENSIONS);
+    }
+}
+
+fn disable_interrupts_on_syscall() {
+    // SAFETY: Disabling interrupts on a system call does not violate memory safety.
+    unsafe {
+        update_ia32_fmask(|mask| mask.insert(RFlags::INTERRUPT_FLAG));
+    }
+}
+
+/// # Safety
+///
+/// See: [`x86_64::registers::rflags::write`].
+unsafe fn update_ia32_fmask(f: impl FnOnce(&mut RFlags)) {
+    let mut mask = read_ia32_fmask();
+
+    f(&mut mask);
+
+    // SAFETY: The caller must uphold the safety requirements.
+    unsafe {
+        write_ia32_fmask(mask);
+    }
+}
+
+fn read_ia32_fmask() -> RFlags {
+    // SAFETY: Reading from IA32_FMASK does not violate memory safety.
+    let mask = unsafe { IA32_FMASK.read() };
+    let mask = RFlags::from_bits(mask);
+    mask.expect("Invalid rflags.")
+}
+
+/// # Safety
+///
+/// See [`x86_64::registers::rflag::write`].
+unsafe fn write_ia32_fmask(mask: RFlags) {
+    // SAFETY: The caller must uphold the safety requirements.
+    unsafe {
+        let mut reg = IA32_FMASK;
+
+        reg.write(mask.bits());
+    }
+}
+
+#[naked]
+#[allow(clippy::too_many_lines)]
+extern "sysv64" fn syscall_handler() {
+    unsafe {
+        asm!(
+            "
+        push rcx
+        push r11
+
+        push rbp
+        mov rbp, rsp
+
+        mov rsp, 0xffffffffc0000000 - (0x1000 * 8)
+
+        mov rcx, rdx
+        mov rdx, rsi
+        mov rsi, rdi
+        mov rdi, rax
+
+        call {}
+
+        mov rsp, rbp
+        pop rbp
+
+        pop r11
+        pop rcx
+
+        sysretq
+        ", sym select_proper_syscall,
+            options(noreturn)
+        );
+    }
+}
 
 #[no_mangle]
 #[allow(clippy::too_many_arguments)]
-unsafe extern "C" fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
+unsafe extern "sysv64" fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
     if let Some(t) = FromPrimitive::from_u64(idx) {
         // SAFETY: At least the index is correct. The caller must ensure that
         // the all arguments are correctly passed.

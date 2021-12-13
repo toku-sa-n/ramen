@@ -68,6 +68,8 @@ fn init(mut boot_info: boot_info::Info) {
 
     vram::print_info();
 
+    syscall::init();
+
     add_processes();
 }
 
