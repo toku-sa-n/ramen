@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+mod context;
 pub(crate) mod ipc;
 mod page_table;
 mod pid;
