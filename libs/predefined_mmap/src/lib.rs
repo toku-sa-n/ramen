@@ -3,10 +3,8 @@
 use {
     conquer_once::spin::Lazy,
     os_units::{Bytes, NumOfPages},
-    x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr},
+    x86_64::{structures::paging::Size4KiB, VirtAddr},
 };
-
-pub const LOCAL_APIC_ID_REGISTER_ADDR: PhysAddr = PhysAddr::new_truncate(0xfee0_0020);
 
 pub const KERNEL_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_8000_0000);
 pub const INITRD_ADDR: VirtAddr = VirtAddr::new_truncate(0xffff_ffff_8800_0000);
