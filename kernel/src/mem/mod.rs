@@ -19,7 +19,7 @@ pub(super) fn init(mem_map: &[MemoryDescriptor]) {
     paging::mark_pages_as_unused();
 }
 
-pub(super) fn map_pages(start: PhysAddr, object_size: Bytes) -> VirtAddr {
+pub(super) fn map_pages_for_user(start: PhysAddr, object_size: Bytes) -> VirtAddr {
     let start_frame_addr = start.align_down(Size4KiB::SIZE);
     let end_frame_addr = (start + object_size.as_usize()).align_down(Size4KiB::SIZE);
 

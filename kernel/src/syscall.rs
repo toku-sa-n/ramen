@@ -158,7 +158,7 @@ fn sys_deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) -> u64 {
 }
 
 fn sys_map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
-    crate::mem::map_pages(start, bytes)
+    crate::mem::map_pages_for_user(start, bytes)
 }
 
 fn sys_unmap_pages(start: VirtAddr, bytes: Bytes) -> u64 {
