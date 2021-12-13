@@ -1,11 +1,7 @@
-use predefined_mmap::INITRD_ADDR;
-
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 use {
     boot_info::vram,
     os_units::Bytes,
-    predefined_mmap::{KERNEL_ADDR, NUM_OF_PAGES_STACK, STACK_LOWER, VRAM_ADDR},
+    predefined_mmap::{INITRD_ADDR, NUM_OF_PAGES_STACK, STACK_LOWER, VRAM_ADDR},
     x86_64::{PhysAddr, VirtAddr},
 };
 
@@ -63,7 +59,7 @@ impl Range {
     #[must_use]
     fn kernel(kernel: &PhysRange) -> Self {
         Self {
-            virt: KERNEL_ADDR,
+            virt: predefined_mmap::kernel().start.start_address(),
             phys: kernel.start,
             bytes: kernel.bytes,
         }

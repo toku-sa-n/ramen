@@ -11,7 +11,6 @@ use {
     file::{FileInfo, FileType},
     log::info,
     os_units::Bytes,
-    predefined_mmap::KERNEL_ADDR,
     uefi::{
         proto::media::{
             file,
@@ -64,7 +63,9 @@ pub fn fetch_entry_address_and_memory_size(addr: PhysAddr, bytes: Bytes) -> (Vir
                 acc.max(Bytes::new(
                     (x.ph.vaddr() + x.ph.memsz()).try_into().unwrap(),
                 ))
-            }) - Bytes::new(usize::try_from(KERNEL_ADDR.as_u64()).unwrap());
+            }) - Bytes::new(
+                usize::try_from(predefined_mmap::kernel().start.start_address().as_u64()).unwrap(),
+            );
 
             info!("Entry point: {:?}", entry_addr);
             info!("Memory size: {:X?}", mem_size.as_usize());
