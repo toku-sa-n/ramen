@@ -17,7 +17,7 @@ pub(crate) mod virt;
 pub(crate) fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
     let phys_addr = allocate_phys(num_of_pages)?;
 
-    let virt_addr = super::map_pages(phys_addr, num_of_pages.as_bytes());
+    let virt_addr = super::map_pages_for_user(phys_addr, num_of_pages.as_bytes());
 
     Some(virt_addr)
 }
