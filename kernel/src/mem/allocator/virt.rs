@@ -2,7 +2,7 @@ use {
     crate::mem::paging,
     core::convert::TryFrom,
     os_units::NumOfPages,
-    predefined_mmap::BYTES_AVAILABLE_RAM,
+    predefined_mmap::KERNEL_ADDR,
     x86_64::{
         structures::paging::{PageSize, Size4KiB},
         VirtAddr,
@@ -12,9 +12,7 @@ use {
 pub(crate) fn search_free_addr_for_user(num_pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
     let mut cnt = 0;
     let mut start = None;
-    for addr in
-        (0..BYTES_AVAILABLE_RAM.as_usize()).step_by(usize::try_from(Size4KiB::SIZE).unwrap())
-    {
+    for addr in (0..KERNEL_ADDR.as_u64()).step_by(usize::try_from(Size4KiB::SIZE).unwrap()) {
         let addr = VirtAddr::new(addr as _);
         if available(addr) {
             if start.is_none() {
