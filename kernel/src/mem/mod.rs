@@ -3,8 +3,11 @@ use {
     boot_info::mem::MemoryDescriptor,
     core::convert::TryFrom,
     os_units::Bytes,
+    predefined_mmap::{BYTES_AVAILABLE_RAM, KERNEL_ADDR, STACK_BASE},
     x86_64::{
-        structures::paging::{Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
+        structures::paging::{
+            page::PageRange, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB,
+        },
         PhysAddr, VirtAddr,
     },
 };
@@ -20,55 +23,28 @@ pub(super) fn init(mem_map: &[MemoryDescriptor]) {
 }
 
 pub(super) fn map_pages_for_user(start: PhysAddr, object_size: Bytes) -> VirtAddr {
-    let start_frame_addr = start.align_down(Size4KiB::SIZE);
-    let end_frame_addr = (start + object_size.as_usize()).align_down(Size4KiB::SIZE);
-
-    let num_pages = Bytes::new(usize::try_from(end_frame_addr - start_frame_addr).unwrap() + 1)
-        .as_num_of_pages::<Size4KiB>();
-
-    let virt = virt::search_free_addr_for_user(num_pages)
-        .expect("OOM during creating a new accessor to a register.");
-
-    for i in 0..num_pages.as_usize() {
-        let page = Page::<Size4KiB>::containing_address(virt + Size4KiB::SIZE * i as u64);
-        let frame = PhysFrame::containing_address(start_frame_addr + Size4KiB::SIZE * i as u64);
-        let flag =
-            PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
-
-        unsafe {
-            paging::map_to(page, frame, flag).unwrap();
-        }
-    }
-
-    let page_offset = start.as_u64() % Size4KiB::SIZE;
-
-    virt + page_offset
+    map_pages_from(
+        start,
+        object_size,
+        PageRange {
+            start: Page::from_start_address(VirtAddr::new(0x1000)).unwrap(),
+            end: Page::from_start_address(KERNEL_ADDR).unwrap(),
+        },
+    )
 }
 
 pub(super) fn map_pages_for_kernel(start: PhysAddr, object_size: Bytes) -> VirtAddr {
-    let start_frame_addr = start.align_down(Size4KiB::SIZE);
-    let end_frame_addr = (start + object_size.as_usize()).align_down(Size4KiB::SIZE);
-
-    let num_pages = Bytes::new(usize::try_from(end_frame_addr - start_frame_addr).unwrap() + 1)
-        .as_num_of_pages::<Size4KiB>();
-
-    let virt = virt::search_free_addr_for_kernel(num_pages)
-        .expect("OOM during creating a new accessor to a register.");
-
-    for i in 0..num_pages.as_usize() {
-        let page = Page::<Size4KiB>::containing_address(virt + Size4KiB::SIZE * i as u64);
-        let frame = PhysFrame::containing_address(start_frame_addr + Size4KiB::SIZE * i as u64);
-        let flag =
-            PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
-
-        unsafe {
-            paging::map_to(page, frame, flag).unwrap();
-        }
-    }
-
-    let page_offset = start.as_u64() % Size4KiB::SIZE;
-
-    virt + page_offset
+    map_pages_from(
+        start,
+        object_size,
+        PageRange {
+            start: Page::from_start_address(STACK_BASE).unwrap(),
+            end: Page::from_start_address(VirtAddr::new(
+                BYTES_AVAILABLE_RAM.as_usize().try_into().unwrap(),
+            ))
+            .unwrap(),
+        },
+    )
 }
 
 pub(super) fn unmap_pages(start: VirtAddr, object_size: Bytes) {
@@ -84,4 +60,30 @@ pub(super) fn unmap_pages(start: VirtAddr, object_size: Bytes) {
 
         paging::unmap(page).unwrap();
     }
+}
+
+fn map_pages_from(start: PhysAddr, object_size: Bytes, region: PageRange) -> VirtAddr {
+    let start_frame_addr = start.align_down(Size4KiB::SIZE);
+    let end_frame_addr = (start + object_size.as_usize()).align_down(Size4KiB::SIZE);
+
+    let num_pages = Bytes::new(usize::try_from(end_frame_addr - start_frame_addr).unwrap() + 1)
+        .as_num_of_pages::<Size4KiB>();
+
+    let virt = virt::search_free_addr_from(num_pages, region)
+        .expect("OOM during creating a new accessor to a register.");
+
+    for i in 0..num_pages.as_usize() {
+        let page = Page::<Size4KiB>::containing_address(virt + Size4KiB::SIZE * i as u64);
+        let frame = PhysFrame::containing_address(start_frame_addr + Size4KiB::SIZE * i as u64);
+        let flag =
+            PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
+
+        unsafe {
+            paging::map_to(page, frame, flag).unwrap();
+        }
+    }
+
+    let page_offset = start.as_u64() % Size4KiB::SIZE;
+
+    virt + page_offset
 }
