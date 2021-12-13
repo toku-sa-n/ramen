@@ -1,5 +1,4 @@
-use crate::mem;
-
+mod context;
 pub(crate) mod ipc;
 mod page_table;
 mod pid;
@@ -7,7 +6,10 @@ pub(crate) mod scheduler;
 mod stack_frame;
 
 use {
-    crate::mem::{allocator::kpbox::KpBox, paging},
+    crate::{
+        mem,
+        mem::{allocator::kpbox::KpBox, paging},
+    },
     alloc::collections::VecDeque,
     core::convert::TryInto,
     stack_frame::StackFrame,
