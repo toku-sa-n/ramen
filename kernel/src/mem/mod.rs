@@ -26,7 +26,7 @@ pub(super) fn map_pages_for_user(start: PhysAddr, object_size: Bytes) -> VirtAdd
     let num_pages = Bytes::new(usize::try_from(end_frame_addr - start_frame_addr).unwrap() + 1)
         .as_num_of_pages::<Size4KiB>();
 
-    let virt = virt::search_free_addr(num_pages)
+    let virt = virt::search_free_addr_for_user(num_pages)
         .expect("OOM during creating a new accessor to a register.");
 
     for i in 0..num_pages.as_usize() {
