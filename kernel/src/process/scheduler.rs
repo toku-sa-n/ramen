@@ -22,21 +22,21 @@ pub(crate) fn send(msg: VirtAddr, to: Pid) {
     // we forget to disable interrupts, a timer interrupt may happen when the kernel process holds
     // the lock of the process scheduler, and the subsequent process fails to lock the scheduler
     // because the previous process already locks it. Thus, we disable the interrupts.
-    without_interrupts(|| lock_manager().send(msg, to));
+    without_interrupts(|| lock().send(msg, to));
 }
 
 pub(crate) fn receive_from_any(msg_buf: VirtAddr) {
     // Ditto as `send` for `without_interrupts`.
-    without_interrupts(|| lock_manager().receive_from_any(msg_buf));
+    without_interrupts(|| lock().receive_from_any(msg_buf));
 }
 
 pub(crate) fn receive_from(msg_buf: VirtAddr, from: Pid) {
     // Ditto as `send` for `without_interrupts`.
-    without_interrupts(|| lock_manager().receive_from(msg_buf, from));
+    without_interrupts(|| lock().receive_from(msg_buf, from));
 }
 
 pub(crate) fn assign_to_rax(rax: u64) {
-    lock_manager().assign_to_rax(rax);
+    lock().assign_to_rax(rax);
 }
 
 pub(crate) fn exit_process() -> ! {
@@ -51,23 +51,23 @@ pub(crate) fn exit_process() -> ! {
 }
 
 pub(crate) fn switch() -> VirtAddr {
-    lock_manager().switch()
+    lock().switch()
 }
 
 pub(crate) fn current_process_name() -> &'static str {
-    lock_manager().current_process_name()
+    lock().current_process_name()
 }
 
 pub(super) fn add(p: Process) {
-    lock_manager().add(p);
+    lock().add(p);
 }
 
 pub(super) fn pop() -> Pid {
-    lock_manager().pop()
+    lock().pop()
 }
 
 pub(super) fn push(pid: Pid) {
-    lock_manager().push(pid);
+    lock().push(pid);
 }
 
 fn set_temporary_stack_frame() {
@@ -438,7 +438,7 @@ fn virt_to_phys(v: VirtAddr) -> PhysAddr {
     paging::translate_addr(v).expect("Failed to convert a virtual address to physical one.")
 }
 
-fn lock_manager() -> SpinlockGuard<'static, Scheduler> {
+fn lock() -> SpinlockGuard<'static, Scheduler> {
     SCHEDULER
         .try_lock()
         .expect("Failed to acquire the lock of `PROCESSES`.")
