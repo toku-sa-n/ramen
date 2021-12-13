@@ -1,3 +1,5 @@
+use crate::mem;
+
 pub(crate) mod ipc;
 mod page_table;
 mod pid;
@@ -5,11 +7,12 @@ pub(crate) mod scheduler;
 mod stack_frame;
 
 use {
-    crate::mem::allocator::kpbox::KpBox,
+    crate::mem::{allocator::kpbox::KpBox, paging},
     alloc::collections::VecDeque,
     core::convert::TryInto,
     stack_frame::StackFrame,
     x86_64::{
+        registers::control::Cr3,
         structures::paging::{PageSize, PageTable, PageTableFlags, PhysFrame, Size4KiB},
         PhysAddr, VirtAddr,
     },
@@ -63,6 +66,8 @@ impl Process {
 
     #[allow(clippy::too_many_lines)]
     fn new(entry: VirtAddr, privilege: Privilege, name: &'static str) -> Self {
+        let new_pml4 = Self::generate_pml4();
+
         let mut tables = page_table::Collection::default();
         let stack = KpBox::new_slice(0, Self::STACK_SIZE);
         let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
@@ -74,9 +79,6 @@ impl Process {
         tables.map_page_box(&stack_frame);
 
         let pml4 = tables.pml4_frame();
-
-        let new_pml4 = Self::generate_pml4();
-
         Process {
             id: pid::generate(),
             _tables: tables,
@@ -99,6 +101,15 @@ impl Process {
 
     #[allow(clippy::too_many_lines)]
     fn binary(name: &'static str, privilege: Privilege) -> Self {
+        let new_pml4 = Self::generate_pml4();
+
+        let handler = crate::fs::get_handler(name);
+        let raw = handler.content();
+
+        unsafe {
+            switch_pml4_do(&new_pml4, || mem::elf::map_to_current_address_space(raw)).unwrap();
+        }
+
         let mut tables = page_table::Collection::default();
         let (content, entry) = tables.map_elf(name);
 
@@ -112,8 +123,6 @@ impl Process {
         tables.map_page_box(&stack_frame);
 
         let pml4 = tables.pml4_frame();
-
-        let new_pml4 = Self::generate_pml4();
 
         Self {
             id: pid::generate(),
@@ -155,16 +164,35 @@ impl Process {
             pml4[i].set_unused();
         }
 
-        let frame = PhysFrame::from_start_address(pml4.phys_addr());
-        let frame = frame.expect("Failed to generate a PML4.");
-
         let flags =
             PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
 
-        pml4[510].set_frame(frame, flags);
+        let addr = pml4.phys_addr();
+
+        pml4[510].set_addr(addr, flags);
+        pml4[511] = paging::level_4_table()[511].clone();
 
         pml4
     }
+}
+
+unsafe fn switch_pml4_do<T>(pml4: &KpBox<PageTable>, f: impl FnOnce() -> T) -> T {
+    let (old_pml4, flags) = Cr3::read();
+
+    let frame = PhysFrame::from_start_address(pml4.phys_addr());
+    let frame = frame.expect("The address is not page-aligned.");
+
+    unsafe {
+        Cr3::write(frame, flags);
+    }
+
+    let r = f();
+
+    unsafe {
+        Cr3::write(old_pml4, flags);
+    }
+
+    r
 }
 
 #[derive(Copy, Clone, Debug)]

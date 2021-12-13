@@ -14,7 +14,7 @@ use {
     },
 };
 
-pub unsafe fn map_to_current_address_space(binary: &[u8]) -> Result<VirtAddr, ElfLoaderErr> {
+pub(crate) unsafe fn map_to_current_address_space(binary: &[u8]) -> Result<VirtAddr, ElfLoaderErr> {
     let elf = ElfBinary::new(binary)?;
 
     elf.load(&mut Loader)?;

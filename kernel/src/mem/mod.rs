@@ -14,7 +14,7 @@ use {
 
 pub(crate) mod accessor;
 pub(crate) mod allocator;
-mod elf;
+pub(crate) mod elf;
 pub(crate) mod paging;
 
 pub(super) fn init(mem_map: &[MemoryDescriptor]) {
