@@ -29,10 +29,6 @@ pub(crate) fn receive_from(msg_buf: VirtAddr, from: Pid) {
     lock_manager().receive_from(msg_buf, from);
 }
 
-pub(crate) fn assign_to_rax(rax: u64) {
-    lock_manager().assign_to_rax(rax);
-}
-
 pub(crate) fn exit_process() -> ! {
     set_temporary_stack_frame();
 
@@ -144,10 +140,6 @@ impl Scheduler {
 
     fn current_stack_frame_bottom_addr(&self) -> VirtAddr {
         self.handle_running(Process::stack_frame_bottom_addr)
-    }
-
-    fn assign_to_rax(&mut self, rax: u64) {
-        self.handle_running_mut(|p| (*p.stack_frame).regs.rax = rax);
     }
 
     fn handle_running<T, U>(&self, f: T) -> U

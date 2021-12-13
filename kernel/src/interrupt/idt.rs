@@ -8,7 +8,6 @@ use {
 
 extern "C" {
     fn h_20_asm();
-    fn h_80_asm();
     fn h_81_asm();
 }
 
@@ -19,11 +18,6 @@ static IDT: Lazy<InterruptDescriptorTable> = Lazy::new(|| {
         idt[0x20]
             .set_handler_addr(handler_function_to_virt_addr(h_20_asm))
             .set_stack_index(0);
-
-        idt[0x80]
-            .set_handler_addr(handler_function_to_virt_addr(h_80_asm))
-            .set_stack_index(0)
-            .set_privilege_level(PrivilegeLevel::Ring3);
 
         idt[0x81]
             .set_handler_addr(handler_function_to_virt_addr(h_81_asm))

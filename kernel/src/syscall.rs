@@ -33,7 +33,9 @@ pub(super) fn init() {
 }
 
 fn register_handler() {
-    LStar::write(VirtAddr::from_ptr(&syscall_handler));
+    LStar::write(VirtAddr::new(
+        (syscall_handler as usize).try_into().unwrap(),
+    ));
 }
 
 fn register_segments_with_star() {
