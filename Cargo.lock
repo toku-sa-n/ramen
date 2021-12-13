@@ -338,6 +338,7 @@ dependencies = [
  "qemu-exit",
  "rgb",
  "spinning_top",
+ "static_assertions",
  "syscalls",
  "terminal",
  "uart_16550",
