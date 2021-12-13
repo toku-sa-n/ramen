@@ -24,7 +24,7 @@ impl accessor::Mapper for Mapper {
         let phys_start = PhysAddr::new(phys_start.try_into().unwrap());
         let bytes = Bytes::new(bytes);
 
-        let v = super::map_pages_for_user(phys_start, bytes);
+        let v = super::map_pages_for_kernel(phys_start, bytes);
         let v: usize = v.as_u64().try_into().unwrap();
 
         NonZeroUsize::new(v).expect("Failed to map pages.")

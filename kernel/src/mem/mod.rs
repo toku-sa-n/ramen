@@ -3,7 +3,7 @@ use {
     boot_info::mem::MemoryDescriptor,
     core::convert::TryFrom,
     os_units::Bytes,
-    predefined_mmap::{BYTES_AVAILABLE_RAM, KERNEL_ADDR, STACK_BASE},
+    predefined_mmap::{KERNEL_ADDR, STACK_BASE},
     x86_64::{
         structures::paging::{
             page::PageRange, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB,
@@ -39,10 +39,7 @@ pub(super) fn map_pages_for_kernel(start: PhysAddr, object_size: Bytes) -> VirtA
         object_size,
         PageRange {
             start: Page::from_start_address(STACK_BASE).unwrap(),
-            end: Page::from_start_address(VirtAddr::new(
-                BYTES_AVAILABLE_RAM.as_usize().try_into().unwrap(),
-            ))
-            .unwrap(),
+            end: Page::from_start_address(VirtAddr::new(0xffff_ffff_ffff_f000)).unwrap(),
         },
     )
 }
