@@ -60,7 +60,7 @@ unsafe fn select_proper_syscall_unchecked(ty: syscalls::Ty, a1: u64, a2: u64, a3
 }
 
 fn sys_allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> VirtAddr {
-    allocator::allocate_pages(num_of_pages).unwrap_or_else(VirtAddr::zero)
+    allocator::allocate_pages_for_user(num_of_pages).unwrap_or_else(VirtAddr::zero)
 }
 
 fn sys_deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) -> u64 {
