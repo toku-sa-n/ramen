@@ -3,6 +3,7 @@
 #![no_std]
 #![allow(clippy::missing_panics_doc)]
 #![deny(unsafe_op_in_unsafe_fn)]
+#![feature(asm, naked_functions)]
 
 use {
     core::{convert::TryInto, ffi::c_void, panic::PanicInfo},
@@ -15,7 +16,6 @@ use {
 extern "C" {
     fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64;
     fn message_syscall(ty: Ty, a1: u64, a2: u64, a3: u64);
-    fn exit_syscall(ty: Ty) -> !;
 }
 
 /// # Safety
@@ -154,7 +154,7 @@ pub fn getpid() -> i32 {
 }
 
 pub fn exit() -> ! {
-    unsafe { exit_syscall(Ty::Exit) }
+    exit_syscall(Ty::Exit)
 }
 
 /// This method will return a null address if the address is not mapped.
@@ -250,4 +250,17 @@ pub enum Ty {
     ReceiveFromAny,
     ReceiveFrom,
     Panic,
+}
+
+#[naked]
+extern "C" fn exit_syscall(ty: Ty) -> ! {
+    unsafe {
+        asm!(
+            "
+            mov rax, rdi
+            int 0x80
+            ",
+            options(noreturn)
+        );
+    }
 }
