@@ -15,7 +15,6 @@ use {
 
 extern "C" {
     fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64;
-    fn message_syscall(ty: Ty, a1: u64, a2: u64, a3: u64);
 }
 
 /// # Safety
@@ -172,7 +171,7 @@ pub fn send(m: Message, to: i32) {
     let a2: u64 = to.try_into().unwrap();
     let a3 = 0;
 
-    unsafe { message_syscall(ty, a1, a2, a3) }
+    message_syscall(ty, a1, a2, a3)
 }
 
 #[must_use]
@@ -186,7 +185,7 @@ pub fn receive_from_any() -> Message {
     let a2 = 0;
     let a3 = 0;
 
-    unsafe { message_syscall(ty, a1, a2, a3) }
+    message_syscall(ty, a1, a2, a3);
 
     m
 }
@@ -198,7 +197,7 @@ pub fn receive_from(from: i32) -> Message {
     let m_ptr: *mut Message = &mut m;
     let m_ptr: u64 = m_ptr as _;
 
-    unsafe { message_syscall(Ty::ReceiveFrom, m_ptr, from.try_into().unwrap(), 0) }
+    message_syscall(Ty::ReceiveFrom, m_ptr, from.try_into().unwrap(), 0);
 
     m
 }
@@ -250,6 +249,43 @@ pub enum Ty {
     ReceiveFromAny,
     ReceiveFrom,
     Panic,
+}
+
+#[naked]
+extern "C" fn message_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) {
+    unsafe {
+        asm!(
+            "
+    push rax
+    push rdi
+    push rsi
+    push rdx
+    push rcx
+    push r8
+    push r9
+    push r10
+    push r11
+
+    mov rax, rdi
+    mov rdi, rsi
+    mov rsi, rdx
+    mov rdx, rcx
+    int 0x81
+
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rcx
+    pop rdx
+    pop rsi
+    pop rdi
+    pop rax
+    ret
+    ",
+            options(noreturn)
+        );
+    }
 }
 
 #[naked]
