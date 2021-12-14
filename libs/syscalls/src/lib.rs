@@ -13,10 +13,6 @@ use {
     x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr},
 };
 
-extern "C" {
-    fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64;
-}
-
 /// # Safety
 ///
 /// This function is unsafe because reading a value from I/O port may have side effects which
@@ -81,62 +77,54 @@ pub unsafe fn outl(port: u16, value: u32) {
 #[must_use]
 pub fn allocate_pages(pages: NumOfPages<Size4KiB>) -> VirtAddr {
     // SAFETY: This operation is safe as the arguments are propertly passed.
-    VirtAddr::new(unsafe {
-        general_syscall(
-            Ty::AllocatePages,
-            pages
-                .as_usize()
-                .try_into()
-                .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `u64` == `usize`.")),
-            0,
-            0,
-        )
-    })
+    VirtAddr::new(general_syscall(
+        Ty::AllocatePages,
+        pages
+            .as_usize()
+            .try_into()
+            .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `u64` == `usize`.")),
+        0,
+        0,
+    ))
 }
 
 pub fn deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) {
     // SAFETY: This operation is safe as the all arguments are propertly passed.
-    unsafe {
-        general_syscall(
-            Ty::DeallocatePages,
-            virt.as_u64(),
-            pages
-                .as_usize()
-                .try_into()
-                .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `u64` == `usize`.")),
-            0,
-        )
-    };
+    general_syscall(
+        Ty::DeallocatePages,
+        virt.as_u64(),
+        pages
+            .as_usize()
+            .try_into()
+            .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `u64` == `usize`.")),
+        0,
+    );
 }
 
 #[must_use]
 pub fn map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
     // SAFETY: This operation is safe as the all arguments are propertly passed.
-    VirtAddr::new(unsafe {
-        general_syscall(
-            Ty::MapPages,
-            start.as_u64(),
-            bytes
-                .as_usize()
-                .try_into()
-                .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `u64` == `usize`.")),
-            0,
-        )
-    })
+    VirtAddr::new(general_syscall(
+        Ty::MapPages,
+        start.as_u64(),
+        bytes
+            .as_usize()
+            .try_into()
+            .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `u64` == `usize`.")),
+        0,
+    ))
 }
 
 pub fn unmap_pages(start: VirtAddr, bytes: Bytes) {
-    unsafe {
-        general_syscall(
-            Ty::UnmapPages,
-            start.as_u64(),
-            bytes
-                .as_usize()
-                .try_into()
-                .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `usize` == `u64`.")),
-            0,
-        );
-    }
+    general_syscall(
+        Ty::UnmapPages,
+        start.as_u64(),
+        bytes
+            .as_usize()
+            .try_into()
+            .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `usize` == `u64`.")),
+        0,
+    );
 }
 
 #[must_use]
@@ -160,7 +148,7 @@ pub fn exit() -> ! {
 #[must_use]
 pub fn translate_address(a: VirtAddr) -> PhysAddr {
     // SAFETY: Parameters are passed properly.
-    PhysAddr::new(unsafe { general_syscall(Ty::TranslateAddress, a.as_u64(), 0, 0) })
+    PhysAddr::new(general_syscall(Ty::TranslateAddress, a.as_u64(), 0, 0))
 }
 
 pub fn send(m: Message, to: i32) {
@@ -208,21 +196,19 @@ pub fn receive_from(from: i32) -> Message {
 #[must_use]
 pub unsafe fn write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
     // SAFETY: The arguments are fulfilled properly.
-    unsafe {
-        general_syscall(
-            Ty::Write,
-            fildes.try_into().unwrap(),
-            buf as _,
-            nbyte.into(),
-        )
-        .try_into()
-        .unwrap()
-    }
+    general_syscall(
+        Ty::Write,
+        fildes.try_into().unwrap(),
+        buf as _,
+        nbyte.into(),
+    )
+    .try_into()
+    .unwrap()
 }
 
 pub fn panic(info: &PanicInfo<'_>) -> ! {
     let info: *const PanicInfo<'_> = info;
-    unsafe { general_syscall(Ty::Panic, info as _, 0, 0) };
+    general_syscall(Ty::Panic, info as _, 0, 0);
     unreachable!("The `panic` system call should not return.");
 }
 
@@ -249,6 +235,44 @@ pub enum Ty {
     ReceiveFromAny,
     ReceiveFrom,
     Panic,
+}
+
+#[naked]
+extern "C" fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
+    unsafe {
+        asm!(
+            "
+
+    push rax
+    push rdi
+    push rsi
+    push rdx
+    push rcx
+    push r8
+    push r9
+    push r10
+    push r11
+
+    mov rax, rdi
+    mov rdi, rsi
+    mov rsi, rdx
+    mov rdx, rcx
+    int 0x80
+
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rcx
+    pop rdx
+    pop rsi
+    pop rdi
+    add rsp, 8  /* RAX is used to return a value. */
+    ret
+    ",
+            options(noreturn)
+        );
+    }
 }
 
 #[naked]
