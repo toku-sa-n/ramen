@@ -627,7 +627,6 @@ dependencies = [
 name = "syscalls"
 version = "0.1.0"
 dependencies = [
- "cc",
  "message",
  "num-derive",
  "num-traits",
