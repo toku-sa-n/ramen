@@ -3,6 +3,7 @@
 #![no_std]
 #![allow(clippy::missing_panics_doc)]
 #![deny(unsafe_op_in_unsafe_fn)]
+#![feature(asm, naked_functions)]
 
 use {
     core::{convert::TryInto, ffi::c_void, panic::PanicInfo},
@@ -11,12 +12,6 @@ use {
     os_units::{Bytes, NumOfPages},
     x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr},
 };
-
-extern "C" {
-    fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64;
-    fn message_syscall(ty: Ty, a1: u64, a2: u64, a3: u64);
-    fn exit_syscall(ty: Ty) -> !;
-}
 
 /// # Safety
 ///
@@ -82,62 +77,54 @@ pub unsafe fn outl(port: u16, value: u32) {
 #[must_use]
 pub fn allocate_pages(pages: NumOfPages<Size4KiB>) -> VirtAddr {
     // SAFETY: This operation is safe as the arguments are propertly passed.
-    VirtAddr::new(unsafe {
-        general_syscall(
-            Ty::AllocatePages,
-            pages
-                .as_usize()
-                .try_into()
-                .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `u64` == `usize`.")),
-            0,
-            0,
-        )
-    })
+    VirtAddr::new(general_syscall(
+        Ty::AllocatePages,
+        pages
+            .as_usize()
+            .try_into()
+            .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `u64` == `usize`.")),
+        0,
+        0,
+    ))
 }
 
 pub fn deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) {
     // SAFETY: This operation is safe as the all arguments are propertly passed.
-    unsafe {
-        general_syscall(
-            Ty::DeallocatePages,
-            virt.as_u64(),
-            pages
-                .as_usize()
-                .try_into()
-                .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `u64` == `usize`.")),
-            0,
-        )
-    };
+    general_syscall(
+        Ty::DeallocatePages,
+        virt.as_u64(),
+        pages
+            .as_usize()
+            .try_into()
+            .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `u64` == `usize`.")),
+        0,
+    );
 }
 
 #[must_use]
 pub fn map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
     // SAFETY: This operation is safe as the all arguments are propertly passed.
-    VirtAddr::new(unsafe {
-        general_syscall(
-            Ty::MapPages,
-            start.as_u64(),
-            bytes
-                .as_usize()
-                .try_into()
-                .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `u64` == `usize`.")),
-            0,
-        )
-    })
+    VirtAddr::new(general_syscall(
+        Ty::MapPages,
+        start.as_u64(),
+        bytes
+            .as_usize()
+            .try_into()
+            .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `u64` == `usize`.")),
+        0,
+    ))
 }
 
 pub fn unmap_pages(start: VirtAddr, bytes: Bytes) {
-    unsafe {
-        general_syscall(
-            Ty::UnmapPages,
-            start.as_u64(),
-            bytes
-                .as_usize()
-                .try_into()
-                .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `usize` == `u64`.")),
-            0,
-        );
-    }
+    general_syscall(
+        Ty::UnmapPages,
+        start.as_u64(),
+        bytes
+            .as_usize()
+            .try_into()
+            .unwrap_or_else(|_| unreachable!("On x86_64 architecture, `usize` == `u64`.")),
+        0,
+    );
 }
 
 #[must_use]
@@ -154,14 +141,14 @@ pub fn getpid() -> i32 {
 }
 
 pub fn exit() -> ! {
-    unsafe { exit_syscall(Ty::Exit) }
+    exit_syscall(Ty::Exit)
 }
 
 /// This method will return a null address if the address is not mapped.
 #[must_use]
 pub fn translate_address(a: VirtAddr) -> PhysAddr {
     // SAFETY: Parameters are passed properly.
-    PhysAddr::new(unsafe { general_syscall(Ty::TranslateAddress, a.as_u64(), 0, 0) })
+    PhysAddr::new(general_syscall(Ty::TranslateAddress, a.as_u64(), 0, 0))
 }
 
 pub fn send(m: Message, to: i32) {
@@ -172,7 +159,7 @@ pub fn send(m: Message, to: i32) {
     let a2: u64 = to.try_into().unwrap();
     let a3 = 0;
 
-    unsafe { message_syscall(ty, a1, a2, a3) }
+    message_syscall(ty, a1, a2, a3);
 }
 
 #[must_use]
@@ -186,7 +173,7 @@ pub fn receive_from_any() -> Message {
     let a2 = 0;
     let a3 = 0;
 
-    unsafe { message_syscall(ty, a1, a2, a3) }
+    message_syscall(ty, a1, a2, a3);
 
     m
 }
@@ -198,7 +185,7 @@ pub fn receive_from(from: i32) -> Message {
     let m_ptr: *mut Message = &mut m;
     let m_ptr: u64 = m_ptr as _;
 
-    unsafe { message_syscall(Ty::ReceiveFrom, m_ptr, from.try_into().unwrap(), 0) }
+    message_syscall(Ty::ReceiveFrom, m_ptr, from.try_into().unwrap(), 0);
 
     m
 }
@@ -209,21 +196,19 @@ pub fn receive_from(from: i32) -> Message {
 #[must_use]
 pub unsafe fn write(fildes: i32, buf: *const c_void, nbyte: u32) -> i32 {
     // SAFETY: The arguments are fulfilled properly.
-    unsafe {
-        general_syscall(
-            Ty::Write,
-            fildes.try_into().unwrap(),
-            buf as _,
-            nbyte.into(),
-        )
-        .try_into()
-        .unwrap()
-    }
+    general_syscall(
+        Ty::Write,
+        fildes.try_into().unwrap(),
+        buf as _,
+        nbyte.into(),
+    )
+    .try_into()
+    .unwrap()
 }
 
 pub fn panic(info: &PanicInfo<'_>) -> ! {
     let info: *const PanicInfo<'_> = info;
-    unsafe { general_syscall(Ty::Panic, info as _, 0, 0) };
+    general_syscall(Ty::Panic, info as _, 0, 0);
     unreachable!("The `panic` system call should not return.");
 }
 
@@ -250,4 +235,94 @@ pub enum Ty {
     ReceiveFromAny,
     ReceiveFrom,
     Panic,
+}
+
+#[naked]
+#[allow(clippy::too_many_lines)]
+extern "C" fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
+    unsafe {
+        asm!(
+            "
+
+    push rax
+    push rdi
+    push rsi
+    push rdx
+    push rcx
+    push r8
+    push r9
+    push r10
+    push r11
+
+    mov rax, rdi
+    mov rdi, rsi
+    mov rsi, rdx
+    mov rdx, rcx
+    int 0x80
+
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rcx
+    pop rdx
+    pop rsi
+    pop rdi
+    add rsp, 8  /* RAX is used to return a value. */
+    ret
+    ",
+            options(noreturn)
+        );
+    }
+}
+
+#[naked]
+#[allow(clippy::too_many_lines)]
+extern "C" fn message_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) {
+    unsafe {
+        asm!(
+            "
+    push rax
+    push rdi
+    push rsi
+    push rdx
+    push rcx
+    push r8
+    push r9
+    push r10
+    push r11
+
+    mov rax, rdi
+    mov rdi, rsi
+    mov rsi, rdx
+    mov rdx, rcx
+    int 0x81
+
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rcx
+    pop rdx
+    pop rsi
+    pop rdi
+    pop rax
+    ret
+    ",
+            options(noreturn)
+        );
+    }
+}
+
+#[naked]
+extern "C" fn exit_syscall(ty: Ty) -> ! {
+    unsafe {
+        asm!(
+            "
+            mov rax, rdi
+            int 0x80
+            ",
+            options(noreturn)
+        );
+    }
 }
