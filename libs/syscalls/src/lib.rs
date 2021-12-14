@@ -159,7 +159,7 @@ pub fn send(m: Message, to: i32) {
     let a2: u64 = to.try_into().unwrap();
     let a3 = 0;
 
-    message_syscall(ty, a1, a2, a3)
+    message_syscall(ty, a1, a2, a3);
 }
 
 #[must_use]
@@ -238,6 +238,7 @@ pub enum Ty {
 }
 
 #[naked]
+#[allow(clippy::too_many_lines)]
 extern "C" fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
     unsafe {
         asm!(
@@ -276,6 +277,7 @@ extern "C" fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
 }
 
 #[naked]
+#[allow(clippy::too_many_lines)]
 extern "C" fn message_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) {
     unsafe {
         asm!(
