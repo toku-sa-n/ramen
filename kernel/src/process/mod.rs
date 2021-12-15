@@ -1,3 +1,5 @@
+use self::priority::LEAST_PRIORITY;
+
 mod context;
 pub(crate) mod ipc;
 mod page_table;
@@ -6,7 +8,7 @@ mod priority;
 pub(crate) mod scheduler;
 
 use {
-    self::context::Context,
+    self::{context::Context, priority::Priority},
     crate::{
         mem,
         mem::{
@@ -56,6 +58,7 @@ pub(crate) struct Process {
     pml4: KpBox<PageTable>,
     context: Context,
     kernel_stack: KpBox<UnsafeCell<[u8; STACK_SIZE]>>,
+    priority: Priority,
     msg_ptr: Option<PhysAddr>,
     send_to: Option<Pid>,
     receive_from: Option<ReceiveFrom>,
@@ -69,6 +72,7 @@ impl Process {
             pml4: Self::generate_pml4(),
             context: Context::default(),
             kernel_stack: Self::generate_kernel_stack(),
+            priority: LEAST_PRIORITY,
             msg_ptr: None,
             send_to: None,
             receive_from: None,
@@ -96,6 +100,7 @@ impl Process {
 
             context,
             kernel_stack,
+            priority: Priority::new(0),
 
             msg_ptr: None,
 
@@ -139,6 +144,7 @@ impl Process {
 
                     context,
                     kernel_stack,
+                    priority: Priority::new(0),
 
                     msg_ptr: None,
 
