@@ -1,5 +1,3 @@
-use self::priority::LEAST_PRIORITY;
-
 mod context;
 pub(crate) mod ipc;
 mod page_table;
@@ -8,7 +6,10 @@ mod priority;
 pub(crate) mod scheduler;
 
 use {
-    self::{context::Context, priority::Priority},
+    self::{
+        context::Context,
+        priority::{Priority, LEAST_PRIORITY},
+    },
     crate::{
         mem,
         mem::{
