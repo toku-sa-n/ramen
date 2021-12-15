@@ -1,11 +1,17 @@
+use super::priority::Priority;
+
 use {
-    super::{Pid, ReceiveFrom},
+    super::{priority::LEAST_PRIORITY, Pid, ReceiveFrom},
     crate::{
         mem::{self, accessor::Single, paging},
         process::Process,
         tests,
     },
-    alloc::{collections::BTreeMap, vec::Vec},
+    alloc::{
+        collections::{BTreeMap, VecDeque},
+        vec::Vec,
+    },
+    array_init::array_init,
     message::Message,
     spinning_top::{Spinlock, SpinlockGuard},
     x86_64::{
@@ -391,4 +397,19 @@ fn lock() -> SpinlockGuard<'static, Scheduler> {
     SCHEDULER
         .try_lock()
         .expect("Failed to acquire the lock of `PROCESSES`.")
+}
+
+struct RunningPids([VecDeque<Pid>; LEAST_PRIORITY.as_usize() + 1]);
+impl RunningPids {
+    fn new() -> Self {
+        Self(array_init(|_| VecDeque::new()))
+    }
+
+    fn push(&mut self, pid: Pid, priority: Priority) {
+        self.0[priority.as_usize()].push_back(pid);
+    }
+
+    fn pop(&mut self) -> Option<Pid> {
+        self.0.iter_mut().find_map(VecDeque::pop_front)
+    }
 }
