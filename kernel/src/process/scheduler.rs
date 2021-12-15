@@ -103,7 +103,17 @@ impl Scheduler {
         assert!(r.is_none(), "Duplicated process with PID {}.", pid);
     }
 
-    fn push(&mut self, pid: Pid) {
+    fn wake(&mut self, pid: Pid) {
+        let p = self.process_as_mut(pid);
+        let p = p.expect("No such process.");
+
+        assert!(
+            !matches!(p.status, Status::Running | Status::Runnable),
+            "The process is already awake."
+        );
+
+        p.status = Status::Runnable;
+
         self.runnable_pids.push(pid);
     }
 
@@ -224,7 +234,7 @@ impl<'a> Sender<'a> {
         dst.msg_ptr = None;
         dst.receive_from = None;
 
-        self.manager.push(self.to);
+        self.manager.wake(self.to);
     }
 
     fn set_msg_buf_and_sleep(&mut self) {
@@ -348,7 +358,7 @@ impl<'a> Receiver<'a> {
         sender.msg_ptr = None;
         sender.send_to = None;
 
-        self.manager.push(src_pid);
+        self.manager.wake(src_pid);
     }
 
     fn set_msg_buf_and_sleep(&mut self) {
