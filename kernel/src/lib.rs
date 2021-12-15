@@ -31,7 +31,6 @@ use {
     core::arch::asm,
     interrupt::{apic, idt, timer},
     log::info,
-    process::Privilege,
     terminal::vram,
     x86_64::software_interrupt,
 };
@@ -75,8 +74,8 @@ fn init(mut boot_info: boot_info::Info) {
 }
 
 fn add_processes() {
-    process::binary("port_server.bin", Privilege::Kernel);
-    process::binary("xhci.bin", Privilege::User);
+    process::binary("port_server.bin");
+    process::binary("xhci.bin");
     process::from_function(sysproc::main, "sysproc");
     process::from_function(do_nothing, "do_nothing");
 

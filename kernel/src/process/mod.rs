@@ -1,5 +1,3 @@
-use self::context::Context;
-
 mod context;
 pub(crate) mod ipc;
 mod page_table;
@@ -8,13 +6,16 @@ pub(crate) mod scheduler;
 mod stack_frame;
 
 use {
+    self::context::Context,
     crate::{
         mem,
         mem::{allocator::kpbox::KpBox, paging},
     },
     alloc::collections::VecDeque,
-    core::convert::TryInto,
+    core::{cell::UnsafeCell, convert::TryInto},
+    os_units::Bytes,
     stack_frame::StackFrame,
+    static_assertions::const_assert,
     x86_64::{
         registers::control::Cr3,
         structures::paging::{PageSize, PageTable, PageTableFlags, PhysFrame, Size4KiB},
@@ -23,13 +24,21 @@ use {
 };
 pub(crate) use {pid::Pid, scheduler::switch};
 
+// No truncation from u64 to usize on the x86_64 platform.
+#[allow(clippy::cast_possible_truncation)]
+const STACK_SIZE: usize = Size4KiB::SIZE as usize * 4;
+const STACK_GUARD_SIZE: Bytes = Bytes::new(4096);
+const STACK_MAGIC: &str = "Oh god! What a man!";
+
+const_assert!(STACK_GUARD_SIZE.as_usize() + STACK_MAGIC.as_bytes().len() <= STACK_SIZE);
+
 pub(super) fn from_function(entry: fn(), name: &'static str) {
     let entry = VirtAddr::new((entry as usize).try_into().unwrap());
-    push_process_to_queue(Process::new(entry, Privilege::Kernel, name));
+    push_process_to_queue(Process::new(entry, name));
 }
 
-pub(super) fn binary(name: &'static str, p: Privilege) {
-    push_process_to_queue(Process::binary(name, p));
+pub(super) fn binary(name: &'static str) {
+    push_process_to_queue(Process::binary(name));
 }
 
 fn push_process_to_queue(p: Process) {
@@ -46,10 +55,8 @@ pub(super) fn loader(f: fn() -> !) -> ! {
 #[derive(Debug)]
 pub(crate) struct Process {
     id: Pid,
-    pml4: PhysFrame,
+    pml4: KpBox<PageTable>,
     stack_frame: KpBox<StackFrame>,
-
-    new_pml4: KpBox<PageTable>,
 
     msg_ptr: Option<PhysAddr>,
 
@@ -63,38 +70,25 @@ pub(crate) struct Process {
     name: &'static str,
 }
 impl Process {
-    // No truncation from u64 to usize on the x86_64 platform.
-    #[allow(clippy::cast_possible_truncation)]
-    const STACK_SIZE: usize = Size4KiB::SIZE as usize * 4;
-
     #[allow(clippy::too_many_lines)]
-    fn new(entry: VirtAddr, privilege: Privilege, name: &'static str) -> Self {
-        let new_pml4 = Self::generate_pml4();
+    fn new(entry: VirtAddr, name: &'static str) -> Self {
+        let pml4 = Self::generate_pml4();
 
         let mut tables = page_table::Collection::default();
-        let stack = KpBox::new_slice(0, Self::STACK_SIZE);
+        let stack = Self::generate_kernel_stack();
         let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
-        let stack_frame = KpBox::from(match privilege {
-            Privilege::Kernel => StackFrame::kernel(entry, stack_bottom),
-            Privilege::User => StackFrame::user(entry, stack_bottom),
-        });
+        let stack_frame = KpBox::from(StackFrame::kernel(entry, stack_bottom));
         tables.map_page_box(&stack);
         tables.map_page_box(&stack_frame);
 
-        let context = match privilege {
-            Privilege::Kernel => Context::kernel(entry, tables.pml4_frame(), stack_bottom - 8_u64),
-            Privilege::User => Context::user(entry, tables.pml4_frame(), stack_bottom - 8_u64),
-        };
+        let context = Context::kernel(entry, tables.pml4_frame(), stack_bottom - 8_u64);
 
-        let pml4 = tables.pml4_frame();
         Process {
             id: pid::generate(),
             pml4,
             stack_frame,
 
             context,
-
-            new_pml4,
 
             msg_ptr: None,
 
@@ -107,41 +101,29 @@ impl Process {
     }
 
     #[allow(clippy::too_many_lines)]
-    fn binary(name: &'static str, privilege: Privilege) -> Self {
-        let new_pml4 = Self::generate_pml4();
+    fn binary(name: &'static str) -> Self {
+        let pml4 = Self::generate_pml4();
 
         let handler = crate::fs::get_handler(name);
         let raw = handler.content();
 
         unsafe {
-            switch_pml4_do(&new_pml4, || mem::elf::map_to_current_address_space(raw)).unwrap();
+            switch_pml4_do(&pml4, || mem::elf::map_to_current_address_space(raw)).unwrap();
         }
 
         let mut tables = page_table::Collection::default();
-        let (content, entry) = tables.map_elf(name);
+        let (_, entry) = tables.map_elf(name);
 
-        let stack = KpBox::new_slice(0, Self::STACK_SIZE);
+        let stack = Self::generate_kernel_stack();
         let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
-        let stack_frame = KpBox::from(match privilege {
-            Privilege::Kernel => StackFrame::kernel(entry, stack_bottom),
-            Privilege::User => StackFrame::user(entry, stack_bottom),
-        });
-        tables.map_page_box(&stack);
-        tables.map_page_box(&stack_frame);
+        let stack_frame = KpBox::from(StackFrame::user(entry, stack_bottom));
 
-        let pml4 = tables.pml4_frame();
-
-        let context = match privilege {
-            Privilege::Kernel => Context::kernel(entry, tables.pml4_frame(), stack_bottom - 8_u64),
-            Privilege::User => Context::user(entry, tables.pml4_frame(), stack_bottom - 8_u64),
-        };
+        let context = Context::user(entry, tables.pml4_frame(), stack_bottom - 8_u64);
 
         Self {
             id: pid::generate(),
             pml4,
             stack_frame,
-
-            new_pml4,
 
             context,
 
@@ -185,6 +167,16 @@ impl Process {
 
         pml4
     }
+
+    fn generate_kernel_stack() -> KpBox<UnsafeCell<[u8; STACK_SIZE]>> {
+        let mut stack = KpBox::from(UnsafeCell::from([0; STACK_SIZE]));
+
+        for (i, c) in STACK_MAGIC.as_bytes().iter().enumerate() {
+            stack.get_mut()[STACK_GUARD_SIZE.as_usize() + i] = *c;
+        }
+
+        stack
+    }
 }
 
 unsafe fn switch_pml4_do<T>(pml4: &KpBox<PageTable>, f: impl FnOnce() -> T) -> T {
@@ -204,12 +196,6 @@ unsafe fn switch_pml4_do<T>(pml4: &KpBox<PageTable>, f: impl FnOnce() -> T) -> T
     }
 
     r
-}
-
-#[derive(Copy, Clone, Debug)]
-pub(crate) enum Privilege {
-    Kernel,
-    User,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]

@@ -113,7 +113,10 @@ impl Scheduler {
     }
 
     fn current_pml4(&self) -> PhysFrame {
-        self.handle_running(|p| p.pml4)
+        self.handle_running(|p| {
+            let frame = PhysFrame::from_start_address(p.pml4.phys_addr());
+            frame.expect("PML4 is not page-aligned.")
+        })
     }
 
     fn current_stack_frame_top_addr(&self) -> VirtAddr {
