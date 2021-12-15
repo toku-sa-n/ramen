@@ -1,5 +1,8 @@
+use crate::tss;
+
 use {
     super::{
+        context::Context,
         priority::{Priority, LEAST_PRIORITY},
         receive_from::ReceiveFrom,
         Pid,
@@ -7,23 +10,19 @@ use {
     crate::{
         mem::{self, accessor::Single, paging},
         process::{status::Status, Process},
-        tests,
     },
     alloc::collections::{BTreeMap, VecDeque},
     array_init::array_init,
     conquer_once::spin::Lazy,
     message::Message,
     spinning_top::{Spinlock, SpinlockGuard},
-    x86_64::{
-        instructions::interrupts::without_interrupts, registers::control::Cr3,
-        structures::paging::PhysFrame, PhysAddr, VirtAddr,
-    },
+    x86_64::{instructions::interrupts::without_interrupts, PhysAddr, VirtAddr},
 };
 
 static SCHEDULER: Lazy<Spinlock<Scheduler>> = Lazy::new(|| Spinlock::new(Scheduler::new()));
 
 pub(crate) fn switch() {
-    lock().switch();
+    lock().try_switch();
 }
 
 pub(crate) fn send(msg: VirtAddr, to: Pid) {
@@ -129,19 +128,12 @@ impl Scheduler {
         Receiver::new_from(self, msg_buf, from).receive();
     }
 
-    fn switch(&mut self) {
-        Switcher(self).switch();
+    fn try_switch(&mut self) -> Option<(*mut Context, *mut Context)> {
+        Switcher(self).try_switch()
     }
 
     fn current_process_name(&self) -> &'static str {
         self.running_as_ref().name
-    }
-
-    fn current_pml4(&self) -> PhysFrame {
-        let p = self.running_as_ref();
-
-        let frame = PhysFrame::from_start_address(p.pml4.phys_addr());
-        frame.expect("PML4 is not page-aligned.")
     }
 
     fn running_as_ref(&self) -> &Process {
@@ -406,20 +398,81 @@ impl<'a> Receiver<'a> {
 
 struct Switcher<'a>(&'a mut Scheduler);
 impl Switcher<'_> {
-    fn switch(self) {
-        if cfg!(feature = "qemu_test") {
-            tests::process::count_switch();
-        }
+    fn try_switch(mut self) -> Option<(*mut Context, *mut Context)> {
+        #[cfg(feature = "qemu_test")]
+        crate::tests::process::count_switch();
 
-        self.switch_pml4();
+        let next = self.update_runnable_pids_and_return_next_pid();
+
+        (self.0.running != next).then(|| self.switch_to(next))
     }
 
-    fn switch_pml4(&self) {
-        let (_, f) = Cr3::read();
-        let pml4 = self.0.current_pml4();
+    fn update_runnable_pids_and_return_next_pid(&mut self) -> Pid {
+        if self.0.running_as_ref().status == Status::Running {
+            self.push_current_process_as_runnable();
+        }
 
-        // SAFETY: The PML4 frame is correct one and flags are unchanged.
-        unsafe { Cr3::write(pml4, f) }
+        self.0.runnable_pids.pop().expect("No runnable PIDs.")
+    }
+
+    fn push_current_process_as_runnable(&mut self) {
+        let process = self.0.running_as_ref();
+
+        let pid = process.pid;
+
+        let priority = process.priority;
+
+        self.0.runnable_pids.push(pid, priority);
+    }
+
+    fn switch_to(&mut self, next: Pid) -> (*mut Context, *mut Context) {
+        unsafe {
+            self.assert_kernel_stack_is_not_smashed(next);
+        }
+
+        self.switch_kernel_stack(next);
+
+        if self.0.running_as_ref().status == Status::Running {
+            self.0.running_as_mut().status = Status::Runnable;
+        }
+
+        let current = self.0.running;
+
+        self.0.running = next;
+
+        let next_proc = self.0.process_as_mut(next);
+        let next_proc = next_proc.expect("No such process.");
+
+        next_proc.status = Status::Running;
+
+        (self.context(current), self.context(next))
+    }
+
+    /// # Safety
+    ///
+    /// Do not call this function for the process which is running and whose kernel stack is
+    /// currently used.
+    unsafe fn assert_kernel_stack_is_not_smashed(&self, pid: Pid) {
+        let p = self.0.process_as_ref(pid);
+        let p = p.expect("No such process.");
+
+        unsafe {
+            p.assert_kernel_stack_is_not_smashed();
+        }
+    }
+
+    fn switch_kernel_stack(&self, next: Pid) {
+        let p = self.0.process_as_ref(next);
+        let p = p.expect("No such process.");
+
+        tss::set_interrupt_stack(p.kernel_stack_bottom_addr());
+    }
+
+    fn context(&mut self, pid: Pid) -> *mut Context {
+        let p = self.0.process_as_mut(pid);
+        let p = p.expect("No such process.");
+
+        &mut p.context
     }
 }
 

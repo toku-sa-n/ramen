@@ -171,6 +171,28 @@ impl Process {
         self.pid
     }
 
+    /// # Safety
+    ///
+    /// Do not call this function for the process which is running and whose kernel stack is
+    /// currently used.
+    unsafe fn assert_kernel_stack_is_not_smashed(&self) {
+        // SAFETY: The caller ensures that he calls this function for the process which is not
+        // running or whose kernel stack is not used.
+        let stack = unsafe { &*self.kernel_stack.get() };
+        let magic =
+            &stack[STACK_GUARD_SIZE.as_usize()..STACK_GUARD_SIZE.as_usize() + STACK_MAGIC.len()];
+
+        assert_eq!(
+            magic,
+            STACK_MAGIC.as_bytes(),
+            "The kernel stack is smashed."
+        );
+    }
+
+    fn kernel_stack_bottom_addr(&self) -> VirtAddr {
+        self.kernel_stack.virt_addr() + self.kernel_stack.bytes().as_usize()
+    }
+
     fn generate_pml4() -> KpBox<PageTable> {
         let mut pml4 = KpBox::<PageTable>::default();
 
