@@ -3,12 +3,14 @@ pub(crate) mod ipc;
 mod page_table;
 mod pid;
 mod priority;
+mod receive_from;
 pub(crate) mod scheduler;
 
 use {
     self::{
         context::Context,
         priority::{Priority, LEAST_PRIORITY},
+        receive_from::ReceiveFrom,
     },
     crate::{
         mem,
@@ -206,10 +208,4 @@ unsafe fn switch_pml4_do<T>(pml4: PhysFrame, f: impl FnOnce() -> T) -> T {
     }
 
     r
-}
-
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
-pub(crate) enum ReceiveFrom {
-    Any,
-    Id(Pid),
 }

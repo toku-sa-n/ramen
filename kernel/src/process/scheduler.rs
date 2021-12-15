@@ -1,7 +1,9 @@
-use super::priority::Priority;
-
 use {
-    super::{priority::LEAST_PRIORITY, Pid, ReceiveFrom},
+    super::{
+        priority::{Priority, LEAST_PRIORITY},
+        receive_from::ReceiveFrom,
+        Pid,
+    },
     crate::{
         mem::{self, accessor::Single, paging},
         process::Process,
