@@ -15,11 +15,13 @@ use {
         status::Status,
     },
     crate::{
-        mem,
+        do_nothing,
         mem::{
+            self,
             allocator::{allocate_pages_for_user, kpbox::KpBox},
             paging,
         },
+        sysproc,
     },
     alloc::collections::VecDeque,
     core::{cell::UnsafeCell, convert::TryInto},
@@ -43,6 +45,14 @@ const_assert!(STACK_GUARD_SIZE.as_usize() + STACK_MAGIC.as_bytes().len() <= STAC
 
 pub(super) fn init() {
     scheduler::init();
+
+    binary("port_server.bin");
+    binary("xhci.bin");
+    from_function(sysproc::main, "sysproc");
+    from_function(do_nothing, "do_nothing");
+
+    #[cfg(feature = "qemu_test")]
+    process::from_function(tests::main, "tests");
 }
 
 pub(super) fn from_function(entry: fn(), name: &'static str) {

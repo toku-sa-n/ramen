@@ -71,19 +71,6 @@ fn init(mut boot_info: boot_info::Info) {
     syscall::init();
 
     process::init();
-
-    add_processes();
-}
-
-fn add_processes() {
-    process::binary("port_server.bin");
-    process::binary("xhci.bin");
-    process::from_function(sysproc::main, "sysproc");
-    process::from_function(do_nothing, "do_nothing");
-
-    if cfg!(feature = "qemu_test") {
-        process::from_function(tests::main, "tests");
-    }
 }
 
 fn cause_timer_interrupt() -> ! {
