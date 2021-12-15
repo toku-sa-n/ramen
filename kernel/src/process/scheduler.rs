@@ -160,18 +160,6 @@ impl Scheduler {
         self.processes.get_mut(&pid)
     }
 
-    fn handle<T, U>(&self, pid: Pid, f: T) -> U
-    where
-        T: FnOnce(&Process) -> U,
-    {
-        let p = self
-            .processes
-            .get(&pid)
-            .unwrap_or_else(|| panic!("Process of PID {} does not exist.", pid));
-
-        f(p)
-    }
-
     fn handle_mut<T, U>(&mut self, pid: Pid, f: T) -> U
     where
         T: FnOnce(&mut Process) -> U,
@@ -208,13 +196,14 @@ impl<'a> Sender<'a> {
     }
 
     fn is_receiver_waiting(&self) -> bool {
-        self.manager.handle(self.to, |p| {
-            [
-                Some(ReceiveFrom::Id(self.manager.running)),
-                Some(ReceiveFrom::Any),
-            ]
-            .contains(&p.receive_from)
-        })
+        let p = self.manager.process_as_ref(self.to);
+        let p = p.expect("The receiver does not exist.");
+
+        [
+            Some(ReceiveFrom::Id(self.manager.running)),
+            Some(ReceiveFrom::Any),
+        ]
+        .contains(&p.receive_from)
     }
 
     fn copy_msg_and_wake(&mut self) {
@@ -224,7 +213,10 @@ impl<'a> Sender<'a> {
     }
 
     fn copy_msg(&self) {
-        let dst = self.manager.handle(self.to, |p| p.msg_ptr);
+        let dst_proc = self.manager.process_as_ref(self.to);
+        let dst_proc = dst_proc.expect("The receiver does not exist.");
+
+        let dst = dst_proc.msg_ptr;
         let dst = dst.expect("Message destination address is not specified.");
 
         unsafe { copy_msg(self.msg, dst, self.manager.running) }
@@ -317,7 +309,10 @@ impl<'a> Receiver<'a> {
 
     fn is_sender_waiting(&self) -> bool {
         if let ReceiveFrom::Id(id) = self.from {
-            self.manager.handle(id, |p| p.send_to == Some(id))
+            let p = self.manager.process_as_ref(id);
+            let p = p.expect("The sender does not exist.");
+
+            p.send_to == Some(id)
         } else {
             let p = self.manager.running_as_ref();
 
@@ -345,7 +340,10 @@ impl<'a> Receiver<'a> {
     }
 
     fn copy_msg(&self, src_slot_id: Pid) {
-        let src = self.manager.handle(src_slot_id, |p| p.msg_ptr);
+        let src_proc = self.manager.process_as_ref(src_slot_id);
+        let src_proc = src_proc.expect("The sender does not exist.");
+
+        let src = src_proc.msg_ptr;
         let src = src.expect("The message pointer of the sender is not set.");
 
         unsafe { copy_msg(src, self.msg_buf, src_slot_id) }
