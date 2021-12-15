@@ -3,18 +3,19 @@ pub(crate) mod ipc;
 mod page_table;
 mod pid;
 pub(crate) mod scheduler;
-mod stack_frame;
 
 use {
     self::context::Context,
     crate::{
         mem,
-        mem::{allocator::kpbox::KpBox, paging},
+        mem::{
+            allocator::{allocate_pages_for_user, kpbox::KpBox},
+            paging,
+        },
     },
     alloc::collections::VecDeque,
     core::{cell::UnsafeCell, convert::TryInto},
-    os_units::Bytes,
-    stack_frame::StackFrame,
+    os_units::{Bytes, NumOfPages},
     static_assertions::const_assert,
     x86_64::{
         registers::control::Cr3,
@@ -48,10 +49,6 @@ fn push_process_to_queue(p: Process) {
     scheduler::add(p);
 }
 
-pub(super) fn loader(f: fn() -> !) -> ! {
-    f();
-}
-
 #[derive(Debug)]
 pub(crate) struct Process {
     pid: Pid,
@@ -83,14 +80,14 @@ impl Process {
     fn new(entry: VirtAddr, name: &'static str) -> Self {
         let pml4 = Self::generate_pml4();
 
-        let mut tables = page_table::Collection::default();
-        let kernel_stack = Self::generate_kernel_stack();
-        let stack_bottom = kernel_stack.virt_addr() + kernel_stack.bytes().as_usize();
-        let stack_frame = KpBox::from(StackFrame::kernel(entry, stack_bottom));
-        tables.map_page_box(&kernel_stack);
-        tables.map_page_box(&stack_frame);
+        let pml4_frame = PhysFrame::from_start_address(pml4.phys_addr());
+        let pml4_frame = pml4_frame.expect("PML4 is not page-aligned.");
 
-        let context = Context::kernel(entry, tables.pml4_frame(), stack_bottom - 8_u64);
+        let kernel_stack = Self::generate_kernel_stack();
+
+        let stack_bottom = kernel_stack.virt_addr() + kernel_stack.bytes().as_usize();
+
+        let context = Context::kernel(entry, pml4_frame, stack_bottom - 8_u64);
 
         Process {
             pid: pid::generate(),
@@ -113,35 +110,44 @@ impl Process {
     fn binary(name: &'static str) -> Self {
         let pml4 = Self::generate_pml4();
 
+        let pml4_frame = PhysFrame::from_start_address(pml4.phys_addr());
+        let pml4_frame = pml4_frame.expect("PML4 is not page-aligned.");
+
         let handler = crate::fs::get_handler(name);
         let raw = handler.content();
 
-        unsafe {
-            switch_pml4_do(&pml4, || mem::elf::map_to_current_address_space(raw)).unwrap();
-        }
-
-        let mut tables = page_table::Collection::default();
-        let (_, entry) = tables.map_elf(name);
-
         let kernel_stack = Self::generate_kernel_stack();
-        let stack_bottom = kernel_stack.virt_addr() + kernel_stack.bytes().as_usize();
 
-        let context = Context::user(entry, tables.pml4_frame(), stack_bottom - 8_u64);
+        unsafe {
+            switch_pml4_do(pml4_frame, || {
+                let entry = mem::elf::map_to_current_address_space(raw).unwrap();
 
-        Self {
-            pid: pid::generate(),
-            pml4,
+                let stack_size = NumOfPages::<Size4KiB>::new(5);
 
-            context,
-            kernel_stack,
+                let stack_top = allocate_pages_for_user(NumOfPages::new(5)).unwrap();
 
-            msg_ptr: None,
+                let context = Context::user(
+                    entry,
+                    pml4_frame,
+                    stack_top + stack_size.as_bytes().as_usize() - 8_u64,
+                );
 
-            send_to: None,
-            receive_from: None,
+                Self {
+                    pid: pid::generate(),
+                    pml4,
 
-            pids_try_to_send_this_process: VecDeque::new(),
-            name,
+                    context,
+                    kernel_stack,
+
+                    msg_ptr: None,
+
+                    send_to: None,
+                    receive_from: None,
+
+                    pids_try_to_send_this_process: VecDeque::new(),
+                    name,
+                }
+            })
         }
     }
 
@@ -178,14 +184,11 @@ impl Process {
     }
 }
 
-unsafe fn switch_pml4_do<T>(pml4: &KpBox<PageTable>, f: impl FnOnce() -> T) -> T {
+unsafe fn switch_pml4_do<T>(pml4: PhysFrame, f: impl FnOnce() -> T) -> T {
     let (old_pml4, flags) = Cr3::read();
 
-    let frame = PhysFrame::from_start_address(pml4.phys_addr());
-    let frame = frame.expect("The address is not page-aligned.");
-
     unsafe {
-        Cr3::write(frame, flags);
+        Cr3::write(pml4, flags);
     }
 
     let r = f();
