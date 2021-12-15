@@ -15,7 +15,6 @@ members = [
     "servers/fs",
     "servers/pm",
     "servers/port_server",
-    "servers/vm",
     "servers/xhci",
 ]
 resolver = "2"

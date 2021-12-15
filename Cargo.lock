@@ -714,14 +714,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "vm"
-version = "0.1.0"
-dependencies = [
- "linked_list_allocator",
- "ralib",
-]
-
-[[package]]
 name = "volatile"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
