@@ -62,6 +62,8 @@ struct Scheduler {
     processes: BTreeMap<Pid, Process>,
 
     runnable_pids: Vec<Pid>,
+
+    running: Pid,
 }
 impl Scheduler {
     const fn new() -> Self {
@@ -69,6 +71,8 @@ impl Scheduler {
             processes: BTreeMap::new(),
 
             runnable_pids: Vec::new(),
+
+            running: 0,
         }
     }
 
