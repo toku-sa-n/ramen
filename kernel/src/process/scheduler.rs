@@ -172,13 +172,6 @@ impl Scheduler {
         f(p)
     }
 
-    fn handle_running_mut<T, U>(&mut self, f: T) -> U
-    where
-        T: FnOnce(&mut Process) -> U,
-    {
-        self.handle_mut(self.running, f)
-    }
-
     fn handle_mut<T, U>(&mut self, pid: Pid, f: T) -> U
     where
         T: FnOnce(&mut Process) -> U,
@@ -238,10 +231,10 @@ impl<'a> Sender<'a> {
     }
 
     fn remove_msg_buf(&mut self) {
-        self.manager.handle_running_mut(|p| {
-            p.msg_ptr = None;
-            p.send_to = None;
-        });
+        let p = self.manager.running_as_mut();
+
+        p.msg_ptr = None;
+        p.send_to = None;
     }
 
     fn wake_dst(&mut self) {
@@ -260,13 +253,13 @@ impl<'a> Sender<'a> {
     }
 
     fn set_msg_buf(&mut self) {
-        self.manager.handle_running_mut(|p| {
-            if p.msg_ptr.is_none() {
-                p.msg_ptr = Some(self.msg);
-            } else {
-                panic!("Message is already stored.");
-            }
-        });
+        let p = self.manager.running_as_mut();
+
+        if p.msg_ptr.is_none() {
+            p.msg_ptr = Some(self.msg);
+        } else {
+            panic!("Message is already stored.");
+        };
     }
 
     fn add_self_as_trying_to_send(&mut self) {
@@ -277,8 +270,9 @@ impl<'a> Sender<'a> {
     }
 
     fn mark_as_sending(&mut self) {
-        self.manager
-            .handle_running_mut(|p| p.send_to = Some(self.to));
+        let p = self.manager.running_as_mut();
+
+        p.send_to = Some(self.to);
     }
 }
 
@@ -342,11 +336,11 @@ impl<'a> Receiver<'a> {
         if let ReceiveFrom::Id(id) = self.from {
             id
         } else {
-            self.manager.handle_running_mut(|p| {
-                p.pids_try_to_send_this_process
-                    .pop_front()
-                    .expect("No process is waiting to send.")
-            })
+            let p = self.manager.running_as_mut();
+
+            p.pids_try_to_send_this_process
+                .pop_front()
+                .expect("No process is waiting to send.")
         }
     }
 
@@ -372,18 +366,19 @@ impl<'a> Receiver<'a> {
     }
 
     fn set_msg_buf(&mut self) {
-        self.manager.handle_running_mut(|p| {
-            if p.msg_ptr.is_none() {
-                p.msg_ptr = Some(self.msg_buf);
-            } else {
-                panic!("Message is already stored.");
-            }
-        });
+        let p = self.manager.running_as_mut();
+
+        if p.msg_ptr.is_none() {
+            p.msg_ptr = Some(self.msg_buf);
+        } else {
+            panic!("Message is already stored.");
+        };
     }
 
     fn mark_as_receiving(&mut self) {
-        self.manager
-            .handle_running_mut(|p| p.receive_from = Some(self.from));
+        let p = self.manager.running_as_mut();
+
+        p.receive_from = Some(self.from);
     }
 }
 
