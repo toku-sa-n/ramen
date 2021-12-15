@@ -55,9 +55,8 @@ pub(super) fn init() {
     process::from_function(tests::main, "tests");
 }
 
-pub(super) fn from_function(entry: fn(), name: &'static str) {
-    let entry = VirtAddr::new((entry as usize).try_into().unwrap());
-    push_process_to_queue(Process::new(entry, name));
+pub(super) fn from_function(entry: fn() -> !, name: &'static str) {
+    push_process_to_queue(Process::from_function(entry, name));
 }
 
 pub(super) fn binary(name: &'static str) {
@@ -103,7 +102,9 @@ impl Process {
     }
 
     #[allow(clippy::too_many_lines)]
-    fn new(entry: VirtAddr, name: &'static str) -> Self {
+    fn from_function(entry: fn() -> !, name: &'static str) -> Self {
+        let entry = VirtAddr::new((entry as usize).try_into().unwrap());
+
         let pml4 = Self::generate_pml4();
 
         let pml4_frame = PhysFrame::from_start_address(pml4.phys_addr());
