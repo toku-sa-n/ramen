@@ -1,7 +1,7 @@
 use {
     crate::{
         mem::{allocator, paging},
-        process::{self, exit_process, Pid},
+        process::{self, Pid},
     },
     core::{convert::TryInto, ffi::c_void, panic::PanicInfo, slice},
     num_traits::FromPrimitive,
@@ -37,7 +37,6 @@ unsafe fn select_proper_syscall_unchecked(ty: syscalls::Ty, a1: u64, a2: u64, a3
         syscalls::Ty::UnmapPages => {
             sys_unmap_pages(VirtAddr::new(a1), Bytes::new(a2.try_into().unwrap()))
         }
-        syscalls::Ty::Exit => sys_exit(),
         syscalls::Ty::TranslateAddress => sys_translate_address(VirtAddr::new(a1)).as_u64(),
         // SAFETY: The caller must ensure that `a2` is the correct pointer to the string.
         syscalls::Ty::Write => unsafe {
@@ -75,21 +74,6 @@ fn sys_map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
 fn sys_unmap_pages(start: VirtAddr, bytes: Bytes) -> u64 {
     crate::mem::unmap_pages(start, bytes);
     0
-}
-
-fn sys_exit() -> ! {
-    unsafe {
-        asm!(
-            "
-            mov rsp, {}
-            call {}
-            "
-            ,
-            const 0xffff_ffff_c000_0000_u64 - (0x1000 * 16 / 2),
-            sym exit_process,
-            options(noreturn)
-        )
-    }
 }
 
 fn sys_translate_address(v: VirtAddr) -> PhysAddr {

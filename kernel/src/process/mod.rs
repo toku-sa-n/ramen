@@ -16,10 +16,7 @@ use {
         PhysAddr, VirtAddr,
     },
 };
-pub(crate) use {
-    pid::Pid,
-    scheduler::{exit_process, switch},
-};
+pub(crate) use {pid::Pid, scheduler::switch};
 
 pub(super) fn from_function(entry: fn(), name: &'static str) {
     let entry = VirtAddr::new((entry as usize).try_into().unwrap());
@@ -37,9 +34,8 @@ fn push_process_to_queue(p: Process) {
     scheduler::add(p);
 }
 
-pub(super) fn loader(f: fn()) -> ! {
+pub(super) fn loader(f: fn() -> !) -> ! {
     f();
-    syscalls::exit();
 }
 
 #[derive(Debug)]
