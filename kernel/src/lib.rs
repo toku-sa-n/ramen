@@ -23,6 +23,8 @@ mod process;
 mod qemu;
 mod syscall;
 mod sysproc;
+
+#[cfg(feature = "qemu_test")]
 mod tests;
 mod tss;
 

@@ -22,7 +22,13 @@ use {
 static SCHEDULER: Lazy<Spinlock<Scheduler>> = Lazy::new(|| Spinlock::new(Scheduler::new()));
 
 pub(crate) fn switch() {
-    lock().try_switch();
+    let mut manager = lock();
+
+    if let Some((current_context, next_context)) = manager.try_switch() {
+        drop(manager);
+
+        Context::switch(current_context, next_context);
+    }
 }
 
 pub(crate) fn send(msg: VirtAddr, to: Pid) {
@@ -35,12 +41,20 @@ pub(crate) fn send(msg: VirtAddr, to: Pid) {
 
 pub(crate) fn receive_from_any(msg_buf: VirtAddr) {
     // Ditto as `send` for `without_interrupts`.
-    without_interrupts(|| lock().receive_from_any(msg_buf));
+    without_interrupts(|| {
+        lock().receive_from_any(msg_buf);
+
+        switch();
+    });
 }
 
 pub(crate) fn receive_from(msg_buf: VirtAddr, from: Pid) {
     // Ditto as `send` for `without_interrupts`.
-    without_interrupts(|| lock().receive_from(msg_buf, from));
+    without_interrupts(|| {
+        lock().receive_from(msg_buf, from);
+
+        switch();
+    });
 }
 
 pub(crate) fn current_process_name() -> &'static str {

@@ -1,6 +1,5 @@
 mod context;
 pub(crate) mod ipc;
-mod page_table;
 mod pid;
 mod priority;
 mod receive_from;
@@ -56,7 +55,9 @@ pub(super) fn init() {
 #[derive(Debug)]
 pub(crate) struct Process {
     pid: Pid,
-    pml4: KpBox<PageTable>,
+
+    _pml4: KpBox<PageTable>,
+
     context: Context,
     kernel_stack: KpBox<UnsafeCell<[u8; STACK_SIZE]>>,
     priority: Priority,
@@ -71,7 +72,7 @@ impl Process {
     fn idle() -> Self {
         Self {
             pid: 0,
-            pml4: Self::generate_pml4(),
+            _pml4: Self::generate_pml4(),
             context: Context::default(),
             kernel_stack: Self::generate_kernel_stack(),
             priority: LEAST_PRIORITY,
@@ -101,7 +102,7 @@ impl Process {
 
         Process {
             pid: pid::generate(),
-            pml4,
+            _pml4: pml4,
 
             context,
             kernel_stack,
@@ -147,7 +148,7 @@ impl Process {
 
                 Self {
                     pid: pid::generate(),
-                    pml4,
+                    _pml4: pml4,
 
                     context,
                     kernel_stack,

@@ -3,6 +3,7 @@ use qemu_exit::QEMUExit;
 const IO_BASE: u16 = 0xf4;
 const EXIT_SUCCESS_CODE: u32 = 33;
 
+#[cfg(feature = "qemu_test")]
 pub(crate) fn exit_success() -> ! {
     exit_handler().exit_success();
 }
