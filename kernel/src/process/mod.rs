@@ -2,6 +2,7 @@ mod context;
 pub(crate) mod ipc;
 mod page_table;
 mod pid;
+mod priority;
 pub(crate) mod scheduler;
 
 use {
