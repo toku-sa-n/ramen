@@ -117,10 +117,6 @@ impl Scheduler {
         self.runnable_pids.push(pid);
     }
 
-    fn change_active_pid(&mut self) {
-        self.runnable_pids.rotate_left(1);
-    }
-
     fn send(&mut self, msg: VirtAddr, to: Pid) {
         Sender::new(self, msg, to).send();
     }
@@ -415,7 +411,6 @@ impl Switcher<'_> {
             tests::process::count_switch();
         }
 
-        self.0.change_active_pid();
         self.switch_pml4();
     }
 
