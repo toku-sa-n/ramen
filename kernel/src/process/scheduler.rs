@@ -84,14 +84,6 @@ impl Scheduler {
         self.add_idle_process_as_running();
     }
 
-    fn add_process_as_runnable(&mut self, p: Process) {
-        let pid = p.id();
-
-        let r = self.processes.insert(pid, p);
-
-        assert!(r.is_none(), "Duplicated process with PID {}.", pid);
-    }
-
     fn add_idle_process_as_running(&mut self) {
         let idle = Process::idle();
 
@@ -105,6 +97,14 @@ impl Scheduler {
         let r = self.processes.insert(idle.pid, idle);
 
         r.expect("Duplicated idle process.");
+    }
+
+    fn add_process_as_runnable(&mut self, p: Process) {
+        let pid = p.id();
+
+        let r = self.processes.insert(pid, p);
+
+        assert!(r.is_none(), "Duplicated process with PID {}.", pid);
     }
 
     fn push(&mut self, pid: Pid) {
