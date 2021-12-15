@@ -132,21 +132,32 @@ impl Scheduler {
     }
 
     fn current_process_name(&self) -> &'static str {
-        self.handle_running(|p| p.name)
+        self.running_as_ref().name
     }
 
     fn current_pml4(&self) -> PhysFrame {
-        self.handle_running(|p| {
-            let frame = PhysFrame::from_start_address(p.pml4.phys_addr());
-            frame.expect("PML4 is not page-aligned.")
-        })
+        let p = self.running_as_ref();
+
+        let frame = PhysFrame::from_start_address(p.pml4.phys_addr());
+        frame.expect("PML4 is not page-aligned.")
     }
 
-    fn handle_running<T, U>(&self, f: T) -> U
-    where
-        T: FnOnce(&Process) -> U,
-    {
-        self.handle(self.running, f)
+    fn running_as_ref(&self) -> &Process {
+        self.process_as_ref(self.running)
+            .expect("Running process is not stored.")
+    }
+
+    fn running_as_mut(&mut self) -> &mut Process {
+        self.process_as_mut(self.running)
+            .expect("Running process is not stored.")
+    }
+
+    fn process_as_ref(&self, pid: Pid) -> Option<&Process> {
+        self.processes.get(&pid)
+    }
+
+    fn process_as_mut(&mut self, pid: Pid) -> Option<&mut Process> {
+        self.processes.get_mut(&pid)
     }
 
     fn handle<T, U>(&self, pid: Pid, f: T) -> U
@@ -314,8 +325,9 @@ impl<'a> Receiver<'a> {
         if let ReceiveFrom::Id(id) = self.from {
             self.manager.handle(id, |p| p.send_to == Some(id))
         } else {
-            self.manager
-                .handle_running(|p| !p.pids_try_to_send_this_process.is_empty())
+            let p = self.manager.running_as_ref();
+
+            !p.pids_try_to_send_this_process.is_empty()
         }
     }
 
