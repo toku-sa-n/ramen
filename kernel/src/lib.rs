@@ -80,9 +80,3 @@ fn cause_timer_interrupt() -> ! {
 
     unreachable!();
 }
-
-fn do_nothing() -> ! {
-    loop {
-        x86_64::instructions::hlt();
-    }
-}
