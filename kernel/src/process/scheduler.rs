@@ -9,11 +9,9 @@ use {
         process::{status::Status, Process},
         tests,
     },
-    alloc::{
-        collections::{BTreeMap, VecDeque},
-        vec::Vec,
-    },
+    alloc::collections::{BTreeMap, VecDeque},
     array_init::array_init,
+    conquer_once::spin::Lazy,
     message::Message,
     spinning_top::{Spinlock, SpinlockGuard},
     x86_64::{
@@ -22,7 +20,7 @@ use {
     },
 };
 
-static SCHEDULER: Spinlock<Scheduler> = Spinlock::new(Scheduler::new());
+static SCHEDULER: Lazy<Spinlock<Scheduler>> = Lazy::new(|| Spinlock::new(Scheduler::new()));
 
 pub(crate) fn send(msg: VirtAddr, to: Pid) {
     // The kernel process calls this function, and the interrupts may be enabled at that time. If
@@ -61,16 +59,16 @@ pub(super) fn init() {
 struct Scheduler {
     processes: BTreeMap<Pid, Process>,
 
-    runnable_pids: Vec<Pid>,
+    runnable_pids: RunnablePids,
 
     running: Pid,
 }
 impl Scheduler {
-    const fn new() -> Self {
+    fn new() -> Self {
         Self {
             processes: BTreeMap::new(),
 
-            runnable_pids: Vec::new(),
+            runnable_pids: RunnablePids::new(),
 
             running: 0,
         }
@@ -114,7 +112,9 @@ impl Scheduler {
 
         p.status = Status::Runnable;
 
-        self.runnable_pids.push(pid);
+        let priority = p.priority;
+
+        self.runnable_pids.push(pid, priority);
     }
 
     fn send(&mut self, msg: VirtAddr, to: Pid) {
@@ -447,8 +447,8 @@ fn lock() -> SpinlockGuard<'static, Scheduler> {
         .expect("Failed to acquire the lock of `PROCESSES`.")
 }
 
-struct RunningPids([VecDeque<Pid>; LEAST_PRIORITY.as_usize() + 1]);
-impl RunningPids {
+struct RunnablePids([VecDeque<Pid>; LEAST_PRIORITY.as_usize() + 1]);
+impl RunnablePids {
     fn new() -> Self {
         Self(array_init(|_| VecDeque::new()))
     }
