@@ -59,14 +59,14 @@ pub(super) fn push(pid: Pid) {
 struct Scheduler {
     processes: BTreeMap<Pid, Process>,
 
-    running_pids: Vec<Pid>,
+    runnable_pids: Vec<Pid>,
 }
 impl Scheduler {
     const fn new() -> Self {
         Self {
             processes: BTreeMap::new(),
 
-            running_pids: Vec::new(),
+            runnable_pids: Vec::new(),
         }
     }
 
@@ -79,19 +79,19 @@ impl Scheduler {
     }
 
     fn push(&mut self, pid: Pid) {
-        self.running_pids.push(pid);
+        self.runnable_pids.push(pid);
     }
 
     fn pop(&mut self) -> Pid {
-        self.running_pids.remove(0)
+        self.runnable_pids.remove(0)
     }
 
     fn active_pid(&self) -> Pid {
-        self.running_pids[0]
+        self.runnable_pids[0]
     }
 
     fn change_active_pid(&mut self) {
-        self.running_pids.rotate_left(1);
+        self.runnable_pids.rotate_left(1);
     }
 
     fn send(&mut self, msg: VirtAddr, to: Pid) {
