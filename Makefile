@@ -40,16 +40,10 @@ MESSAGE_SRC	:=	$(call cargo_project_src, $(MESSAGE_DIR))
 FRAME_MANAGER_DIR	:=	$(LIBS_DIR)/frame_manager
 FRAME_MANAGER_SRC	:=	$(call cargo_project_src, $(FRAME_MANAGER_DIR))
 
-FS_DIR	:=	$(SERVERS_DIR)/fs
-FS_SRC	:=	$(call cargo_project_src, $(FS_DIR))
-FS_LIB	:=	$(BUILD_DIR)/libfs.a
-FS_LIB_DEPENDENCIES_SRC	:=	$(SYSCALLS_SRC) $(RALIB_SRC) $(MESSAGE_SRC)
-FS	:=	$(BUILD_DIR)/fs.bin
-
 KERNEL_DIR		:= kernel
 KERNEL_LIB_SRC	:=	$(call cargo_project_src, $(KERNEL_DIR))
 KERNEL_LIB		:= $(BUILD_DIR)/libkernel.a
-KERNEL_LIB_DEPENDENCIES_SRC	:=	$(TERMINAL_SRC) $(COMMON_SRC) $(SYSCALLS_SRC) $(PAGE_BOX_SRC) $(MESSAGE_SRC) $(PORT_SERVER_SRC) $(FRAME_MANAGER_SRC) $(FS_SRC)
+KERNEL_LIB_DEPENDENCIES_SRC	:=	$(TERMINAL_SRC) $(COMMON_SRC) $(SYSCALLS_SRC) $(PAGE_BOX_SRC) $(MESSAGE_SRC) $(PORT_SERVER_SRC) $(FRAME_MANAGER_SRC)
 KERNEL_LD			:= $(KERNEL_DIR)/kernel.ld
 KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
 
@@ -61,12 +55,6 @@ PORT_SERVER_SRC	:=	$(call cargo_project_src, $(PORT_SERVER_DIR))
 PORT_SERVER_LIB	:=	$(BUILD_DIR)/libport_server.a
 PORT_SERVER_DEPENDENCIES_SRC	:=	$(MESSAGE_SRC) $(RALIB_SRC) $(SYSCALLS_SRC)
 PORT_SERVER	:=	$(BUILD_DIR)/port_server.bin
-
-PM_DIR			:= $(SERVERS_DIR)/pm
-PM_LIB_SRC	:=	$(call cargo_project_src, $(PM_DIR))
-PM_LIB			:= $(BUILD_DIR)/libpm.a
-PM_LIB_DEPENDENCIES_SRC	:=	$(MESSAGE_SRC) $(RALIB_SRC) $(SYSCALLS_SRC)
-PM				:= $(BUILD_DIR)/pm.bin
 
 XHCI_DIR	:=	$(SERVERS_DIR)/xhci
 XHCI_LIB_SRC	:=	$(call cargo_project_src, $(XHCI_DIR))
@@ -160,26 +148,14 @@ $(KERNEL_LIB):$(KERNEL_LIB_SRC) $(KERNEL_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	# See: https://github.com/rust-lang/cargo/issues/2930
 	cd $(KERNEL_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(TEST_FLAG) $(RUSTCFLAGS)
 
-$(INITRD):$(PM) $(PORT_SERVER) $(FS) $(XHCI)|$(BUILD_DIR)
-	(cd $(BUILD_DIR);(echo $(notdir $(PM)); echo $(notdir $(PORT_SERVER)); echo $(notdir $(FS)); echo $(notdir $(XHCI)))|cpio -o > $(notdir $@) --format=odc)
-
-$(PM):$(PM_LIB)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $(PM_LIB)
-
-$(PM_LIB):$(PM_LIB_SRC) $(PM_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
-	cd $(PM_DIR) && $(RUSTC) build --out-dir ../../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
+$(INITRD):$(PORT_SERVER) $(XHCI)|$(BUILD_DIR)
+	(cd $(BUILD_DIR); (echo $(notdir $(PORT_SERVER)); echo $(notdir $(XHCI)))|cpio -o > $(notdir $@) --format=odc)
 
 $(PORT_SERVER):$(PORT_SERVER_LIB)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $^
 
 $(PORT_SERVER_LIB):$(PORT_SERVER_SRC) $(PORT_SERVER_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(PORT_SERVER_DIR) && $(RUSTC) build --out-dir ../../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
-
-$(FS):$(FS_LIB)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $^
-
-$(FS_LIB):$(FS_SRC) $(FS_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
-	cd $(FS_DIR) && $(RUSTC) build --out-dir ../../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(EFI_FILE):$(EFI_SRC)|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)

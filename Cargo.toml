@@ -12,8 +12,6 @@ members = [
     "libs/ralib",
     "libs/syscalls",
     "libs/terminal",
-    "servers/fs",
-    "servers/pm",
     "servers/port_server",
     "servers/xhci",
 ]
