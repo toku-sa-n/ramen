@@ -22,6 +22,10 @@ use {
 
 static SCHEDULER: Lazy<Spinlock<Scheduler>> = Lazy::new(|| Spinlock::new(Scheduler::new()));
 
+pub(crate) fn switch() {
+    lock().switch();
+}
+
 pub(crate) fn send(msg: VirtAddr, to: Pid) {
     // The kernel process calls this function, and the interrupts may be enabled at that time. If
     // we forget to disable interrupts, a timer interrupt may happen when the kernel process holds
@@ -38,10 +42,6 @@ pub(crate) fn receive_from_any(msg_buf: VirtAddr) {
 pub(crate) fn receive_from(msg_buf: VirtAddr, from: Pid) {
     // Ditto as `send` for `without_interrupts`.
     without_interrupts(|| lock().receive_from(msg_buf, from));
-}
-
-pub(crate) fn switch() {
-    lock().switch();
 }
 
 pub(crate) fn current_process_name() -> &'static str {
