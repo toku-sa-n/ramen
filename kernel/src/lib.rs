@@ -76,7 +76,6 @@ fn add_processes() {
     process::binary("pm.bin", Privilege::User);
     process::binary("fs.bin", Privilege::User);
     process::binary("xhci.bin", Privilege::User);
-    process::binary("vm.bin", Privilege::User);
     process::from_function(sysproc::main, "sysproc");
     process::from_function(do_nothing, "do_nothing");
 
