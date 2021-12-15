@@ -49,7 +49,7 @@ fn push_process_to_queue(p: Process) {
     let pid = p.id();
 
     scheduler::push(pid);
-    scheduler::add(p);
+    scheduler::add_process_as_runnable(p);
 }
 
 #[derive(Debug)]

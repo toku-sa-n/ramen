@@ -48,7 +48,7 @@ pub(crate) fn current_process_name() -> &'static str {
     lock().current_process_name()
 }
 
-pub(super) fn add(p: Process) {
+pub(super) fn add_process_as_runnable(p: Process) {
     lock().add(p);
 }
 
