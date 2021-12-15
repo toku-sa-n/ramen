@@ -5,6 +5,7 @@ mod pid;
 mod priority;
 mod receive_from;
 pub(crate) mod scheduler;
+mod status;
 
 use {
     self::{

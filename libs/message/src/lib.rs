@@ -2,7 +2,7 @@
 
 #![no_std]
 
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Debug, Default)]
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Debug, Default, Hash)]
 pub struct Message {
     pub header: Header,
     pub body: Body,
@@ -14,7 +14,7 @@ impl Message {
     }
 }
 
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Debug, Default)]
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Debug, Default, Hash)]
 pub struct Header {
     pub sender: i32,
 }
@@ -25,5 +25,5 @@ impl Header {
     }
 }
 
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Debug, Default)]
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Debug, Default, Hash)]
 pub struct Body(pub u64, pub u64, pub u64, pub u64, pub u64);
