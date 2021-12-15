@@ -159,18 +159,6 @@ impl Scheduler {
     fn process_as_mut(&mut self, pid: Pid) -> Option<&mut Process> {
         self.processes.get_mut(&pid)
     }
-
-    fn handle_mut<T, U>(&mut self, pid: Pid, f: T) -> U
-    where
-        T: FnOnce(&mut Process) -> U,
-    {
-        let p = self
-            .processes
-            .get_mut(&pid)
-            .unwrap_or_else(|| panic!("Process of PID {} does not exist.", pid));
-
-        f(p)
-    }
 }
 
 struct Sender<'a> {
@@ -230,10 +218,12 @@ impl<'a> Sender<'a> {
     }
 
     fn wake_dst(&mut self) {
-        self.manager.handle_mut(self.to, |p| {
-            p.msg_ptr = None;
-            p.receive_from = None;
-        });
+        let dst = self.manager.process_as_mut(self.to);
+        let dst = dst.expect("The receiver does not exist.");
+
+        dst.msg_ptr = None;
+        dst.receive_from = None;
+
         self.manager.push(self.to);
     }
 
@@ -256,9 +246,11 @@ impl<'a> Sender<'a> {
 
     fn add_self_as_trying_to_send(&mut self) {
         let pid = self.manager.running;
-        self.manager.handle_mut(self.to, |p| {
-            p.pids_try_to_send_this_process.push_back(pid);
-        });
+
+        let dst = self.manager.process_as_mut(self.to);
+        let dst = dst.expect("The receiver does not exist.");
+
+        dst.pids_try_to_send_this_process.push_back(pid);
     }
 
     fn mark_as_sending(&mut self) {
@@ -350,10 +342,12 @@ impl<'a> Receiver<'a> {
     }
 
     fn wake_sender(&mut self, src_pid: Pid) {
-        self.manager.handle_mut(src_pid, |p| {
-            p.msg_ptr = None;
-            p.send_to = None;
-        });
+        let sender = self.manager.process_as_mut(src_pid);
+        let sender = sender.expect("The sender does not exist.");
+
+        sender.msg_ptr = None;
+        sender.send_to = None;
+
         self.manager.push(src_pid);
     }
 
