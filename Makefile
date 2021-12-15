@@ -149,7 +149,7 @@ $(KERNEL_LIB):$(KERNEL_LIB_SRC) $(KERNEL_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(KERNEL_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(TEST_FLAG) $(RUSTCFLAGS)
 
 $(INITRD):$(PORT_SERVER) $(XHCI)|$(BUILD_DIR)
-	(cd $(BUILD_DIR); echo $(notdir $(PORT_SERVER)); echo $(notdir $(XHCI)))|cpio -o > $(notdir $@) --format=odc)
+	(cd $(BUILD_DIR); echo $(notdir $(PORT_SERVER)); echo $(notdir $(XHCI))|cpio -o > $(notdir $@) --format=odc)
 
 $(PORT_SERVER):$(PORT_SERVER_LIB)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $^
