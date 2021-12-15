@@ -65,6 +65,20 @@ pub(crate) struct Process {
     name: &'static str,
 }
 impl Process {
+    fn idle() -> Self {
+        Self {
+            pid: 0,
+            pml4: Self::generate_pml4(),
+            context: Context::default(),
+            kernel_stack: Self::generate_kernel_stack(),
+            msg_ptr: None,
+            send_to: None,
+            receive_from: None,
+            pids_try_to_send_this_process: VecDeque::new(),
+            name: "idle",
+        }
+    }
+
     #[allow(clippy::too_many_lines)]
     fn new(entry: VirtAddr, name: &'static str) -> Self {
         let pml4 = Self::generate_pml4();
