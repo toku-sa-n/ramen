@@ -76,6 +76,10 @@ impl Scheduler {
         }
     }
 
+    fn init(&mut self) {
+        self.add_idle_process_as_running();
+    }
+
     fn add(&mut self, p: Process) {
         let pid = p.id();
 
