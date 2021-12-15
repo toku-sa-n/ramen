@@ -56,17 +56,12 @@ pub(super) fn loader(f: fn() -> !) -> ! {
 pub(crate) struct Process {
     pid: Pid,
     pml4: KpBox<PageTable>,
-    stack_frame: KpBox<StackFrame>,
-
-    msg_ptr: Option<PhysAddr>,
-
     context: Context,
-
+    kernel_stack: KpBox<UnsafeCell<[u8; STACK_SIZE]>>,
+    msg_ptr: Option<PhysAddr>,
     send_to: Option<Pid>,
     receive_from: Option<ReceiveFrom>,
-
     pids_try_to_send_this_process: VecDeque<Pid>,
-
     name: &'static str,
 }
 impl Process {
@@ -75,10 +70,10 @@ impl Process {
         let pml4 = Self::generate_pml4();
 
         let mut tables = page_table::Collection::default();
-        let stack = Self::generate_kernel_stack();
-        let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
+        let kernel_stack = Self::generate_kernel_stack();
+        let stack_bottom = kernel_stack.virt_addr() + kernel_stack.bytes().as_usize();
         let stack_frame = KpBox::from(StackFrame::kernel(entry, stack_bottom));
-        tables.map_page_box(&stack);
+        tables.map_page_box(&kernel_stack);
         tables.map_page_box(&stack_frame);
 
         let context = Context::kernel(entry, tables.pml4_frame(), stack_bottom - 8_u64);
@@ -86,9 +81,9 @@ impl Process {
         Process {
             pid: pid::generate(),
             pml4,
-            stack_frame,
 
             context,
+            kernel_stack,
 
             msg_ptr: None,
 
@@ -114,18 +109,17 @@ impl Process {
         let mut tables = page_table::Collection::default();
         let (_, entry) = tables.map_elf(name);
 
-        let stack = Self::generate_kernel_stack();
-        let stack_bottom = stack.virt_addr() + stack.bytes().as_usize();
-        let stack_frame = KpBox::from(StackFrame::user(entry, stack_bottom));
+        let kernel_stack = Self::generate_kernel_stack();
+        let stack_bottom = kernel_stack.virt_addr() + kernel_stack.bytes().as_usize();
 
         let context = Context::user(entry, tables.pml4_frame(), stack_bottom - 8_u64);
 
         Self {
             pid: pid::generate(),
             pml4,
-            stack_frame,
 
             context,
+            kernel_stack,
 
             msg_ptr: None,
 
@@ -139,15 +133,6 @@ impl Process {
 
     fn id(&self) -> Pid {
         self.pid
-    }
-
-    fn stack_frame_top_addr(&self) -> VirtAddr {
-        self.stack_frame.virt_addr()
-    }
-
-    fn stack_frame_bottom_addr(&self) -> VirtAddr {
-        let b = self.stack_frame.bytes();
-        self.stack_frame_top_addr() + b.as_usize()
     }
 
     fn generate_pml4() -> KpBox<PageTable> {

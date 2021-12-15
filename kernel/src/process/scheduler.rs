@@ -3,7 +3,7 @@ use {
     crate::{
         mem::{self, accessor::Single, paging},
         process::Process,
-        tests, tss,
+        tests,
     },
     alloc::{collections::BTreeMap, vec::Vec},
     message::Message,
@@ -34,12 +34,8 @@ pub(crate) fn receive_from(msg_buf: VirtAddr, from: Pid) {
     without_interrupts(|| lock().receive_from(msg_buf, from));
 }
 
-pub(crate) fn assign_to_rax(rax: u64) {
-    lock().assign_to_rax(rax);
-}
-
-pub(crate) fn switch() -> VirtAddr {
-    lock().switch()
+pub(crate) fn switch() {
+    lock().switch();
 }
 
 pub(crate) fn current_process_name() -> &'static str {
@@ -104,8 +100,8 @@ impl Scheduler {
         Receiver::new_from(self, msg_buf, from).receive();
     }
 
-    fn switch(&mut self) -> VirtAddr {
-        Switcher(self).switch()
+    fn switch(&mut self) {
+        Switcher(self).switch();
     }
 
     fn current_process_name(&self) -> &'static str {
@@ -117,18 +113,6 @@ impl Scheduler {
             let frame = PhysFrame::from_start_address(p.pml4.phys_addr());
             frame.expect("PML4 is not page-aligned.")
         })
-    }
-
-    fn current_stack_frame_top_addr(&self) -> VirtAddr {
-        self.handle_running(Process::stack_frame_top_addr)
-    }
-
-    fn current_stack_frame_bottom_addr(&self) -> VirtAddr {
-        self.handle_running(Process::stack_frame_bottom_addr)
-    }
-
-    fn assign_to_rax(&mut self, rax: u64) {
-        self.handle_running_mut(|p| (*p.stack_frame).regs.rax = rax);
     }
 
     fn handle_running<T, U>(&self, f: T) -> U
@@ -367,15 +351,13 @@ impl<'a> Receiver<'a> {
 
 struct Switcher<'a>(&'a mut Scheduler);
 impl Switcher<'_> {
-    fn switch(self) -> VirtAddr {
+    fn switch(self) {
         if cfg!(feature = "qemu_test") {
             tests::process::count_switch();
         }
 
         self.0.change_active_pid();
         self.switch_pml4();
-        self.register_current_stack_frame_with_tss();
-        self.current_stack_frame_top_addr()
     }
 
     fn switch_pml4(&self) {
@@ -384,14 +366,6 @@ impl Switcher<'_> {
 
         // SAFETY: The PML4 frame is correct one and flags are unchanged.
         unsafe { Cr3::write(pml4, f) }
-    }
-
-    fn register_current_stack_frame_with_tss(&self) {
-        tss::set_interrupt_stack(self.0.current_stack_frame_bottom_addr());
-    }
-
-    pub(super) fn current_stack_frame_top_addr(&self) -> VirtAddr {
-        self.0.current_stack_frame_top_addr()
     }
 }
 

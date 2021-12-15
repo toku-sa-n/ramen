@@ -11,7 +11,6 @@ pub(super) extern "x86-interrupt" fn h_20(_: InterruptStackFrame) {
 
 pub(super) extern "x86-interrupt" fn h_80(_: InterruptStackFrame) {
     let v = syscall_prepare_arguments();
-    process::scheduler::assign_to_rax(v);
     local::end_of_interrupt();
     process::switch();
 }
