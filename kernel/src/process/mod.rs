@@ -15,7 +15,6 @@ use {
         status::Status,
     },
     crate::{
-        do_nothing,
         mem::{
             self,
             allocator::{allocate_pages_for_user, kpbox::KpBox},
@@ -49,7 +48,6 @@ pub(super) fn init() {
     binary("port_server.bin");
     binary("xhci.bin");
     from_function(sysproc::main, "sysproc");
-    from_function(do_nothing, "do_nothing");
 
     #[cfg(feature = "qemu_test")]
     process::from_function(tests::main, "tests");
