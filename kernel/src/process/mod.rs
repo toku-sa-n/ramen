@@ -12,6 +12,7 @@ use {
         context::Context,
         priority::{Priority, LEAST_PRIORITY},
         receive_from::ReceiveFrom,
+        status::Status,
     },
     crate::{
         mem,
@@ -63,6 +64,7 @@ pub(crate) struct Process {
     context: Context,
     kernel_stack: KpBox<UnsafeCell<[u8; STACK_SIZE]>>,
     priority: Priority,
+    status: Status,
     msg_ptr: Option<PhysAddr>,
     send_to: Option<Pid>,
     receive_from: Option<ReceiveFrom>,
@@ -79,6 +81,7 @@ impl Process {
             priority: LEAST_PRIORITY,
             msg_ptr: None,
             send_to: None,
+            status: Status::Running,
             receive_from: None,
             pids_try_to_send_this_process: VecDeque::new(),
             name: "idle",
@@ -105,6 +108,8 @@ impl Process {
             context,
             kernel_stack,
             priority: Priority::new(0),
+
+            status: Status::Runnable,
 
             msg_ptr: None,
 
@@ -149,6 +154,8 @@ impl Process {
                     context,
                     kernel_stack,
                     priority: Priority::new(0),
+
+                    status: Status::Runnable,
 
                     msg_ptr: None,
 
