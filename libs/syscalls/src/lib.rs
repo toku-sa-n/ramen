@@ -140,10 +140,6 @@ pub fn getpid() -> i32 {
     reply.body.0.try_into().unwrap()
 }
 
-pub fn exit() -> ! {
-    exit_syscall(Ty::Exit)
-}
-
 /// This method will return a null address if the address is not mapped.
 #[must_use]
 pub fn translate_address(a: VirtAddr) -> PhysAddr {
@@ -228,7 +224,6 @@ pub enum Ty {
     MapPages,
     UnmapPages,
     GetPid,
-    Exit,
     TranslateAddress,
     Write,
     Send,
@@ -309,19 +304,6 @@ extern "C" fn message_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) {
     pop rax
     ret
     ",
-            options(noreturn)
-        );
-    }
-}
-
-#[naked]
-extern "C" fn exit_syscall(ty: Ty) -> ! {
-    unsafe {
-        asm!(
-            "
-            mov rax, rdi
-            int 0x80
-            ",
             options(noreturn)
         );
     }

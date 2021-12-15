@@ -7,10 +7,9 @@ use {
     },
     alloc::{collections::BTreeMap, vec::Vec},
     message::Message,
-    predefined_mmap::INTERRUPT_STACK,
     spinning_top::{Spinlock, SpinlockGuard},
     x86_64::{
-        instructions::interrupts::without_interrupts, registers::control::Cr3, software_interrupt,
+        instructions::interrupts::without_interrupts, registers::control::Cr3,
         structures::paging::PhysFrame, PhysAddr, VirtAddr,
     },
 };
@@ -39,17 +38,6 @@ pub(crate) fn assign_to_rax(rax: u64) {
     lock().assign_to_rax(rax);
 }
 
-pub(crate) fn exit_process() -> ! {
-    set_temporary_stack_frame();
-
-    // TODO: Call this. Currently this calling will cause a panic because the `KBox` is not mapped
-    // to this process.
-    // super::collections::process::remove(super::manager::getpid().into());
-
-    pop();
-    cause_timer_interrupt();
-}
-
 pub(crate) fn switch() -> VirtAddr {
     lock().switch()
 }
@@ -62,24 +50,8 @@ pub(super) fn add(p: Process) {
     lock().add(p);
 }
 
-pub(super) fn pop() -> Pid {
-    lock().pop()
-}
-
 pub(super) fn push(pid: Pid) {
     lock().push(pid);
-}
-
-fn set_temporary_stack_frame() {
-    tss::set_interrupt_stack(*INTERRUPT_STACK);
-}
-
-fn cause_timer_interrupt() -> ! {
-    unsafe {
-        software_interrupt!(0x20);
-    }
-
-    unreachable!();
 }
 
 struct Scheduler {
