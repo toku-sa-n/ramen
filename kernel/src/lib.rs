@@ -83,10 +83,6 @@ fn add_processes() {
     if cfg!(feature = "qemu_test") {
         process::from_function(tests::main, "tests");
         process::from_function(tests::process::exit_test, "exittest");
-
-        for _ in 0..100 {
-            process::binary("do_nothing.bin", Privilege::User);
-        }
     }
 }
 
