@@ -54,10 +54,6 @@ pub(super) fn add_process_as_runnable(p: Process) {
     lock().add_process_as_runnable(p);
 }
 
-pub(super) fn push(pid: Pid) {
-    lock().push(pid);
-}
-
 pub(super) fn init() {
     lock().init();
 }
