@@ -6,7 +6,7 @@ use {
     },
     crate::{
         mem::{self, accessor::Single, paging},
-        process::Process,
+        process::{status::Status, Process},
         tests,
     },
     alloc::{
@@ -82,6 +82,21 @@ impl Scheduler {
         let r = self.processes.insert(pid, p);
 
         assert!(r.is_none(), "Duplicated process with PID {}.", pid);
+    }
+
+    fn add_idle_process_as_running(&mut self) {
+        let idle = Process::idle();
+
+        assert_eq!(idle.pid, 0, "Wrong PID for the idle process.");
+        assert_eq!(
+            idle.status,
+            Status::Running,
+            "The idle process should be running."
+        );
+
+        let r = self.processes.insert(idle.pid, idle);
+
+        r.expect("Duplicated idle process.");
     }
 
     fn push(&mut self, pid: Pid) {
