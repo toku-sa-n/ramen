@@ -54,7 +54,7 @@ pub(super) fn loader(f: fn() -> !) -> ! {
 
 #[derive(Debug)]
 pub(crate) struct Process {
-    id: Pid,
+    pid: Pid,
     pml4: KpBox<PageTable>,
     stack_frame: KpBox<StackFrame>,
 
@@ -84,7 +84,7 @@ impl Process {
         let context = Context::kernel(entry, tables.pml4_frame(), stack_bottom - 8_u64);
 
         Process {
-            id: pid::generate(),
+            pid: pid::generate(),
             pml4,
             stack_frame,
 
@@ -121,7 +121,7 @@ impl Process {
         let context = Context::user(entry, tables.pml4_frame(), stack_bottom - 8_u64);
 
         Self {
-            id: pid::generate(),
+            pid: pid::generate(),
             pml4,
             stack_frame,
 
@@ -138,7 +138,7 @@ impl Process {
     }
 
     fn id(&self) -> Pid {
-        self.id
+        self.pid
     }
 
     fn stack_frame_top_addr(&self) -> VirtAddr {
