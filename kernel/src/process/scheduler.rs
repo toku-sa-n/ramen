@@ -117,10 +117,6 @@ impl Scheduler {
         self.runnable_pids.push(pid);
     }
 
-    fn pop(&mut self) -> Pid {
-        self.runnable_pids.remove(0)
-    }
-
     fn change_active_pid(&mut self) {
         self.runnable_pids.rotate_left(1);
     }
@@ -241,7 +237,7 @@ impl<'a> Sender<'a> {
         self.set_msg_buf();
         self.add_self_as_trying_to_send();
         self.mark_as_sending();
-        self.manager.pop();
+        self.sleep();
     }
 
     fn set_msg_buf(&mut self) {
@@ -267,6 +263,22 @@ impl<'a> Sender<'a> {
         let p = self.manager.running_as_mut();
 
         p.send_to = Some(self.to);
+    }
+
+    fn sleep(&mut self) {
+        let sender = self.manager.running_as_mut();
+
+        sender.status = Status::Sending {
+            to: self.to,
+            message: self.msg,
+        };
+
+        let running = self.manager.running;
+
+        let receiver = self.manager.process_as_mut(self.to);
+        let receiver = receiver.expect("No such process.");
+
+        receiver.pids_try_to_send_this_process.push_back(running);
     }
 }
 
@@ -364,7 +376,7 @@ impl<'a> Receiver<'a> {
     fn set_msg_buf_and_sleep(&mut self) {
         self.set_msg_buf();
         self.mark_as_receiving();
-        self.manager.pop();
+        self.sleep();
     }
 
     fn set_msg_buf(&mut self) {
@@ -381,6 +393,18 @@ impl<'a> Receiver<'a> {
         let p = self.manager.running_as_mut();
 
         p.receive_from = Some(self.from);
+    }
+
+    fn sleep(&mut self) {
+        let receiver = self.manager.running_as_mut();
+
+        assert!(
+            receiver.msg_ptr.is_none(),
+            "The message buffer is not empty."
+        );
+
+        receiver.status = Status::Receiving(self.from);
+        receiver.msg_ptr = Some(self.msg_buf);
     }
 }
 
