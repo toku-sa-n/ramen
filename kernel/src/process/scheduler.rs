@@ -51,7 +51,7 @@ pub(crate) fn current_process_name() -> &'static str {
 }
 
 pub(super) fn add_process_as_runnable(p: Process) {
-    lock().add(p);
+    lock().add_process_as_runnable(p);
 }
 
 pub(super) fn push(pid: Pid) {
@@ -84,7 +84,7 @@ impl Scheduler {
         self.add_idle_process_as_running();
     }
 
-    fn add(&mut self, p: Process) {
+    fn add_process_as_runnable(&mut self, p: Process) {
         let pid = p.id();
 
         let r = self.processes.insert(pid, p);
