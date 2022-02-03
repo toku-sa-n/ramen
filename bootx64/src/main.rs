@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
-#![feature(start, asm)]
+#![feature(start)]
 #![no_main]
 #![deny(clippy::pedantic)]
 #![deny(clippy::all)]
