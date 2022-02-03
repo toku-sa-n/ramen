@@ -33,7 +33,7 @@ accessor = "0.3.0"
 message = { path = "../libs/message" }
 bitflags = "1.2.1"
 frame_manager = { path = "../libs/frame_manager" }
-cstr_core = "0.2.4"
+cstr_core = "0.2.5"
 xmas-elf = "0.8.0"
 uart_16550 = "0.2.15"
 spinning_top = { version = "0.2.4", features = ["nightly"] }
