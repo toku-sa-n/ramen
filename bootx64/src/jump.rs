@@ -1,4 +1,4 @@
-use {predefined_mmap::STACK_BASE, x86_64::VirtAddr};
+use {core::arch::asm, predefined_mmap::STACK_BASE, x86_64::VirtAddr};
 
 pub fn to_kernel(mut boot_info: boot_info::Info) -> ! {
     switch_stack_and_call_kernel_code(&mut boot_info, boot_info.entry_addr(), STACK_BASE)

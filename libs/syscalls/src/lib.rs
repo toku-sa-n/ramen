@@ -3,10 +3,10 @@
 #![no_std]
 #![allow(clippy::missing_panics_doc)]
 #![deny(unsafe_op_in_unsafe_fn)]
-#![feature(asm, naked_functions)]
+#![feature(naked_functions)]
 
 use {
-    core::{convert::TryInto, ffi::c_void, panic::PanicInfo},
+    core::{arch::asm, convert::TryInto, ffi::c_void, panic::PanicInfo},
     message::Message,
     num_derive::FromPrimitive,
     os_units::{Bytes, NumOfPages},

@@ -3,7 +3,6 @@
 #![no_std]
 #![feature(
     alloc_error_handler,
-    asm,
     const_btree_new,
     asm_const,
     asm_sym,
@@ -28,6 +27,7 @@ mod tss;
 
 use {
     aligned_ptr::ptr,
+    core::arch::asm,
     interrupt::{apic, idt, timer},
     log::info,
     process::Privilege,
