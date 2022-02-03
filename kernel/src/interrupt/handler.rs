@@ -1,4 +1,7 @@
-use crate::{interrupt::apic::local, process};
+use {
+    crate::{interrupt::apic::local, process},
+    core::arch::asm,
+};
 
 #[no_mangle]
 extern "C" fn h_20() -> u64 {

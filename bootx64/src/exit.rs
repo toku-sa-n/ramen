@@ -30,7 +30,7 @@ pub fn boot_services(image: Handle, system_table: SystemTable<Boot>) -> boot_inf
         .boot_services()
         .allocate_pool(
             MemoryType::LOADER_DATA,
-            system_table.boot_services().memory_map_size(),
+            system_table.boot_services().memory_map_size().map_size,
         )
         .expect_success("Failed to allocate memory for memory map");
     let memory_map_buf = NonNull::new(memory_map_buf).expect("`memory_map_buf` must not be Null.");
@@ -48,7 +48,7 @@ pub fn boot_services(image: Handle, system_table: SystemTable<Boot>) -> boot_inf
 
 fn allocate_buf_for_exiting(bs: &boot::BootServices) -> &'static mut [u8] {
     // Allocate extra spaces because of paddings.
-    let sz = bs.memory_map_size() * 2;
+    let sz = bs.memory_map_size().map_size * 2;
     let buf_for_exiting = bs
         .allocate_pool(MemoryType::LOADER_DATA, sz)
         .expect_success("Failed to allocate memory to exit boot services");
