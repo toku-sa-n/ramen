@@ -35,14 +35,12 @@ impl Map {
         phys_addr_initrd: PhysAddr,
         bytes_initrd: Bytes,
     ) -> Self {
-        Self {
-            0: [
-                Range::kernel(kernel),
-                Range::stack(phys_addr_stack),
-                Range::vram(vram),
-                Range::initrd(phys_addr_initrd, bytes_initrd),
-            ],
-        }
+        Self([
+            Range::kernel(kernel),
+            Range::stack(phys_addr_stack),
+            Range::vram(vram),
+            Range::initrd(phys_addr_initrd, bytes_initrd),
+        ])
     }
 
     #[must_use]
