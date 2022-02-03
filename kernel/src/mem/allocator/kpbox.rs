@@ -70,7 +70,7 @@ where
     T: Clone,
 {
     fn clone(&self) -> Self {
-        Self::from((&**self).clone())
+        Self::from((**self).clone())
     }
 }
 impl<T> From<T> for KpBox<T> {
