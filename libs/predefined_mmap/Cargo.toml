@@ -7,4 +7,4 @@ license = "GPL-3.0-or-later"
 [dependencies]
 conquer-once = { version = "0.3.2", default-features = false }
 os_units = "0.4.2"
-x86_64 = { version = "0.14.7", default-features = false }
+x86_64 = { version = "0.14.8", default-features = false }
