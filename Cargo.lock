@@ -241,6 +241,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "elfloader"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a249d6a9d50f3bf5a3cb7bfd75e84989cad89c6c77b5996c8b084e844146ff04"
+dependencies = [
+ "bitflags",
+ "log",
+ "xmas-elf",
+]
+
+[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -315,6 +326,7 @@ dependencies = [
  "cc",
  "conquer-once",
  "cstr_core",
+ "elfloader",
  "frame_manager",
  "linked_list_allocator",
  "log",
