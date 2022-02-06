@@ -103,7 +103,7 @@ impl Scheduler {
 
         let r = self.processes.insert(idle.pid, idle);
 
-        r.expect("Duplicated idle process.");
+        assert!(r.is_none(), "Duplicated idle process.");
     }
 
     fn add_process_as_runnable(&mut self, p: Process) {
