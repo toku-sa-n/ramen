@@ -71,7 +71,7 @@ pub(crate) struct Process {
 impl Process {
     fn idle() -> Self {
         Self {
-            pid: 0,
+            pid: pid::generate(),
             _pml4: Self::generate_pml4(),
             context: Context::default(),
             kernel_stack: Self::generate_kernel_stack(),
