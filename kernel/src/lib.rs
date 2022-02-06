@@ -6,7 +6,8 @@
     const_btree_new,
     asm_const,
     asm_sym,
-    naked_functions
+    naked_functions,
+    abi_x86_interrupt
 )]
 #![deny(clippy::pedantic, clippy::all, unsafe_op_in_unsafe_fn)]
 
