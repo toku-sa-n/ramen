@@ -1,6 +1,5 @@
 use {
     crate::{interrupt::apic::local, process},
-    core::arch::asm,
     x86_64::structures::idt::InterruptStackFrame,
 };
 
