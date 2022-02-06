@@ -30,11 +30,10 @@ mod tss;
 
 use {
     aligned_ptr::ptr,
-    core::arch::asm,
     interrupt::{apic, idt, timer},
     log::info,
     terminal::vram,
-    x86_64::software_interrupt,
+    x86_64::instructions::interrupts,
 };
 
 /// # Safety
@@ -43,7 +42,7 @@ use {
 #[no_mangle]
 pub unsafe extern "sysv64" fn os_main(boot_info: *mut boot_info::Info) -> ! {
     init(unsafe { ptr::get(boot_info) });
-    cause_timer_interrupt();
+    idle();
 }
 
 fn init(mut boot_info: boot_info::Info) {
@@ -75,10 +74,8 @@ fn init(mut boot_info: boot_info::Info) {
     process::init();
 }
 
-fn cause_timer_interrupt() -> ! {
-    unsafe {
-        software_interrupt!(0x20);
+fn idle() -> ! {
+    loop {
+        interrupts::enable_and_hlt();
     }
-
-    unreachable!();
 }
