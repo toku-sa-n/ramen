@@ -58,6 +58,10 @@ pub(super) fn push(pid: Pid) {
     lock().push(pid);
 }
 
+pub(super) fn init() {
+    lock().init();
+}
+
 struct Scheduler {
     processes: BTreeMap<Pid, Process>,
 

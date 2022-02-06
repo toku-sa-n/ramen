@@ -70,6 +70,8 @@ fn init(mut boot_info: boot_info::Info) {
 
     syscall::init();
 
+    process::init();
+
     add_processes();
 }
 
