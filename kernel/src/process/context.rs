@@ -1,6 +1,6 @@
 use {
     crate::gdt,
-    core::mem::size_of,
+    core::{arch::asm, mem::size_of},
     static_assertions::const_assert_eq,
     x86_64::{
         registers::rflags::RFlags,
