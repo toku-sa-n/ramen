@@ -68,6 +68,11 @@ pub(super) fn init() {
     lock().init();
 }
 
+#[no_mangle]
+fn current_kernel_stack_bottom() -> VirtAddr {
+    lock().current_kernel_stack_bottom()
+}
+
 struct Scheduler {
     processes: BTreeMap<Pid, Process>,
 
@@ -107,10 +112,13 @@ impl Scheduler {
 
     fn add_process_as_runnable(&mut self, p: Process) {
         let pid = p.id();
+        let priority = p.priority;
 
         let r = self.processes.insert(pid, p);
 
         assert!(r.is_none(), "Duplicated process with PID {}.", pid);
+
+        self.runnable_pids.push(pid, priority);
     }
 
     fn wake(&mut self, pid: Pid) {
@@ -147,6 +155,10 @@ impl Scheduler {
 
     fn current_process_name(&self) -> &'static str {
         self.running_as_ref().name
+    }
+
+    fn current_kernel_stack_bottom(&self) -> VirtAddr {
+        self.running_as_ref().kernel_stack_bottom_addr()
     }
 
     fn running_as_ref(&self) -> &Process {

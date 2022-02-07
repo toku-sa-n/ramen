@@ -4,7 +4,7 @@ use {
         mem::{allocator, paging},
         process::{self, Pid},
     },
-    core::{convert::TryInto, ffi::c_void, panic::PanicInfo, slice},
+    core::{arch::asm, convert::TryInto, ffi::c_void, panic::PanicInfo, slice},
     num_traits::FromPrimitive,
     os_units::{Bytes, NumOfPages},
     terminal::print,
@@ -47,7 +47,7 @@ unsafe fn enable_syscall_and_sysret() {
 
 fn register_handler() {
     LStar::write(VirtAddr::new(
-        (select_proper_syscall as usize).try_into().unwrap(),
+        (prepare_syscall as usize).try_into().unwrap(),
     ));
 }
 
@@ -100,9 +100,56 @@ unsafe fn write_ia32_fmask(mask: RFlags) {
         reg.write(mask.bits());
     }
 }
+
+#[naked]
+unsafe extern "sysv64" fn prepare_syscall() {
+    unsafe {
+        asm!(
+            "
+            push rcx
+            push r11
+
+            push rbp
+            mov rbp, rsp
+
+            push rdi
+            push rsi
+            push rdx
+            push rax
+
+            call current_kernel_stack_bottom
+
+            mov rcx, rax
+
+            pop rax
+            pop rdx
+            pop rsi
+            pop rdi
+
+            mov rsp, rcx
+
+            mov rcx, rdx
+            mov rdx, rsi
+            mov rsi, rdi
+            mov rdi, rax
+
+            call select_proper_syscall
+
+            mov rsp, rbp
+            pop rbp
+
+            pop r11
+            pop rcx
+
+            sysret",
+            options(noreturn)
+        );
+    }
+}
+
 #[no_mangle]
 #[allow(clippy::too_many_arguments)]
-unsafe extern "C" fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
+unsafe extern "sysv64" fn select_proper_syscall(idx: u64, a1: u64, a2: u64, a3: u64) -> u64 {
     if let Some(t) = FromPrimitive::from_u64(idx) {
         // SAFETY: At least the index is correct. The caller must ensure that
         // the all arguments are correctly passed.

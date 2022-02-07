@@ -253,7 +253,7 @@ extern "C" fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
     mov rdi, rsi
     mov rsi, rdx
     mov rdx, rcx
-    int 0x80
+    syscall
 
     pop r11
     pop r10
@@ -273,7 +273,7 @@ extern "C" fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
 
 #[naked]
 #[allow(clippy::too_many_lines)]
-extern "C" fn message_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) {
+extern "sysv64" fn message_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) {
     unsafe {
         asm!(
             "
@@ -291,7 +291,7 @@ extern "C" fn message_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) {
     mov rdi, rsi
     mov rsi, rdx
     mov rdx, rcx
-    int 0x81
+    syscall
 
     pop r11
     pop r10
@@ -302,6 +302,7 @@ extern "C" fn message_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) {
     pop rsi
     pop rdi
     pop rax
+
     ret
     ",
             options(noreturn)
