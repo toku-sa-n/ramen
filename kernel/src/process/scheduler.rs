@@ -1,5 +1,3 @@
-use crate::tss;
-
 use {
     super::{
         context::Context,
@@ -10,6 +8,7 @@ use {
     crate::{
         mem::{self, accessor::Single, paging},
         process::{status::Status, Process},
+        tss,
     },
     alloc::collections::{BTreeMap, VecDeque},
     array_init::array_init,
