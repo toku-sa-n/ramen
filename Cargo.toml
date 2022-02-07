@@ -12,7 +12,6 @@ members = [
     "libs/ralib",
     "libs/syscalls",
     "libs/terminal",
-    "servers/port_server",
     "servers/xhci",
 ]
 resolver = "2"
