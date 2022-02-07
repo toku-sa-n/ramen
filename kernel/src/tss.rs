@@ -9,7 +9,7 @@ use {
 
 static TSS: Lazy<Spinlock<TaskStateSegment>> = Lazy::new(|| {
     let mut tss = TaskStateSegment::new();
-    tss.interrupt_stack_table[0] = *INTERRUPT_STACK;
+    tss.privilege_stack_table[0] = *INTERRUPT_STACK;
     Spinlock::new(tss)
 });
 
@@ -17,6 +17,6 @@ pub(crate) fn get_ptr() -> *mut TaskStateSegment {
     TSS.data_ptr()
 }
 
-pub(crate) fn set_interrupt_stack(addr: VirtAddr) {
-    TSS.lock().interrupt_stack_table[0] = addr;
+pub(crate) fn set_privilege_stack(addr: VirtAddr) {
+    TSS.lock().privilege_stack_table[0] = addr;
 }

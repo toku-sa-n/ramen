@@ -476,7 +476,7 @@ impl Switcher<'_> {
         let p = self.0.process_as_ref(next);
         let p = p.expect("No such process.");
 
-        tss::set_interrupt_stack(p.kernel_stack_bottom_addr());
+        tss::set_privilege_stack(p.kernel_stack_bottom_addr());
     }
 
     fn context(&mut self, pid: Pid) -> *mut Context {

@@ -8,9 +8,7 @@ use {
 static IDT: Lazy<InterruptDescriptorTable> = Lazy::new(|| {
     let mut idt = InterruptDescriptorTable::new();
 
-    unsafe {
-        idt[0x20].set_handler_fn(h_20).set_stack_index(0);
-    }
+    idt[0x20].set_handler_fn(h_20);
 
     idt
 });
