@@ -141,7 +141,7 @@ unsafe extern "sysv64" fn prepare_syscall() {
             pop r11
             pop rcx
 
-            sysret",
+            sysretq",
             options(noreturn)
         );
     }

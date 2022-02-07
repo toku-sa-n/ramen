@@ -44,7 +44,6 @@ const_assert!(STACK_GUARD_SIZE.as_usize() + STACK_MAGIC.as_bytes().len() <= STAC
 pub(super) fn init() {
     scheduler::init();
 
-    scheduler::add_process_as_runnable(Process::binary("port_server.bin"));
     scheduler::add_process_as_runnable(Process::binary("xhci.bin"));
     scheduler::add_process_as_runnable(Process::from_function(sysproc::main, "sysproc"));
 

@@ -398,7 +398,7 @@ impl<'a> Receiver<'a> {
         if p.msg_ptr.is_none() {
             p.msg_ptr = Some(self.msg_buf);
         } else {
-            panic!("Message is already stored.");
+            panic!("PID: {}, Message is already stored.", p.pid);
         };
     }
 
