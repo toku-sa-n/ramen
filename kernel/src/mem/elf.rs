@@ -73,7 +73,7 @@ impl Loader {
     }
 }
 impl ElfLoader for Loader {
-    fn allocate(&mut self, load_headers: LoadableHeaders) -> Result<(), ElfLoaderErr> {
+    fn allocate(&mut self, load_headers: LoadableHeaders<'_, '_>) -> Result<(), ElfLoaderErr> {
         for header in load_headers {
             Self::allocate_for_header(header).expect("Failed to allocate memory.");
         }
