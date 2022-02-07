@@ -233,19 +233,14 @@ impl<'a> Sender<'a> {
     }
 
     fn remove_msg_buf(&mut self) {
-        let p = self.manager.running_as_mut();
-
-        p.msg_ptr = None;
-        p.send_to = None;
-    }
-
-    fn wake_dst(&mut self) {
         let dst = self.manager.process_as_mut(self.to);
         let dst = dst.expect("The receiver does not exist.");
 
         dst.msg_ptr = None;
-        dst.receive_from = None;
+        dst.send_to = None;
+    }
 
+    fn wake_dst(&mut self) {
         self.manager.wake(self.to);
     }
 
@@ -288,13 +283,6 @@ impl<'a> Sender<'a> {
             to: self.to,
             message: self.msg,
         };
-
-        let running = self.manager.running;
-
-        let receiver = self.manager.process_as_mut(self.to);
-        let receiver = receiver.expect("No such process.");
-
-        receiver.pids_try_to_send_this_process.push_back(running);
     }
 }
 
@@ -413,11 +401,6 @@ impl<'a> Receiver<'a> {
 
     fn sleep(&mut self) {
         let receiver = self.manager.running_as_mut();
-
-        assert!(
-            receiver.msg_ptr.is_none(),
-            "The message buffer is not empty."
-        );
 
         receiver.status = Status::Receiving(self.from);
         receiver.msg_ptr = Some(self.msg_buf);
