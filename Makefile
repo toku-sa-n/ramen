@@ -149,7 +149,7 @@ $(EFI_FILE):$(EFI_SRC)|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(XHCI):$(XHCI_LIB)|$(BUILD_DIR)
-	$(LD) $(LDFLAGS) -Ttext 0x800000 -o $@ -e main $^
+	$(LD) $(LDFLAGS) -o $@ -e main $^
 
 $(XHCI_LIB):$(XHCI_LIB_SRC) $(XHCI_LIB_DEPENDENCIES_SRC)|$(BUILD_DIR)
 	cd $(XHCI_DIR) && $(RUSTC) build --out-dir ../../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
