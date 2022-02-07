@@ -6,6 +6,8 @@ mod receive_from;
 pub(crate) mod scheduler;
 mod status;
 
+#[cfg(feature = "qemu_test")]
+use crate::tests;
 use {
     self::{
         context::Context,
