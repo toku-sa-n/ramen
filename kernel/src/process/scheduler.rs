@@ -35,7 +35,10 @@ pub(crate) fn send(msg: VirtAddr, to: Pid) {
     // we forget to disable interrupts, a timer interrupt may happen when the kernel process holds
     // the lock of the process scheduler, and the subsequent process fails to lock the scheduler
     // because the previous process already locks it. Thus, we disable the interrupts.
-    without_interrupts(|| lock().send(msg, to));
+    without_interrupts(|| {
+        lock().send(msg, to);
+        switch();
+    });
 }
 
 pub(crate) fn receive_from_any(msg_buf: VirtAddr) {
