@@ -102,6 +102,7 @@ unsafe fn write_ia32_fmask(mask: RFlags) {
 }
 
 #[naked]
+#[allow(clippy::too_many_lines)]
 unsafe extern "sysv64" fn prepare_syscall() {
     unsafe {
         asm!(
