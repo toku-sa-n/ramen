@@ -188,8 +188,8 @@ impl<T: ?Sized> KpBox<T> {
     }
 
     fn from_bytes(bytes: Bytes) -> Self {
-        let virt =
-            super::allocate_pages(bytes.as_num_of_pages()).expect("Failed to allocate pages.");
+        let virt = super::allocate_pages_for_kernel(bytes.as_num_of_pages())
+            .expect("Failed to allocate pages.");
 
         Self {
             virt,

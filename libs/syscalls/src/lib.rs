@@ -23,9 +23,9 @@ pub unsafe fn inb(port: u16) -> u8 {
     let header = message::Header::new(0);
     let m = Message::new(header, body);
 
-    send(m, 0);
+    send(m, 2);
 
-    let reply = receive_from(0);
+    let reply = receive_from(2);
 
     reply.body.0.try_into().unwrap()
 }
@@ -39,9 +39,9 @@ pub unsafe fn inl(port: u16) -> u32 {
     let header = message::Header::new(0);
     let m = Message::new(header, body);
 
-    send(m, 0);
+    send(m, 2);
 
-    let reply = receive_from(0);
+    let reply = receive_from(2);
 
     reply.body.0.try_into().unwrap()
 }
@@ -55,9 +55,9 @@ pub unsafe fn outb(port: u16, value: u8) {
     let header = message::Header::new(0);
     let m = Message::new(header, body);
 
-    send(m, 0);
+    send(m, 2);
 
-    receive_ack(0);
+    receive_ack(2);
 }
 
 /// # Safety
@@ -69,9 +69,9 @@ pub unsafe fn outl(port: u16, value: u32) {
     let header = message::Header::new(0);
     let m = Message::new(header, body);
 
-    send(m, 0);
+    send(m, 2);
 
-    receive_ack(0);
+    receive_ack(2);
 }
 
 #[must_use]
@@ -253,7 +253,7 @@ extern "C" fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
     mov rdi, rsi
     mov rsi, rdx
     mov rdx, rcx
-    int 0x80
+    syscall
 
     pop r11
     pop r10
@@ -273,7 +273,7 @@ extern "C" fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
 
 #[naked]
 #[allow(clippy::too_many_lines)]
-extern "C" fn message_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) {
+extern "sysv64" fn message_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) {
     unsafe {
         asm!(
             "
@@ -291,7 +291,7 @@ extern "C" fn message_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) {
     mov rdi, rsi
     mov rsi, rdx
     mov rdx, rcx
-    int 0x81
+    syscall
 
     pop r11
     pop r10

@@ -5,9 +5,10 @@ use {
     spinning_top::Spinlock,
     x86_64::{
         structures::paging::{
-            mapper::{MapToError, MapperFlush, UnmapError},
-            Mapper, Page, PageTable, PageTableFlags, PhysFrame, RecursivePageTable, Size4KiB,
-            Translate,
+            mapper::{FlagUpdateError, MapToError, MapperFlush, UnmapError},
+            page::PageRange,
+            FrameAllocator, Mapper, Page, PageTable, PageTableFlags, PhysFrame, RecursivePageTable,
+            Size4KiB, Translate,
         },
         PhysAddr, VirtAddr,
     },
@@ -27,6 +28,38 @@ pub(crate) fn mark_pages_as_unused() {
     for i in 0..510 {
         page_table[i].set_unused();
     }
+}
+
+pub(crate) fn map_range_to_unused_phys_range(
+    page_range: PageRange,
+    flags: PageTableFlags,
+) -> Result<(), MapToError<Size4KiB>> {
+    for p in page_range {
+        map_to_unused(p, flags)?;
+    }
+
+    Ok(())
+}
+
+pub(crate) unsafe fn update_flags_for_range(
+    page_range: PageRange,
+    flags: PageTableFlags,
+) -> Result<(), FlagUpdateError> {
+    for p in page_range {
+        unsafe {
+            update_flags(p, flags)?;
+        }
+    }
+
+    Ok(())
+}
+
+pub(crate) fn map_to_unused(page: Page, flags: PageTableFlags) -> Result<(), MapToError<Size4KiB>> {
+    let frame = phys::allocator()
+        .allocate_frame()
+        .ok_or(MapToError::FrameAllocationFailed)?;
+
+    unsafe { map_to(page, frame, flags) }
 }
 
 /// # Safety
@@ -54,6 +87,17 @@ pub(crate) fn unmap(page: Page) -> Result<PhysFrame, UnmapError> {
 
 pub(crate) fn translate_addr(a: VirtAddr) -> Option<PhysAddr> {
     PML4.lock().translate_addr(a)
+}
+
+pub(crate) unsafe fn update_flags(
+    page: Page,
+    flags: PageTableFlags,
+) -> Result<(), FlagUpdateError> {
+    unsafe {
+        PML4.lock()
+            .update_flags(page, flags)
+            .map(MapperFlush::flush)
+    }
 }
 
 pub(crate) fn level_4_table() -> PageTable {

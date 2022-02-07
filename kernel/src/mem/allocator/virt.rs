@@ -1,21 +1,20 @@
 use {
     crate::mem::paging,
-    core::convert::TryFrom,
     os_units::NumOfPages,
-    predefined_mmap::BYTES_AVAILABLE_RAM,
     x86_64::{
-        structures::paging::{PageSize, Size4KiB},
+        structures::paging::{page::PageRange, Size4KiB},
         VirtAddr,
     },
 };
 
-pub(crate) fn search_free_addr(num_pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
+pub(crate) fn search_free_addr_from(
+    num_pages: NumOfPages<Size4KiB>,
+    region: PageRange,
+) -> Option<VirtAddr> {
     let mut cnt = 0;
     let mut start = None;
-    for addr in
-        (0..BYTES_AVAILABLE_RAM.as_usize()).step_by(usize::try_from(Size4KiB::SIZE).unwrap())
-    {
-        let addr = VirtAddr::new(addr as _);
+    for page in region {
+        let addr = page.start_address();
         if available(addr) {
             if start.is_none() {
                 start = Some(addr);

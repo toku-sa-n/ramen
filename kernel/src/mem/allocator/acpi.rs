@@ -17,7 +17,7 @@ impl AcpiHandler for Mapper {
 
         // To call this method in the kernel mode, which is necessary to access APIC registers,
         // call `crate::mem::map_pages`, not the system call one.
-        let virt = mem::map_pages(p, bytes);
+        let virt = mem::map_pages_for_kernel(p, bytes);
 
         // SAFETY: The caller must ensure that `p_addr` and `sz` are the correct arguments, and
         // there is no other mappings to this region.

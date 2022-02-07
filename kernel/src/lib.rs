@@ -6,7 +6,8 @@
     const_btree_new,
     asm_const,
     asm_sym,
-    naked_functions
+    naked_functions,
+    abi_x86_interrupt
 )]
 #![deny(clippy::pedantic, clippy::all, unsafe_op_in_unsafe_fn)]
 
@@ -22,17 +23,17 @@ mod process;
 mod qemu;
 mod syscall;
 mod sysproc;
+
+#[cfg(feature = "qemu_test")]
 mod tests;
 mod tss;
 
 use {
     aligned_ptr::ptr,
-    core::arch::asm,
     interrupt::{apic, idt, timer},
     log::info,
-    process::Privilege,
     terminal::vram,
-    x86_64::software_interrupt,
+    x86_64::instructions::interrupts,
 };
 
 /// # Safety
@@ -41,7 +42,7 @@ use {
 #[no_mangle]
 pub unsafe extern "sysv64" fn os_main(boot_info: *mut boot_info::Info) -> ! {
     init(unsafe { ptr::get(boot_info) });
-    cause_timer_interrupt();
+    idle();
 }
 
 fn init(mut boot_info: boot_info::Info) {
@@ -70,30 +71,11 @@ fn init(mut boot_info: boot_info::Info) {
 
     syscall::init();
 
-    add_processes();
+    process::init();
 }
 
-fn add_processes() {
-    process::binary("port_server.bin", Privilege::Kernel);
-    process::binary("xhci.bin", Privilege::User);
-    process::from_function(sysproc::main, "sysproc");
-    process::from_function(do_nothing, "do_nothing");
-
-    if cfg!(feature = "qemu_test") {
-        process::from_function(tests::main, "tests");
-    }
-}
-
-fn cause_timer_interrupt() -> ! {
-    unsafe {
-        software_interrupt!(0x20);
-    }
-
-    unreachable!();
-}
-
-fn do_nothing() {
+fn idle() -> ! {
     loop {
-        x86_64::instructions::hlt();
+        interrupts::enable_and_hlt();
     }
 }

@@ -35,6 +35,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "array-init"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6945cc5422176fc5e602e590c2878d2c2acd9a4fe20a4baa7c28022521698ec6"
+
+[[package]]
 name = "autocfg"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -241,6 +247,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "elfloader"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a249d6a9d50f3bf5a3cb7bfd75e84989cad89c6c77b5996c8b084e844146ff04"
+dependencies = [
+ "bitflags",
+ "log",
+ "xmas-elf",
+]
+
+[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -309,12 +326,14 @@ dependencies = [
  "accessor",
  "acpi",
  "aligned_ptr",
+ "array-init",
  "bit_field",
  "bitflags",
  "boot_info",
  "cc",
  "conquer-once",
  "cstr_core",
+ "elfloader",
  "frame_manager",
  "linked_list_allocator",
  "log",
@@ -326,6 +345,7 @@ dependencies = [
  "qemu-exit",
  "rgb",
  "spinning_top",
+ "static_assertions",
  "syscalls",
  "terminal",
  "uart_16550",
@@ -443,20 +463,6 @@ name = "pin-utils"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
-
-[[package]]
-name = "port_server"
-version = "0.1.0"
-dependencies = [
- "log",
- "message",
- "num-derive",
- "num-traits",
- "raheap",
- "ralib",
- "syscalls",
- "x86_64",
-]
 
 [[package]]
 name = "predefined_mmap"
