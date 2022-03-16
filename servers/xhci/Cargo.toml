@@ -16,7 +16,7 @@ bit_field = "0.10.1"
 byteorder = { version = "1.4.3", default-features = false }
 conquer-once = { version = "0.3.2", default-features = false }
 crossbeam-queue = { version = "0.3.4", features = ["alloc"], default-features = false }
-derive_builder = { version = "0.10.2", default-features = false }
+derive_builder = { version = "0.11.1", default-features = false }
 futures-intrusive = { version = "0.4.0", features = ["alloc"], default-features = false }
 futures-util = { version = "0.3.21", features = ["alloc"], default-features = false }
 log = "0.4.14"
