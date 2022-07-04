@@ -727,14 +727,14 @@ dependencies = [
  "spinning_top",
  "syscalls",
  "x86_64",
- "xhci 0.8.2",
+ "xhci 0.8.4",
 ]
 
 [[package]]
 name = "xhci"
-version = "0.8.2"
+version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c561fed3b5825e3c8a008259ea71f1a17067b6cecf03256f9ff77e03524bf55b"
+checksum = "9e6f36613b8fe76d35a2e66e119a1dfc2f2571ec5511d6d0c82e68ebfd3d965a"
 dependencies = [
  "accessor",
  "bit_field",
