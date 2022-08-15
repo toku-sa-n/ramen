@@ -12,7 +12,7 @@ bench = false
 
 [dependencies]
 os_units = "0.4.2"
-log = "0.4.14"
+log = "0.4.17"
 syscalls = { path = "../syscalls" }
 x86_64 = { version = "0.14.8", default-features = false }
 accessor = "0.3.0"
