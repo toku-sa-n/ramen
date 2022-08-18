@@ -29,4 +29,4 @@ ralib = { path = "../../libs/ralib" }
 spinning_top = { version = "0.2.4", features = ["nightly"] }
 syscalls = { path = "../../libs/syscalls" }
 x86_64 = { version = "0.14.8", default-features = false }
-xhci = "0.8.2"
+xhci = "0.8.7"
