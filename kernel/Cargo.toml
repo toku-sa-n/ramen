@@ -43,7 +43,7 @@ qemu-exit = "3.0.1"
 elfloader = "0.14.0"
 aligned_ptr = "0.1.0"
 static_assertions = "1.1.0"
-array-init = "2.0.0"
+array-init = "2.0.1"
 
 [build-dependencies]
 cc = "1.0.73"
