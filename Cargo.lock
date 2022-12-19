@@ -27,9 +27,9 @@ checksum = "5fc5e98d2fade1025ad475e78dbcfd7db6e997f21c6cac8e20e1b530cbac031b"
 
 [[package]]
 name = "approx"
-version = "0.4.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f2a05fd1bd10b2527e20a2cd32d8873d115b8b39fe219ee25f42a8aca6ba278"
+checksum = "cab112f0a86d568ea0e627cc1d6be74a1e9cd55214684db5561995f6dad897c6"
 dependencies = [
  "num-traits",
 ]
@@ -677,9 +677,9 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 
 [[package]]
 name = "vek"
-version = "0.15.6"
+version = "0.15.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b68113367df5a2efc576e46d50afdd8f8c98bc2e4a77e9c9b66a58e05b596994"
+checksum = "b153a45fabd5ecfabf636ba729719c0747d50a4a2f63bf68590a5e187c3918f6"
 dependencies = [
  "approx",
  "num-integer",
