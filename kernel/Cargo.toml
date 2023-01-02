@@ -40,7 +40,7 @@ spinning_top = { version = "0.2.4", features = ["nightly"] }
 predefined_mmap = { path = "../libs/predefined_mmap" }
 boot_info = { path = "../libs/boot_info" }
 qemu-exit = "3.0.1"
-elfloader = "0.14.0"
+elfloader = "0.16.0"
 aligned_ptr = "0.1.0"
 static_assertions = "1.1.0"
 array-init = "2.0.0"
