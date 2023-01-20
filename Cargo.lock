@@ -238,9 +238,9 @@ dependencies = [
 
 [[package]]
 name = "elf_rs"
-version = "0.1.3"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21a04ca262fb05c2a49524b0c4bb45a992b27fd0fc55bfff619275185a783e38"
+checksum = "9cf723f70efb0373c0b2501d943cf20ac1adbbd8e7c8eef926b2be545e5a33e8"
 dependencies = [
  "bitflags",
  "num-traits",
