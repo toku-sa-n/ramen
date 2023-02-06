@@ -78,7 +78,7 @@ dependencies = [
  "os_units",
  "predefined_mmap",
  "static_assertions",
- "uefi",
+ "uefi 0.19.1",
  "uefi-services",
  "vek",
  "x86_64",
@@ -483,6 +483,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "ptr_meta"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bcada80daa06c42ed5f48c9a043865edea5dc44cbf9ac009fda3b89526e28607"
+dependencies = [
+ "ptr_meta_derive",
+]
+
+[[package]]
+name = "ptr_meta_derive"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bca9224df2e20e7c5548aeb5f110a0f3b77ef05f8585139b7148b59056168ed2"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "qemu-exit"
 version = "3.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -644,7 +664,20 @@ dependencies = [
  "bitflags",
  "log",
  "ucs2",
- "uefi-macros",
+ "uefi-macros 0.5.0",
+]
+
+[[package]]
+name = "uefi"
+version = "0.19.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5607fef843201070ed442fa257c7a944fae963fac7d4620612123192eb4d844"
+dependencies = [
+ "bitflags",
+ "log",
+ "ptr_meta",
+ "ucs2",
+ "uefi-macros 0.10.0",
 ]
 
 [[package]]
@@ -659,6 +692,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "uefi-macros"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8099684193f2d99f7f130951f4054a1591ff7da370e2b33d7a71f0434920499"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "uefi-services"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -666,7 +710,7 @@ checksum = "7840bddc6477dc443cc5652ca9683de9f10bd173691151c3160d734521bef3bd"
 dependencies = [
  "cfg-if",
  "log",
- "uefi",
+ "uefi 0.14.0",
 ]
 
 [[package]]
