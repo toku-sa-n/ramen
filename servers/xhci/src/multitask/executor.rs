@@ -47,7 +47,7 @@ impl Executor {
             waker_collection: _,
         } = self;
 
-        let Some(task) = task::COLLECTION.lock().remove_task(id) else {
+        let mut Some(task) = task::COLLECTION.lock().remove_task(id) else {
             return;
         };
 
