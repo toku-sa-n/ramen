@@ -153,7 +153,7 @@ pub(crate) struct RegisterIndex(usize);
 impl RegisterIndex {
     const MAX: usize = 64;
     pub(crate) fn new(offset: usize) -> Self {
-        assert!(offset < Self::MAX, "Too large register index: {}", offset);
+        assert!(offset < Self::MAX, "Too large register index: {offset}");
         Self(offset)
     }
 
