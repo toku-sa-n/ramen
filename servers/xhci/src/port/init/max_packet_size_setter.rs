@@ -74,6 +74,8 @@ impl MaxPacketSizeSetter {
 
         let addr = i.phys_addr();
 
+        drop(cx);
+
         exchanger::command::evaluate_context(addr, self.slot_number).await;
     }
 }
