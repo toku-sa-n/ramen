@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use spinning_top::SpinlockGuard;
-
 use {
     super::{
         descriptor_fetcher::DescriptorFetcher,
