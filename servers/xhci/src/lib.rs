@@ -32,7 +32,7 @@ mod structures;
 mod xhc;
 
 #[no_mangle]
-pub fn main() {
+pub extern "C" fn main() {
     ralib::init();
     raheap::init();
 
