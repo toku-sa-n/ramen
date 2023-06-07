@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use spinning_top::SpinlockGuard;
+
 use {
     super::{
         descriptor_fetcher::DescriptorFetcher,
@@ -68,13 +70,15 @@ impl MaxPacketSizeSetter {
 
     async fn evaluate_context(&self) {
         let mut cx = self.cx.lock();
-        let i = &mut cx.input;
 
-        i.control_mut().set_add_context_flag(1);
+        // Workaround for https://github.com/rust-lang/rust-clippy/issues/6446.
+        let addr = {
+            let i = &mut cx.input;
 
-        let addr = i.phys_addr();
+            i.control_mut().set_add_context_flag(1);
 
-        drop(cx);
+            i.phys_addr()
+        };
 
         exchanger::command::evaluate_context(addr, self.slot_number).await;
     }
