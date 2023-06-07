@@ -31,7 +31,7 @@ macro_rules! println{
 
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments<'_>) {
-    write!(*LOG_WRITER.lock(), "{}", args).unwrap();
+    write!(*LOG_WRITER.lock(), "{args}").unwrap();
 }
 
 struct Logger;
