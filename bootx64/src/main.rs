@@ -22,7 +22,7 @@ use {
 
 #[start]
 #[no_mangle]
-pub extern "uefi" fn efi_main(image: Handle, mut system_table: SystemTable<Boot>) -> ! {
+pub extern "efiapi" fn efi_main(image: Handle, mut system_table: SystemTable<Boot>) -> ! {
     bootx64::init(&mut system_table);
 
     let vram_info = gop::init(system_table.boot_services());
