@@ -9,6 +9,6 @@ license = "GPL-3.0-or-later"
 x86_64 = { version = "0.14.8", default-features = false }
 os_units = "0.4.2"
 vek = { version = "0.15.6", default-features = false, features = ["libm"] }
-conquer-once = { version = "0.3.2", default-features = false }
+conquer-once = { version = "0.4.0", default-features = false }
 predefined_mmap = { path = "../predefined_mmap" }
 boot_info = { path = "../boot_info" }
