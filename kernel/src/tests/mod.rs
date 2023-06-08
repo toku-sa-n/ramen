@@ -5,7 +5,9 @@ use {crate::qemu, core::sync::atomic::Ordering};
 pub(crate) mod process;
 
 pub(crate) fn main() -> ! {
-    while !process::SWITCH_TEST_SUCCESS.load(Ordering::Relaxed) {}
+    while !process::SWITCH_TEST_SUCCESS.load(Ordering::Relaxed) {
+        core::hint::spin_loop();
+    }
 
     qemu::exit_success();
 }
