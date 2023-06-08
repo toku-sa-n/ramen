@@ -134,7 +134,7 @@ fn size(bs: &boot::BootServices, r: &mut file::RegularFile) -> Bytes {
 
 fn bytes_for_get_info(r: &mut file::RegularFile) -> Bytes {
     let (s, bytes) = r
-        .get_info::<FileInfo>(&mut [0_u8])
+        .get_info::<FileInfo>(&mut [])
         .expect_error("The buffer should be too small.")
         .split();
     assert_eq!(
