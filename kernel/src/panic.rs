@@ -27,7 +27,7 @@ fn print_banner() {
 fn print_info(i: &core::panic::PanicInfo<'_>) {
     let mut s = unsafe { SerialPort::new(0x3f8) };
     s.init();
-    s.write_fmt(format_args!("{}\n", i)).unwrap();
+    s.write_fmt(format_args!("{i}\n")).unwrap();
 
     error!("{}", i);
 }
