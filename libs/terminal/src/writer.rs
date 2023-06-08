@@ -85,9 +85,7 @@ impl Writer {
     }
 
     fn write_char_on_screen(&self, c: char) {
-        let font = if let Some(font) = BASIC_FONTS.get(c) {
-            font
-        } else {
+        let Some(font) = BASIC_FONTS.get(c) else {
             return;
         };
 

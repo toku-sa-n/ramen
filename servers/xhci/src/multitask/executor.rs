@@ -47,9 +47,8 @@ impl Executor {
             waker_collection: _,
         } = self;
 
-        let mut task = match task::COLLECTION.lock().remove_task(id) {
-            Some(task) => task,
-            None => return,
+        let Some(mut task) = task::COLLECTION.lock().remove_task(id) else {
+            return;
         };
 
         let mut context = self.generate_waker(id);

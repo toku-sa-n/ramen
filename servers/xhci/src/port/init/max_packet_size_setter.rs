@@ -67,11 +67,17 @@ impl MaxPacketSizeSetter {
     }
 
     async fn evaluate_context(&self) {
-        let mut cx = self.cx.lock();
-        let i = &mut cx.input;
+        // Workaround for https://github.com/rust-lang/rust-clippy/issues/6446.
+        let addr = {
+            let mut cx = self.cx.lock();
 
-        i.control_mut().set_add_context_flag(1);
+            let i = &mut cx.input;
 
-        exchanger::command::evaluate_context(i.phys_addr(), self.slot_number).await;
+            i.control_mut().set_add_context_flag(1);
+
+            i.phys_addr()
+        };
+
+        exchanger::command::evaluate_context(addr, self.slot_number).await;
     }
 }

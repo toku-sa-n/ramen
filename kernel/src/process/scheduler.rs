@@ -72,7 +72,7 @@ pub(super) fn init() {
 }
 
 #[no_mangle]
-fn current_kernel_stack_bottom() -> VirtAddr {
+extern "C" fn current_kernel_stack_bottom() -> VirtAddr {
     lock().current_kernel_stack_bottom()
 }
 
@@ -119,7 +119,7 @@ impl Scheduler {
 
         let r = self.processes.insert(pid, p);
 
-        assert!(r.is_none(), "Duplicated process with PID {}.", pid);
+        assert!(r.is_none(), "Duplicated process with PID {pid}.");
 
         self.runnable_pids.push(pid, priority);
     }
