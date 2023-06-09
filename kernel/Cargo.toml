@@ -31,7 +31,7 @@ syscalls = { path = "../libs/syscalls" }
 terminal = { path = "../libs/terminal" }
 accessor = "0.3.0"
 message = { path = "../libs/message" }
-bitflags = "1.2.1"
+bitflags = "2.3.1"
 frame_manager = { path = "../libs/frame_manager" }
 cstr_core = "0.2.5"
 xmas-elf = "0.8.0"
