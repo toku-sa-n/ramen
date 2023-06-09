@@ -5,6 +5,8 @@
 #![no_main]
 #![deny(clippy::pedantic)]
 #![deny(clippy::all)]
+// Without this, rustc will complain about trivial casts of `efi_main`.
+#![allow(trivial_casts)]
 
 #[macro_use]
 #[allow(unused_imports)]
@@ -17,12 +19,16 @@ use {
         rsdp,
     },
     common::mem::reserved,
-    uefi::prelude::{Boot, Handle, SystemTable},
+    uefi::{
+        entry,
+        prelude::{Boot, Handle, SystemTable},
+    },
 };
 
 #[start]
+#[entry]
 #[no_mangle]
-pub extern "efiapi" fn efi_main(image: Handle, mut system_table: SystemTable<Boot>) -> ! {
+pub fn efi_main(image: Handle, mut system_table: SystemTable<Boot>) -> uefi::Status {
     bootx64::init(&mut system_table);
 
     let vram_info = gop::init(system_table.boot_services());
@@ -41,7 +47,7 @@ pub extern "efiapi" fn efi_main(image: Handle, mut system_table: SystemTable<Boo
         phys_initrd_addr,
         bytes_initrd,
     );
-    let mem_map = bootx64::exit::boot_services(image, system_table);
+    let mem_map = bootx64::exit::boot_services(system_table);
 
     let mut boot_info = boot_info::Info::new(entry_addr, vram_info, mem_map, rsdp);
 

@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use uefi::CStr16;
+
 mod root_dir;
 
 use {
@@ -21,7 +23,6 @@ use {
             boot,
             boot::{AllocateType, MemoryType},
         },
-        ResultExt,
     },
     x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr},
 };
@@ -75,13 +76,14 @@ pub fn fetch_entry_address_and_memory_size(addr: PhysAddr, bytes: Bytes) -> (Vir
 }
 
 fn get_handler(root: &mut file::Directory, name: &'static str) -> file::RegularFile {
+    let mut buf = [0; 128];
+    let name = CStr16::from_str_with_buf(name, &mut buf).expect("Failed to convert the name.");
+
     let h = root
         .open(name, FileMode::Read, FileAttribute::empty())
-        .expect_success("Failed to get file handler of the kernel.");
+        .expect("Failed to get file handler of the kernel.");
 
-    let h = h
-        .into_type()
-        .expect_success("Failed to get the type of a file.");
+    let h = h.into_type().expect("Failed to get the type of a file.");
 
     match h {
         FileType::Regular(r) => r,
@@ -99,7 +101,7 @@ fn allocate(boot_services: &boot::BootServices, kernel_bytes: Bytes) -> PhysAddr
                 MemoryType::LOADER_DATA,
                 kernel_bytes.as_num_of_pages::<Size4KiB>().as_usize(),
             )
-            .expect_success("Failed to allocate memory for the kernel"),
+            .expect("Failed to allocate memory for the kernel"),
     )
 }
 
@@ -111,7 +113,7 @@ fn put_on_memory(handler: &mut file::RegularFile, kernel_addr: PhysAddr, kernel_
         .read(unsafe {
             core::slice::from_raw_parts_mut(kernel_addr.as_u64() as _, kernel_bytes.as_usize())
         })
-        .expect_success("Failed to read kernel");
+        .expect("Failed to read kernel");
 }
 
 fn size(bs: &boot::BootServices, r: &mut file::RegularFile) -> Bytes {
@@ -119,23 +121,20 @@ fn size(bs: &boot::BootServices, r: &mut file::RegularFile) -> Bytes {
 
     let n = info_bytes.as_num_of_pages::<Size4KiB>().as_usize();
     let buf = bs.allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, n);
-    let buf = buf.expect_success("Failed to allocate memory for getting the size of a file.");
+    let buf = buf.expect("Failed to allocate memory for getting the size of a file.");
     let s = unsafe { slice::from_raw_parts_mut(buf as *mut u8, info_bytes.as_usize()) };
 
-    let i = r
-        .get_info::<FileInfo>(s)
-        .expect_success("`get_info` failed.");
+    let i = r.get_info::<FileInfo>(s).expect("`get_info` failed.");
 
     let sz = Bytes::new(i.file_size().try_into().unwrap());
-    bs.free_pages(buf, n)
-        .expect_success("Failed to free memory.");
+    bs.free_pages(buf, n).expect("Failed to free memory.");
     sz
 }
 
 fn bytes_for_get_info(r: &mut file::RegularFile) -> Bytes {
     let (s, bytes) = r
         .get_info::<FileInfo>(&mut [])
-        .expect_error("The buffer should be too small.")
+        .expect_err("The buffer should be too small.")
         .split();
     assert_eq!(
         s,
