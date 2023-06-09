@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
-#![feature(start)]
 #![no_main]
 #![deny(clippy::pedantic)]
 #![deny(clippy::all)]
@@ -25,7 +24,6 @@ use {
     },
 };
 
-#[start]
 #[entry]
 #[no_mangle]
 pub fn efi_main(image: Handle, mut system_table: SystemTable<Boot>) -> uefi::Status {
