@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use uefi::{
-    table::{Boot, SystemTable},
-    ResultExt,
-};
+use uefi::table::{Boot, SystemTable};
 
 pub fn init(system_table: &mut SystemTable<Boot>) {
     init_uefi_utils(system_table);
@@ -11,12 +8,12 @@ pub fn init(system_table: &mut SystemTable<Boot>) {
 }
 
 fn init_uefi_utils(system_table: &mut SystemTable<Boot>) {
-    uefi_services::init(system_table).expect_success("Failed to initialize_uefi_utilities");
+    uefi_services::init(system_table).expect("Failed to initialize_uefi_utilities");
 }
 
 fn reset_console(system_table: &mut SystemTable<Boot>) {
     system_table
         .stdout()
         .reset(false)
-        .expect_success("Failed to reset stdout");
+        .expect("Failed to reset stdout");
 }

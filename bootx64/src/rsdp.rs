@@ -8,7 +8,7 @@ use {
     x86_64::PhysAddr,
 };
 
-const GUID_RSDP: Guid = Guid::from_values(0x8868_e871, 0xe4f1, 0x11d3, 0xbc22, 0x0080_c73c_8881);
+const GUID_RSDP: Guid = Guid::parse_or_panic("8868e871-e4f1-11d3-bc22-0080c73c8881");
 
 /// # Panics
 ///

@@ -3,17 +3,18 @@
 use uefi::{
     proto::media::{file, fs},
     table::boot,
-    ResultExt,
 };
 
 pub(crate) fn open(boot_services: &boot::BootServices) -> file::Directory {
-    let simple_file_system = boot_services
-        .locate_protocol::<fs::SimpleFileSystem>()
-        .expect_success("Failed to prepare simple file system.");
+    let handle = boot_services
+        .get_handle_for_protocol::<fs::SimpleFileSystem>()
+        .expect("Failed to get handle for the simple file system.");
 
-    let simple_file_system = unsafe { &mut *simple_file_system.get() };
+    let mut simple_file_system = boot_services
+        .open_protocol_exclusive::<fs::SimpleFileSystem>(handle)
+        .expect("Failed to prepare simple file system.");
 
     simple_file_system
         .open_volume()
-        .expect_success("Failed to open the root directory.")
+        .expect("Failed to open the root directory.")
 }

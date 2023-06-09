@@ -2,12 +2,9 @@
 
 use {
     predefined_mmap::NUM_OF_PAGES_STACK,
-    uefi::{
-        table::{
-            boot,
-            boot::{AllocateType, MemoryType},
-        },
-        ResultExt,
+    uefi::table::{
+        boot,
+        boot::{AllocateType, MemoryType},
     },
     x86_64::PhysAddr,
 };
@@ -20,6 +17,6 @@ pub fn allocate(bs: &boot::BootServices) -> PhysAddr {
             MemoryType::LOADER_DATA,
             NUM_OF_PAGES_STACK.as_bytes().as_usize(),
         )
-        .expect_success("Failed to allocate memory for the stack"),
+        .expect("Failed to allocate memory for the stack"),
     )
 }
