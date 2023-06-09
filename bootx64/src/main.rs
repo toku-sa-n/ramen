@@ -23,6 +23,7 @@ use {
     },
 };
 
+#[allow(trivial_casts)]
 #[start]
 #[entry]
 #[no_mangle]
