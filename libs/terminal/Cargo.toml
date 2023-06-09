@@ -10,7 +10,7 @@ bit_field = "0.10.1"
 boot_info = { path = "../boot_info" }
 conquer-once = { version = "0.4.0", default-features = false }
 font8x8 = { version = "0.3.1", features = ["unicode"], default-features = false }
-log = "0.4.14"
+log = "0.4.18"
 predefined_mmap = { path = "../predefined_mmap" }
 rgb = "0.8.31"
 spinning_top = { version = "0.2.4", features = ["nightly"] }
