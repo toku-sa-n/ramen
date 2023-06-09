@@ -22,7 +22,7 @@ pub fn init(boot_services: &boot::BootServices) -> vram::Info {
     gop_to_boot_info(&mut gop)
 }
 
-fn fetch_gop<'a>(boot_services: &boot::BootServices) -> ScopedProtocol<'_, gop::GraphicsOutput> {
+fn fetch_gop(boot_services: &boot::BootServices) -> ScopedProtocol<'_, gop::GraphicsOutput> {
     let handle = boot_services
         .get_handle_for_protocol::<gop::GraphicsOutput>()
         .expect("Failed to get handle for GOP protocol!");
