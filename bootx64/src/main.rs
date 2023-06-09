@@ -5,6 +5,8 @@
 #![no_main]
 #![deny(clippy::pedantic)]
 #![deny(clippy::all)]
+// Without this, rustc will complain about trivial casts of `efi_main`.
+#![allow(trivial_casts)]
 
 #[macro_use]
 #[allow(unused_imports)]
@@ -23,7 +25,6 @@ use {
     },
 };
 
-#[allow(trivial_casts)]
 #[start]
 #[entry]
 #[no_mangle]
