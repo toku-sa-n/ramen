@@ -32,10 +32,13 @@ pub fn boot_services(system_table: SystemTable<Boot>) -> boot_info::mem::Map {
     let memory_map_buf = NonNull::new(memory_map_buf).expect("`memory_map_buf` must not be Null.");
     let memory_map_buf: NonNull<MemoryDescriptor> = memory_map_buf.cast();
 
-    let (_, descriptors_iter) = system_table.exit_boot_services();
+    let (_, mut descriptors_iter) = system_table.exit_boot_services();
 
-    let num_descriptors = descriptors_iter.entries().len();
-    let memory_map_buf = write_descriptors_on_buf(memory_map_buf, &mut descriptors_iter.entries());
+    descriptors_iter.sort();
+
+    let mut entries = descriptors_iter.entries();
+    let num_descriptors = entries.len();
+    let memory_map_buf = write_descriptors_on_buf(memory_map_buf, &mut entries);
     boot_info::mem::Map::new(memory_map_buf, num_descriptors)
 }
 
