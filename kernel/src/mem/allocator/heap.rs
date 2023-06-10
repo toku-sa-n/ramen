@@ -3,7 +3,7 @@
 // WORKAROUND: https://stackoverflow.com/questions/63933070/clippy-says-too-many-arguments-to-static-declaration
 #![allow(clippy::too_many_arguments)]
 
-use {core::alloc::Layout, linked_list_allocator::LockedHeap};
+use linked_list_allocator::LockedHeap;
 
 extern "C" {
     static HEAP_START: usize;
@@ -23,9 +23,4 @@ pub(crate) fn init() {
     let e = e as usize;
 
     unsafe { ALLOCATOR.lock().init(s, e - s) }
-}
-
-#[alloc_error_handler]
-fn alloc_error(layout: Layout) -> ! {
-    panic!("Allocation failed! {:?}", layout);
 }
