@@ -356,7 +356,6 @@ dependencies = [
  "uart_16550",
  "vek",
  "x86_64",
- "xmas-elf",
 ]
 
 [[package]]

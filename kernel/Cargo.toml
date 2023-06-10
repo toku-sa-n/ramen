@@ -33,7 +33,6 @@ accessor = "0.3.0"
 message = { path = "../libs/message" }
 frame_manager = { path = "../libs/frame_manager" }
 cstr_core = "0.2.5"
-xmas-elf = "0.8.0"
 uart_16550 = "0.2.16"
 spinning_top = { version = "0.2.4", features = ["nightly"] }
 predefined_mmap = { path = "../libs/predefined_mmap" }
