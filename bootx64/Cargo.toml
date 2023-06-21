@@ -17,7 +17,7 @@ bench = false
 [dependencies]
 log = "0.4.19"
 uefi = { version = "0.23.0", features = ["logger"] }
-uefi-services = "0.20.0"
+uefi-services = "0.21.0"
 common = { path = "../libs/common/" }
 x86_64 = "0.14.8"
 elf_rs = "0.1.3"
