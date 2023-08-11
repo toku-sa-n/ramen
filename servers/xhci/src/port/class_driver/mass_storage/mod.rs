@@ -158,7 +158,7 @@ impl MassStorage {
         self.receive_command_status().await
     }
 
-    async fn send_command_block_wrapper(&mut self, c: &mut PageBox<CommandBlockWrapper>) {
+    async fn send_command_block_wrapper(&mut self, c: &PageBox<CommandBlockWrapper>) {
         self.ep
             .issue_normal_trb(c, EndpointType::BulkOut)
             .await
