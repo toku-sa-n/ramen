@@ -75,7 +75,7 @@ impl MassStorage {
             .build()
             .expect("Failed to build an inquiry command block wrapper.");
         let data = command_data_block::Inquiry::new(LEN);
-        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
+        let wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
 
         let (response, status): (PageBox<Inquiry>, _) = self.send_scsi_command(&wrapper).await;
 
@@ -92,7 +92,7 @@ impl MassStorage {
             .build()
             .expect("Failed to build a read capacity command block wrapper");
         let data = command_data_block::ReadCapacity::default();
-        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
+        let wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
 
         let (response, status): (PageBox<ReadCapacity10>, _) =
             self.send_scsi_command(&wrapper).await;
@@ -110,7 +110,7 @@ impl MassStorage {
             .build()
             .expect("Failed to build a read 10 command block wrapper.");
         let data = command_data_block::Read10::new(0, 64);
-        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
+        let wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
 
         let (response, status): (PageBox<Read10>, _) = self.send_scsi_command(&wrapper).await;
 
@@ -127,7 +127,7 @@ impl MassStorage {
             .build()
             .expect("Failed to build a write 10 command block wrapper.");
         let data = command_data_block::Write10::new(0, 64);
-        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
+        let wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
 
         let content = PageBox::from(0x334_usize);
 
