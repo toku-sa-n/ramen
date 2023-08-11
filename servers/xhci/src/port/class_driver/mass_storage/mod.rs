@@ -77,7 +77,7 @@ impl MassStorage {
         let data = command_data_block::Inquiry::new(LEN);
         let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
 
-        let (response, status): (PageBox<Inquiry>, _) = self.send_scsi_command(&mut wrapper).await;
+        let (response, status): (PageBox<Inquiry>, _) = self.send_scsi_command(&wrapper).await;
 
         status.check_corruption();
         *response
@@ -95,7 +95,7 @@ impl MassStorage {
         let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
 
         let (response, status): (PageBox<ReadCapacity10>, _) =
-            self.send_scsi_command(&mut wrapper).await;
+            self.send_scsi_command(&wrapper).await;
 
         status.check_corruption();
         *response
@@ -112,7 +112,7 @@ impl MassStorage {
         let data = command_data_block::Read10::new(0, 64);
         let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
 
-        let (response, status): (PageBox<Read10>, _) = self.send_scsi_command(&mut wrapper).await;
+        let (response, status): (PageBox<Read10>, _) = self.send_scsi_command(&wrapper).await;
 
         status.check_corruption();
         response
@@ -131,7 +131,7 @@ impl MassStorage {
 
         let content = PageBox::from(0x334_usize);
 
-        let status = self.send_scsi_command_for_out(&mut wrapper, &content).await;
+        let status = self.send_scsi_command_for_out(&wrapper, &content).await;
         status.check_corruption();
     }
 
