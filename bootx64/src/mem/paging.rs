@@ -27,7 +27,7 @@ impl<'a> AllocatorWithEfiMemoryMap<'a> {
 
 unsafe impl FrameAllocator<Size4KiB> for AllocatorWithEfiMemoryMap<'_> {
     fn allocate_frame(&mut self) -> Option<PhysFrame> {
-        for descriptor in self.mem_map.iter_mut() {
+        for descriptor in &mut *self.mem_map {
             if descriptor.num_pages.as_usize() > 0 {
                 let addr = descriptor.start;
                 descriptor.start += Size4KiB::SIZE;

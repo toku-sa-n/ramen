@@ -31,7 +31,7 @@ pub(crate) fn init() {
 pub fn _print(args: fmt::Arguments<'_>) {
     let s = args.to_string();
 
-    unsafe { syscalls::write(1, s.as_ptr().cast(), s.len().try_into().unwrap()) };
+    let _ = unsafe { syscalls::write(1, s.as_ptr().cast(), s.len().try_into().unwrap()) };
 }
 
 static LOGGER: Logger = Logger;

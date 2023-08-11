@@ -37,7 +37,7 @@ impl Info {
     pub fn bytes(&self) -> Bytes {
         Bytes::new(
             usize::try_from(self.resolution.x * self.resolution.y * self.bpp / 8)
-                .expect("The bytes of VRAM must not be negative"),
+                .unwrap_or_else(|_| unreachable!("`usize` should be same as `u32`")),
         )
     }
 }

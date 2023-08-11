@@ -75,9 +75,9 @@ impl MassStorage {
             .build()
             .expect("Failed to build an inquiry command block wrapper.");
         let data = command_data_block::Inquiry::new(LEN);
-        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
+        let wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
 
-        let (response, status): (PageBox<Inquiry>, _) = self.send_scsi_command(&mut wrapper).await;
+        let (response, status): (PageBox<Inquiry>, _) = self.send_scsi_command(&wrapper).await;
 
         status.check_corruption();
         *response
@@ -92,10 +92,10 @@ impl MassStorage {
             .build()
             .expect("Failed to build a read capacity command block wrapper");
         let data = command_data_block::ReadCapacity::default();
-        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
+        let wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
 
         let (response, status): (PageBox<ReadCapacity10>, _) =
-            self.send_scsi_command(&mut wrapper).await;
+            self.send_scsi_command(&wrapper).await;
 
         status.check_corruption();
         *response
@@ -110,9 +110,9 @@ impl MassStorage {
             .build()
             .expect("Failed to build a read 10 command block wrapper.");
         let data = command_data_block::Read10::new(0, 64);
-        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
+        let wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
 
-        let (response, status): (PageBox<Read10>, _) = self.send_scsi_command(&mut wrapper).await;
+        let (response, status): (PageBox<Read10>, _) = self.send_scsi_command(&wrapper).await;
 
         status.check_corruption();
         response
@@ -127,17 +127,17 @@ impl MassStorage {
             .build()
             .expect("Failed to build a write 10 command block wrapper.");
         let data = command_data_block::Write10::new(0, 64);
-        let mut wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
+        let wrapper = PageBox::from(CommandBlockWrapper::new(header, data.into()));
 
         let content = PageBox::from(0x334_usize);
 
-        let status = self.send_scsi_command_for_out(&mut wrapper, &content).await;
+        let status = self.send_scsi_command_for_out(&wrapper, &content).await;
         status.check_corruption();
     }
 
     async fn send_scsi_command<T>(
         &mut self,
-        c: &mut PageBox<CommandBlockWrapper>,
+        c: &PageBox<CommandBlockWrapper>,
     ) -> (PageBox<T>, PageBox<CommandStatusWrapper>)
     where
         T: Default,
@@ -150,7 +150,7 @@ impl MassStorage {
 
     async fn send_scsi_command_for_out(
         &mut self,
-        c: &mut PageBox<CommandBlockWrapper>,
+        c: &PageBox<CommandBlockWrapper>,
         d: &PageBox<impl ?Sized>,
     ) -> PageBox<CommandStatusWrapper> {
         self.send_command_block_wrapper(c).await;
@@ -158,7 +158,7 @@ impl MassStorage {
         self.receive_command_status().await
     }
 
-    async fn send_command_block_wrapper(&mut self, c: &mut PageBox<CommandBlockWrapper>) {
+    async fn send_command_block_wrapper(&mut self, c: &PageBox<CommandBlockWrapper>) {
         self.ep
             .issue_normal_trb(c, EndpointType::BulkOut)
             .await
