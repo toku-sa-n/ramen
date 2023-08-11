@@ -137,7 +137,7 @@ impl MassStorage {
 
     async fn send_scsi_command<T>(
         &mut self,
-        c: &mut PageBox<CommandBlockWrapper>,
+        c: &PageBox<CommandBlockWrapper>,
     ) -> (PageBox<T>, PageBox<CommandStatusWrapper>)
     where
         T: Default,
@@ -150,7 +150,7 @@ impl MassStorage {
 
     async fn send_scsi_command_for_out(
         &mut self,
-        c: &mut PageBox<CommandBlockWrapper>,
+        c: &PageBox<CommandBlockWrapper>,
         d: &PageBox<impl ?Sized>,
     ) -> PageBox<CommandStatusWrapper> {
         self.send_command_block_wrapper(c).await;
