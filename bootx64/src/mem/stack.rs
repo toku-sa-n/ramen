@@ -9,6 +9,9 @@ use {
     x86_64::PhysAddr,
 };
 
+/// # Panics
+///
+/// This function panics if the allocation fails.
 #[must_use]
 pub fn allocate(bs: &boot::BootServices) -> PhysAddr {
     PhysAddr::new(
