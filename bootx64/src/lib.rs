@@ -5,6 +5,7 @@
 #![deny(clippy::pedantic)]
 #![deny(clippy::all)]
 
+pub mod edid;
 pub mod exit;
 pub mod fs;
 pub mod gop;

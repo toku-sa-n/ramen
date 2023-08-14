@@ -1,25 +1,44 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use uefi::table::boot::ScopedProtocol;
-
 use {
+    crate::edid,
     boot_info::vram,
-    core::mem::MaybeUninit,
     log::info,
     uefi::{
         proto::console::{gop, gop::PixelFormat},
-        table::boot,
+        table::{boot, boot::ScopedProtocol},
     },
     vek::Vec2,
     x86_64::PhysAddr,
 };
 
+fn stop() {
+    loop {
+        unsafe { core::arch::asm!("mov rax, 0x55aa55aa;cli;hlt") }
+    }
+}
+
 #[must_use]
 pub fn init(boot_services: &boot::BootServices) -> vram::Info {
+    let preferred_resolution = get_preferred_resolution(boot_services);
     let mut gop = fetch_gop(boot_services);
-    set_resolution(&mut gop);
+
+    set_resolution(&mut gop, preferred_resolution);
 
     gop_to_boot_info(&mut gop)
+}
+
+fn get_preferred_resolution(bs: &boot::BootServices) -> (u32, u32) {
+    let handle = bs
+        .get_handle_for_protocol::<edid::DiscoveredProtocol>()
+        .unwrap_or_else(|_| todo!());
+    stop();
+
+    let edid: ScopedProtocol<'_, edid::DiscoveredProtocol> = bs
+        .open_protocol_exclusive(handle)
+        .unwrap_or_else(|_| todo!());
+
+    edid.preferred_resolution().unwrap_or_else(|| todo!())
 }
 
 fn fetch_gop(boot_services: &boot::BootServices) -> ScopedProtocol<'_, gop::GraphicsOutput> {
@@ -32,8 +51,9 @@ fn fetch_gop(boot_services: &boot::BootServices) -> ScopedProtocol<'_, gop::Grap
         .expect("Failed to open GOP protocol!")
 }
 
-fn set_resolution(gop: &mut gop::GraphicsOutput) {
-    let (width, height, mode) = get_the_maximum_resolution_and_mode(gop);
+fn set_resolution(gop: &mut gop::GraphicsOutput, preferred_resolution: (u32, u32)) {
+    let (width, height) = preferred_resolution;
+    let mode = get_mode_for_preferred_resolution(gop, preferred_resolution);
 
     gop.set_mode(&mode).expect("Failed to set resolution.");
 
@@ -50,23 +70,23 @@ fn gop_to_boot_info(gop: &mut gop::GraphicsOutput) -> vram::Info {
     )
 }
 
-fn get_the_maximum_resolution_and_mode(gop: &gop::GraphicsOutput) -> (usize, usize, gop::Mode) {
-    let mut max_height = 0;
-    let mut max_width = 0;
-    let mut preferred_mode = MaybeUninit::<gop::Mode>::uninit();
+fn get_mode_for_preferred_resolution(
+    gop: &gop::GraphicsOutput,
+    preferred_resolution: (u32, u32),
+) -> gop::Mode {
+    let (preferred_width, preferred_height) = preferred_resolution;
 
     for mode in gop.modes() {
         let (width, height) = mode.info().resolution();
-        if height > max_height && width > max_width && is_usable_gop_mode(mode.info()) {
-            max_height = height;
-            max_width = width;
-            unsafe { preferred_mode.as_mut_ptr().write(mode) }
+        if height == preferred_height.try_into().unwrap_or_else(|_| todo!())
+            && width == preferred_width.try_into().unwrap_or_else(|_| todo!())
+            && is_usable_gop_mode(mode.info())
+        {
+            return mode;
         }
     }
 
-    (max_height, max_width, unsafe {
-        preferred_mode.assume_init()
-    })
+    todo!()
 }
 
 fn is_usable_gop_mode(mode: &gop::ModeInfo) -> bool {
