@@ -2,8 +2,6 @@
 
 use {
     boot_info::vram,
-    core::mem::MaybeUninit,
-    log::info,
     uefi::{
         proto::console::{gop, gop::PixelFormat},
         table::{boot, boot::ScopedProtocol},
