@@ -11,22 +11,22 @@ test = false
 bench = false
 
 [dependencies]
-accessor = "0.3.0"
-bit_field = "0.10.1"
+accessor = "0.3.3"
+bit_field = "0.10.2"
 byteorder = { version = "1.4.3", default-features = false }
 conquer-once = { version = "0.4.0", default-features = false }
 crossbeam-queue = { version = "0.3.8", features = ["alloc"], default-features = false }
 derive_builder = { version = "0.12.0", default-features = false }
 futures-intrusive = { version = "0.5.0", features = ["alloc"], default-features = false }
 futures-util = { version = "0.3.28", features = ["alloc"], default-features = false }
-log = "0.4.19"
+log = "0.4.20"
 num-derive = "0.3.3"
-num-traits = { version = "0.2.14", default-features = false }
+num-traits = { version = "0.2.16", default-features = false }
 os_units = "0.4.2"
 page_box = { path = "../../libs/page_box" }
 raheap = { path = "../../libs/raheap" }
 ralib = { path = "../../libs/ralib" }
-spinning_top = { version = "0.2.4", features = ["nightly"] }
+spinning_top = { version = "0.2.5", features = ["nightly"] }
 syscalls = { path = "../../libs/syscalls" }
-x86_64 = { version = "0.14.8", default-features = false }
-xhci = "0.8.2"
+x86_64 = { version = "0.14.10", default-features = false }
+xhci = "0.8.7"

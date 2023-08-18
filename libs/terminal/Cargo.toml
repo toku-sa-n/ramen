@@ -6,12 +6,12 @@ edition = "2021"
 license = "GPL-3.0-or-later"
 
 [dependencies]
-bit_field = "0.10.1"
+bit_field = "0.10.2"
 boot_info = { path = "../boot_info" }
 conquer-once = { version = "0.4.0", default-features = false }
 font8x8 = { version = "0.3.1", features = ["unicode"], default-features = false }
-log = "0.4.19"
+log = "0.4.20"
 predefined_mmap = { path = "../predefined_mmap" }
-rgb = "0.8.31"
-spinning_top = { version = "0.2.4", features = ["nightly"] }
-vek = { version = "0.15.6", default-features = false, features = ["libm"] }
+rgb = "0.8.36"
+spinning_top = { version = "0.2.5", features = ["nightly"] }
+vek = { version = "0.15.10", default-features = false, features = ["libm"] }
