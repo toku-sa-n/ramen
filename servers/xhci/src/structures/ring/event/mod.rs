@@ -193,7 +193,7 @@ impl Raw {
                 .erdp
                 .update_volatile(|r| {
                     r.set_event_ring_dequeue_pointer(self.next_trb_addr().as_u64())
-                })
+                });
         });
     }
 
@@ -234,7 +234,7 @@ impl<'a> SegTblInitializer<'a> {
             r.interrupter_register_set
                 .interrupter_mut(0)
                 .erstsz
-                .update_volatile(|r| r.set(l.try_into().unwrap()))
+                .update_volatile(|r| r.set(l.try_into().unwrap()));
         });
     }
 
@@ -244,7 +244,7 @@ impl<'a> SegTblInitializer<'a> {
             r.interrupter_register_set
                 .interrupter_mut(0)
                 .erstba
-                .update_volatile(|r| r.set(a.as_u64()))
+                .update_volatile(|r| r.set(a.as_u64()));
         });
     }
 
