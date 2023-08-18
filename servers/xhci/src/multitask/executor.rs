@@ -53,7 +53,7 @@ impl Executor {
 
         let mut context = self.generate_waker(id);
         match task.poll(&mut context) {
-            Poll::Ready(_) => {
+            Poll::Ready(()) => {
                 task::COLLECTION.lock().remove_task(id);
                 self.waker_collection.remove(&id);
             }
