@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use uefi::table::boot::ScopedProtocol;
-
 use {
     boot_info::vram,
     core::mem::MaybeUninit,
     log::info,
     uefi::{
         proto::console::{gop, gop::PixelFormat},
-        table::boot,
+        table::{boot, boot::ScopedProtocol},
     },
     vek::Vec2,
     x86_64::PhysAddr,
