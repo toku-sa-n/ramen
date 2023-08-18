@@ -18,14 +18,14 @@ bench = false
 [dependencies]
 conquer-once = { version = "0.4.0", default-features = false }
 x86_64 = { version = "0.14.10", default-features = false }
-linked_list_allocator = "0.9.1"
+linked_list_allocator = "0.10.5"
 log = "0.4.20"
-vek = { version = "0.15.10", default-features = false, features = ["libm"] }
+vek = { version = "0.16.1", default-features = false, features = ["libm"] }
 rgb = "0.8.36"
 os_units = "0.4.2"
 bit_field = "0.10.2"
 num-traits = { version = "0.2.16", default-features = false }
-num-derive = "0.3.3"
+num-derive = "0.4.0"
 acpi = "4.1.1"
 syscalls = { path = "../libs/syscalls" }
 terminal = { path = "../libs/terminal" }
@@ -33,12 +33,12 @@ accessor = "0.3.3"
 message = { path = "../libs/message" }
 frame_manager = { path = "../libs/frame_manager" }
 cstr_core = "0.2.6"
-uart_16550 = "0.2.19"
+uart_16550 = "0.3.0"
 spinning_top = { version = "0.2.5", features = ["nightly"] }
 predefined_mmap = { path = "../libs/predefined_mmap" }
 boot_info = { path = "../libs/boot_info" }
 qemu-exit = "3.0.2"
-elfloader = "0.14.0"
+elfloader = "0.16.0"
 aligned_ptr = "0.1.0"
 static_assertions = "1.1.0"
 array-init = "2.1.0"

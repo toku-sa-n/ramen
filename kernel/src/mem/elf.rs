@@ -1,3 +1,5 @@
+use elfloader::RelocationEntry;
+
 use {
     super::paging,
     aligned_ptr::ptr,
@@ -103,7 +105,7 @@ impl ElfLoader for Loader {
         Ok(())
     }
 
-    fn relocate(&mut self, _: &Rela<P64>) -> Result<(), ElfLoaderErr> {
+    fn relocate(&mut self, _: RelocationEntry) -> Result<(), ElfLoaderErr> {
         todo!()
     }
 }
