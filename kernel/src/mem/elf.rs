@@ -3,9 +3,7 @@ use elfloader::RelocationEntry;
 use {
     super::paging,
     aligned_ptr::ptr,
-    elfloader::{
-        ElfBinary, ElfLoader, ElfLoaderErr, Flags, LoadableHeaders, ProgramHeader, Rela, VAddr, P64,
-    },
+    elfloader::{ElfBinary, ElfLoader, ElfLoaderErr, Flags, LoadableHeaders, ProgramHeader, VAddr},
     x86_64::{
         structures::paging::{
             mapper::{FlagUpdateError, MapToError},
