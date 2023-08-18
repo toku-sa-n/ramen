@@ -192,7 +192,7 @@ impl Raw {
                 .interrupter_mut(0)
                 .erdp
                 .update_volatile(|r| {
-                    r.set_event_ring_dequeue_pointer(self.next_trb_addr().as_u64())
+                    r.set_event_ring_dequeue_pointer(self.next_trb_addr().as_u64());
                 });
         });
     }
