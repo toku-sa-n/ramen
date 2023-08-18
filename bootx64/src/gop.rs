@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use uefi::table::boot::ScopedProtocol;
-
 use {
     boot_info::vram,
-    core::mem::MaybeUninit,
-    log::info,
     uefi::{
         proto::console::{gop, gop::PixelFormat},
-        table::boot,
+        table::{boot, boot::ScopedProtocol},
     },
     vek::Vec2,
     x86_64::PhysAddr,
 };
+
+// Not too big, not too small, just a good resolution.
+const RESOLUTION: Vec2<usize> = Vec2::new(800, 600);
 
 #[must_use]
 pub fn init(boot_services: &boot::BootServices) -> vram::Info {
@@ -33,15 +32,15 @@ fn fetch_gop(boot_services: &boot::BootServices) -> ScopedProtocol<'_, gop::Grap
 }
 
 fn set_resolution(gop: &mut gop::GraphicsOutput) {
-    let (width, height, mode) = get_the_maximum_resolution_and_mode(gop);
+    let mode = get_mode(gop);
 
     gop.set_mode(&mode).expect("Failed to set resolution.");
-
-    info!("width: {} height: {}", width, height);
 }
 
 fn gop_to_boot_info(gop: &mut gop::GraphicsOutput) -> vram::Info {
     let resolution: Vec2<usize> = gop.current_mode_info().resolution().into();
+
+    assert_eq!(resolution, RESOLUTION);
 
     vram::Info::new(
         32,
@@ -50,23 +49,15 @@ fn gop_to_boot_info(gop: &mut gop::GraphicsOutput) -> vram::Info {
     )
 }
 
-fn get_the_maximum_resolution_and_mode(gop: &gop::GraphicsOutput) -> (usize, usize, gop::Mode) {
-    let mut max_height = 0;
-    let mut max_width = 0;
-    let mut preferred_mode = MaybeUninit::<gop::Mode>::uninit();
-
+fn get_mode(gop: &gop::GraphicsOutput) -> gop::Mode {
     for mode in gop.modes() {
         let (width, height) = mode.info().resolution();
-        if height > max_height && width > max_width && is_usable_gop_mode(mode.info()) {
-            max_height = height;
-            max_width = width;
-            unsafe { preferred_mode.as_mut_ptr().write(mode) }
+        if width == RESOLUTION.x && height == RESOLUTION.y && is_usable_gop_mode(mode.info()) {
+            return mode;
         }
     }
 
-    (max_height, max_width, unsafe {
-        preferred_mode.assume_init()
-    })
+    todo!()
 }
 
 fn is_usable_gop_mode(mode: &gop::ModeInfo) -> bool {
