@@ -23,7 +23,7 @@ macro_rules! println{
 }
 
 pub(crate) fn init() {
-    let r = log::set_logger(&LOGGER).map(|_| log::set_max_level(log::LevelFilter::Info));
+    let r = log::set_logger(&LOGGER).map(|()| log::set_max_level(log::LevelFilter::Info));
     r.expect("Failed to initialize logger.");
 }
 
