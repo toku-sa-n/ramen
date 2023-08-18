@@ -22,5 +22,5 @@ pub(crate) fn init() {
     let e: *const usize = unsafe { &HEAP_END };
     let e = e as usize;
 
-    unsafe { ALLOCATOR.lock().init(s, e - s) }
+    unsafe { ALLOCATOR.lock().init(s as *mut u8, e - s) }
 }

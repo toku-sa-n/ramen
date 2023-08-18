@@ -1,9 +1,9 @@
+use elfloader::RelocationEntry;
+
 use {
     super::paging,
     aligned_ptr::ptr,
-    elfloader::{
-        ElfBinary, ElfLoader, ElfLoaderErr, Flags, LoadableHeaders, ProgramHeader, Rela, VAddr, P64,
-    },
+    elfloader::{ElfBinary, ElfLoader, ElfLoaderErr, Flags, LoadableHeaders, ProgramHeader, VAddr},
     x86_64::{
         structures::paging::{
             mapper::{FlagUpdateError, MapToError},
@@ -103,7 +103,7 @@ impl ElfLoader for Loader {
         Ok(())
     }
 
-    fn relocate(&mut self, _: &Rela<P64>) -> Result<(), ElfLoaderErr> {
+    fn relocate(&mut self, _: RelocationEntry) -> Result<(), ElfLoaderErr> {
         todo!()
     }
 }

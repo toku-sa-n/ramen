@@ -188,11 +188,12 @@ impl Raw {
         registers::handle(|r| {
             let _ = &self;
 
-            r.interrupt_register_set.update_volatile_at(0, |r| {
-                let _ = &self;
-                r.erdp
-                    .set_event_ring_dequeue_pointer(self.next_trb_addr().as_u64());
-            });
+            r.interrupter_register_set
+                .interrupter_mut(0)
+                .erdp
+                .update_volatile(|r| {
+                    r.set_event_ring_dequeue_pointer(self.next_trb_addr().as_u64());
+                });
         });
     }
 
@@ -230,16 +231,20 @@ impl<'a> SegTblInitializer<'a> {
         registers::handle(|r| {
             let l = self.tbl_len();
 
-            r.interrupt_register_set
-                .update_volatile_at(0, |r| r.erstsz.set(l.try_into().unwrap()));
+            r.interrupter_register_set
+                .interrupter_mut(0)
+                .erstsz
+                .update_volatile(|r| r.set(l.try_into().unwrap()));
         });
     }
 
     fn enable_event_ring(&mut self) {
         registers::handle(|r| {
             let a = self.tbl_addr();
-            r.interrupt_register_set
-                .update_volatile_at(0, |r| r.erstba.set(a.as_u64()));
+            r.interrupter_register_set
+                .interrupter_mut(0)
+                .erstba
+                .update_volatile(|r| r.set(a.as_u64()));
         });
     }
 
