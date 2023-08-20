@@ -25,7 +25,6 @@ use {
 };
 
 #[entry]
-#[no_mangle]
 pub fn efi_main(image: Handle, mut system_table: SystemTable<Boot>) -> uefi::Status {
     bootx64::init(&mut system_table);
 
