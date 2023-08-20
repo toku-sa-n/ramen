@@ -25,7 +25,7 @@ pub fn init(boot_info: &boot_info::Info) {
 
 pub fn print_info() {
     let r = resolution();
-    info!("{}bpp Resolution: {}x{}", bpp(), r.y, r.y);
+    info!("{}bpp Resolution: {}x{}", bpp(), r.x, r.y);
 }
 
 pub(super) fn scroll_up() {
