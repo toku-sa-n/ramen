@@ -44,4 +44,4 @@ static_assertions = "1.1.0"
 array-init = "2.1.0"
 
 [build-dependencies]
-cc = "1.0.82"
+cc = "1.0.83"
