@@ -346,7 +346,7 @@ dependencies = [
  "linked_list_allocator",
  "log",
  "message",
- "num-derive 0.4.0",
+ "num-derive 0.4.1",
  "num-traits",
  "os_units",
  "predefined_mmap",
@@ -421,9 +421,9 @@ dependencies = [
 
 [[package]]
 name = "num-derive"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e6a0fd4f737c707bd9086cc16c925f294943eb62eb71499e9fd4cf71f8b9f4e"
+checksum = "cfb77679af88f8b125209d354a202862602672222e7f2313fdd6dc349bad4712"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -663,7 +663,7 @@ name = "syscalls"
 version = "0.1.0"
 dependencies = [
  "message",
- "num-derive 0.4.0",
+ "num-derive 0.4.1",
  "num-traits",
  "os_units",
  "x86_64",
@@ -818,7 +818,7 @@ dependencies = [
  "futures-intrusive",
  "futures-util",
  "log",
- "num-derive 0.4.0",
+ "num-derive 0.4.1",
  "num-traits",
  "os_units",
  "page_box",

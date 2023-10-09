@@ -7,7 +7,7 @@ license = "GPL-3.0-or-later"
 
 [dependencies]
 message = { path = "../message" }
-num-derive = "0.4.0"
+num-derive = "0.4.1"
 num-traits = { version = "0.2.16", default-features = false }
 os_units = "0.4.2"
 x86_64 = { version = "0.14.10", default-features = false }
