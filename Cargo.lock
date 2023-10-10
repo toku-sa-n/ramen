@@ -84,7 +84,7 @@ dependencies = [
  "os_units",
  "predefined_mmap",
  "static_assertions",
- "uefi",
+ "uefi 0.25.0",
  "uefi-services",
  "vek",
  "x86_64",
@@ -715,7 +715,22 @@ dependencies = [
  "ptr_meta",
  "ucs2",
  "uefi-macros",
- "uefi-raw",
+ "uefi-raw 0.3.0",
+ "uguid",
+]
+
+[[package]]
+name = "uefi"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1cb8f384905087f56c2fdf90bb7d94d24c600775b9f40424a4b80882ba399d47"
+dependencies = [
+ "bitflags 2.4.0",
+ "log",
+ "ptr_meta",
+ "ucs2",
+ "uefi-macros",
+ "uefi-raw 0.4.0",
  "uguid",
 ]
 
@@ -742,6 +757,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "uefi-raw"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8bbf45ee102da89ef37674dd5186cd766418338457e660e7a3a1bad64d122abf"
+dependencies = [
+ "bitflags 2.4.0",
+ "ptr_meta",
+ "uguid",
+]
+
+[[package]]
 name = "uefi-services"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -749,14 +775,14 @@ checksum = "44b32954ebbb4be5ebfde0df6699c2091f04e9f9c3762c65f3435dfb1a90a668"
 dependencies = [
  "cfg-if",
  "log",
- "uefi",
+ "uefi 0.24.0",
 ]
 
 [[package]]
 name = "uguid"
-version = "2.0.0"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "594cc87e268a7b43d625d46c63cf1605d0e61bf66e4b1cd58c058ec0191e1f81"
+checksum = "1ef516f0806c5f61da6aa95125d0eb2d91cc95b2df426c06bde8be657282aee5"
 
 [[package]]
 name = "unicode-ident"
