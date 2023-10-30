@@ -12,6 +12,6 @@ conquer-once = { version = "0.4.0", default-features = false }
 font8x8 = { version = "0.3.1", features = ["unicode"], default-features = false }
 log = "0.4.20"
 predefined_mmap = { path = "../predefined_mmap" }
-rgb = "0.8.36"
+rgb = "0.8.37"
 spinning_top = { version = "0.2.5", features = ["nightly"] }
 vek = { version = "0.16.1", default-features = false, features = ["libm"] }

@@ -21,7 +21,7 @@ x86_64 = { version = "0.14.10", default-features = false }
 linked_list_allocator = "0.10.5"
 log = "0.4.20"
 vek = { version = "0.16.1", default-features = false, features = ["libm"] }
-rgb = "0.8.36"
+rgb = "0.8.37"
 os_units = "0.4.2"
 bit_field = "0.10.2"
 num-traits = { version = "0.2.16", default-features = false }
