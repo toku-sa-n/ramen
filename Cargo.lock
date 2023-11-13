@@ -84,7 +84,7 @@ dependencies = [
  "os_units",
  "predefined_mmap",
  "static_assertions",
- "uefi",
+ "uefi 0.26.0",
  "uefi-services",
  "vek",
  "x86_64",
@@ -714,8 +714,23 @@ dependencies = [
  "log",
  "ptr_meta",
  "ucs2",
- "uefi-macros",
- "uefi-raw",
+ "uefi-macros 0.12.0",
+ "uefi-raw 0.3.0",
+ "uguid",
+]
+
+[[package]]
+name = "uefi"
+version = "0.26.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "07ead9f748a4646479b850add36b527113a80e80a7e0f44d7b0334291850dcc5"
+dependencies = [
+ "bitflags 2.4.0",
+ "log",
+ "ptr_meta",
+ "ucs2",
+ "uefi-macros 0.13.0",
+ "uefi-raw 0.5.0",
  "uguid",
 ]
 
@@ -724,6 +739,17 @@ name = "uefi-macros"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "023d94ef8e135d068b9a3bd94614ef2610b2b0419ade0a9d8f3501fa9cd08e95"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.29",
+]
+
+[[package]]
+name = "uefi-macros"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26a7b1c2c808c3db854a54d5215e3f7e7aaf5dcfbce095598cba6af29895695d"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -742,6 +768,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "uefi-raw"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "864ac69eadd877bfb34e7814be1928122ed0057d9f975169a56ee496aa7bdfd7"
+dependencies = [
+ "bitflags 2.4.0",
+ "ptr_meta",
+ "uguid",
+]
+
+[[package]]
 name = "uefi-services"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -749,14 +786,14 @@ checksum = "44b32954ebbb4be5ebfde0df6699c2091f04e9f9c3762c65f3435dfb1a90a668"
 dependencies = [
  "cfg-if",
  "log",
- "uefi",
+ "uefi 0.24.0",
 ]
 
 [[package]]
 name = "uguid"
-version = "2.0.0"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "594cc87e268a7b43d625d46c63cf1605d0e61bf66e4b1cd58c058ec0191e1f81"
+checksum = "1ef516f0806c5f61da6aa95125d0eb2d91cc95b2df426c06bde8be657282aee5"
 
 [[package]]
 name = "unicode-ident"
