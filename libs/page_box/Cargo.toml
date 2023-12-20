@@ -8,4 +8,4 @@ license = "GPL-3.0-or-later"
 [dependencies]
 os_units = "0.4.2"
 syscalls = { path = "../syscalls" }
-x86_64 = { version = "0.14.10", default-features = false }
+x86_64 = { version = "0.14.11", default-features = false }

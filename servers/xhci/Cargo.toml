@@ -28,5 +28,5 @@ raheap = { path = "../../libs/raheap" }
 ralib = { path = "../../libs/ralib" }
 spinning_top = { version = "0.2.5", features = ["nightly"] }
 syscalls = { path = "../../libs/syscalls" }
-x86_64 = { version = "0.14.10", default-features = false }
+x86_64 = { version = "0.14.11", default-features = false }
 xhci = "0.9.2"
