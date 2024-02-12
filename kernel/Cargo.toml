@@ -17,7 +17,7 @@ bench = false
 
 [dependencies]
 conquer-once = { version = "0.4.0", default-features = false }
-x86_64 = { version = "0.14.10", default-features = false }
+x86_64 = { version = "0.14.12", default-features = false }
 linked_list_allocator = "0.10.5"
 log = "0.4.20"
 vek = { version = "0.16.1", default-features = false, features = ["libm"] }
